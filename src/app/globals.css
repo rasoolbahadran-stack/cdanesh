@@ -1,0 +1,252 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-vazir);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+  --color-brand-violet: var(--brand-violet);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+}
+
+:root {
+  --radius: 0.75rem;
+
+  /* هویت برند کافه‌دانش — پالت تأییدشده (بنفش + مشکی + طلایی) */
+  --brand: #e3b953;
+  --brand-dark: #c99a37;
+  --brand-violet: #2e2455;
+  --success: #58c98b;
+  --warning: #e8c268;
+
+  /* نگاشت متغیرهای shadcn به پالت تأییدشده برای یکدستی پنل */
+  --background: #2e2455;
+  --foreground: #f4f3ef;
+  --card: #101016;
+  --card-foreground: #f4f3ef;
+  --popover: #17171f;
+  --popover-foreground: #f4f3ef;
+  --primary: #e3b953;
+  --primary-foreground: #221903;
+  --secondary: #17171f;
+  --secondary-foreground: #f4f3ef;
+  --muted: #17171f;
+  --muted-foreground: #b3b1b9;
+  --accent: #17171f;
+  --accent-foreground: #f4f3ef;
+  --destructive: #e5766a;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.12);
+  --ring: #e3b953;
+  --chart-1: #e3b953;
+  --chart-2: #7c4dff;
+  --chart-3: #58c98b;
+  --chart-4: #e8c268;
+  --chart-5: #b3b1b9;
+  --sidebar: #101016;
+  --sidebar-foreground: #f4f3ef;
+  --sidebar-primary: #e3b953;
+  --sidebar-primary-foreground: #221903;
+  --sidebar-accent: #17171f;
+  --sidebar-accent-foreground: #f4f3ef;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #e3b953;
+}
+
+.dark {
+  --background: oklch(0.208 0.042 265.755);
+  --foreground: oklch(0.984 0.003 247.858);
+  --card: oklch(0.279 0.041 260.031);
+  --card-foreground: oklch(0.984 0.003 247.858);
+  --popover: oklch(0.279 0.041 260.031);
+  --popover-foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.623 0.214 259.815);
+  --primary-foreground: #ffffff;
+  --secondary: oklch(0.372 0.044 257.287);
+  --secondary-foreground: oklch(0.984 0.003 247.858);
+  --muted: oklch(0.279 0.041 260.031);
+  --muted-foreground: oklch(0.704 0.04 256.788);
+  --accent: oklch(0.372 0.044 257.287);
+  --accent-foreground: oklch(0.984 0.003 247.858);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.623 0.214 259.815);
+  --sidebar: oklch(0.208 0.042 265.755);
+  --sidebar-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-primary: oklch(0.623 0.214 259.815);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: oklch(0.279 0.041 260.031);
+  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: oklch(0.623 0.214 259.815);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    scroll-behavior: smooth;
+    overflow-x: clip;
+  }
+  body {
+    font-feature-settings: "ss02";
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--brand) 18%, transparent);
+  }
+}
+
+/* ─── اجزای مشترک برند ─────────────────────────────────────────── */
+
+.brand-gradient {
+  background-image: linear-gradient(135deg, var(--brand) 0%, var(--brand-violet) 100%);
+}
+
+.brand-gradient-text {
+  background-image: linear-gradient(135deg, var(--brand) 0%, var(--brand-violet) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.section-container {
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+}
+
+.card-hover {
+  @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-900/8;
+}
+
+.focus-ring {
+  @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring;
+}
+
+/* ─── اسکرول‌بار سفارشی ────────────────────────────────────────── */
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(203 213 225) transparent;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgb(203 213 225);
+  border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgb(148 163 184);
+}
+
+/* ─── محتوای مقاله (تایپوگرافی) ────────────────────────────────── */
+
+.article-content {
+  line-height: 2;
+  font-size: 1.0625rem;
+}
+.article-content h2 {
+  @apply mt-10 mb-4 text-2xl font-bold text-slate-900;
+  scroll-margin-top: 6rem;
+}
+.article-content h3 {
+  @apply mt-8 mb-3 text-xl font-semibold text-slate-900;
+  scroll-margin-top: 6rem;
+}
+.article-content p {
+  @apply mb-5 text-slate-700;
+}
+.article-content ul {
+  @apply mb-5 list-disc space-y-2 ps-6 text-slate-700;
+}
+.article-content ol {
+  @apply mb-5 list-decimal space-y-2 ps-6 text-slate-700;
+}
+.article-content a {
+  @apply font-medium text-brand underline decoration-brand/30 underline-offset-4 hover:decoration-brand;
+}
+.article-content blockquote {
+  @apply my-6 border-s-4 border-brand/40 bg-slate-50 px-5 py-3 text-slate-700;
+}
+.article-content pre {
+  @apply mb-5 overflow-x-auto rounded-xl bg-slate-900 p-4 text-left text-sm text-slate-100;
+  direction: ltr;
+}
+.article-content code {
+  @apply rounded bg-slate-100 px-1.5 py-0.5 text-sm text-brand-dark;
+  direction: ltr;
+  unicode-bidi: embed;
+}
+.article-content pre code {
+  @apply bg-transparent p-0 text-slate-100;
+}
+.article-content img {
+  @apply my-6 rounded-xl;
+}
+.article-content table {
+  @apply my-6 w-full border-collapse text-sm;
+}
+.article-content th,
+.article-content td {
+  @apply border border-slate-200 px-3 py-2 text-start;
+}
+.article-content th {
+  @apply bg-slate-50 font-semibold;
+}
+
+/* ─── حرکت کاهش‌یافته برای کاربران حساس ────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
