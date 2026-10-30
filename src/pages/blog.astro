@@ -1,0 +1,45 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+const title = "مجله کافه‌دانش | مقالات تخصصی طراحی سایت، سئو و هوش مصنوعی";
+const description = "مقالات تخصصی طراحی سایت، سئو، تولید محتوا، سرعت و هوش مصنوعی — به زبان ساده، بدون اغراق و با کاربرد عملی برای کسب‌وکار شما.";
+const canonical = "https://cdanesh.ir/blog";
+---
+
+<SiteLayout title={title} description={description} canonical={canonical}>
+<!-- ═══ هیرو مجله ═══ -->
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="breadcrumb" aria-label="مسیر صفحه">
+      <a href="index.html">خانه</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      <span>مجله</span>
+    </nav>
+    <span class="eyebrow">مجله کافه‌دانش</span>
+    <h1 class="h1">دانش دیجیتال، <span class="gold">به زبان ساده</span></h1>
+    <p class="lead">مقالات تخصصی طراحی سایت، سئو، تولید محتوا و هوش مصنوعی — بدون اغراق و پیچیدگی غیرضروری.</p>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="wrap">
+    <!-- ابزار جست‌وجو و دسته‌بندی (متصل به داده واقعی مقالات) -->
+    <div class="blog-tools">
+      <div class="blog-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input class="control" id="blog-search" type="search" placeholder="جست‌وجو در مقالات…" aria-label="جست‌وجو در مقالات">
+      </div>
+      <div class="blog-cats" role="group" aria-label="دسته‌بندی مقالات">
+        <button type="button" class="active" data-cat="all">همه</button>
+      </div>
+    </div>
+
+    <div class="posts-grid" id="posts-grid" aria-live="polite"></div>
+
+    <div class="blog-empty" id="blog-empty">
+      <p>مقاله‌ای با این مشخصات پیدا نشد؛ عبارت دیگری امتحان کنید یا دسته‌بندی را عوض کنید.</p>
+    </div>
+
+    <nav class="pagination" id="blog-pagination" aria-label="صفحه‌بندی مقالات"></nav>
+  </div>
+</section>
+</SiteLayout>

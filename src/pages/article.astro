@@ -1,0 +1,16 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+const title = "مقالات کافه‌دانش";
+const description = "مقالات تخصصی طراحی سایت، سئو، تولید محتوا و هوش مصنوعی از کافه‌دانش.";
+const canonical = "https://cdanesh.ir/article";
+---
+
+<SiteLayout title={title} description={description} canonical={canonical} mainId="article-root">
+<!-- محتوای مقاله به‌صورت داده‌محور از بانک مقالات رندر می‌شود -->
+  <noscript>
+    <div class="wrap" style="padding:160px 20px 60px; text-align:center">
+      <p>برای مشاهده مقالات، لطفاً جاوااسکریپت مرورگر را فعال کنید.</p>
+      <a class="btn btn-gold" href="blog.html">مشاهده فهرست مقالات</a>
+    </div>
+  </noscript>
+</SiteLayout>

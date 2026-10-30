@@ -1,0 +1,14 @@
+---
+import BareLayout from '../layouts/BareLayout.astro';
+const title = "انتقال به پنل مدیریت | کافه‌دانش";
+const robots = "noindex, nofollow";
+const bodyStyle = "display:flex; align-items:center; justify-content:center; min-height:100vh";
+const HEAD_EXTRA_0 = "location.replace('admin.html');";
+---
+
+<BareLayout title={title} robots={robots} bodyStyle={bodyStyle} schemas={false}>
+  <Fragment slot="head">
+    <script is:inline set:html={HEAD_EXTRA_0}></script>
+  </Fragment>
+<p class="muted">در حال انتقال به <a href="admin.html" style="color:var(--gold)">پنل مدیریت</a>…</p>
+</BareLayout>

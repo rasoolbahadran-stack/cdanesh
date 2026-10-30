@@ -1,0 +1,103 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+const title = "وب‌سایت هلدینگ آرمان | نمونه‌کار کافه‌دانش";
+const description = "نمونه مفهومی وب‌سایت شرکتی هلدینگ آرمان با معرفی خدمات، پروژه‌ها و روند همکاری برای مخاطب B2B.";
+---
+
+<SiteLayout title={title} description={description} schemas={false}>
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="breadcrumb" aria-label="مسیر صفحه">
+      <a href="index.html">خانه</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      <a href="portfolio.html">نمونه‌کارها</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      <span>هلدینگ آرمان</span>
+    </nav>
+    <span class="eyebrow">نمونه‌کار شرکتی</span>
+    <h1 class="h1">حضور <span class="gold">منظم و معتبر</span> برای یک هلدینگ صنعتی</h1>
+    <p class="lead">نمونه‌ای از وب‌سایت شرکتی B2B: معرفی سه شرکت تابعه، پروژه‌های اجراشده و روند همکاری — با ساختاری که مخاطب صنعتی سریع به پاسخ می‌رسد.</p>
+    <div class="page-hero-pills">
+      <span class="chip chip-gold">شرکتی</span>
+      <span class="badge-demo">نمونه مفهومی — پروژه نمایشی</span>
+      <span class="chip">معرفی گروه</span>
+      <span class="chip">پروژه‌ها</span>
+      <span class="chip">استعلام همکاری</span>
+    </div>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="wrap">
+    <div class="pf-card">
+      <div class="pf-head">
+        <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="pf-url">cdanesh.ir/demo/portfolio-arman</span>
+        <span class="pf-url" style="flex:0">با ماوس بکشید یا اسکرول کنید</span>
+      </div>
+      <div class="pf-window custom-scrollbar" role="region" aria-label="پیش‌نمایش کامل هلدینگ آرمان — اسکرول داخل قاب">
+        <img src="assets/img/pf-corporate.webp" alt="نمای کامل صفحه هلدینگ آرمان — نمونه مفهومی" width="1280" height="2541" loading="lazy">
+      </div>
+    </div>
+    <p class="muted small" style="text-align:center; margin-top:18px">این تصویر، نمای کاملِ صفحه‌ی اصلی نمونه است. داخل قاب اسکرول کنید تا همه بخش‌ها را ببینید.</p>
+  </div>
+</section>
+
+<section class="section" style="padding-top:40px">
+  <div class="wrap split">
+    <div class="reveal">
+      <span class="eyebrow">درباره پروژه</span>
+      <h2 class="h2">هدف و روند <span class="gold">اجرای پروژه</span></h2>
+      <p style="color:var(--mut); line-height:2.1; margin-top:16px">مخاطب سایت‌های شرکتی صنعتی معمولاً مدیر فنی یا خریدار است که با یک سؤال مشخص می‌آید: «این شرکت چه کاری انجام می‌دهد و چطور باید وارد همکاری شد؟». این نمونه دقیقاً برای پاسخ به همین سؤال طراحی شده است؛ صفحه اصلی از معرفی گروه به زمینه‌های فعالیت و بعد به پروژه‌های اجراشده می‌رسد.</p>
+      <p style="color:var(--mut); line-height:2.1; margin-top:16px">بخش نمونه پروژه‌ها به هر پروژه یک کارت مستقل با موقعیت جغرافیایی و مقیاس می‌دهد تا توان اجرایی گروه بدون اغراق نشان داده شود. فرم استعلام همکاری هم با فیلدهای کوتاه، مانع ورود مخاطب نشده است.</p>
+      <div class="duo-points" style="margin-top:24px">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg><span>معرفی شفاف شرکت‌های تابعه</span></li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg><span>کارت پروژه با مشخصات فنی</span></li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg><span>فرم استعلام کوتاه و کاربردی</span></li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg><span>ساختار مناسب برای سئوی B2B</span></li>
+      </div>
+    </div>
+    <aside class="aside-card reveal" data-delay="1">
+      <b style="font-size:16px">مشخصات پروژه</b>
+      <ul style="margin-top:16px; display:grid; gap:12px; font-size:13.5px; color:var(--mut)">
+        <li style="display:flex; justify-content:space-between; gap:12px"><span>نوع پروژه</span><b style="color:var(--txt)">شرکتی</b></li>
+        <li style="display:flex; justify-content:space-between; gap:12px"><span>وضعیت</span><b style="color:var(--warn)">نمونه مفهومی</b></li>
+        <li style="display:flex; justify-content:space-between; gap:12px"><span>خدمات اجراشده</span><b style="color:var(--txt)">طراحی سایت + سئو تکنیکال</b></li>
+        <li style="display:flex; justify-content:space-between; gap:12px"><span>زمان اجرای مشابه</span><b style="color:var(--txt)">طبق برآورد پروژه</b></li>
+      </ul>
+      <p class="pkg-note">این نمونه برای نمایش سبک کار و کیفیت اجرای ما ساخته شده است؛ هیچ کسب‌وکار واقعی به آن اشاره ندارد.</p>
+      <a class="btn btn-gold btn-block" href="request.html" style="margin-top:18px">پروژه مشابه می‌خواهم</a>
+    </aside>
+  </div>
+</section>
+
+<section class="section-tight" style="padding-bottom:20px">
+  <div class="wrap">
+    <span class="eyebrow">امکانات کلیدی</span>
+    <h2 class="h2" style="margin-top:10px">چه چیزهایی در این نمونه <span class="gold">پیاده شده است</span>؟</h2>
+    <div class="feat-grid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:34px">
+      <div class="feat-card"><b>صفحه گروه شرکتی</b><p style="font-size:13px; color:var(--mut); margin-top:8px; line-height:1.9">معرفی هر شرکت تابعه با زمینه فعالیت و پروژه‌های شاخص به‌صورت مستقل.</p></div>
+      <div class="feat-card"><b>آرشیو پروژه‌ها</b><p style="font-size:13px; color:var(--mut); margin-top:8px; line-height:1.9">کارت پروژه با موقعیت، مقیاس و دسته‌بندی؛ قابل فیلتر برای مخاطب.</p></div>
+      <div class="feat-card"><b>فرم استعلام همکاری</b><p style="font-size:13px; color:var(--mut); margin-top:8px; line-height:1.9">فیلدهای حداقلی با راهنمای توضیحی تا مخاطب صنعتی بدون دردسر استعلام بدهد.</p></div>
+      <div class="feat-card"><b>نمایش آمار واقع‌نما</b><p style="font-size:13px; color:var(--mut); margin-top:8px; line-height:1.9">بخش آمار به‌عنوان نمونه ساختاری؛ در پروژه واقعی فقط با داده معتبر کارفرما پر می‌شود.</p></div>
+      <div class="feat-card"><b>چندزبانه آماده</b><p style="font-size:13px; color:var(--mut); margin-top:8px; line-height:1.9">ساختار دو زبانه برای ارتباط با تأمین‌کنندگان و مشتریان بین‌المللی.</p></div>
+      <div class="feat-card"><b>سئوی تکنیکال</b><p style="font-size:13px; color:var(--mut); margin-top:8px; line-height:1.9">اسکیمای سازمان، آدرس‌های استاندارد و ساختار عنوان‌بندی درست.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="wrap">
+    <div class="cta-banner reveal">
+      <div>
+        <h2>پروژه‌ای شبیه این نمونه در سر دارید؟</h2>
+        <p>در جلسه مشاوره، دقیقاً می‌گوییم چه ساختار و چه امکاناتی برای هدف شما لازم است.</p>
+      </div>
+      <div class="cta-actions">
+        <a class="btn btn-dark btn-lg" href="request.html">شروع پروژه</a>
+        <a class="btn btn-ghost btn-lg" href="portfolio.html">نمونه‌کارهای دیگر</a>
+      </div>
+    </div>
+  </div>
+</section>
+</SiteLayout>

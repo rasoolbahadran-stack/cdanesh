@@ -1,0 +1,51 @@
+/* ═══ کافه‌دانش — داده نمونه‌کارها (همه مفهومی و ساخته تیم) ═══ */
+window.CD_PORTFOLIO = [
+  {
+    slug: 'rosa', title: 'فروشگاه اینترنتی رُزا',
+    cat: 'shop', catLabel: 'فروشگاهی',
+    chips: ['طراحی اختصاصی', 'درگاه پرداخت', 'صفحه محصول'],
+    summary: 'فروش محصولات تازه با تجربه خرید روان، فیلتر دسته‌بندی و صفحه محصول بهینه‌شده برای تبدیل.',
+    link: 'portfolio-rosa.html', cover: 'assets/img/pf-shop.webp', imgH: 3051,
+    home: true,
+  },
+  {
+    slug: 'arman', title: 'وب‌سایت هلدینگ آرمان',
+    cat: 'corporate', catLabel: 'شرکتی',
+    chips: ['معرفی خدمات', 'چندزبانه', 'B2B'],
+    summary: 'معرفی سه شرکت تابعه، پروژه‌های اجراشده و روند همکاری؛ ساختار منظم برای مخاطب B2B.',
+    link: 'portfolio-arman.html', cover: 'assets/img/pf-corporate.webp', imgH: 2541,
+    home: true,
+  },
+  {
+    slug: 'mehr', title: 'وب‌سایت کلینیک مهر',
+    cat: 'service', catLabel: 'خدماتی',
+    chips: ['نوبت‌دهی آنلاین', 'معرفی پزشکان', 'FAQ'],
+    summary: 'نوبت‌دهی سه‌مرحله‌ای، پروفایل پزشکان و پاسخ به پرسش‌های رایج بیماران؛ ساده و قابل اعتماد.',
+    link: 'portfolio-mehr.html', cover: 'assets/img/pf-clinic.webp', imgH: 2739,
+    home: false,
+  },
+  {
+    slug: 'goldast', title: 'مجله آشپزی گلدست',
+    cat: 'content', catLabel: 'محتوایی',
+    chips: ['سئو محور', 'خبرنامه', 'دسته‌بندی موضوعی'],
+    summary: 'ساختار مجله‌ای با دستورهای ساختاریافته، دسته‌بندی موضوعی و عضویت خبرنامه؛ طراحی‌شده برای رشد ارگانیک.',
+    link: 'portfolio-goldast.html', cover: 'assets/img/pf-mag.webp', imgH: 2889,
+    home: false,
+  },
+  {
+    slug: 'negar', title: 'دستیار هوشمند نِگار',
+    cat: 'ai', catLabel: 'هوش مصنوعی',
+    chips: ['چت‌بات فروش', 'صفحه فرود SaaS', 'پلن‌ها'],
+    summary: 'صفحه فرود محصول با نمایش زنده گفتگو، پلن‌های قیمت‌گذاری و ثبت‌نام آزمایشی؛ برای محصول SaaS.',
+    link: 'portfolio-negar.html', cover: 'assets/img/pf-ai.webp', imgH: 2438,
+    home: true,
+  },
+  {
+    slug: 'daneshvar', title: 'پلتفرم آموزش آنلاین دانش‌ور',
+    cat: 'service', catLabel: 'خدماتی',
+    chips: ['فروش دوره', 'پنل دانشجو', 'مسیر شغلی'],
+    summary: 'کاتالوگ دوره‌ها، مسیرهای شغلی ساختارمند و ثبت‌نام آنلاین؛ تجربه‌ای منظم برای یادگیری.',
+    link: 'portfolio-daneshvar.html', cover: 'assets/img/pf-lms.webp', imgH: 2513,
+    home: false,
+  },
+];

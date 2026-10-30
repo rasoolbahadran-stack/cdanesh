@@ -1,0 +1,59 @@
+<!-- هدر شناور — کامپوننت مشترک همهٔ صفحات (Astro) -->
+<header class="site-header">
+  <div class="nav-pill">
+    <a class="brand" href="index.html" aria-label="کافه‌دانش — صفحه اصلی">
+      <span class="brand-mark" aria-hidden="true"><img src="assets/img/logo.svg" alt="" loading="eager"></span>
+      <span class="brand-name">کافه‌دانش<small>CDANESH STUDIO</small></span>
+    </a>
+    <nav aria-label="ناوبری اصلی">
+      <ul class="main-nav">
+        <li class="has-mega">
+          <a href="index.html#services" aria-haspopup="true">خدمات
+            <svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </a>
+          <div class="mega" role="menu" aria-label="فهرست خدمات">
+            <div class="mega-col">
+              <b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M8 21V9"/></svg>طراحی و توسعه وب</b>
+              <a class="mega-item" href="web-design.html"><b>طراحی سایت اختصاصی</b><span>سایت سفارشی متناسب با برند و اهداف شما</span></a>
+              <a class="mega-item" href="e-commerce.html"><b>فروشگاه اینترنتی</b><span>تجربه خرید روان با درگاه پرداخت امن</span></a>
+              <a class="mega-item" href="uiux.html"><b>طراحی UI/UX</b><span>تجربه کاربری مهندسی‌شده و تمیز</span></a>
+            </div>
+            <div class="mega-col">
+              <b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3M11 8v6M8 11h6"/></svg>سئو و تولید محتوا</b>
+              <a class="mega-item" href="seo.html"><b>سئو تکنیکال و محتوایی</b><span>زیرساخت فنی استاندارد و رشد ارگانیک</span></a>
+              <a class="mega-item" href="content-production.html"><b>مقالات تخصصی و سئوشده</b><span>محتوای ساختاریافته با تحقیق واقعی</span></a>
+              <a class="mega-item" href="speed-optimization.html"><b>بهینه‌سازی سرعت</b><span>Core Web Vitals و تجربه سریع کاربر</span></a>
+            </div>
+            <div class="mega-col">
+              <b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 2v4m0 12v4M2 12h4m12 0h4M5 5l2.5 2.5m9 9L19 19M19 5l-2.5 2.5m-9 9L5 19"/></svg>هوش مصنوعی و پشتیبانی</b>
+              <a class="mega-item" href="ai-solutions.html"><b>دستیارهای هوشمند</b><span>چت‌بات و دستیار اختصاصی کسب‌وکار شما</span></a>
+              <a class="mega-item" href="support.html"><b>پشتیبانی و نگهداری سایت</b><span>امنیت، به‌روزرسانی و همراهی مداوم</span></a>
+              <a class="mega-item" href="services.html"><b>همه خدمات</b><span>مرور کامل سرویس‌های کافه‌دانش</span></a>
+            </div>
+            <div class="mega-rail">
+              <b>دسترسی سریع</b>
+              <a href="portfolio.html">نمونه‌کارها <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></a>
+              <a href="blog.html">مجله مقالات <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></a>
+              <a href="about.html">درباره ما <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></a>
+              <a href="contact.html">تماس با ما <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></a>
+              <div class="mega-card">
+                <b>مشاوره اولیه رایگان</b>
+                <p>در یک جلسه کوتاه، مسیر رشد دیجیتال کسب‌وکارتان را بررسی می‌کنیم.</p>
+                <a class="btn btn-gold btn-sm" href="request.html">شروع پروژه</a>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li><a href="portfolio.html">نمونه‌کارها</a></li>
+        <li><a href="blog.html">مجله</a></li>
+        <li><a href="index.html#process">فرایند همکاری</a></li>
+        <li><a href="about.html">درباره ما</a></li>
+        <li><a href="contact.html">تماس</a></li>
+      </ul>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn btn-gold btn-sm" href="request.html">درخواست مشاوره</a>
+      <button class="menu-toggle" aria-label="باز کردن منو" aria-expanded="false" aria-controls="drawer"><span></span></button>
+    </div>
+  </div>
+</header>

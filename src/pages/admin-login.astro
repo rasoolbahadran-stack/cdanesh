@@ -1,0 +1,93 @@
+---
+import BareLayout from '../layouts/BareLayout.astro';
+const title = "ورود به پنل مدیریت | کافه‌دانش";
+const description = "ورود مدیر به پنل مدیریت کافه‌دانش.";
+const robots = "noindex, nofollow";
+---
+
+<BareLayout title={title} description={description} robots={robots} schemas={false}>
+<div class="login-veil">
+  <div style="width:min(430px,100%)">
+    <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:26px">
+      <img src="assets/img/logo.svg" alt="نشان کافه‌دانش" width="54" height="54" style="border-radius:16px; box-shadow:0 14px 34px -14px rgba(227,185,83,.55)">
+      <span class="brand-name" style="margin-top:12px; font-size:20px">کافه‌دانش<small style="letter-spacing:3px">ADMIN PANEL</small></span>
+    </div>
+    <div class="form-card" style="padding:34px 30px">
+      <h1 class="h3" style="text-align:center; margin-bottom:24px">ورود به پنل مدیریت</h1>
+      <div class="form-ok" role="alert" style="background:rgba(229,118,106,.1); border-color:rgba(229,118,106,.4); color:var(--err); display:none" id="login-err"></div>
+      <form id="login-form" novalidate>
+        <div class="field" style="margin-bottom:16px">
+          <label for="auser">نام کاربری <i>*</i></label>
+          <input class="control" id="auser" name="username" autocomplete="username" placeholder="admin" dir="ltr" style="text-align:left">
+        </div>
+        <div class="field" style="margin-bottom:24px">
+          <label for="apass">رمز عبور <i>*</i></label>
+          <input class="control" id="apass" name="password" type="password" autocomplete="current-password" placeholder="••••••••" dir="ltr" style="text-align:left">
+        </div>
+        <button class="btn btn-gold btn-block btn-lg" type="submit" id="login-btn">
+          ورود به پنل
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"/></svg>
+        </button>
+      </form>
+      <p class="form-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        <span>اطلاعات ورود نسخه آزمایشی: نام کاربری <b dir="ltr">admin</b> و رمز <b dir="ltr">cdanesh1404</b> — رمز را از بخش تنظیمات پنل تغییر دهید. ورود پس از ۵ تلاش ناموفق، ۱۵ دقیقه قفل می‌شود.</span>
+      </p>
+    </div>
+    <p class="muted small" style="text-align:center; margin-top:18px"><a href="index.html" style="color:var(--gold)">← بازگشت به سایت</a></p>
+  </div>
+</div>
+
+<script is:inline src="assets/js/store.js"></script>
+<script is:inline>
+(function () {
+  'use strict';
+  const $ = s => document.querySelector(s);
+  if (window.CDStore && CDStore.session()) { location.replace('admin.html'); return; }
+
+  const errBox = $('#login-err');
+  const btn = $('#login-btn');
+  const FAIL_KEY = 'cd_login_fails'; // {count, at}
+  const LOCK_MS = 15 * 60 * 1000, MAX_FAILS = 5;
+
+  const getFails = () => {
+    try { return JSON.parse(localStorage.getItem(FAIL_KEY)) || { count: 0, at: 0 }; }
+    catch (e) { return { count: 0, at: 0 }; }
+  };
+
+  $('#login-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const fails = getFails();
+    if (fails.count >= MAX_FAILS && Date.now() - fails.at < LOCK_MS) {
+      const remain = Math.ceil((LOCK_MS - (Date.now() - fails.at)) / 60000);
+      errBox.style.display = 'flex';
+      errBox.textContent = 'به دلیل تلاش‌های ناموفق، ورود ' + remain + ' دقیقه قفل است.';
+      btn.disabled = true;
+      return;
+    }
+
+    const user = $('#auser').value.trim();
+    const pass = $('#apass').value;
+    const validUser = user === 'admin';
+    const validPass = pass === (window.CDStore ? (CDStore.settings().adminPass || 'cdanesh1404') : 'cdanesh1404');
+
+    if (validUser && validPass) {
+      try { localStorage.removeItem(FAIL_KEY); } catch (err) {}
+      if (window.CDStore) {
+        CDStore.login('admin');
+        location.replace('admin.html');
+      }
+    } else {
+      const nf = { count: (Date.now() - fails.at < LOCK_MS ? fails.count : 0) + 1, at: Date.now() };
+      try { localStorage.setItem(FAIL_KEY, JSON.stringify(nf)); } catch (err) {}
+      errBox.style.display = 'flex';
+      const left = MAX_FAILS - nf.count;
+      errBox.textContent = left > 0
+        ? 'نام کاربری یا رمز عبور درست نیست. ' + left + ' تلاش باقی مانده است.'
+        : 'ورود به مدت ۱۵ دقیقه قفل شد.';
+      if (left <= 0) btn.disabled = true;
+    }
+  });
+})();
+</script>
+</BareLayout>
