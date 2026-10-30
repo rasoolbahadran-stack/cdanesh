@@ -13,4 +13,9 @@ export default defineConfig({
   adapter: vercel(),
   build: { format: 'directory' },
   trailingSlash: 'ignore',
+  /* checkOrigin باید خاموش باشد: روی ورسل، بازسازی Origin از هدرهای x-forwarded
+     با Origin واقعی مرورگر نمی‌خواند و همهٔ آپلودهای multipart (کتابخانه رسانه)
+     را با خطای 403 «Cross-site POST form submissions are forbidden» می‌بندد.
+     امنیت APIها با کوکی امضاشدهٔ HMAC + محدودیت نرخ خودمان تامین می‌شود. */
+  security: { checkOrigin: false },
 });

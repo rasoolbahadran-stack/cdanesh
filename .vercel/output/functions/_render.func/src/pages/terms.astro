@@ -1,0 +1,17 @@
+---
+// ═══ شرایط استفاده — محتوا از صفحات ابری پنل (با دادهٔ پایهٔ پروژه) ═══
+// prerender=false → ویرایش این صفحه در پنل (بخش «صفحات») بلافاصله منتشر می‌شود.
+export const prerender = false;
+
+import ProsePage from '../components/ProsePage.astro';
+import { getPublicPages, pageBySlug } from '../lib/ssr-pages.mjs';
+
+const pages = await getPublicPages();
+const page = pageBySlug(pages, 'terms');
+
+if (!page) {
+  return Astro.redirect('/404');
+}
+---
+
+<ProsePage page={page} canonical="https://cdanesh.ir/terms" />

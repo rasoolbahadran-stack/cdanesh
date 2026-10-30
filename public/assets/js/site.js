@@ -347,8 +347,10 @@
   }
 
   /* ═════════════ دکمه‌های پرداخت آنلاین: اتصال به درگاه فعال پنل ═════════════
-     درگاه از پنل مدیریت (بخش درگاه پرداخت) ثبت و در فضای ابری ذخیره می‌شود؛
-     تا وقتی درگاهی فعال نشده باشد، دکمه‌ها مخفی می‌مانند. */
+     درگاه از پنل مدیریت (بخش درگاه پرداخت) ثبت و در فضای ابری ذخیره می‌شود.
+     هر درگاه می‌تواند «pkg» داشته باشد (starter/pro/shop/custom) تا فقط به دکمهٔ
+     همان پکیج وصل شود؛ درگاه بدون pkg به همهٔ دکمه‌ها وصل می‌شود.
+     تا وقتی درگاهی فعال نشده باشد، دکمه‌ها مخفی می‌مانند (لینک مرده نداریم). */
   (function initPayLinks() {
     const links = $$('[data-pay]');
     if (!links.length) return;
@@ -358,11 +360,14 @@
         if (!r.ok || !ct.includes('application/json')) return null; // بدون سرور (دمو/لوکال)
         const d = await r.json().catch(() => ({}));
         if (!d || !d.ok || !Array.isArray(d.gateways)) return null;
-        return d.gateways.find(g => g && g.url) || null;
+        return d.gateways.filter(g => g && g.url);
       })
-      .then(gw => {
-        if (!gw) return;
+      .then(gws => {
+        if (!gws || !gws.length) return;
         links.forEach(a => {
+          const pkg = a.dataset.pkg || '';
+          const gw = gws.find(g => g.pkg === pkg) || gws.find(g => !g.pkg);
+          if (!gw) return; // برای این پکیج درگاه مشخصی فعال نیست → دکمه مخفی می‌ماند
           a.href = gw.url;
           a.target = '_blank';
           a.rel = 'noopener';

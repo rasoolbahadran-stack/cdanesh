@@ -42,17 +42,21 @@ function validateGateways(list) {
     const url = clean(g.url, 500);
     if (!name) return 'نام درگاه الزامی است.';
     if (!/^https:\/\/[^\s]+\.[^\s]+/i.test(url)) return 'آدرس درگاه «' + name + '» باید یک لینک https معتبر باشد.';
+    if (g.pkg && !/^(starter|pro|shop|custom)$/.test(String(g.pkg))) return 'پکیج مرتبط درگاه «' + name + '» نامعتبر است.';
     if (JSON.stringify(g).length > 4 * 1024) return 'حجم دادهٔ درگاه «' + name + '» بیش از حد مجاز است.';
   }
   return null;
 }
 
-/* فقط یک درگاه فعال بماند (اولین فعالِ فهرست) */
+/* در هر گروه پکیج (pkg) فقط یک درگاه فعال بماند؛
+   درگاه‌های بدون pkg یک گروه مستقل‌اند. این‌طوری می‌شود برای هر پکیج
+   یک درگاه جدا (با لینک و مبلغ خودش) ثبت کرد. */
 function singleActive(list) {
-  let seen = false;
+  const seen = new Set();
   return list.map(g => {
-    const active = !!g.active && !seen;
-    if (active) seen = true;
+    const grp = String(g.pkg || '');
+    const active = !!g.active && !seen.has(grp);
+    if (active) seen.add(grp);
     return Object.assign({}, g, { active });
   });
 }
@@ -74,7 +78,7 @@ export default async function handler(req, res) {
     }
     const out = authed
       ? list
-      : list.filter(g => g.active).map(g => ({ id: g.id, name: g.name, url: g.url })); // عمومی: فقط فعال‌ها بدون یادداشت
+      : list.filter(g => g.active).map(g => ({ id: g.id, name: g.name, url: g.url, pkg: g.pkg || '' })); // عمومی: فقط فعال‌ها بدون یادداشت
     return json(res, 200, { ok: true, mode: 'cloud', count: out.length, gateways: out });
   }
 
@@ -99,6 +103,7 @@ export default async function handler(req, res) {
       name: clean(g.name, 60),
       url: clean(g.url, 500),
       active: !!g.active,
+      pkg: /^(starter|pro|shop|custom)$/.test(String(g.pkg || '')) ? String(g.pkg) : '',
       note: clean(g.note, 300),
     }));
 

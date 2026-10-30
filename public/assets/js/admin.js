@@ -177,7 +177,10 @@
     return out.length ? ' ' + out.join(' ') : '';
   }
 
-  function sanitizeHtml(html) {
+  function sanitizeHtml(html, trusted) {
+    /* حالت trusted: محتوای خود مدیر است و هیچ چیزی حذف نمی‌شود —
+       پشتیبانی کامل از <style> و <script> و هر کد آزاد (مثل بلوک HTML گوتنبرگ) */
+    if (trusted === true) return String(html == null ? '' : html);
     let h = String(html == null ? '' : html);
     h = h.replace(/<!--[\s\S]*?-->/g, '');
     h = h.replace(/<\s*(script|style|object|embed|form|input|button|select|textarea|link|meta|base)\b[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, '');
@@ -200,6 +203,7 @@
     bold: '<b>B</b>', italic: '<i>I</i>', ul: '• فهرست', ol: '۱. فهرست', quote: '❝', link: '🔗', image: '🖼',
     table: 'جدول', hr: '—', html: '&lt;/&gt;',
   };
+  const ED_HTML_HINT = '<p class="adm-hint" style="margin-top:10px">با دکمهٔ <b dir="ltr">&lt;/&gt;</b> به حالت کد بروید و HTML آزاد بنویسید — کدهای <b dir="ltr">CSS (&lt;style&gt;)</b> و <b dir="ltr">JavaScript (&lt;script&gt;)</b> هم پذیرفته می‌شود. برای حفظ کدها، در همان حالت کد ذخیره یا منتشر کنید.</p>';
   function edToolbarHtml() {
     const btn = (cmd, title) => '<button type="button" class="ed-btn" data-cmd="' + cmd + '" title="' + title + '" tabindex="-1">' + ED_ICONS[cmd] + '</button>';
     return '<div class="ed-toolbar" dir="rtl">'
@@ -211,7 +215,7 @@
       + '<span class="ed-sep"></span>'
       + btn('link', 'لینک') + btn('image', 'تصویر از کتابخانه رسانه') + btn('table', 'جدول') + btn('hr', 'خط جداکننده')
       + '<span class="ed-sep"></span>'
-      + btn('html', 'کد HTML')
+      + btn('html', 'حالت کد — پشتیبانی کامل HTML/CSS/JS')
       + '</div>';
   }
 
@@ -219,10 +223,12 @@
   function makeEditor(host, initialHtml) {
     host.innerHTML = edToolbarHtml()
       + '<div class="ed-canvas prose" contenteditable="true" dir="rtl" spellcheck="false"></div>'
-      + '<textarea class="control ed-src" dir="ltr" style="display:none; min-height:380px; font-size:13px; line-height:1.9; font-family:monospace"></textarea>';
+      + '<textarea class="control ed-src" dir="ltr" style="display:none; min-height:380px; font-size:13px; line-height:1.9; font-family:monospace"></textarea>'
+      + ED_HTML_HINT;
     const canvas = $('.ed-canvas', host);
     const src = $('.ed-src', host);
     let mode = 'wysiwyg';
+    let rawKept = false; // اگر در حالت کد style/script نوشته شده و برگشته، تا ذخیرهٔ بعدی خام می‌ماند
     canvas.innerHTML = sanitizeHtml(initialHtml) || '<p><br></p>';
 
     const syncToSrc = () => { src.value = canvas.innerHTML.replace(/<\/(p|h2|h3|ul|ol|li|blockquote|div|table|tr|figure)>/g, '$&\n'); };
@@ -230,8 +236,14 @@
 
     function exec(cmd) {
       if (cmd === 'html') {
-        if (mode === 'wysiwyg') { syncToSrc(); canvas.style.display = 'none'; src.style.display = 'block'; mode = 'html'; }
-        else { syncFromSrc(); src.style.display = 'none'; canvas.style.display = 'block'; mode = 'wysiwyg'; }
+        if (mode === 'wysiwyg') {
+          syncToSrc(); canvas.style.display = 'none'; src.style.display = 'block'; mode = 'html';
+        } else {
+          const hasCode = /<\s*(script|style)\b/i.test(src.value);
+          if (hasCode && !confirm('در کد شما تگ style یا script هست.\nبازگشت به حالت ویژوال، این کدها را از پیش‌نمایش حذف می‌کند (برای حفظ کامل، در حالت کد ذخیره کنید).\n\nادامه می‌دهید؟')) return;
+          rawKept = hasCode;
+          syncFromSrc(); src.style.display = 'none'; canvas.style.display = 'block'; mode = 'wysiwyg';
+        }
         $$('.ed-btn', host).forEach(b => { if (b.dataset.cmd === 'html') b.classList.toggle('active', mode === 'html'); });
         return;
       }
@@ -281,7 +293,8 @@
       else document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain'));
     });
     return {
-      getHtml() { return mode === 'html' ? sanitizeHtml(src.value) : canvas.innerHTML; },
+      /* حالت کد → همان متن خام (با style/script) ذخیره می‌شود؛ حالت ویژوال → HTML پاک‌سازی‌شده */
+      getHtml() { return mode === 'html' ? String(src.value || '') : (rawKept && !canvas.innerHTML.trim() ? String(src.value || '') : canvas.innerHTML); },
       setHtml(h) { if (mode === 'html') src.value = h; else canvas.innerHTML = sanitizeHtml(h) || '<p><br></p>'; },
       focus() { (mode === 'html' ? src : canvas).focus(); },
     };
@@ -291,7 +304,7 @@
   const CTA_DIV = (c) => '<div class="prose-cta" data-pre="' + esc(c.pre || '') + '" data-link="' + esc(c.link || '') + '" data-label="' + esc(c.label || '') + '" data-post="' + esc(c.post || '') + '"><p>' + esc(c.pre || '') + ' <a href="' + esc(c.link || '') + '">' + esc(c.label || '') + '</a>' + esc(c.post || '') + '</p></div>';
 
   function htmlToBlocks(html) {
-    const clean = sanitizeHtml(html);
+    const clean = sanitizeHtml(html, true); // محتوای خود مدیر — کدها بدون حذف نگه داشته می‌شوند
     const root = new DOMParser().parseFromString('<div id="x">' + clean + '</div>', 'text/html').getElementById('x');
     const out = [];
     let h2n = 0, h3n = 0;
@@ -538,8 +551,38 @@
         + fa(nNew) + ' مقالهٔ جدید و ' + fa(nOvr) + ' ویرایش آزمایشی در همین مرورگر ذخیره است که در فهرست ابری نیست. با انتقال، برای همه بازدیدکنندگان منتشر می‌شوند.</p></div>'
         + '<button class="btn btn-gold" id="mig-articles" type="button">انتقال و انتشار</button></div></div>';
     }
+    /* ─── اصلاح خودکار متن‌های قدیمی نسخهٔ ابری (ادعا، نویسنده، تاریخ آینده، هدیه‌ها) ─── */
+    const fixTargets = () => {
+      const t = { claim: false, author: false, date: false, gift: false };
+      list.forEach(a => {
+        try {
+          if (JSON.stringify(a).includes('نصف تلاش')) t.claim = true;
+          if (a.author === 'تیم محتوای کافه‌دانش') t.author = true;
+          if (a.slug === 'website-design-cost-bushehr-1405') {
+            if (a.date === '۱۴۰۵/۰۸/۱۴' || String(a.sort) === '20261105') t.date = true;
+            if (!JSON.stringify(a).includes('هاست هدیه')) t.gift = true;
+          }
+        } catch (e) { /* noop */ }
+      });
+      return t;
+    };
+    let fixBox = '';
+    const fx = cloud ? fixTargets() : null;
+    if (fx && (fx.claim || fx.author || fx.date || fx.gift)) {
+      const items = [];
+      if (fx.claim) items.push('حذف ادعای «نصف تلاش» در مقاله سئو');
+      if (fx.author) items.push('درست‌کردن نام نویسنده (رسول بهادران)');
+      if (fx.date) items.push('اصلاح تاریخ آیندهٔ مقاله تعرفه‌ها');
+      if (fx.gift) items.push('افزودن هدیه‌های دامنه و هاست به مقاله تعرفه‌ها');
+      fixBox = '<div class="adm-panel" style="margin-bottom:14px; border-color:rgba(88,201,139,.45); background:linear-gradient(150deg,rgba(88,201,139,.07),transparent)">'
+        + '<div style="display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap"><div><b>اصلاح خودکار متن‌های قدیمی نسخهٔ ابری</b>'
+        + '<p class="adm-hint" style="margin:4px 0 0">' + items.join(' • ') + '</p></div>'
+        + '<button class="btn btn-gold" id="fix-cloud-texts" type="button">اصلاح و ذخیره</button></div></div>';
+    }
     view.innerHTML = setupBannerHtml() + (migBox
       ? migBox
+      : '') + (fixBox
+      ? fixBox
       : '')
       + '<div class="adm-topbar"><div><h1>مدیریت مقالات</h1><p class="lead">تولید، ویرایش، پیش‌نمایش و انتشار مقالات مجله'
       + (cloud ? ' — <b style="color:var(--ok)">انتشار فوری برای همه بازدیدکنندگان فعال است.</b>' : ' — در این حالت، تغییرات فقط در همین مرورگر ذخیره می‌شود.') + '</p></div>'
@@ -548,6 +591,39 @@
       + '<input class="control" id="art-search" type="search" placeholder="جست‌وجو در عنوان‌ها…">'
       + '<select class="control" id="art-status" style="max-width:180px"><option value="all">همه وضعیت‌ها</option><option value="published">منتشرشده</option><option value="draft">پیش‌نویس</option><option value="scheduled">زمان‌بندی‌شده</option></select>'
       + '</div><div class="adm-table-wrap"><table class="adm-table"><thead><tr><th>عنوان</th><th>دسته</th><th>وضعیت</th><th>تاریخ</th><th>اقدام‌ها</th></tr></thead><tbody id="art-rows"></tbody></table></div></div>';
+
+    const fixBtn = $('#fix-cloud-texts');
+    if (fixBtn) fixBtn.addEventListener('click', async () => {
+      fixBtn.disabled = true; fixBtn.textContent = 'در حال اصلاح…';
+      const NEW = 'ساختار اصولی سایت از ابتدا، فرایند خزش و درک صفحات توسط موتورهای جست‌وجو را ساده‌تر می‌کند و می‌تواند نیاز به اصلاحات فنی پرهزینه در آینده را کاهش دهد.';
+      const patchStr = s => String(s == null ? '' : s)
+        .replace(/بعداً با نصف تلاش رتبه می‌گیرد\.?/g, NEW)
+        .replace(/با نصف تلاش رتبه می‌گیرد\.?/g, NEW)
+        .replace(/نصف تلاش/g, 'فرایند بهینه‌سازی و توسعه سئو ساده‌تر می‌شود');
+      const next = list.map(a0 => {
+        let a;
+        try { a = JSON.parse(JSON.stringify(a0)); } catch (e) { return a0; }
+        if (a.author === 'تیم محتوای کافه‌دانش') a.author = 'رسول بهادران';
+        if (a.slug === 'website-design-cost-bushehr-1405') {
+          if (a.date === '۱۴۰۵/۰۸/۱۴') a.date = '۱۴۰۵/۰۸/۰۵';
+          if (String(a.sort) === '20261105') a.sort = 20261027;
+          if (!JSON.stringify(a).includes('هاست هدیه')) {
+            a.blocks = (a.blocks || []).concat([{ p: 'برای شفافیت بیشتر: همهٔ پکیج‌های کافه‌دانش دامنهٔ .IR رایگان دارند؛ پکیج استارتر ۳ ماه و پکیج حرفه‌ای ۶ ماه هاست هدیه دارند و در پکیج‌های فروشگاهی و اختصاصی یک سال هاست هدیه به مشتریان تعلق می‌گیرد. جدول کامل امکانات در بخش تعرفه‌های صفحهٔ اصلی آمده است.' }]);
+          }
+        }
+        a.blocks = (a.blocks || []).map(b => {
+          const s = JSON.stringify(b);
+          if (!s.includes('نصف تلاش')) return b;
+          try { return JSON.parse(patchStr(s)); } catch (e) { return b; }
+        });
+        if (typeof a.excerpt === 'string' && a.excerpt.includes('نصف تلاش')) a.excerpt = patchStr(a.excerpt);
+        if (typeof a.seoDesc === 'string' && a.seoDesc.includes('نصف تلاش')) a.seoDesc = patchStr(a.seoDesc);
+        return a;
+      });
+      const ok = await cloudPut(next, 'متن‌های قدیمی اصلاح و در فضای ابری ذخیره شد');
+      if (ok) renderArticles();
+      else { fixBtn.disabled = false; fixBtn.textContent = 'اصلاح و ذخیره'; }
+    });
 
     const rows = $('#art-rows');
     const draw = () => {
@@ -1225,6 +1301,14 @@
       + '</div><div id="msg-list"></div></div>';
 
     const listBox = $('#msg-list');
+    /* شمارهٔ ایران → فرمت واتس‌اپ (۰۹… → ۹۸۹…) */
+    const waLink = (m) => {
+      const d = String(m.phone || '').replace(/[۰-۹]/g, x => '۰۱۲۳۴۵۶۷۸۹'.indexOf(x)).replace(/\D/g, '');
+      if (!d) return '';
+      const intl = d.startsWith('98') ? d : (d.startsWith('0') ? '98' + d.slice(1) : d);
+      const txt = 'سلام ' + (m.name || '') + '، در پاسخ به ' + (m.kind === 'request' ? 'درخواست' : 'پیام') + ' شما در کافه‌دانش (کد ' + (m.ref || '') + ')';
+      return 'https://wa.me/' + intl + '?text=' + encodeURIComponent(txt);
+    };
     const draw = f => {
       const items = list.filter(m => f === 'all' || (m.status || 'new') === f);
       listBox.innerHTML = items.map(m =>
@@ -1235,7 +1319,8 @@
         + '<div class="adm-msg-body" style="margin-top:8px; border-top:1px solid var(--line); padding-top:8px">' + esc((m.subject ? 'موضوع: ' + m.subject + '\n' : '') + (m.message || '')) + '</div>'
         + '</div>'
         + '<div style="display:grid; gap:6px">'
-        + '<a class="adm-btn primary" href="tel:' + esc(m.phone || '') + '">تماس با فرستنده</a>'
+        + (waLink(m) ? '<a class="adm-btn primary" href="' + esc(waLink(m)) + '" target="_blank" rel="noopener">پاسخ در واتس‌اپ</a>' : '')
+        + '<a class="adm-btn" href="tel:' + esc(m.phone || '') + '">تماس با فرستنده</a>'
         + '<button class="adm-btn" data-read="' + esc(m.id) + '">خوانده‌شده</button>'
         + '<button class="adm-btn" data-reply="' + esc(m.id) + '">پاسخ داده شد</button>'
         + '<button class="adm-btn danger" data-del="' + esc(m.id) + '">حذف</button>'
@@ -1325,18 +1410,26 @@
       + '<div class="adm-actions"><button type="button" class="btn btn-gold" id="pay-add">+ درگاه جدید</button>'
       + '<button type="button" class="btn btn-ghost" id="pay-save">ذخیره تغییرات</button></div></div>'
       + '<div class="adm-panel"><div class="adm-table-wrap"><table class="adm-table"><thead><tr>'
-      + '<th style="min-width:170px">نام درگاه</th><th style="min-width:280px">آدرس لینک پرداخت</th><th>فعال</th><th></th>'
+      + '<th style="min-width:150px">نام درگاه</th><th style="min-width:260px">آدرس لینک پرداخت</th><th style="min-width:150px">پکیج مرتبط</th><th>فعال</th><th></th>'
       + '</tr></thead><tbody id="pay-rows"></tbody></table></div>'
-      + '<p class="adm-hint" style="margin-top:14px">نکته‌ها: آدرس باید با <b dir="ltr">https://</b> شروع شود. فقط «یک» درگاهِ فعال لازم است؛ با فعال‌کردن هر درگاه، بقیه خودکار غیرفعال می‌شوند و دکمه‌های پرداخت صفحه تعرفه‌ها به همان لینک می‌روند (در تب جدید باز می‌شود). تا وقتی هیچ درگاهی فعال نکنی، دکمه پرداخت در سایت نمایش داده نمی‌شود.</p></div>';
+      + '<p class="adm-hint" style="margin-top:14px">نکته‌ها: آدرس باید با <b dir="ltr">https://</b> شروع شود. برای هر پکیج می‌توانی یک درگاه جدا با لینک و مبلغ خودش بسازی (ستون «پکیج مرتبط»)؛ درگاهِ «همهٔ پکیج‌ها» به همهٔ دکمه‌ها وصل می‌شود. دکمه‌های پرداخت در تب جدید باز می‌شوند و تا وقتی هیچ درگاهی فعال نکنی، در سایت نمایش داده نمی‌شوند — لینک مرده نداریم.</p></div>';
 
     const rows = $('#pay-rows');
+    const PKG_OPTS = [
+      { v: '', t: 'همهٔ پکیج‌ها' },
+      { v: 'starter', t: 'استارتر' },
+      { v: 'pro', t: 'حرفه‌ای' },
+      { v: 'shop', t: 'فروشگاهی' },
+      { v: 'custom', t: 'اختصاصی' },
+    ];
     const draw = () => {
       rows.innerHTML = working.map((g, i) =>
-        '<tr><td><input class="control p-name" data-i="' + i + '" value="' + esc(g.name || '') + '" placeholder="مثلاً زرین‌پال"></td>'
+        '<tr><td><input class="control p-name" data-i="' + i + '" value="' + esc(g.name || '') + '" placeholder="مثلاً زرین‌پال ۱۵ میلیون"></td>'
         + '<td><input class="control p-url" data-i="' + i + '" dir="ltr" style="text-align:left" value="' + esc(g.url || '') + '" placeholder="https://zarinp.al/xxxx"></td>'
+        + '<td><select class="control p-pkg" data-i="' + i + '">' + PKG_OPTS.map(o => '<option value="' + o.v + '"' + (String(g.pkg || '') === o.v ? ' selected' : '') + '>' + o.t + '</option>').join('') + '</select></td>'
         + '<td><button type="button" class="adm-btn' + (g.active ? ' primary' : '') + '" data-active="' + i + '">' + (g.active ? 'فعال' : 'غیرفعال') + '</button></td>'
         + '<td><button type="button" class="adm-btn danger" data-del="' + i + '">حذف</button></td></tr>').join('')
-        || '<tr><td colspan="4"><div class="adm-empty">هنوز درگاهی ثبت نشده است. با «+ درگاه جدید» لینک پرداخت را اضافه کن.</div></td></tr>';
+        || '<tr><td colspan="5"><div class="adm-empty">هنوز درگاهی ثبت نشده است. با «+ درگاه جدید» لینک پرداخت را اضافه کن.</div></td></tr>';
     };
     draw();
 
@@ -1345,12 +1438,17 @@
       if (el.classList.contains('p-name')) working[+el.dataset.i].name = el.value;
       if (el.classList.contains('p-url')) working[+el.dataset.i].url = el.value;
     });
+    rows.addEventListener('change', e => {
+      const el = e.target;
+      if (el.classList.contains('p-pkg')) working[+el.dataset.i].pkg = el.value;
+    });
     rows.addEventListener('click', e => {
       const b = e.target.closest('button');
       if (!b) return;
       if (b.dataset.active !== undefined) {
         const i = +b.dataset.active;
-        working = working.map((g, j) => Object.assign({}, g, { active: j === i ? !g.active : false }));
+        const grp = String(working[i].pkg || ''); // فعال‌سازی فقط در گروه همان پکیج
+        working = working.map((g, j) => Object.assign({}, g, { active: j === i ? !g.active : (String(g.pkg || '') === grp ? false : g.active) }));
         draw();
       }
       if (b.dataset.del !== undefined) { working.splice(+b.dataset.del, 1); draw(); }
@@ -1477,6 +1575,14 @@
         + '<button type="button" class="btn btn-ghost btn-sm" id="p-save" style="margin-top:16px">تغییر رمز</button>'
         + '<p class="adm-hint" style="margin-top:12px">در حالت ابری (ورسل) نام کاربری و رمز از همین بخش و به‌صورت واقعی تغییر می‌کند؛ حالا در دمو فقط رمز همین مرورگر عوض می‌شود.</p></div>')
       + '</div>'
+      + '<div class="adm-panel" style="margin-top:18px"><div class="adm-panel-head"><b>اعلان فوری پیام‌ها (تلگرام) — اختیاری اما پیشنهادشده</b></div>'
+      + '<p class="adm-hint" style="margin-bottom:12px">اگر این بخش را یک‌بار تنظیم کنی، هر پیام یا درخواستی که مشتری در سایت ثبت می‌کند، همان لحظه به تلگرام تو می‌آید (نام، شماره، پکیج، بودجه و متن پیام). حتی بدون این تنظیم، همهٔ پیام‌ها در بخش «پیام‌ها و درخواست‌ها» پنل ضبط می‌شوند و از همان‌جا دکمهٔ «پاسخ در واتس‌اپ» برای جواب سریع داری.</p>'
+      + '<ol class="adm-hint" style="padding-inline-start:20px; display:grid; gap:8px">'
+      + '<li>در تلگرام به <b dir="ltr">@BotFather</b> پیام بده، دستور <b dir="ltr">/newbot</b> را بزن و ربات بساز؛ توکن (شبیه <b dir="ltr">123456:ABC-DEF…</b>) را کپی کن.</li>'
+      + '<li>به <b dir="ltr">@userinfobot</b> پیام بده تا «Id» چت خودت را بگیری (یک عدد مثل <b dir="ltr">123456789</b>).</li>'
+      + '<li>در داشبورد ورسل → پروژهٔ کافه‌دانش → <b>Settings → Environment Variables</b> دو متغیر بساز: <b dir="ltr">TELEGRAM_BOT_TOKEN</b> و <b dir="ltr">TELEGRAM_CHAT_ID</b> و مقادیر را وارد کن.</li>'
+      + '<li>در تب Deployments یک Redeploy بزن. تمام — از این به بعد پیام‌ها همان لحظه به تلگرامت می‌رسد.</li>'
+      + '</ol></div>'
       + '<div class="adm-panel" style="margin-top:18px"><div class="adm-panel-head"><b>داده‌های نسخه آزمایشی</b><span class="chip chip-gold">در همین مرورگر</span></div>'
       + '<p class="adm-hint" style="margin-bottom:14px">مقالات ساخته‌شده در پنل، ویرایش‌ها، پیام‌ها و تنظیمات در حافظه مرورگر (localStorage) ذخیره می‌شوند. برای انتقال به دستگاه دیگر از خروجی استفاده کنید.</p>'
       + '<div class="adm-actions"><button type="button" class="btn btn-ghost btn-sm" id="d-export">خروجی همه داده‌ها</button>'

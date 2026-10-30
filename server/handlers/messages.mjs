@@ -148,6 +148,36 @@ export default async function handler(req, res) {
     if (list.length > MAX_MESSAGES) list = list.slice(0, MAX_MESSAGES);
     try {
       await writeBlob(list);
+      /* اعلان فوری تلگرام (اختیاری): اگر TELEGRAM_BOT_TOKEN و TELEGRAM_CHAT_ID
+         در متغیرهای محیطی ورسل تنظیم شده باشد، پیام همان لحظه برای مدیر ارسال می‌شود.
+         هر خطا روی ثبت پیام اثر ندارد (fire-and-forget با تایم‌اوت). */
+      try {
+        const tk = process.env.TELEGRAM_BOT_TOKEN, chatId = process.env.TELEGRAM_CHAT_ID;
+        if (tk && chatId) {
+          const rec = built.rec;
+          const digits = String(rec.phone || '').replace(/\D/g, '');
+          const intl = digits.startsWith('98') ? digits : (digits.startsWith('0') ? '98' + digits.slice(1) : digits);
+          const wa = intl ? ('https://wa.me/' + intl) : '';
+          const txt = '🔔 پیام جدید کافه‌دانش\n'
+            + (rec.kind === 'request' ? 'درخواست خدمات' : 'پیام تماس') + ' — کد ' + rec.ref + '\n'
+            + 'نام: ' + rec.name + '\n'
+            + 'موبایل: ' + rec.phone + (rec.email ? '\nایمیل: ' + rec.email : '') + '\n'
+            + (rec.service ? 'خدمت: ' + rec.service + '\n' : '')
+            + (rec.package ? 'پکیج: ' + rec.package + '\n' : '')
+            + (rec.budget ? 'بودجه: ' + rec.budget + '\n' : '')
+            + '\n' + rec.message + (wa ? '\n\nپاسخ در واتس‌اپ:\n' + wa : '');
+          const ctrl = new AbortController();
+          const timer = setTimeout(() => ctrl.abort(), 5000);
+          try {
+            await fetch('https://api.telegram.org/bot' + tk + '/sendMessage', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ chat_id: chatId, text: txt.slice(0, 3500) }),
+              signal: ctrl.signal,
+            });
+          } finally { clearTimeout(timer); }
+        }
+      } catch (e) { /* اعلان اختیاری است — خطا نادیده گرفته می‌شود */ }
       return json(res, 200, { ok: true, ref: built.rec.ref, id: built.rec.id, count: list.length });
     } catch (e) {
       return json(res, 500, { ok: false, error: 'BLOB_ERROR', message: String((e && e.message) || e) });

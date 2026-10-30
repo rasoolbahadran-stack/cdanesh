@@ -25,6 +25,11 @@ const toc = tocFrom(a.blocks);
 const related = relatedFrom(posts, a, 3);
 const shareUrl = url, shareTxt = a.title;
 
+/* نویسندهٔ واقعی — نام قدیمی تیمی به رسول بهادران نگاشت می‌شود */
+const AUTHOR_ROLE = 'طراح و توسعه‌دهندهٔ وب و متخصص سئو';
+const authorName = (!a.author || a.author === 'تیم محتوای کافه‌دانش') ? 'رسول بهادران' : a.author;
+const isPerson = authorName === 'رسول بهادران';
+
 /* تاریخ میلادی برای دادهٔ ساختاریافته (از sort: YYYYMMDD) */
 const s = String(a.sort || '');
 const isoDate = s.length === 8 ? `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}T08:00:00+03:30` : undefined;
@@ -37,7 +42,9 @@ const articleLd = {
   image: 'https://cdanesh.ir' + a.cover,
   inLanguage: 'fa-IR',
   ...(isoDate ? { datePublished: isoDate, dateModified: isoDate } : {}),
-  author: { '@type': 'Organization', name: a.author },
+  author: isPerson
+    ? { '@type': 'Person', name: authorName, jobTitle: AUTHOR_ROLE, url: 'https://cdanesh.ir/about' }
+    : { '@type': 'Organization', name: authorName },
   publisher: { '@type': 'Organization', name: 'کافه‌دانش', url: 'https://cdanesh.ir' },
   mainEntityOfPage: url,
 };
@@ -71,7 +78,7 @@ const crumbLd = {
       <div class="article-meta">
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4m8-4v4M3 10h18"/></svg> {a.date}</span>
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> {fa(a.read)} دقیقه مطالعه</span>
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7h-9m9 5h-9m9 5h-9M4 7l2 2-2 2m2 6 2 2-2 2"/></svg> {a.author}</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7h-9m9 5h-9m9 5h-9M4 7l2 2-2 2m2 6 2 2-2 2"/></svg> {authorName}{isPerson && <span class="author-role"> — {AUTHOR_ROLE}</span>}</span>
       </div>
     </div>
     <div class="article-hero-cover">
@@ -84,6 +91,14 @@ const crumbLd = {
   <div class="wrap"><div class="split">
     <article class="prose">
       <Fragment set:html={renderBlocks(a.blocks)} />
+      <div class="author-box">
+        <img src="/assets/img/founder-rasool.webp" alt="رسول بهادران — بنیان‌گذار کافه‌دانش" width="56" height="56" loading="lazy" />
+        <div>
+          <b>{authorName}</b>
+          <span>{AUTHOR_ROLE} — بنیان‌گذار استودیوی دیجیتال کافه‌دانش در بوشهر</span>
+          <a href="/about">بیشتر دربارهٔ نویسنده ←</a>
+        </div>
+      </div>
       <div class="share-row"><b>اشتراک‌گذاری:</b>
         <a id="share-tg" href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTxt)}`} target="_blank" rel="noopener" aria-label="اشتراک‌گذاری در تلگرام"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></a>
         <a id="share-li" href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener" aria-label="اشتراک‌گذاری در لینکدین"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4V8h4v1.5A6 6 0 0 1 16 8Z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>

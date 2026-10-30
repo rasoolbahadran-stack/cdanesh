@@ -81,7 +81,12 @@
   /* فرم‌های درخواست/تماس: ثبت در پنل مدیریت */
   $$('form[data-cd-form]').forEach(form => {
     const kind = form.dataset.cdForm; // request | contact
-    const okBox = $('.form-ok', form.closest('.form-card') || form.parentElement) || $('.form-ok', form);
+    let okBox = $('.form-ok', form.closest('.form-card') || form.parentElement) || $('.form-ok', form);
+    if (!okBox) { // اگر قالب صفحه جعبهٔ پیام نداشت، همین‌جا ساخته می‌شود
+      okBox = document.createElement('div');
+      okBox.className = 'form-ok';
+      form.prepend(okBox);
+    }
     const errBox = $('.form-err-global', form);
 
     form.addEventListener('submit', e => {
@@ -161,7 +166,19 @@
           return;
         }
 
-        if (!saved) window.CDStore.addMessage(msg); // حالت دمو
+        if (!saved) {
+          /* پیام آزمایشی همان مرورگر نگه داشته می‌شود (پنل بعداً بالا می‌فرستد)
+             اما دیگر پیام دروغِ «ثبت شد» دیده نمی‌شود — خطای شفاف با راه تماس جایگزین */
+          window.CDStore.addMessage(msg);
+          if (errBox) {
+            errBox.style.display = 'flex';
+            errBox.textContent = 'ثبت پیام روی سرور انجام نشد؛ لطفاً دوباره تلاش کنید یا مستقیم تماس بگیرید / در واتس‌اپ پیام دهید: ۰۹۱۶ ۵۸۰ ۶۲۰۷.';
+            errBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          if (btn) { btn.disabled = false; btn.innerHTML = btnTxt; }
+          form.dataset.sending = '0';
+          return;
+        }
         sessionStorage.setItem('cd_last_send', String(Date.now()));
 
         if (btn) { btn.disabled = false; btn.innerHTML = btnTxt; }
