@@ -17,7 +17,7 @@ const {
 } = Astro.props;
 /* اگر og مشخص نشده باشد: هر صفحه‌ای که canonical دارد، تگ‌های Open Graph هم می‌گیرد (مطابق نسخهٔ تأییدشده) */
 const showOg = og ?? Boolean(canonical);
-const ORG = JSON.stringify({"@context": "https://schema.org", "@type": "Organization", "name": "کافه‌دانش", "alternateName": "Cdanesh Studio", "url": "https://cdanesh.ir/", "logo": "https://cdanesh.ir/assets/img/logo.svg", "email": "info@cdanesh.ir"});
+const ORG = JSON.stringify({"@context": "https://schema.org", "@type": "Organization", "name": "کافه‌دانش", "alternateName": "Cdanesh Studio", "url": "https://cdanesh.ir/", "logo": "https://cdanesh.ir/assets/img/logo.svg", "email": "info@cdanesh.ir", "telephone": "+98-916-580-6207", "address": {"@type": "PostalAddress", "streetAddress": "خیابان شهید رجایی", "addressLocality": "بوشهر", "addressCountry": "IR"}, "sameAs": ["https://github.com/rasoolbahadran-stack"], "founder": {"@type": "Person", "name": "رسول بهادران", "jobTitle": "طراح و توسعه‌دهنده وب‌سایت", "telephone": "+98-916-580-6207", "address": {"@type": "PostalAddress", "addressLocality": "بوشهر", "addressCountry": "IR"}, "url": "https://www.cdanesh.ir", "sameAs": ["https://github.com/rasoolbahadran-stack"]}});
 const SITE = JSON.stringify({"@context": "https://schema.org", "@type": "WebSite", "name": "کافه‌دانش", "url": "https://cdanesh.ir/", "inLanguage": "fa-IR"});
 ---
 <head>

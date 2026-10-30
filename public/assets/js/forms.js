@@ -117,7 +117,7 @@
           email: ($('#' + (kind === 'request' ? 'remail' : 'cmail'), form) || {}).value || '',
           service: ($('#rsvc', form) || {}).value || '',
           subject: ($('#' + (kind === 'request' ? 'rsubj' : 'csubj'), form) || {}).value || '',
-          package: ($('#pkg-selected') && !$('#pkg-selected').hidden ? ($('#pkg-selected b') || {}).textContent || '' : ''),
+          package: (($('#rpackage')) || {}).value || '',
           message: ($('#' + (kind === 'request' ? 'rmsg' : 'cmsg'), form) || {}).value || '',
           date: now.toISOString(),
           status: 'new',
@@ -128,8 +128,8 @@
         if (btn) { btn.disabled = false; btn.innerHTML = btnTxt; }
         form.dataset.sending = '0';
         form.reset();
-        const holder = $('#pkg-selected');
-        if (holder) holder.hidden = true;
+        const pk = $('#rpackage');
+        if (pk) pk.value = '';
         if (okBox) {
           const span = okBox.querySelector('[data-ref]');
           if (span) span.textContent = ref;

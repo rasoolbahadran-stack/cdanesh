@@ -1,6 +1,6 @@
-/* ═══ کافه‌دانش — پنل مدیریت (نسخه آزمایشی سمت مرورگر) ═══
-   در نسخه نهایی Next.js این پنل با احراز هویت سمت سرور، دیتابیس
-   و APIهای واقعی پیاده‌سازی می‌شود؛ ساختار ماژول‌ها همین حفظ می‌گردد. */
+/* ═══ کافه‌دانش — پنل مدیریت (دو حالته: ابری واقعی + آزمایشی مرورگر) ═══
+   • حالت ابری: مقالات در Vercel Blob ذخیره و بلافاصله برای همه بازدیدکنندگان منتشر می‌شوند (ورود با رمز ADMIN_PASSWORD در ورسل)
+   • حالت دمو: بدون سرور، ذخیره در localStorage همان مرورگر */
 (function () {
   'use strict';
 
@@ -9,8 +9,15 @@
   const fa = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
   const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-  /* ─── محافظت ساده مسیر: بدون نشست → صفحه ورود ─── */
+  /* ─── محافظت مسیر: بدون نشست → صفحه ورود ─── */
   if (!window.CDStore || !CDStore.session()) {
+    location.replace('admin-login.html');
+    return;
+  }
+  // نشست ابری ۷ روزه است؛ منقضی → بازگشت به ورود
+  const __sess = CDStore.session();
+  if (__sess && __sess.mode === 'cloud' && Date.now() - (__sess.at || 0) > 6.5 * 24 * 60 * 60 * 1000) {
+    CDStore.logout();
     location.replace('admin-login.html');
     return;
   }
@@ -35,6 +42,52 @@
     clearTimeout(t._h);
     t._h = setTimeout(() => { t.style.opacity = '0'; }, 2600);
   };
+
+  /* ─── لایه ابری مقالات: وضعیت، ذخیره، مهاجرت دمو → ابر ─── */
+  const isCloud = () => !!(window.CDArticles && CDArticles.mode && CDArticles.mode() === 'cloud');
+
+  function updateStorBadge() {
+    const b = $('#stor-badge');
+    if (!b) return;
+    b.hidden = false;
+    const cloud = isCloud();
+    b.classList.toggle('on', cloud);
+    b.innerHTML = cloud
+      ? '<span class="dot" aria-hidden="true"></span><span>ذخیره مقالات: <b>ابری (واقعی)</b> — انتشار فوری برای همه</span>'
+      : '<span class="dot" aria-hidden="true"></span><span>ذخیره مقالات: <b>مرورگر (دمو)</b></span>';
+  }
+
+  function gregSortToday() {
+    const d = new Date();
+    return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+  }
+  function jalaliToday() {
+    try { return new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: 'numeric', day: 'numeric' }).format(new Date()); }
+    catch (e) { return fa(new Date().getFullYear()) + '/' + fa(new Date().getMonth() + 1) + '/' + fa(new Date().getDate()); }
+  }
+
+  async function cloudPut(nextList, okMsg) {
+    const r = await CDArticles.cloudSave(nextList);
+    if (r.ok) { toast(okMsg); return true; }
+    if (r.error === 'UNAUTH') { CDStore.logout(); location.replace('admin-login.html'); return false; }
+    alert('ذخیره ابری انجام نشد: ' + (r.message || r.error));
+    return false;
+  }
+
+  // اعمال یک تغییر روی فهرست ابری و ذخیره کامل (orig: مقاله مبنا برای یافتن با اسلاگ قدیمی)
+  function cloudUpsert(rec, orig, okMsg) {
+    const cur = CDArticles.all().slice();
+    const i = cur.findIndex(x => ((orig && orig.id && x.id === orig.id) || (orig && orig.slug && x.slug === orig.slug)));
+    let next;
+    if (i > -1) { next = cur.slice(); next[i] = Object.assign({}, cur[i], rec); }
+    else if (orig) { next = [Object.assign({}, orig, rec)].concat(cur); }
+    else { next = [rec].concat(cur); }
+    return cloudPut(next, okMsg);
+  }
+  function cloudDelete(rec, okMsg) {
+    const next = CDArticles.all().filter(x => !((rec.id && x.id === rec.id) || x.slug === rec.slug));
+    return cloudPut(next, okMsg);
+  }
 
   /* تاریخ شمسی ساده برای نمایش پیام‌ها */
   function faDate(iso) {
@@ -101,9 +154,22 @@
 
   /* ═════════════ نمای مقالات: فهرست ═════════════ */
   function renderArticles() {
+    const S = window.CDStore;
     const list = allArticles();
-    view.innerHTML =
-      '<div class="adm-topbar"><div><h1>مدیریت مقالات</h1><p class="lead">تولید، ویرایش، پیش‌نمایش و انتشار مقالات مجله</p></div>'
+    const cloud = isCloud();
+    // بنر انتقال مقاله‌های آزمایشی همین مرورگر به فضای ابری
+    let migBox = '';
+    if (cloud && S && (S.newArticles().length || Object.keys(S.articleOverrides()).length)) {
+      const nNew = S.newArticles().length;
+      const nOvr = Object.keys(S.articleOverrides()).length;
+      migBox = '<div class="adm-panel" style="margin-bottom:14px; border-color:rgba(227,185,83,.45); background:linear-gradient(150deg,rgba(227,185,83,.08),transparent)"><div style="display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap">'
+        + '<div><b>انتقال داده‌های آزمایشی این مرورگر</b><p class="adm-hint" style="margin:4px 0 0">'
+        + fa(nNew) + ' مقالهٔ جدید و ' + fa(nOvr) + ' ویرایش آزمایشی در همین مرورگر ذخیره است که در فهرست ابری نیست. با انتقال، برای همه بازدیدکنندگان منتشر می‌شوند.</p></div>'
+        + '<button class="btn btn-gold" id="mig-articles" type="button">انتقال و انتشار</button></div></div>';
+    }
+    view.innerHTML = migBox
+      + '<div class="adm-topbar"><div><h1>مدیریت مقالات</h1><p class="lead">تولید، ویرایش، پیش‌نمایش و انتشار مقالات مجله'
+      + (cloud ? ' — <b style="color:var(--ok)">انتشار فوری برای همه بازدیدکنندگان فعال است.</b>' : ' — در این حالت، تغییرات فقط در همین مرورگر ذخیره می‌شود.') + '</p></div>'
       + '<div class="adm-actions"><button type="button" class="btn btn-gold" id="new-article">+ مقاله جدید</button></div></div>'
       + '<div class="adm-panel"><div class="adm-toolbar">'
       + '<input class="control" id="art-search" type="search" placeholder="جست‌وجو در عنوان‌ها…">'
@@ -125,7 +191,8 @@
           + '<button class="adm-btn" data-act="edit" data-key="' + esc(key) + '">ویرایش</button>'
           + '<a class="adm-btn" href="article.html?slug=' + encodeURIComponent(a.slug) + '&preview=1" target="_blank">پیش‌نمایش</a>'
           + '<button class="adm-btn" data-act="toggle" data-key="' + esc(key) + '">' + (isPub ? 'لغو انتشار' : 'انتشار') + '</button>'
-          + (isNew ? '<button class="adm-btn danger" data-act="delete" data-key="' + esc(key) + '">حذف</button>' : '')
+          + (isNew ? '<button class="adm-btn danger" data-act="delete" data-key="' + esc(key) + '">حذف</button>'
+                   : (isCloud() ? '<button class="adm-btn danger" data-act="delete" data-key="' + esc(key) + '">حذف</button>' : ''))
           + '</div></td></tr>';
       }).join('') || '<tr><td colspan="5"><div class="adm-empty">مقاله‌ای با این مشخصات پیدا نشد.</div></td></tr>';
     };
@@ -140,14 +207,51 @@
       if (b.dataset.act === 'edit') location.hash = '#/articles/edit/' + encodeURIComponent(key);
       if (b.dataset.act === 'toggle') {
         const next = (a.status || 'published') === 'published' ? 'draft' : 'published';
-        if (a.id) CDStore.updateNewArticle(a.id, { status: next });
-        else CDStore.saveArticleOverride(a.slug, { status: next });
-        toast(next === 'published' ? 'مقاله منتشر شد' : 'انتشار لغو شد');
-        renderArticles();
+        if (isCloud()) {
+          b.disabled = true;
+          cloudUpsert({ status: next }, a, next === 'published' ? 'مقاله منتشر شد — برای همه بازدیدکنندگان فعال است' : 'انتشار لغو شد (پیش‌نویس)')
+            .then(ok => { if (ok) renderArticles(); });
+        } else {
+          if (a.id) CDStore.updateNewArticle(a.id, { status: next });
+          else CDStore.saveArticleOverride(a.slug, { status: next });
+          toast(next === 'published' ? 'مقاله منتشر شد' : 'انتشار لغو شد');
+          renderArticles();
+        }
       }
       if (b.dataset.act === 'delete') {
-        if (confirm('این مقاله جدید کاملاً حذف شود؟')) { CDStore.deleteNewArticle(a.id); toast('مقاله حذف شد'); renderArticles(); }
+        if (confirm('این مقاله کاملاً حذف شود؟')) {
+          if (isCloud()) {
+            b.disabled = true;
+            cloudDelete(a, 'مقاله حذف شد').then(ok => { if (ok) renderArticles(); });
+          } else {
+            CDStore.deleteNewArticle(a.id); toast('مقاله حذف شد'); renderArticles();
+          }
+        }
       }
+    });
+    // مهاجرت داده‌های آزمایشی مرورگر → ابر
+    const migBtn = $('#mig-articles');
+    if (migBtn) migBtn.addEventListener('click', async () => {
+      migBtn.disabled = true;
+      migBtn.textContent = 'در حال انتقال…';
+      const overrides = S.articleOverrides();
+      const fresh = S.newArticles();
+      let next = CDArticles.all().slice();
+      Object.keys(overrides).forEach(slug => {
+        const o = overrides[slug];
+        const i = next.findIndex(x => x.slug === slug);
+        if (o && o.deleted) { if (i > -1) next.splice(i, 1); }
+        else if (i > -1) next[i] = Object.assign({}, next[i], o);
+      });
+      fresh.forEach(n => {
+        if (!next.some(x => x.slug === n.slug)) {
+          const cp = Object.assign({}, n); delete cp.id;
+          next.unshift(cp);
+        }
+      });
+      const ok = await cloudPut(next, 'مقالات آزمایشی به فضای ابری منتقل و منتشر شد');
+      if (ok) { S.remove('articles'); S.remove('articles_new'); renderArticles(); }
+      else { migBtn.disabled = false; migBtn.textContent = 'انتقال و انتشار'; }
     });
     draw();
   }
@@ -211,7 +315,10 @@
     $('#f-makeslug').addEventListener('click', () => {
       const s = $('#f-title').value.trim()
         .replace(/[؟?!,،.:؛«»()\[\]{}"'@#$%^&*+=|\\/~`]/g, '')
-        .replace(/\s+/g, '-').slice(0, 60);
+        // نیم‌فاصله و کاراکترهای جهت‌دهی هم جداکننده حساب می‌شوند
+        .replace(/[\s\u200c\u200e\u200f]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 60);
       $('#f-slug').value = s;
     });
     $('#art-back').addEventListener('click', () => { location.hash = '#/articles'; });
@@ -244,6 +351,21 @@
         updated: '۱۴۰۵/۰۸/۱۴',
       };
 
+      if (isCloud()) {
+        // انتشار واقعی: کل فهرست به فضای ابری ذخیره می‌شود
+        const rec = isNew ? Object.assign({ date: jalaliToday(), sort: gregSortToday() }, data) : data;
+        const orig = isNew ? null : { id: a.id, slug: a.slug };
+        const saveBtns = ['#art-save', '#art-save2', '#art-save-draft'].map(sel => $(sel));
+        saveBtns.forEach(b => { if (b) b.disabled = true; });
+        const okMsg = status === 'draft'
+          ? 'پیش‌نویس در فضای ابری ذخیره شد'
+          : 'ذخیره و انتشار ابری — برای همه بازدیدکنندگان فعال شد';
+        cloudUpsert(rec, orig, okMsg).then(ok => {
+          if (ok) location.hash = '#/articles';
+          else saveBtns.forEach(b => { if (b) b.disabled = false; });
+        });
+        return;
+      }
       if (isNew) {
         const rec = Object.assign({
           id: 'n' + Date.now(), date: '۱۴۰۵/۰۸/۱۴', sort: 20251114,
@@ -254,7 +376,7 @@
       } else {
         CDStore.saveArticleOverride(a.slug, data);
       }
-      toast('مقاله ذخیره شد');
+      toast('مقاله ذخیره شد (دمو — فقط در همین مرورگر)');
       location.hash = '#/articles';
     };
     $('#art-save').addEventListener('click', () => save());
@@ -557,12 +679,14 @@
       + '<div class="adm-grid2">'
       + '<div class="adm-panel"><div class="adm-panel-head"><b>اطلاعات سایت</b></div><div class="adm-form-grid">'
       + '<div><label class="adm-label">ایمیل عمومی</label><input class="control" id="s-email" dir="ltr" value="' + esc(s.email || 'info@cdanesh.ir') + '"></div>'
-      + '<div><label class="adm-label">تلفن نمایشی</label><input class="control" id="s-phone" dir="ltr" value="' + esc(s.phone || '') + '" placeholder="02100000000"></div>'
+      + '<div><label class="adm-label">تلفن نمایشی</label><input class="control" id="s-phone" dir="ltr" value="' + esc(s.phone || '') + '" placeholder="09165806207"></div>'
       + '</div><button type="button" class="btn btn-gold btn-sm" id="s-save" style="margin-top:16px">ذخیره</button></div>'
       + '<div class="adm-panel"><div class="adm-panel-head"><b>تغییر رمز مدیر</b></div>'
-      + '<div class="adm-form-grid"><div><label class="adm-label">رمز فعلی</label><input class="control" id="p-old" type="password" dir="ltr"></div>'
+      + (isCloud() ? '<p class="adm-hint" style="margin:12px 0 0">در حالت ابری، رمز مدیر در ورسل (Environment Variables → ADMIN_PASSWORD) نگهداری می‌شود و از این‌جا قابل تغییر نیست؛ برای تغییر، در ورسل رمز را عوض کن و پروژه را دوباره Deploy کن. همهٔ نشست‌های فعال با تغییر رمز باطل می‌شوند.</p>'
+      + '</div>'
+      : '<div class="adm-form-grid"><div><label class="adm-label">رمز فعلی</label><input class="control" id="p-old" type="password" dir="ltr"></div>'
       + '<div><label class="adm-label">رمز جدید (حداقل ۸ کاراکتر)</label><input class="control" id="p-new" type="password" dir="ltr"></div></div>'
-      + '<button type="button" class="btn btn-ghost btn-sm" id="p-save" style="margin-top:16px">تغییر رمز</button></div>'
+      + '<button type="button" class="btn btn-ghost btn-sm" id="p-save" style="margin-top:16px">تغییر رمز</button></div>')
       + '</div>'
       + '<div class="adm-panel" style="margin-top:18px"><div class="adm-panel-head"><b>داده‌های نسخه آزمایشی</b><span class="chip chip-gold">در همین مرورگر</span></div>'
       + '<p class="adm-hint" style="margin-bottom:14px">مقالات ساخته‌شده در پنل، ویرایش‌ها، پیام‌ها و تنظیمات در حافظه مرورگر (localStorage) ذخیره می‌شوند. برای انتقال به دستگاه دیگر از خروجی استفاده کنید.</p>'
@@ -575,7 +699,8 @@
       CDStore.saveSettings({ email: $('#s-email').value.trim(), phone: $('#s-phone').value.trim() });
       toast('تنظیمات ذخیره شد');
     });
-    $('#p-save').addEventListener('click', () => {
+    const pSave = $('#p-save');
+    if (pSave) pSave.addEventListener('click', () => {
       const old = $('#p-old').value, nw = $('#p-new').value;
       if (old !== (CDStore.settings().adminPass || 'cdanesh1404')) { alert('رمز فعلی درست نیست.'); return; }
       if (nw.length < 8) { alert('رمز جدید حداقل ۸ کاراکتر باشد.'); return; }
@@ -633,7 +758,7 @@
 
     view.innerHTML =
       '<div class="adm-topbar"><div><h1>سلام مدیر کافه‌دانش</h1><p class="lead">خلاصه وضعیت محتوا، پیام‌ها و سایت</p></div>'
-      + '<div class="adm-actions"><a class="btn btn-gold" href="#/articles/new">+ مقاله جدید</a><a class="btn btn-ghost" href="index.html" target="_blank">مشاهده سایت</a></div></div>'
+      + '<div class="adm-actions"><a class="btn btn-gold" href="#/articles/new">+ مقاله جدید</a><a class="btn btn-ghost" href="./" target="_blank">مشاهده سایت</a></div></div>'
       + '<div class="admin-stat">'
       + kpi(icoDoc, 'مقالات منتشرشده', pub)
       + kpi(icoDoc, 'پیش‌نویس و زمان‌بندی', drafts + sched)
@@ -653,8 +778,11 @@
         '<div style="margin-bottom:16px"><div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:7px"><span class="muted">' + l + '</span><b>' + fa(n) + '</b></div><div class="adm-meter"><i style="width:' + (arts.length ? Math.round(n / arts.length * 100) : 0) + '%; background:' + c + '"></i></div></div>').join('')
       + '<a class="btn btn-ghost btn-sm btn-block" href="#/articles" style="margin-top:6px">مدیریت مقالات</a></div></div>'
       + '</div>'
-      + '<div class="adm-panel" style="margin-top:18px"><div class="adm-panel-head"><b>راهنمای سریع پنل</b></div>'
-      + '<p class="adm-hint">این پنل، همان ساختاری است که در نسخه اصلی Next.js با دیتابیس و احراز هویت سمت سرور پیاده‌سازی می‌شود: تولید و انتشار مقاله، مدیریت صفحات، نمونه‌کارها، سؤالات متداول، پیام‌ها، سئو و امنیت. تغییرات این نسخه در همین مرورگر ذخیره و بلافاصله روی سایت اعمال می‌شود.</p></div>';
+      + '<div class="adm-panel" style="margin-top:18px"><div class="adm-panel-head"><b>' + (isCloud() ? 'وضعیت انتشار مقالات' : 'راهنمای سریع پنل') + '</b></div>'
+      + (isCloud()
+        ? '<p class="adm-hint">اتصال ابری فعال است: مقاله‌ها در فضای ابری ورسل (Vercel Blob) ذخیره می‌شوند و «ذخیره» به‌معنای انتشار فوری برای همه بازدیدکنندگان است. پیش‌نویس‌ها فقط با لینک پیش‌نمایش دیده می‌شوند و در سایت عمومی نمایش داده نمی‌شوند. بقیه بخش‌های پنل (پیام‌ها، سئو، نمونه‌کارها) همچنان آزمایشی و مخصوص همین مرورگرند.</p>'
+        : '<p class="adm-hint">این پنل، همان ساختاری است که در نسخه اصلی Next.js با دیتابیس و احراز هویت سمت سرور پیاده‌سازی می‌شود: تولید و انتشار مقاله، مدیریت صفحات، نمونه‌کارها، سؤالات متداول، پیام‌ها، سئو و امنیت. تغییرات این نسخه در همین مرورگر ذخیره و بلافاصله روی سایت اعمال می‌شود.</p>')
+      + '</div>';
   }
 
   /* ═════════════ مسیریابی ═════════════ */
@@ -679,10 +807,23 @@
   }
 
   $('#adm-logout').addEventListener('click', () => {
+    try { fetch('api/login', { method: 'DELETE' }).catch(() => {}); } catch (e) { /* noop */ }
     CDStore.logout();
     location.replace('admin-login.html');
   });
 
   window.addEventListener('hashchange', () => { route(); window.scrollTo({ top: 0 }); });
+
+  /* ─── نشان وضعیت ذخیره‌سازی + بازرندر پس از رسیدن داده ابری ─── */
+  updateStorBadge();
+  if (window.CDArticles && CDArticles.subscribe) {
+    CDArticles.subscribe(() => {
+      updateStorBadge();
+      const h = (location.hash || '#/dashboard').replace(/^#\//, '');
+      const mod = h.split('/')[0];
+      if (mod === 'articles' && !h.includes('edit') && !h.includes('new')) renderArticles();
+      else if (mod === 'dashboard' || mod === '') renderDashboard();
+    });
+  }
   route();
 })();

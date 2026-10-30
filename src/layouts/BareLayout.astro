@@ -8,8 +8,9 @@ interface Props {
   schemas?: boolean;
   robots?: string;
   bodyStyle?: string;
+  bodyClass?: string;
 }
-const { title, description = '', canonical = '', schemas = true, robots = '', bodyStyle = '' } = Astro.props;
+const { title, description = '', canonical = '', schemas = true, robots = '', bodyStyle = '', bodyClass = '' } = Astro.props;
 /* لایوت بدون کروم سایت: ۴۰۴ و پنل مدیریت */
 ---
 <!DOCTYPE html>
@@ -17,7 +18,7 @@ const { title, description = '', canonical = '', schemas = true, robots = '', bo
   <PageHead title={title} description={description} canonical={canonical} schemas={schemas} robots={robots}>
     <slot name="head" />
   </PageHead>
-  <body style={bodyStyle || undefined}>
+  <body class={bodyClass || undefined} style={bodyStyle || undefined}>
     <slot />
   </body>
 </html>

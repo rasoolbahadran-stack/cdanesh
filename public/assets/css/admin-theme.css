@@ -1,0 +1,172 @@
+/* ═══════════════════════════════════════════════════════════════
+   کافه‌دانش — تم روشن پنل مدیریت (admin-light)
+   فقط روی صفحات admin.html / admin-login.html / admin-dashboard.html
+   لود می‌شود و هیچ تأثیری روی صفحات عمومی سایت ندارد.
+   پالت: زمینه خنثی روشن + کارت سفید + اکسنت بنفش برند + طلایی
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── توکن‌های روشن ───────────────────────────────────────── */
+body.adm-light {
+  --bg-0: #f3f2f9;
+  --bg-1: #ffffff;
+  --bg-2: #faf9fd;
+  --panel: #ffffff;
+  --card: #ffffff;
+  --card-2: #f8f7fc;
+  --line: #e7e4f1;
+  --line-2: #d9d5ea;
+
+  --txt: #241f3d;
+  --mut: #5f5b78;
+  --faint: #8f8ba6;
+
+  --ok: #1f9d63;
+  --warn: #a8791a;
+  --err: #d84a4a;
+  --gold-soft: rgba(227, 185, 83, .16);
+
+  --shadow-1: 0 1px 2px rgba(30, 20, 70, .05), 0 18px 40px -28px rgba(30, 20, 70, .25);
+  --shadow-gold: 0 14px 30px -14px rgba(227, 185, 83, .45);
+
+  color: var(--txt);
+  background-color: #f3f2f9;
+  background-image:
+    radial-gradient(900px 480px at 12% -6%, rgba(124, 77, 255, .06), transparent 62%),
+    radial-gradient(860px 460px at 88% -8%, rgba(227, 185, 83, .09), transparent 62%);
+}
+
+/* فوکوس واضح برای دسترس‌پذیری */
+body.adm-light :focus-visible { outline: 2px solid #8a6cf0; outline-offset: 2px; border-radius: 6px; }
+
+/* ─── سایدبار ─────────────────────────────────────────────── */
+body.adm-light .admin-side {
+  background: #ffffff;
+  border-inline-end: 1px solid var(--line);
+  box-shadow: -1px 0 0 rgba(30, 20, 70, .02);
+}
+body.adm-light .admin-side nav a { color: var(--mut); }
+body.adm-light .admin-side nav a:hover { background: #f6f4fd; color: var(--txt); }
+body.adm-light .admin-side nav a.active {
+  background: #efeafd;
+  color: #5b3fd1;
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 #7a5fd0;
+}
+body.adm-light .admin-side .brand-name small { color: var(--faint); }
+
+/* ─── کارت‌های آمار و پنل‌ها ──────────────────────────────── */
+body.adm-light .admin-card,
+body.adm-light .adm-panel {
+  background: #ffffff;
+  box-shadow: var(--shadow-1);
+}
+body.adm-light .admin-card b { color: #4c39a8; }
+body.adm-light .admin-card small { color: var(--faint); }
+body.adm-light .adm-kpi .ico { background: #fdf6e4; border-color: #eddfb2; color: #8a6d1f; }
+
+/* ─── جدول‌ها ─────────────────────────────────────────────── */
+body.adm-light .adm-table th { color: var(--faint); border-bottom-color: var(--line); }
+body.adm-light .adm-table td { border-bottom-color: #efedf7; }
+body.adm-light .adm-table tbody tr { transition: background .15s; }
+body.adm-light .adm-table tbody tr:hover { background: #faf9fe; }
+
+/* ─── نشان‌های وضعیت ─────────────────────────────────────── */
+body.adm-light .st-pub { background: rgba(31, 157, 99, .12); color: #177a4c; }
+body.adm-light .st-draft { background: #efedf6; color: var(--mut); }
+body.adm-light .st-new { background: #f9f0d5; color: #8a6d1f; }
+
+/* ─── دکمه‌ها و تب‌ها ─────────────────────────────────────── */
+body.adm-light .adm-btn { background: #ffffff; border-color: #d9d5ea; color: var(--mut); }
+body.adm-light .adm-btn:hover { color: var(--txt); border-color: #a48ef0; background: #faf9fe; }
+body.adm-light .adm-btn.primary { background: #f7eed6; border-color: #ecd9a8; color: #8a6d1f; }
+body.adm-light .adm-btn.primary:hover { background: #f2e5c2; border-color: #dfc684; }
+body.adm-light .adm-btn.danger { color: #c93d3d; border-color: #f0cfcf; }
+body.adm-light .adm-btn.danger:hover { background: #fdf1f1; border-color: #e3a8a8; }
+
+body.adm-light .adm-tabs button { background: #ffffff; border-color: var(--line); color: var(--mut); }
+body.adm-light .adm-tabs button:hover { color: var(--txt); border-color: #b9a5f0; }
+body.adm-light .adm-tabs button.active {
+  background: #5b3fd1;
+  border-color: #5b3fd1;
+  color: #ffffff;
+  box-shadow: 0 10px 22px -12px rgba(91, 63, 209, .55);
+}
+
+body.adm-light .btn-ghost { background: #ffffff; border-color: #d9d5ea; color: var(--mut); }
+body.adm-light .btn-ghost:hover { border-color: #8a6cf0; color: #5b3fd1; background: #faf9fe; }
+
+/* ─── ورودی‌ها ───────────────────────────────────────────── */
+body.adm-light .control {
+  background: #ffffff;
+  border: 1px solid #dcd8ea;
+  color: var(--txt);
+}
+body.adm-light .control::placeholder { color: #a8a4bd; }
+body.adm-light .control:focus {
+  border-color: #8a6cf0;
+  box-shadow: 0 0 0 4px rgba(91, 63, 209, .12);
+  outline: none;
+}
+body.adm-light .control-error { border-color: #e3a8a8 !important; }
+body.adm-light .adm-preview { background: #fbfaff; }
+
+/* ─── اجزای کمکی ─────────────────────────────────────────── */
+body.adm-light .adm-meter { background: #edeaf6; }
+body.adm-light .adm-viewport-note { background: #fbf5e3; border-color: #eddfb2; color: #8a6d1f; }
+body.adm-light .adm-check { border-bottom-color: #efedf7; }
+body.adm-light .adm-check input { accent-color: #5b3fd1; }
+body.adm-light .adm-badge-count { box-shadow: var(--shadow-gold); }
+
+/* ─── پیام موفقیت/خطا فرم ────────────────────────────────── */
+body.adm-light .form-card {
+  background: #ffffff;
+  border-color: var(--line);
+  box-shadow: var(--shadow-1);
+}
+body.adm-light .form-ok {
+  background: rgba(31, 157, 99, .09);
+  border-color: rgba(31, 157, 99, .35);
+  color: #177a4c;
+}
+
+/* ─── صفحه ورود ──────────────────────────────────────────── */
+body.adm-light .login-veil {
+  background:
+    radial-gradient(700px 380px at 15% -5%, rgba(124, 77, 255, .10), transparent 60%),
+    radial-gradient(700px 380px at 85% -8%, rgba(227, 185, 83, .13), transparent 60%),
+    #f3f2f9;
+}
+body.adm-light .login-veil .form-card { box-shadow: 0 24px 60px -30px rgba(30, 20, 70, .3); }
+body.adm-light .login-veil .form-note,
+body.adm-light .form-note { color: var(--faint); }
+
+/* ─── نشان وضعیت ذخیره‌سازی مقالات ────────────────────────── */
+body.adm-light .stor-badge {
+  margin-top: 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 11.5px;
+  line-height: 1.7;
+  background: #fbfaff;
+  border: 1px dashed #d9d5ea;
+  color: var(--mut);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+body.adm-light .stor-badge .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #b6b1cc; flex: none; margin-top: 5px;
+}
+body.adm-light .stor-badge.on {
+  background: #f2fbf6;
+  border-color: rgba(31, 157, 99, .45);
+  color: #177a4c;
+}
+body.adm-light .stor-badge.on .dot { background: #1f9d63; box-shadow: 0 0 0 3px rgba(31, 157, 99, .15); }
+
+/* ─── اسکرول‌بار ظریف ────────────────────────────────────── */
+body.adm-light ::-webkit-scrollbar { width: 10px; height: 10px; }
+body.adm-light ::-webkit-scrollbar-track { background: transparent; }
+body.adm-light ::-webkit-scrollbar-thumb { background: #d5d1e4; border-radius: 99px; border: 2px solid #f3f2f9; }
+body.adm-light ::-webkit-scrollbar-thumb:hover { background: #bfb8dc; }

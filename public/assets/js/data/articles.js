@@ -1,11 +1,32 @@
-/* ═══ کافه‌دانش — API مقالات (ادغام داده پایه + پنل مدیریت) ═══ */
+/* ═══ کافه‌دانش — API مقالات (ادغام داده پایه + پنل + فضای ابری) ═══
+   سه منبع داده به ترتیب اولویت:
+   ۱) ابری (api/articles روی ورسل + Vercel Blob) — انتشار واقعی برای همه
+   ۲) دادهٔ همراه پروژه (articles-a/b.js) — همیشه در دسترس (گیت‌هاب پیجز/دمو)
+   ۳) ویرایش‌های آزمایشی پنل در localStorage — فقط حالت دمو */
 (function () {
   'use strict';
 
   const base = [].concat(window.CD_ARTICLES_A || [], window.CD_ARTICLES_B || []);
 
-  // ادغام ویرایش‌ها و مقالات جدید پنل مدیریت
+  /* ─── حالت ابری ─── */
+  let cloudList = null;          // فهرست کامل از سرور (شامل پیش‌نویس‌ها)
+  let mode = 'local';            // 'local' | 'cloud'
+  const subs = new Set();        // شنونده‌های به‌روزرسانی ابری
+
+  const sorted = list => list.slice().sort((x, y) => (y.sort || 0) - (x.sort || 0));
+  const sig = list => list.length + '|' + list
+    .map(a => (a.slug || '') + ':' + (a.updated || a.date || '') + ':' + (a.status || 'published') + ':' + (a.title || ''))
+    .join('|');
+
+  function notify(prevSig, next) {
+    if (sig(prevSig || base) === sig(next)) return; // داده یکسان است؛ بازرندر لازم نیست
+    subs.forEach(f => { try { f(next); } catch (e) { /* noop */ } });
+  }
+
+  // ادغام ویرایش‌ها و مقالات جدید پنل مدیریت (حالت دمو)
   function all() {
+    // ابری = مرجع اصلی؛ تا اولین ذخیره، دادهٔ همراه پروژه «بذر» ویرایش است
+    if (mode === 'cloud') return sorted(cloudList || base);
     const S = window.CDStore;
     const overrides = S ? S.articleOverrides() : {};
     const fresh = S ? S.newArticles() : [];
@@ -16,6 +37,51 @@
         .map(a => Object.assign({}, a, overrides[a.slug] || {})));
     return merged.sort((x, y) => (y.sort || 0) - (x.sort || 0));
   }
+
+  /* ─── دریافت وضعیت ابری (بدون قطع‌کردن صفحه در خطا) ─── */
+  async function loadRemote() {
+    try {
+      const r = await fetch('api/articles', { headers: { Accept: 'application/json' } });
+      const ct = r.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) { mode = 'local'; return null; } // سرور/API نیست
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d && d.ok && Array.isArray(d.articles)) {
+        const prev = all();
+        cloudList = d.articles;
+        mode = 'cloud';
+        notify(prev, d.articles);
+        return d.articles;
+      }
+      if (r.status === 404 && d && d.error === 'EMPTY') {
+        // API هست ولی هنوز چیزی ذخیره نشده: حالت ابری با بذر دادهٔ پروژه
+        mode = 'cloud';
+        subs.forEach(f => { try { f(null); } catch (e) { /* noop */ } }); // فقط برای به‌روزرسانی نشان/نماها
+        return null;
+      }
+      mode = 'local';
+      return null;
+    } catch (e) { mode = 'local'; return null; }
+  }
+
+  /* ─── ذخیره در فضای ابری (فقط پنل مدیریت) ─── */
+  async function cloudSave(list) {
+    const r = await fetch('api/articles', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ articles: list }),
+    });
+    let d = {};
+    try { if ((r.headers.get('content-type') || '').includes('json')) d = await r.json(); } catch (e) { /* noop */ }
+    if (r.ok && d.ok) {
+      const prev = all();
+      cloudList = sorted(list);
+      notify(prev, cloudList);
+      return { ok: true, updatedAt: d.updatedAt };
+    }
+    return { ok: false, error: (d && d.error) || ('HTTP_' + r.status), message: (d && d.message) || '' };
+  }
+
+  function subscribe(fn) { subs.add(fn); return () => subs.delete(fn); }
 
   function published(now) {
     const t = now || Date.now();
@@ -92,5 +158,16 @@
     return h;
   }
 
-  window.CDArticles = { all, published, bySlug, byCat, related, latest, CATS, renderBlocks, esc, rich };
+  window.CDArticles = {
+    all, published, bySlug, byCat, related, latest, CATS, renderBlocks, esc, rich,
+    // لایه ابری
+    mode: () => mode,
+    cloudList: () => cloudList,
+    loadRemote,
+    cloudSave,
+    subscribe,
+  };
+
+  // دریافت فهرست ابری در اولین فرصت (اگر ورسل و Blob فعال باشد)
+  loadRemote();
 })();

@@ -79,9 +79,9 @@
     flags: () => read('flags', {}),
     saveFlag: (key, val) => write('flags', Object.assign({}, read('flags', {}), { [key]: !!val })),
 
-    // نشست مدیر (آزمایشی سمت مرورگر)
+    // نشست مدیر (دمو در مرورگر / ابری با کوکی امن سرور)
     session: () => read('session', null),
-    login: user => write('session', { user, at: Date.now() }),
+    login: (user, extra) => write('session', Object.assign({ user, at: Date.now() }, extra || {})),
     logout: () => remove('session'),
 
     // پاک‌سازی کامل داده‌های آزمایشی

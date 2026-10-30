@@ -160,9 +160,9 @@
   $$('.js-year').forEach(el => { el.textContent = fa(1405); });
 
   /* ─── هایلایت آیتم فعال منو بر اساس صفحه جاری ─── */
-  const path = location.pathname.split('/').pop() || 'index.html';
+  const path = (location.pathname.split('/').pop() || 'index').replace(/\.html$/, '');
   $$('.main-nav a, .drawer a').forEach(a => {
-    const href = (a.getAttribute('href') || '').split('#')[0];
+    const href = (a.getAttribute('href') || '').split('#')[0].replace(/^\.\/$/, 'index').replace(/\.html$/, '');
     if (href && href === path) {
       a.classList.add('active');
       if (a.closest('.has-mega')) a.closest('.has-mega').querySelector('a').classList.add('active');
@@ -289,13 +289,8 @@
     if (!item) return;
     const svc = $('#rsvc');
     if (svc && $('option[value="' + item[0] + '"]', svc)) svc.value = item[0];
-    const subj = $('#rsubj');
-    if (subj && !subj.value) subj.value = item[1];
-    const holder = $('#pkg-selected');
-    if (holder) {
-      holder.hidden = false;
-      const b = $('b', holder);
-      if (b) b.textContent = item[1];
-    }
+    /* پکیج به‌صورت نامرئی همراه فرم ثبت می‌شود؛ خدمت مرتبط هم خودکار انتخاب می‌شود */
+    const pkgInput = $('#rpackage');
+    if (pkgInput) pkgInput.value = item[1];
   })();
 })();

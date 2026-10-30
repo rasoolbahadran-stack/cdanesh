@@ -13,7 +13,8 @@
   (function applySeoOverrides() {
     if (!S) return;
     const path = (location.pathname.split('/').pop() || 'index.html').split('?')[0];
-    const ov = S.seoOverrides()[path];
+    const OV = S.seoOverrides();
+    const ov = OV[path] || OV[path.replace(/\.html$/, '')] || OV[path + '.html'];
     if (!ov) return;
     if (ov.title) document.title = ov.title;
     if (ov.description) {
@@ -51,10 +52,13 @@
   }
 
   /* ─── صفحه اصلی: مقالات اخیر ─── */
-  const homePosts = $('#home-posts');
-  if (homePosts && window.CDArticles) {
-    homePosts.innerHTML = CDArticles.latest(3).map((a, i) => postCard(a, i)).join('');
+  function renderHomePosts() {
+    const homePosts = $('#home-posts');
+    if (homePosts && window.CDArticles) {
+      homePosts.innerHTML = CDArticles.latest(3).map((a, i) => postCard(a, i)).join('');
+    }
   }
+  renderHomePosts();
 
   /* ─── صفحه اصلی: نمونه‌کارهای منتخب (با احترام به ترتیب پنل) ─── */
   const homePf = $('#home-portfolio');
@@ -114,17 +118,20 @@
     'speed': ['image-optimization', 'core-web-vitals', 'technical-seo-basics'],
     'services': null, // پیش‌فرض: آخرین مقالات
   };
-  $$('[data-related-articles]').forEach(box => {
-    const key = box.dataset.relatedArticles;
-    const slugs = SERVICE_ARTICLES[key] || null;
-    let items;
-    if (slugs) {
-      items = slugs.map(s => CDArticles.bySlug(s)).filter(Boolean).slice(0, 3);
-    } else {
-      items = CDArticles.latest(3);
-    }
-    box.innerHTML = items.map((a, i) => postCard(a, i)).join('');
-  });
+  function renderServiceRelated() {
+    $$('[data-related-articles]').forEach(box => {
+      const key = box.dataset.relatedArticles;
+      const slugs = SERVICE_ARTICLES[key] || null;
+      let items;
+      if (slugs) {
+        items = slugs.map(s => CDArticles.bySlug(s)).filter(Boolean).slice(0, 3);
+      } else {
+        items = CDArticles.latest(3);
+      }
+      box.innerHTML = items.map((a, i) => postCard(a, i)).join('');
+    });
+  }
+  renderServiceRelated();
 
   /* ═══════════ صفحه مجله: جست‌وجو، فیلتر و صفحه‌بندی واقعی ═══════════ */
   const grid = $('#posts-grid');
@@ -133,7 +140,7 @@
     const params = new URLSearchParams(location.search);
     let cat = params.get('cat') || 'all';
     let page = Math.max(1, parseInt(params.get('page'), 10) || 1);
-    const posts = CDArticles.published();
+    let posts = CDArticles.published();
 
     // دکمه‌های دسته‌بندی
     const catsBox = $('.blog-cats');
@@ -200,11 +207,15 @@
     });
     if (search) search.addEventListener('input', () => { page = 1; draw(); });
     draw();
+    // به‌روزرسانی ابری: فهرست تازه ← بازرسم
+    if (window.CDArticles.subscribe) CDArticles.subscribe(() => { posts = CDArticles.published(); draw(); });
   }
 
   /* ═══════════ صفحه مقاله ═══════════ */
   const articleRoot = $('#article-root');
-  if (articleRoot && window.CDArticles) {
+  let lastArticleSig = '';
+  function renderArticlePage() {
+    if (!articleRoot || !window.CDArticles) return;
     const params = new URLSearchParams(location.search);
     const slug = params.get('slug') || '';
     const isPreview = params.get('preview') === '1';
@@ -236,7 +247,7 @@
       articleRoot.innerHTML =
         '<section class="article-hero"><div class="wrap"><div class="article-hero-grid">'
         + '<div class="article-head">'
-        + '<nav class="breadcrumb" aria-label="مسیر صفحه"><a href="index.html">خانه</a>'
+        + '<nav class="breadcrumb" aria-label="مسیر صفحه"><a href="./">خانه</a>'
         + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>'
         + '<a href="blog.html">مجله</a>'
         + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>'
@@ -310,5 +321,16 @@
       });
       document.head.appendChild(ld);
     }
+    lastArticleSig = a ? JSON.stringify(a) : '';
+  }
+  renderArticlePage();
+  // به‌روزرسانی ابری: اگر دادهٔ سرور تغییر کرد یا مقاله جدید بود، دوباره رندر شود
+  if (window.CDArticles && CDArticles.subscribe) {
+    CDArticles.subscribe(() => {
+      const p2 = new URLSearchParams(location.search);
+      const a2 = CDArticles.bySlug(p2.get('slug') || '');
+      const nextSig = a2 ? JSON.stringify(a2) : '';
+      if (nextSig !== lastArticleSig) renderArticlePage();
+    });
   }
 })();

@@ -6,8 +6,9 @@ const bodyStyle = "display:flex; align-items:center; justify-content:center; min
 const HEAD_EXTRA_0 = "location.replace('admin.html');";
 ---
 
-<BareLayout title={title} robots={robots} bodyStyle={bodyStyle} schemas={false}>
+<BareLayout title={title} robots={robots} bodyStyle={bodyStyle} bodyClass="adm-light" schemas={false}>
   <Fragment slot="head">
+    <link rel="stylesheet" href="assets/css/admin-theme.css">
     <script is:inline set:html={HEAD_EXTRA_0}></script>
   </Fragment>
 <p class="muted">در حال انتقال به <a href="admin.html" style="color:var(--gold)">پنل مدیریت</a>…</p>

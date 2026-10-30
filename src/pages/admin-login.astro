@@ -5,7 +5,8 @@ const description = "ورود مدیر به پنل مدیریت کافه‌دا�
 const robots = "noindex, nofollow";
 ---
 
-<BareLayout title={title} description={description} robots={robots} schemas={false}>
+<BareLayout title={title} description={description} robots={robots} bodyClass="adm-light" schemas={false}>
+<Fragment slot="head"><link rel="stylesheet" href="assets/css/admin-theme.css"></Fragment>
 <div class="login-veil">
   <div style="width:min(430px,100%)">
     <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:26px">
@@ -31,10 +32,10 @@ const robots = "noindex, nofollow";
       </form>
       <p class="form-note">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-        <span>اطلاعات ورود نسخه آزمایشی: نام کاربری <b dir="ltr">admin</b> و رمز <b dir="ltr">cdanesh1404</b> — رمز را از بخش تنظیمات پنل تغییر دهید. ورود پس از ۵ تلاش ناموفق، ۱۵ دقیقه قفل می‌شود.</span>
+        <span>روی ورسل (پس از تنظیم <b dir="ltr">ADMIN_PASSWORD</b>) با نام کاربری <b dir="ltr">admin</b> و رمز ابری وارد شو — ذخیره واقعی و انتشار فوری مقالات. بدون سرور، ورود آزمایشی: <b dir="ltr">admin / cdanesh1404</b></span>
       </p>
     </div>
-    <p class="muted small" style="text-align:center; margin-top:18px"><a href="index.html" style="color:var(--gold)">← بازگشت به سایت</a></p>
+    <p class="muted small" style="text-align:center; margin-top:18px"><a href="./" style="color:var(--gold)">← بازگشت به سایت</a></p>
   </div>
 </div>
 
@@ -47,6 +48,7 @@ const robots = "noindex, nofollow";
 
   const errBox = $('#login-err');
   const btn = $('#login-btn');
+  const btnHtml = btn.innerHTML;
   const FAIL_KEY = 'cd_login_fails'; // {count, at}
   const LOCK_MS = 15 * 60 * 1000, MAX_FAILS = 5;
 
@@ -54,39 +56,90 @@ const robots = "noindex, nofollow";
     try { return JSON.parse(localStorage.getItem(FAIL_KEY)) || { count: 0, at: 0 }; }
     catch (e) { return { count: 0, at: 0 }; }
   };
+  const setFails = f => { try { localStorage.setItem(FAIL_KEY, JSON.stringify(f)); } catch (e) { /* noop */ } };
+  const showErr = msg => { errBox.style.display = 'flex'; errBox.textContent = msg; };
+  const hideErr = () => { errBox.style.display = 'none'; };
 
-  $('#login-form').addEventListener('submit', e => {
+  /* ─── ورود ابری (پنل واقعی روی ورسل) ─── */
+  async function cloudLogin(username, password) {
+    try {
+      const r = await fetch('api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const ct = r.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) return { absent: true }; // API وجود ندارد (گیت‌هاب پیجز/لوکال)
+      const d = await r.json().catch(() => ({}));
+      return { status: r.status, data: d || {} };
+    } catch (e) { return { absent: true }; }
+  }
+
+  function demoLogin(username, password) {
+    const fails = getFails();
+    const validUser = username === 'admin';
+    const validPass = password === (window.CDStore ? (CDStore.settings().adminPass || 'cdanesh1404') : 'cdanesh1404');
+    if (validUser && validPass) {
+      try { localStorage.removeItem(FAIL_KEY); } catch (e) { /* noop */ }
+      if (window.CDStore) {
+        CDStore.login('admin', { mode: 'local' });
+        location.replace('admin.html');
+      }
+      return;
+    }
+    const nf = { count: (Date.now() - fails.at < LOCK_MS ? fails.count : 0) + 1, at: Date.now() };
+    setFails(nf);
+    const left = MAX_FAILS - nf.count;
+    showErr(left > 0
+      ? 'نام کاربری یا رمز عبور درست نیست. ' + left + ' تلاش باقی مانده است.'
+      : 'ورود به مدت ۱۵ دقیقه قفل شد.');
+    if (left <= 0) btn.disabled = true;
+  }
+
+  $('#login-form').addEventListener('submit', async e => {
     e.preventDefault();
     const fails = getFails();
     if (fails.count >= MAX_FAILS && Date.now() - fails.at < LOCK_MS) {
       const remain = Math.ceil((LOCK_MS - (Date.now() - fails.at)) / 60000);
-      errBox.style.display = 'flex';
-      errBox.textContent = 'به دلیل تلاش‌های ناموفق، ورود ' + remain + ' دقیقه قفل است.';
+      showErr('به دلیل تلاش‌های ناموفق، ورود ' + remain + ' دقیقه قفل است.');
       btn.disabled = true;
       return;
     }
 
     const user = $('#auser').value.trim();
     const pass = $('#apass').value;
-    const validUser = user === 'admin';
-    const validPass = pass === (window.CDStore ? (CDStore.settings().adminPass || 'cdanesh1404') : 'cdanesh1404');
+    if (!user || !pass) { showErr('نام کاربری و رمز عبور را وارد کن.'); return; }
 
-    if (validUser && validPass) {
-      try { localStorage.removeItem(FAIL_KEY); } catch (err) {}
-      if (window.CDStore) {
-        CDStore.login('admin');
-        location.replace('admin.html');
-      }
-    } else {
-      const nf = { count: (Date.now() - fails.at < LOCK_MS ? fails.count : 0) + 1, at: Date.now() };
-      try { localStorage.setItem(FAIL_KEY, JSON.stringify(nf)); } catch (err) {}
-      errBox.style.display = 'flex';
-      const left = MAX_FAILS - nf.count;
-      errBox.textContent = left > 0
-        ? 'نام کاربری یا رمز عبور درست نیست. ' + left + ' تلاش باقی مانده است.'
-        : 'ورود به مدت ۱۵ دقیقه قفل شد.';
-      if (left <= 0) btn.disabled = true;
+    // اول مسیر ابری؛ اگر سرور نبود، نسخه دمو
+    btn.disabled = true;
+    btn.innerHTML = 'در حال بررسی…';
+    const c = await cloudLogin(user, pass);
+    btn.disabled = false;
+    btn.innerHTML = btnHtml;
+
+    if (c.absent) { demoLogin(user, pass); return; }
+
+    const st = c.status, d = c.data;
+    if (st === 200 && d.ok) {
+      try { localStorage.removeItem(FAIL_KEY); } catch (e2) { /* noop */ }
+      CDStore.login('admin', { mode: 'cloud' });
+      location.replace('admin.html');
+      return;
     }
+    if (st === 401) {
+      const left = typeof d.left === 'number' ? d.left : null;
+      setFails({ count: (Date.now() - fails.at < LOCK_MS ? fails.count : 0) + 1, at: Date.now() });
+      showErr((d.message || 'نام کاربری یا رمز عبور درست نیست.') + (left ? ' ' + left + ' تلاش باقی مانده است.' : ''));
+      if (left === 0) btn.disabled = true;
+      return;
+    }
+    if (st === 429) { showErr(d.message || 'تلاش ناموفق زیاد؛ بعداً تلاش کن.'); btn.disabled = true; return; }
+    if (st === 503 && d.error === 'PASSWORD_NOT_SET') {
+      // رمز ابری هنوز ست نشده — نسخه دمو در دسترس است
+      demoLogin(user, pass);
+      return;
+    }
+    showErr((d && d.message) || 'خطای غیرمنتظره سرور؛ دوباره تلاش کن.');
   });
 })();
 </script>

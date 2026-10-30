@@ -5,7 +5,8 @@ const description = "پنل مدیریت کافه‌دانش.";
 const robots = "noindex, nofollow";
 ---
 
-<BareLayout title={title} description={description} robots={robots} schemas={false}>
+<BareLayout title={title} description={description} robots={robots} bodyClass="adm-light" schemas={false}>
+<Fragment slot="head"><link rel="stylesheet" href="assets/css/admin-theme.css"></Fragment>
 <div class="admin-shell">
   <aside class="admin-side">
     <a class="brand" href="admin.html" style="margin-bottom:30px">
@@ -23,7 +24,8 @@ const robots = "noindex, nofollow";
       <a href="#/performance" data-nav="performance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 14 16 9"/><path d="M20.5 17.5a9 9 0 1 0-17 0"/></svg><span>عملکرد و امنیت</span></a>
       <a href="#/settings" data-nav="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 1 1.5h.1a1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.5 1Z"/></svg><span>تنظیمات</span></a>
     </nav>
-    <a class="btn btn-ghost btn-sm btn-block" href="index.html" style="margin-top:14px">مشاهده سایت</a>
+    <a class="btn btn-ghost btn-sm btn-block" href="./" style="margin-top:14px">مشاهده سایت</a>
+    <div class="stor-badge" id="stor-badge" hidden><span class="dot" aria-hidden="true"></span><span>بررسی وضعیت ذخیره‌سازی…</span></div>
     <button class="btn btn-ghost btn-sm btn-block" id="adm-logout" type="button" style="margin-top:8px; border-color:rgba(229,118,106,.4); color:var(--err)">خروج از حساب</button>
   </aside>
 
