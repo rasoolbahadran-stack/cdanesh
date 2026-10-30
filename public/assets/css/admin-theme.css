@@ -170,3 +170,11 @@ body.adm-light ::-webkit-scrollbar { width: 10px; height: 10px; }
 body.adm-light ::-webkit-scrollbar-track { background: transparent; }
 body.adm-light ::-webkit-scrollbar-thumb { background: #d5d1e4; border-radius: 99px; border: 2px solid #f3f2f9; }
 body.adm-light ::-webkit-scrollbar-thumb:hover { background: #bfb8dc; }
+
+/* ─── منوی کشویی (select) در تم روشن ───────────────────────
+   main.css برای سایت تیره color-scheme: dark ست می‌کند؛ این‌جا برمی‌گردانیم */
+body.adm-light select.control { color-scheme: light; }
+body.adm-light select.control option,
+body.adm-light select.control optgroup { background: #ffffff; color: #241f3d; }
+body.adm-light select.control option:checked,
+body.adm-light select.control option:hover { background: #f3edff; color: #4c39a8; }

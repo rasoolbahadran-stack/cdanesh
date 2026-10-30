@@ -38,7 +38,8 @@ export default async function handler(req, res) {
     }
     const url = new URL(req.url, 'http://local');
     const scope = url.searchParams.get('scope');
-    const out = scope === 'public' ? publicOnly(list) : list;
+    // امنیت: بدون نشست مدیر، فقط مقالات عمومی (بدون پیش‌نویس/زمان‌بندی‌شده) برمی‌گردد
+    const out = (scope === 'public' || !isAuthed(req)) ? publicOnly(list) : list;
     return json(res, 200, { ok: true, mode: 'cloud', count: out.length, articles: sorted(out) });
   }
 

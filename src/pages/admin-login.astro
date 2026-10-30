@@ -6,11 +6,11 @@ const robots = "noindex, nofollow";
 ---
 
 <BareLayout title={title} description={description} robots={robots} bodyClass="adm-light" schemas={false}>
-<Fragment slot="head"><link rel="stylesheet" href="assets/css/admin-theme.css"></Fragment>
+<Fragment slot="head"><link rel="stylesheet" href="/assets/css/admin-theme.css"></Fragment>
 <div class="login-veil">
   <div style="width:min(430px,100%)">
     <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:26px">
-      <img src="assets/img/logo.svg" alt="نشان کافه‌دانش" width="54" height="54" style="border-radius:16px; box-shadow:0 14px 34px -14px rgba(227,185,83,.55)">
+      <img src="/assets/img/logo.svg" alt="نشان کافه‌دانش" width="54" height="54" style="border-radius:16px; box-shadow:0 14px 34px -14px rgba(227,185,83,.55)">
       <span class="brand-name" style="margin-top:12px; font-size:20px">کافه‌دانش<small style="letter-spacing:3px">ADMIN PANEL</small></span>
     </div>
     <div class="form-card" style="padding:34px 30px">
@@ -35,16 +35,16 @@ const robots = "noindex, nofollow";
         <span>روی ورسل (پس از تنظیم <b dir="ltr">ADMIN_PASSWORD</b>) با نام کاربری <b dir="ltr">admin</b> و رمز ابری وارد شو — ذخیره واقعی و انتشار فوری مقالات. بدون سرور، ورود آزمایشی: <b dir="ltr">admin / cdanesh1404</b></span>
       </p>
     </div>
-    <p class="muted small" style="text-align:center; margin-top:18px"><a href="./" style="color:var(--gold)">← بازگشت به سایت</a></p>
+    <p class="muted small" style="text-align:center; margin-top:18px"><a href="/" style="color:var(--gold)">← بازگشت به سایت</a></p>
   </div>
 </div>
 
-<script is:inline src="assets/js/store.js"></script>
+<script is:inline src="/assets/js/store.js"></script>
 <script is:inline>
 (function () {
   'use strict';
   const $ = s => document.querySelector(s);
-  if (window.CDStore && CDStore.session()) { location.replace('admin.html'); return; }
+  if (window.CDStore && CDStore.session()) { location.replace('/admin'); return; }
 
   const errBox = $('#login-err');
   const btn = $('#login-btn');
@@ -83,7 +83,7 @@ const robots = "noindex, nofollow";
       try { localStorage.removeItem(FAIL_KEY); } catch (e) { /* noop */ }
       if (window.CDStore) {
         CDStore.login('admin', { mode: 'local' });
-        location.replace('admin.html');
+        location.replace('/admin');
       }
       return;
     }
@@ -123,7 +123,7 @@ const robots = "noindex, nofollow";
     if (st === 200 && d.ok) {
       try { localStorage.removeItem(FAIL_KEY); } catch (e2) { /* noop */ }
       CDStore.login('admin', { mode: 'cloud' });
-      location.replace('admin.html');
+      location.replace('/admin');
       return;
     }
     if (st === 401) {

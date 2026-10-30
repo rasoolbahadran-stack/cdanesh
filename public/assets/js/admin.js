@@ -11,22 +11,25 @@
 
   /* ─── محافظت مسیر: بدون نشست → صفحه ورود ─── */
   if (!window.CDStore || !CDStore.session()) {
-    location.replace('admin-login.html');
+    location.replace('/admin-login');
     return;
   }
   // نشست ابری ۷ روزه است؛ منقضی → بازگشت به ورود
   const __sess = CDStore.session();
   if (__sess && __sess.mode === 'cloud' && Date.now() - (__sess.at || 0) > 6.5 * 24 * 60 * 60 * 1000) {
     CDStore.logout();
-    location.replace('admin-login.html');
+    location.replace('/admin-login');
     return;
   }
 
-  const viewEl = $('#adm-view');
+  let viewEl = $('#adm-view'); // let — هر نما عنصر تازه می‌سازد (باید قابل جایگزینی باشد)
   let view = viewEl;
   function swapView() {
-    const fresh = viewEl.cloneNode(false); // پاک‌سازی شنونده‌های رویداد نمای قبلی
-    viewEl.parentNode.replaceChild(fresh, viewEl);
+    // هر نما را با یک عنصر تازه شروع کن تا شنونده‌های نمای قبلی کاملاً پاک شوند؛
+    // viewEl هم باید به‌روز شود وگرنه بار دوم replaceChild روی عنصر جداشده خطا می‌دهد
+    const fresh = viewEl.cloneNode(false);
+    if (viewEl.parentNode) viewEl.parentNode.replaceChild(fresh, viewEl);
+    viewEl = fresh;
     view = fresh;
   }
   const toast = msg => {
@@ -53,8 +56,8 @@
     const cloud = isCloud();
     b.classList.toggle('on', cloud);
     b.innerHTML = cloud
-      ? '<span class="dot" aria-hidden="true"></span><span>ذخیره مقالات: <b>ابری (واقعی)</b> — انتشار فوری برای همه</span>'
-      : '<span class="dot" aria-hidden="true"></span><span>ذخیره مقالات: <b>مرورگر (دمو)</b></span>';
+      ? '<span class="dot" aria-hidden="true"></span><span>ذخیره‌سازی ابری (واقعی) — <b>مقالات، پیام‌ها و درگاه پرداخت</b> برای همه منتشر می‌شوند</span>'
+      : '<span class="dot" aria-hidden="true"></span><span>ذخیره‌سازی: مرورگر (دمو) — روی ورسل با رمز ابری وارد شو</span>';
   }
 
   function gregSortToday() {
@@ -69,7 +72,7 @@
   async function cloudPut(nextList, okMsg) {
     const r = await CDArticles.cloudSave(nextList);
     if (r.ok) { toast(okMsg); return true; }
-    if (r.error === 'UNAUTH') { CDStore.logout(); location.replace('admin-login.html'); return false; }
+    if (r.error === 'UNAUTH') { CDStore.logout(); location.replace('/admin-login'); return false; }
     alert('ذخیره ابری انجام نشد: ' + (r.message || r.error));
     return false;
   }
@@ -144,7 +147,7 @@
   function findArticle(key) {
     return allArticles().find(a => (a.id === key || a.slug === key)) || null;
   }
-  const COVER_OPTIONS = ['assets/img/cover-blog.webp', 'assets/img/cover-ai.webp', 'assets/img/cover-cwv.webp', 'assets/img/cover-responsive.webp', 'assets/img/cover-corporate.webp', 'assets/img/service-web.webp', 'assets/img/service-seo.webp', 'assets/img/service-content.webp', 'assets/img/ai-tools.webp'];
+  const COVER_OPTIONS = ['/assets/img/cover-blog.webp', '/assets/img/cover-ai.webp', '/assets/img/cover-cwv.webp', '/assets/img/cover-responsive.webp', '/assets/img/cover-corporate.webp', '/assets/img/service-web.webp', '/assets/img/service-seo.webp', '/assets/img/service-content.webp', '/assets/img/ai-tools.webp'];
 
   function statusPill(a) {
     if (a.status === 'draft') return '<span class="status-pill st-draft">پیش‌نویس</span>';
@@ -154,6 +157,7 @@
 
   /* ═════════════ نمای مقالات: فهرست ═════════════ */
   function renderArticles() {
+    swapView();
     const S = window.CDStore;
     const list = allArticles();
     const cloud = isCloud();
@@ -189,7 +193,7 @@
           + '<td>' + esc(a.catLabel) + '</td><td>' + statusPill(a) + '</td><td style="white-space:nowrap">' + a.date + '</td>'
           + '<td><div class="row-actions">'
           + '<button class="adm-btn" data-act="edit" data-key="' + esc(key) + '">ویرایش</button>'
-          + '<a class="adm-btn" href="article.html?slug=' + encodeURIComponent(a.slug) + '&preview=1" target="_blank">پیش‌نمایش</a>'
+          + '<a class="adm-btn" href="/article?slug=' + encodeURIComponent(a.slug) + '&preview=1" target="_blank">پیش‌نمایش</a>'
           + '<button class="adm-btn" data-act="toggle" data-key="' + esc(key) + '">' + (isPub ? 'لغو انتشار' : 'انتشار') + '</button>'
           + (isNew ? '<button class="adm-btn danger" data-act="delete" data-key="' + esc(key) + '">حذف</button>'
                    : (isCloud() ? '<button class="adm-btn danger" data-act="delete" data-key="' + esc(key) + '">حذف</button>' : ''))
@@ -258,6 +262,7 @@
 
   /* ═════════════ نمای ویرایش/تولید مقاله ═════════════ */
   function renderArticleEditor(key) {
+    swapView();
     const isNew = !key;
     const a = isNew ? {
       title: '', slug: '', excerpt: '', cat: 'seo', catLabel: 'سئو', tags: [], author: 'تیم محتوای کافه‌دانش',
@@ -276,7 +281,7 @@
       + '<div class="adm-panel">'
       + '<div class="adm-form-grid">'
       + '<div><label class="adm-label" for="f-title">عنوان مقاله *</label><input class="control" id="f-title" value="' + esc(a.title) + '"><button type="button" class="adm-btn" id="f-makeslug" style="margin-top:6px">تولید اسلاگ از عنوان</button></div>'
-      + '<div><label class="adm-label" for="f-slug">اسلاگ (انگلیسی، یکتا) *</label><input class="control" id="f-slug" dir="ltr" style="text-align:left" value="' + esc(a.slug) + '"><p class="adm-hint">آدرس مقاله: article.html?slug=… — پس از انتشار تغییر ندهید.</p></div>'
+      + '<div><label class="adm-label" for="f-slug">اسلاگ (انگلیسی، یکتا) *</label><input class="control" id="f-slug" dir="ltr" style="text-align:left" value="' + esc(a.slug) + '"><p class="adm-hint">آدرس مقاله: /article?slug=… — پس از انتشار تغییر ندهید.</p></div>'
       + '<div class="field-full"><label class="adm-label" for="f-excerpt">خلاصه / توضیحات متا *</label><textarea class="control" id="f-excerpt" style="min-height:70px">' + esc(a.excerpt) + '</textarea></div>'
       + '<div><label class="adm-label" for="f-cat">دسته‌بندی</label><select class="control" id="f-cat">' + Object.entries(catLabels).map(([k, v]) => '<option value="' + k + '"' + (a.cat === k ? ' selected' : '') + '>' + v + '</option>').join('') + '</select></div>'
       + '<div><label class="adm-label" for="f-tags">برچسب‌ها (با ویرگول)</label><input class="control" id="f-tags" value="' + esc((a.tags || []).join('، ')) + '"></div>'
@@ -386,24 +391,24 @@
 
   /* ═════════════ صفحات: عنوان و توضیحات متا ═════════════ */
   const PAGE_LIST = [
-    { path: 'index.html', name: 'صفحه اصلی' },
-    { path: 'services.html', name: 'همه خدمات' },
-    { path: 'web-design.html', name: 'طراحی سایت' },
-    { path: 'e-commerce.html', name: 'فروشگاه اینترنتی' },
-    { path: 'uiux.html', name: 'طراحی UI/UX' },
-    { path: 'seo.html', name: 'سئو' },
-    { path: 'content-production.html', name: 'تولید محتوا' },
-    { path: 'speed-optimization.html', name: 'بهینه‌سازی سرعت' },
-    { path: 'ai-solutions.html', name: 'هوش مصنوعی' },
-    { path: 'support.html', name: 'پشتیبانی' },
-    { path: 'portfolio.html', name: 'نمونه‌کارها' },
-    { path: 'blog.html', name: 'مجله' },
-    { path: 'faq.html', name: 'سؤالات متداول' },
-    { path: 'about.html', name: 'درباره ما' },
-    { path: 'contact.html', name: 'تماس' },
-    { path: 'request.html', name: 'ثبت درخواست' },
-    { path: 'privacy.html', name: 'حریم خصوصی' },
-    { path: 'terms.html', name: 'شرایط استفاده' },
+    { path: '/', name: 'صفحه اصلی' },
+    { path: '/services', name: 'همه خدمات' },
+    { path: '/web-design', name: 'طراحی سایت' },
+    { path: '/e-commerce', name: 'فروشگاه اینترنتی' },
+    { path: '/uiux', name: 'طراحی UI/UX' },
+    { path: '/seo', name: 'سئو' },
+    { path: '/content-production', name: 'تولید محتوا' },
+    { path: '/speed-optimization', name: 'بهینه‌سازی سرعت' },
+    { path: '/ai-solutions', name: 'هوش مصنوعی' },
+    { path: '/support', name: 'پشتیبانی' },
+    { path: '/portfolio', name: 'نمونه‌کارها' },
+    { path: '/blog', name: 'مجله' },
+    { path: '/faq', name: 'سؤالات متداول' },
+    { path: '/about', name: 'درباره ما' },
+    { path: '/contact', name: 'تماس' },
+    { path: '/request', name: 'ثبت درخواست' },
+    { path: '/privacy', name: 'حریم خصوصی' },
+    { path: '/terms', name: 'شرایط استفاده' },
   ];
 
   function renderPages() {
@@ -543,19 +548,91 @@
     $('#faq-save').addEventListener('click', () => { CDStore.saveFaqPage(current, working); toast('سؤالات «' + (labels[current] || current) + '» ذخیره شد'); });
   }
 
+  /* ─── لایه پیام‌ها: ابری (api/messages + Blob) یا مرورگر ─── */
+  let msgCloud = null;          // null = هنوز بررسی نشده؛ true/false نتیجهٔ اتصال
+  let msgList = [];             // فهرست یکپارچهٔ پیام‌ها (ابری یا محلی)
+
+  async function loadMessages() {
+    const local = CDStore.messages();
+    try {
+      const r = await fetch('api/messages', { headers: { Accept: 'application/json' } });
+      const ct = r.headers.get('content-type') || '';
+      if (r.ok && ct.includes('application/json')) {
+        const d = await r.json();
+        if (d && d.ok && Array.isArray(d.messages)) {
+          msgCloud = true;
+          msgList = d.messages;
+          // پیام‌های آزمایشی همین مرورگر که هنوز در ابر نیستند → یک‌باره بالا بفرست
+          if (local.length && !local.some(m => m.cloud)) {
+            await pushLocalMessages(local);
+          }
+          return;
+        }
+      }
+    } catch (e) { /* بدون سرور → حالت محلی */ }
+    msgCloud = false;
+    msgList = local;
+  }
+
+  async function pushLocalMessages(local) {
+    try {
+      const r = await fetch('api/messages', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: local.map(m => Object.assign({}, m, { cloud: true })) }),
+      });
+      if (r.ok) {
+        const d = await r.json().catch(() => ({}));
+        if (d && d.ok && Array.isArray(d.messages)) { msgList = d.messages; CDStore.remove('messages'); }
+      }
+    } catch (e) { /* noop */ }
+  }
+
+  async function saveMessages(nextList) {
+    if (msgCloud) {
+      try {
+        const r = await fetch('api/messages', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: nextList }),
+        });
+        const d = await r.json().catch(() => ({}));
+        if (r.ok && d.ok) { msgList = d.messages || nextList; return true; }
+        if (r.status === 401) { CDStore.logout(); location.replace('/admin-login'); return false; }
+        alert('ذخیره ابری پیام‌ها انجام نشد: ' + (d.message || d.error || r.status));
+        return false;
+      } catch (e) { alert('ارتباط با سرور برقرار نشد.'); return false; }
+    }
+    // حالت دمو: همان ذخیرهٔ مرورگر
+    CDStore.write('messages', nextList);
+    msgList = nextList;
+    return true;
+  }
+
+  const unreadCount = () => msgList.filter(m => (m.status || 'new') === 'new').length;
+
+  function updateMsgBadge() {
+    const badge = $('#nav-msg-count');
+    if (!badge) return;
+    const n = unreadCount();
+    badge.textContent = fa(n);
+    badge.hidden = n === 0;
+  }
+
   /* ═════════════ پیام‌ها ═════════════ */
   function renderMessages() {
-    const list = CDStore.messages();
-    const unread = list.filter(m => m.status === 'new').length;
-    const badge = $('#nav-msg-count');
-    if (badge) { badge.textContent = fa(unread); badge.hidden = unread === 0; }
+    swapView();
+    const cloud = msgCloud === true;
+    const list = msgList;
+    updateMsgBadge();
 
     view.innerHTML =
-      '<div class="adm-topbar"><div><h1>پیام‌ها و درخواست‌ها</h1><p class="lead">پیام‌های ثبت‌شده از فرم‌های تماس و درخواست خدمات</p></div>'
+      '<div class="adm-topbar"><div><h1>پیام‌ها و درخواست‌ها</h1><p class="lead">پیام‌های ثبت‌شده از فرم‌های تماس و درخواست خدمات'
+      + (cloud ? ' — <b style="color:var(--ok)">ذخیره ابری فعال است؛ پیام‌های همه بازدیدکنندگان این‌جا می‌آید.</b>' : ' — حالت دمو: فقط پیام‌های همین مرورگر.') + '</p></div>'
       + '<div class="adm-actions"><button type="button" class="btn btn-ghost" id="msg-export">خروجی JSON</button></div></div>'
       + '<div class="adm-panel"><div class="adm-tabs" id="msg-tabs">'
       + '<button type="button" data-f="all" class="active">همه (' + fa(list.length) + ')</button>'
-      + '<button type="button" data-f="new">جدید (' + fa(list.filter(m => m.status === 'new').length) + ')</button>'
+      + '<button type="button" data-f="new">جدید (' + fa(list.filter(m => (m.status || 'new') === 'new').length) + ')</button>'
       + '<button type="button" data-f="read">خوانده‌شده</button>'
       + '<button type="button" data-f="replied">پاسخ‌داده‌شده</button>'
       + '</div><div id="msg-list"></div></div>';
@@ -571,8 +648,9 @@
         + '<div class="adm-msg-body" style="margin-top:8px; border-top:1px solid var(--line); padding-top:8px">' + esc((m.subject ? 'موضوع: ' + m.subject + '\n' : '') + (m.message || '')) + '</div>'
         + '</div>'
         + '<div style="display:grid; gap:6px">'
-        + '<button class="adm-btn" data-read="' + esc(m.id) + '">علامت‌گذاری خوانده‌شده</button>'
-        + '<button class="adm-btn primary" data-reply="' + esc(m.id) + '">پاسخ داده شد</button>'
+        + '<a class="adm-btn primary" href="tel:' + esc(m.phone || '') + '">تماس با فرستنده</a>'
+        + '<button class="adm-btn" data-read="' + esc(m.id) + '">خوانده‌شده</button>'
+        + '<button class="adm-btn" data-reply="' + esc(m.id) + '">پاسخ داده شد</button>'
         + '<button class="adm-btn danger" data-del="' + esc(m.id) + '">حذف</button>'
         + '</div></div>').join('')
         || '<div class="adm-empty">پیامی در این وضعیت وجود ندارد. فرم‌های سایت، پیام‌ها را همین‌جا ثبت می‌کنند.</div>';
@@ -585,17 +663,24 @@
       $$('#msg-tabs button').forEach(x => x.classList.toggle('active', x === b));
       draw(b.dataset.f);
     });
-    listBox.addEventListener('click', e => {
+    listBox.addEventListener('click', async e => {
       const b = e.target.closest('button');
       if (!b) return;
       const id = b.dataset.read || b.dataset.reply || b.dataset.del;
-      if (b.dataset.read) { CDStore.updateMessage(id, { status: 'read' }); toast('خوانده‌شده شد'); }
-      if (b.dataset.reply) { CDStore.updateMessage(id, { status: 'replied' }); toast('وضعیت: پاسخ داده شد'); }
-      if (b.dataset.del && confirm('این پیام حذف شود؟')) { CDStore.deleteMessage(id); toast('حذف شد'); }
-      if (b.dataset.read || b.dataset.reply || b.dataset.del) renderMessages();
+      if (!id) return;
+      if (b.dataset.del && !confirm('این پیام حذف شود؟')) return;
+      b.disabled = true;
+      const next = list.map(m => {
+        if (m.id !== id) return m;
+        if (b.dataset.read) return Object.assign({}, m, { status: 'read' });
+        if (b.dataset.reply) return Object.assign({}, m, { status: 'replied' });
+        return null; // حذف
+      }).filter(Boolean);
+      const ok = await saveMessages(next);
+      if (ok) renderMessages(); else b.disabled = false;
     });
     $('#msg-export').addEventListener('click', () => {
-      const blob = new Blob([JSON.stringify(CDStore.messages(), null, 2)], { type: 'application/json' });
+      const blob = new Blob([JSON.stringify(msgList, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = 'cdanesh-messages.json';
@@ -604,10 +689,111 @@
     });
   }
 
+  /* ═════════════ درگاه پرداخت ═════════════ */
+  let payCloud = null;   // null = بررسی نشده؛ true/false اتصال ابری
+  let payList = [];      // [{id, name, url, active, note}]
+
+  async function loadPayments() {
+    try {
+      const r = await fetch('api/payments', { headers: { Accept: 'application/json' } });
+      const ct = r.headers.get('content-type') || '';
+      if (r.ok && ct.includes('application/json')) {
+        const d = await r.json();
+        if (d && d.ok && Array.isArray(d.gateways)) { payCloud = true; payList = d.gateways; return; }
+      }
+    } catch (e) { /* بدون سرور → حالت محلی */ }
+    payCloud = false;
+    payList = CDStore.read('gateways', []);
+  }
+
+  async function savePayments(nextList) {
+    if (payCloud) {
+      try {
+        const r = await fetch('api/payments', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ gateways: nextList }),
+        });
+        const d = await r.json().catch(() => ({}));
+        if (r.ok && d.ok) { payList = d.gateways || nextList; return true; }
+        if (r.status === 401) { CDStore.logout(); location.replace('/admin-login'); return false; }
+        alert('ذخیره ابری درگاه انجام نشد: ' + (d.message || d.error || r.status));
+        return false;
+      } catch (e) { alert('ارتباط با سرور برقرار نشد.'); return false; }
+    }
+    CDStore.write('gateways', nextList);
+    payList = nextList;
+    return true;
+  }
+
+  function renderPayments() {
+    swapView();
+    const cloud = payCloud === true;
+    let working = payList.map(g => Object.assign({}, g));
+
+    view.innerHTML =
+      '<div class="adm-topbar"><div><h1>درگاه پرداخت</h1><p class="lead">لینک درگاه‌های واسط (زرین‌پال، آیدی‌پی، زیبال و…) را این‌جا ثبت کن؛ دکمه‌های «پرداخت آنلاین» سایت بلافاصله به همان لینک وصل می‌شوند.'
+      + (cloud ? ' — <b style="color:var(--ok)">ذخیره ابری فعال است.</b>' : ' — حالت دمو: ذخیره فقط در همین مرورگر.') + '</p></div>'
+      + '<div class="adm-actions"><button type="button" class="btn btn-gold" id="pay-add">+ درگاه جدید</button>'
+      + '<button type="button" class="btn btn-ghost" id="pay-save">ذخیره تغییرات</button></div></div>'
+      + '<div class="adm-panel"><div class="adm-table-wrap"><table class="adm-table"><thead><tr>'
+      + '<th style="min-width:170px">نام درگاه</th><th style="min-width:280px">آدرس لینک پرداخت</th><th>فعال</th><th></th>'
+      + '</tr></thead><tbody id="pay-rows"></tbody></table></div>'
+      + '<p class="adm-hint" style="margin-top:14px">نکته‌ها: آدرس باید با <b dir="ltr">https://</b> شروع شود. فقط «یک» درگاهِ فعال لازم است؛ با فعال‌کردن هر درگاه، بقیه خودکار غیرفعال می‌شوند و دکمه‌های پرداخت صفحه تعرفه‌ها به همان لینک می‌روند (در تب جدید باز می‌شود). تا وقتی هیچ درگاهی فعال نکنی، دکمه پرداخت در سایت نمایش داده نمی‌شود.</p></div>';
+
+    const rows = $('#pay-rows');
+    const draw = () => {
+      rows.innerHTML = working.map((g, i) =>
+        '<tr><td><input class="control p-name" data-i="' + i + '" value="' + esc(g.name || '') + '" placeholder="مثلاً زرین‌پال"></td>'
+        + '<td><input class="control p-url" data-i="' + i + '" dir="ltr" style="text-align:left" value="' + esc(g.url || '') + '" placeholder="https://zarinp.al/xxxx"></td>'
+        + '<td><button type="button" class="adm-btn' + (g.active ? ' primary' : '') + '" data-active="' + i + '">' + (g.active ? 'فعال' : 'غیرفعال') + '</button></td>'
+        + '<td><button type="button" class="adm-btn danger" data-del="' + i + '">حذف</button></td></tr>').join('')
+        || '<tr><td colspan="4"><div class="adm-empty">هنوز درگاهی ثبت نشده است. با «+ درگاه جدید» لینک پرداخت را اضافه کن.</div></td></tr>';
+    };
+    draw();
+
+    rows.addEventListener('input', e => {
+      const el = e.target;
+      if (el.classList.contains('p-name')) working[+el.dataset.i].name = el.value;
+      if (el.classList.contains('p-url')) working[+el.dataset.i].url = el.value;
+    });
+    rows.addEventListener('click', e => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      if (b.dataset.active !== undefined) {
+        const i = +b.dataset.active;
+        working = working.map((g, j) => Object.assign({}, g, { active: j === i ? !g.active : false }));
+        draw();
+      }
+      if (b.dataset.del !== undefined) { working.splice(+b.dataset.del, 1); draw(); }
+    });
+    $('#pay-add').addEventListener('click', () => {
+      working.push({ id: 'g' + Date.now(), name: '', url: '', active: working.length === 0, note: '' });
+      draw();
+    });
+    $('#pay-save').addEventListener('click', async () => {
+      const clean = working
+        .map(g => Object.assign({}, g, { name: (g.name || '').trim(), url: (g.url || '').trim() }))
+        .filter(g => g.name && g.url);
+      const bad = clean.find(g => !/^https:\/\/[^\s]+\.[^\s]+/.test(g.url));
+      if (bad) { alert('آدرس درگاه «' + bad.name + '» معتبر نیست؛ باید با https:// شروع شود.'); return; }
+      if (clean.length && !clean.some(g => g.active)) {
+        alert('حداقل یک درگاه را «فعال» کن تا دکمه پرداخت سایت کار کند.');
+        return;
+      }
+      const btn = $('#pay-save');
+      btn.disabled = true;
+      const ok = await savePayments(clean.map((g, i) => Object.assign(g, { id: g.id || ('g' + Date.now() + i) })));
+      btn.disabled = false;
+      if (ok) { working = payList.map(g => Object.assign({}, g)); toast('درگاه پرداخت ذخیره شد — دکمه‌های سایت به‌روز شدند'); }
+    });
+  }
+
   /* ═════════════ سئو ═════════════ */
   function renderSeo() {
-    const robots = 'User-agent: *\nAllow: /\nDisallow: /admin.html\nDisallow: /admin-login.html\nDisallow: /request.html?*\n\nSitemap: https://cdanesh.ir/sitemap.xml';
-    const pages = PAGE_LIST.map(p => 'https://cdanesh.ir/' + p.path.replace('.html', ''));
+    swapView();
+    const robots = 'User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /admin-login\nDisallow: /request?*\n\nSitemap: https://cdanesh.ir/sitemap.xml';
+    const pages = PAGE_LIST.map(p => 'https://cdanesh.ir' + (p.path.startsWith('/') ? p.path : '/' + p.path.replace(/\.html$/, '')));
     view.innerHTML =
       '<div class="adm-topbar"><div><h1>سئو</h1><p class="lead">ابزارهای سئوی فنی سایت — از نقشه سایت تا داده‌های ساختاریافته</p></div></div>'
       + '<div class="adm-grid2">'
@@ -673,6 +859,7 @@
 
   /* ═════════════ تنظیمات ═════════════ */
   function renderSettings() {
+    swapView();
     const s = CDStore.settings();
     view.innerHTML =
       '<div class="adm-topbar"><div><h1>تنظیمات</h1><p class="lead">اطلاعات عمومی، امنیت حساب و مدیریت داده‌های نسخه آزمایشی</p></div></div>'
@@ -744,12 +931,13 @@
 
   /* ═════════════ داشبورد ═════════════ */
   function renderDashboard() {
+    swapView();
     const arts = allArticles();
     const pub = arts.filter(a => (a.status || 'published') === 'published').length;
     const drafts = arts.filter(a => a.status === 'draft').length;
     const sched = arts.filter(a => a.status === 'scheduled').length;
-    const msgs = CDStore.messages();
-    const newMsgs = msgs.filter(m => m.status === 'new').length;
+    const msgs = msgList;
+    const newMsgs = unreadCount();
     const kpi = (ico, lbl, val) =>
       '<div class="admin-card adm-kpi"><span class="ico">' + ico + '</span><div><small>' + lbl + '</small><b>' + fa(val) + '</b></div></div>';
     const icoDoc = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>';
@@ -758,7 +946,7 @@
 
     view.innerHTML =
       '<div class="adm-topbar"><div><h1>سلام مدیر کافه‌دانش</h1><p class="lead">خلاصه وضعیت محتوا، پیام‌ها و سایت</p></div>'
-      + '<div class="adm-actions"><a class="btn btn-gold" href="#/articles/new">+ مقاله جدید</a><a class="btn btn-ghost" href="./" target="_blank">مشاهده سایت</a></div></div>'
+      + '<div class="adm-actions"><a class="btn btn-gold" href="#/articles/new">+ مقاله جدید</a><a class="btn btn-ghost" href="/" target="_blank">مشاهده سایت</a></div></div>'
       + '<div class="admin-stat">'
       + kpi(icoDoc, 'مقالات منتشرشده', pub)
       + kpi(icoDoc, 'پیش‌نویس و زمان‌بندی', drafts + sched)
@@ -778,10 +966,10 @@
         '<div style="margin-bottom:16px"><div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:7px"><span class="muted">' + l + '</span><b>' + fa(n) + '</b></div><div class="adm-meter"><i style="width:' + (arts.length ? Math.round(n / arts.length * 100) : 0) + '%; background:' + c + '"></i></div></div>').join('')
       + '<a class="btn btn-ghost btn-sm btn-block" href="#/articles" style="margin-top:6px">مدیریت مقالات</a></div></div>'
       + '</div>'
-      + '<div class="adm-panel" style="margin-top:18px"><div class="adm-panel-head"><b>' + (isCloud() ? 'وضعیت انتشار مقالات' : 'راهنمای سریع پنل') + '</b></div>'
+      + '<div class="adm-panel" style="margin-top:18px"><div class="adm-panel-head"><b>' + (isCloud() ? 'وضعیت انتشار و ذخیره‌سازی' : 'راهنمای سریع پنل') + '</b></div>'
       + (isCloud()
-        ? '<p class="adm-hint">اتصال ابری فعال است: مقاله‌ها در فضای ابری ورسل (Vercel Blob) ذخیره می‌شوند و «ذخیره» به‌معنای انتشار فوری برای همه بازدیدکنندگان است. پیش‌نویس‌ها فقط با لینک پیش‌نمایش دیده می‌شوند و در سایت عمومی نمایش داده نمی‌شوند. بقیه بخش‌های پنل (پیام‌ها، سئو، نمونه‌کارها) همچنان آزمایشی و مخصوص همین مرورگرند.</p>'
-        : '<p class="adm-hint">این پنل، همان ساختاری است که در نسخه اصلی Next.js با دیتابیس و احراز هویت سمت سرور پیاده‌سازی می‌شود: تولید و انتشار مقاله، مدیریت صفحات، نمونه‌کارها، سؤالات متداول، پیام‌ها، سئو و امنیت. تغییرات این نسخه در همین مرورگر ذخیره و بلافاصله روی سایت اعمال می‌شود.</p>')
+        ? '<p class="adm-hint">اتصال ابری فعال است: مقاله‌ها، پیام‌های فرم‌ها و درگاه پرداخت در فضای ابری ورسل (Vercel Blob) ذخیره می‌شوند — «ذخیره» به‌معنای انتشار فوری برای همه بازدیدکنندگان است. پیش‌نویس‌ها فقط با لینک پیش‌نمایش دیده می‌شوند و در سایت عمومی نمایش داده نمی‌شوند.</p>'
+        : '<p class="adm-hint">حالت آزمایشی (بدون سرور): تغییرات فقط در همین مرورگر ذخیره می‌شوند. روی ورسل با رمز ابری وارد شوید تا انتشار واقعی برای همه فعال شود.</p>')
       + '</div>';
   }
 
@@ -799,6 +987,7 @@
       case 'portfolio': return renderPortfolio();
       case 'faq': return renderFaq();
       case 'messages': return renderMessages();
+      case 'payments': return renderPayments();
       case 'seo': return renderSeo();
       case 'performance': return renderPerformance();
       case 'settings': return renderSettings();
@@ -809,13 +998,29 @@
   $('#adm-logout').addEventListener('click', () => {
     try { fetch('api/login', { method: 'DELETE' }).catch(() => {}); } catch (e) { /* noop */ }
     CDStore.logout();
-    location.replace('admin-login.html');
+    location.replace('/admin-login');
   });
 
   window.addEventListener('hashchange', () => { route(); window.scrollTo({ top: 0 }); });
 
-  /* ─── نشان وضعیت ذخیره‌سازی + بازرندر پس از رسیدن داده ابری ─── */
+  /* ─── نشان وضعیت ذخیره‌سازی + بارگذاری پیام‌ها و درگاه از سرور + بازرندر ─── */
   updateStorBadge();
+  updateMsgBadge();
+
+  // پیام‌ها: ابتدا از سرور (ابری)، سپس بازرندر نمای جاری
+  loadMessages().then(() => {
+    updateMsgBadge();
+    const mod = (location.hash || '#/dashboard').replace(/^#\//, '').split('/')[0];
+    if (mod === 'messages') renderMessages();
+    else if (mod === 'dashboard' || mod === '') renderDashboard();
+  });
+
+  // درگاه پرداخت: بارگذاری فهرست و بازرندر اگر همین نما باز است
+  loadPayments().then(() => {
+    const mod = (location.hash || '#/dashboard').replace(/^#\//, '').split('/')[0];
+    if (mod === 'payments') renderPayments();
+  });
+
   if (window.CDArticles && CDArticles.subscribe) {
     CDArticles.subscribe(() => {
       updateStorBadge();

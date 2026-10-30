@@ -103,26 +103,59 @@
       if (btn) { btn.disabled = true; btn.innerHTML = 'در حال ثبت…'; }
       if (errBox) errBox.style.display = 'none';
 
-      // در نسخه نهایی: ارسال به API سمت سرور. در این نسخه، درخواست در
-      // حافظه مرورگر ذخیره و در پنل مدیریت قابل مشاهده است.
-      setTimeout(() => {
-        const now = new Date();
-        const ref = 'CD-' + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + '-' + String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
-        const msg = {
-          id: 'm' + now.getTime(),
-          ref,
-          kind,
-          name: ($('#' + (kind === 'request' ? 'rname' : 'cname'), form) || {}).value || '',
-          phone: window.CDPhone.normalize(($('#' + (kind === 'request' ? 'rphone' : 'cphone'), form) || {}).value || ''),
-          email: ($('#' + (kind === 'request' ? 'remail' : 'cmail'), form) || {}).value || '',
-          service: ($('#rsvc', form) || {}).value || '',
-          subject: ($('#' + (kind === 'request' ? 'rsubj' : 'csubj'), form) || {}).value || '',
-          package: (($('#rpackage')) || {}).value || '',
-          message: ($('#' + (kind === 'request' ? 'rmsg' : 'cmsg'), form) || {}).value || '',
-          date: now.toISOString(),
-          status: 'new',
-        };
-        window.CDStore.addMessage(msg);
+      // ساخت رکورد پیام
+      const now = new Date();
+      const ref = 'CD-' + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + '-' + String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
+      const msg = {
+        id: 'm' + now.getTime(),
+        ref,
+        kind,
+        name: ($('#' + (kind === 'request' ? 'rname' : 'cname'), form) || {}).value || '',
+        phone: window.CDPhone.normalize(($('#' + (kind === 'request' ? 'rphone' : 'cphone'), form) || {}).value || ''),
+        email: ($('#' + (kind === 'request' ? 'remail' : 'cmail'), form) || {}).value || '',
+        service: ($('#rsvc', form) || {}).value || '',
+        subject: ($('#' + (kind === 'request' ? 'rsubj' : 'csubj'), form) || {}).value || '',
+        package: (($('#rpackage')) || {}).value || '',
+        message: ($('#' + (kind === 'request' ? 'rmsg' : 'cmsg'), form) || {}).value || '',
+        date: now.toISOString(),
+        status: 'new',
+      };
+      const honey = $('input[name="website"]', form);
+
+      /* ارسال ابری به api/messages (روی ورسل ذخیرهٔ واقعی و نمایش در پنل)؛
+         اگر سرور/API نبود (لوکال یا گیت‌هاب پیجز) → ذخیرهٔ محلی همان مرورگر (دمو) */
+      (async () => {
+        let saved = false;
+        let refOut = ref;
+        let serverError = '';
+        try {
+          const r = await fetch('api/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              kind: msg.kind, name: msg.name, phone: msg.phone, email: msg.email,
+              service: msg.service, subject: msg.subject, package: msg.package,
+              message: msg.message, website: honey ? honey.value : '',
+            }),
+          });
+          const ct = r.headers.get('content-type') || '';
+          if (ct.includes('application/json')) {
+            const d = await r.json().catch(() => ({}));
+            if (r.ok && d.ok) { saved = true; if (d.ref) refOut = d.ref; }
+            // خطای اعتبارسنجی/اسپم → پیام روشن به کاربر؛ خطای سرور/نبود Blob → بی‌صدا به حالت دمو
+            else if (r.status === 400 || r.status === 429) { serverError = d.message || 'ثبت پیام انجام نشد؛ دوباره تلاش کنید.'; }
+          }
+          // بدون JSON یعنی API وجود ندارد (دمو) — خطا نشان داده نمی‌شود
+        } catch (err) { /* شبکه/API نیست → دمو */ }
+
+        if (serverError) {
+          if (errBox) { errBox.style.display = 'flex'; errBox.textContent = serverError + ' — یا با شماره ۰۹۱۶۵۸۰۶۲۰۷ تماس بگیرید.'; }
+          if (btn) { btn.disabled = false; btn.innerHTML = btnTxt; }
+          form.dataset.sending = '0';
+          return;
+        }
+
+        if (!saved) window.CDStore.addMessage(msg); // حالت دمو
         sessionStorage.setItem('cd_last_send', String(Date.now()));
 
         if (btn) { btn.disabled = false; btn.innerHTML = btnTxt; }
@@ -132,11 +165,11 @@
         if (pk) pk.value = '';
         if (okBox) {
           const span = okBox.querySelector('[data-ref]');
-          if (span) span.textContent = ref;
+          if (span) span.textContent = refOut;
           okBox.classList.add('show');
           okBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-      }, 600);
+      })();
     });
   });
 })();

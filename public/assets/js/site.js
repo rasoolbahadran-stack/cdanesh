@@ -12,9 +12,14 @@
   /* ─── اعمال ویرایش‌های سئوی پنل روی صفحه جاری ─── */
   (function applySeoOverrides() {
     if (!S) return;
-    const path = (location.pathname.split('/').pop() || 'index.html').split('?')[0];
+    /* کلیدهای سازگار: /blog (جدید)، blog و blog.html (قدیمی) — و برای خانه: index، index.html، / */
+    const seg = (location.pathname || '/').replace(/\/+$/, '') || '/';
+    let path = seg === '/' ? 'index' : seg.slice(seg.lastIndexOf('/') + 1);
+    path = path.split('?')[0].replace(/\.html$/, '') || 'index';
     const OV = S.seoOverrides();
-    const ov = OV[path] || OV[path.replace(/\.html$/, '')] || OV[path + '.html'];
+    const keys = ['/' + path, path, path + '.html'];
+    if (path === 'index') keys.push('/');
+    const ov = keys.map(k => OV[k]).find(Boolean);
     if (!ov) return;
     if (ov.title) document.title = ov.title;
     if (ov.description) {
@@ -29,7 +34,7 @@
       + '<div class="post-thumb"><img src="' + a.cover + '" alt="' + CDArticles.esc(a.coverAlt || a.title) + '" loading="lazy" width="640" height="380">'
       + '<span class="chip chip-gold">' + CDArticles.esc(a.catLabel) + '</span></div>'
       + '<div class="post-body">'
-      + '<h3><a href="article.html?slug=' + encodeURIComponent(a.slug) + '">' + CDArticles.esc(a.title) + '</a></h3>'
+      + '<h3><a href="/article?slug=' + encodeURIComponent(a.slug) + '">' + CDArticles.esc(a.title) + '</a></h3>'
       + '<p>' + CDArticles.esc(a.excerpt) + '</p>'
       + '<div class="post-meta"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4m8-4v4M3 10h18"/></svg> ' + a.date + '</span>'
       + '<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> ' + fa(a.read) + ' دقیقه مطالعه</span></div>'
@@ -193,7 +198,7 @@
         const q2 = [];
         if (cat !== 'all') q2.push('cat=' + cat);
         if (page > 1) q2.push('page=' + page);
-        history.replaceState(null, '', q2.length ? ('blog.html?' + q2.join('&')) : 'blog.html');
+        history.replaceState(null, '', q2.length ? ('/blog?' + q2.join('&')) : '/blog');
       }
     }
 
@@ -231,7 +236,7 @@
       articleRoot.innerHTML = '<div class="adm-empty" style="padding:120px 20px">'
         + '<h1 class="h2" style="margin-bottom:14px">مقاله‌ای با این مشخصات پیدا نشد</h1>'
         + '<p class="muted" style="margin-bottom:26px">ممکن است آدرس تغییر کرده یا مقاله هنوز منتشر نشده باشد.</p>'
-        + '<a class="btn btn-gold" href="blog.html">مشاهده همه مقالات</a></div>';
+        + '<a class="btn btn-gold" href="/blog">مشاهده همه مقالات</a></div>';
       document.title = 'مقاله پیدا نشد | کافه‌دانش';
     } else {
       // متادیتای صفحه
@@ -247,9 +252,9 @@
       articleRoot.innerHTML =
         '<section class="article-hero"><div class="wrap"><div class="article-hero-grid">'
         + '<div class="article-head">'
-        + '<nav class="breadcrumb" aria-label="مسیر صفحه"><a href="./">خانه</a>'
+        + '<nav class="breadcrumb" aria-label="مسیر صفحه"><a href="/">خانه</a>'
         + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>'
-        + '<a href="blog.html">مجله</a>'
+        + '<a href="/blog">مجله</a>'
         + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>'
         + '<span>' + CDArticles.esc(a.catLabel) + '</span></nav>'
         + '<div class="article-cats"><span class="chip chip-gold">' + CDArticles.esc(a.catLabel) + '</span></div>'
@@ -278,7 +283,7 @@
         + '<div class="aside-card" style="background:linear-gradient(150deg,rgba(227,185,83,.14),rgba(227,185,83,.04)); border-color:rgba(227,185,83,.35)">'
         + '<b>پروژه مشابهی در ذهن دارید؟</b>'
         + '<p class="muted" style="font-size:14px; margin-bottom:14px">در جلسه کوتاه مشاوره، نیاز شما بررسی و مسیر پیشنهادی ارائه می‌شود.</p>'
-        + '<a class="btn btn-gold btn-block" href="request.html">درخواست مشاوره رایگان</a></div>'
+        + '<a class="btn btn-gold btn-block" href="/request">درخواست مشاوره رایگان</a></div>'
         + '</aside></div>'
 
         + (a.faq && a.faq.length
@@ -333,4 +338,30 @@
       if (nextSig !== lastArticleSig) renderArticlePage();
     });
   }
+
+  /* ═════════════ دکمه‌های پرداخت آنلاین: اتصال به درگاه فعال پنل ═════════════
+     درگاه از پنل مدیریت (بخش درگاه پرداخت) ثبت و در فضای ابری ذخیره می‌شود؛
+     تا وقتی درگاهی فعال نشده باشد، دکمه‌ها مخفی می‌مانند. */
+  (function initPayLinks() {
+    const links = $$('[data-pay]');
+    if (!links.length) return;
+    fetch('api/payments', { headers: { Accept: 'application/json' } })
+      .then(async r => {
+        const ct = r.headers.get('content-type') || '';
+        if (!r.ok || !ct.includes('application/json')) return null; // بدون سرور (دمو/لوکال)
+        const d = await r.json().catch(() => ({}));
+        if (!d || !d.ok || !Array.isArray(d.gateways)) return null;
+        return d.gateways.find(g => g && g.url) || null;
+      })
+      .then(gw => {
+        if (!gw) return;
+        links.forEach(a => {
+          a.href = gw.url;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.removeAttribute('hidden');
+        });
+      })
+      .catch(() => { /* بی‌صدا — دکمه‌ها مخفی می‌مانند */ });
+  })();
 })();

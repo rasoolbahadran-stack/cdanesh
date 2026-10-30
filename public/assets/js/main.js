@@ -159,13 +159,18 @@
   /* ─── سال جاری در فوتر ─── */
   $$('.js-year').forEach(el => { el.textContent = fa(1405); });
 
-  /* ─── هایلایت آیتم فعال منو بر اساس صفحه جاری ─── */
-  const path = (location.pathname.split('/').pop() || 'index').replace(/\.html$/, '');
+  /* ─── هایلایت آیتم فعال منو بر اساس صفحه جاری (آدرس تمیز یا .html) ─── */
+  const seg = (location.pathname || '/').replace(/\/+$/, '') || '/';
+  const path = (seg === '/' ? 'index' : seg.slice(seg.lastIndexOf('/') + 1)).replace(/\.html$/, '');
   $$('.main-nav a, .drawer a').forEach(a => {
-    const href = (a.getAttribute('href') || '').split('#')[0].replace(/^\.\/$/, 'index').replace(/\.html$/, '');
+    const rawHref = a.getAttribute('href') || '';
+    if (rawHref.includes('#')) return; /* لینک‌های لنگری (تعرفه‌ها/فرایند) فقط در صفحهٔ خودشان معنا دارند */
+    let href = rawHref.split('?')[0].replace(/\/+$/, '');
+    href = (href === '' || href === '/') ? 'index' : href.slice(href.lastIndexOf('/') + 1).replace(/\.html$/, '');
     if (href && href === path) {
       a.classList.add('active');
-      if (a.closest('.has-mega')) a.closest('.has-mega').querySelector('a').classList.add('active');
+      /* فقط لینک‌های خدمت (mega-item) والد «خدمات» را روشن می‌کنند؛ لینک‌های ریل و لنگری نه */
+      if (a.closest('.has-mega') && a.classList.contains('mega-item')) a.closest('.has-mega').querySelector('a').classList.add('active');
     }
   });
 
