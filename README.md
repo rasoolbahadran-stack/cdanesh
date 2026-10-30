@@ -1,99 +1,393 @@
-# وب‌سایت کافه‌دانش — نسخهٔ Astro (استاتیک، بدون دیتابیس)
+# Cafe Danesh — Astro Static Website
 
-سایت کامل کافه‌دانش با [Astro](https://astro.build) بازسازی شده است؛ همان طراحی تأییدشده، همان صفحات و همان رفتار — با این تفاوت که خروجی **کاملاً استاتیک** است:
+A complete static rebuild of the **Cafe Danesh** website, powered by [Astro](https://astro.build).
 
-- ❌ **نیازی به دیتابیس نیست** — نه سرویس خارجی، نه سرور، نه API
-- ✅ خروجی نهایی فقط فایل‌های HTML/CSS/JS است و روی **هر هاستی** بالا می‌آید
-- ✅ گیت‌هاب پیجز، هاست cPanel ایرانی، یا هر فضای میزبانی فایل
+The project preserves the approved visual design, page structure, and core website experience while eliminating the need for a server-side application or database.
+
+## Key Features
+
+- **100% static output:** No database, backend server, or external API is required to serve the website.
+- **Portable deployment:** The generated website consists of HTML, CSS, JavaScript, and static assets.
+- **Hosting flexibility:** Deploy to GitHub Pages, cPanel hosting, or any standard static web hosting provider.
+- **Lightweight architecture:** Astro generates optimized static pages for fast delivery and efficient hosting.
+- **SEO-ready:** Includes canonical URLs, Open Graph metadata, structured data, sitemap, and robots.txt.
+- **Locally hosted fonts:** Vazirmatn is included locally, without relying on external font services.
 
 ---
 
-## ۱) اجرا روی سیستم خودت
+## 1. Run Locally
 
-پیش‌نیاز: [Node.js](https://nodejs.org) نسخه ۱۸ یا بالاتر
+**Requirements:** Node.js 18 or later and npm.
+
+Install dependencies (first-time setup):
 
 ```bash
-npm install      # نصب وابستگی‌ها (فقط یک بار)
-npm run dev      # اجرای محلی روی http://localhost:4321
-npm run build    # ساخت خروجی نهایی در پوشهٔ dist/
-npm run preview  # پیش‌نمایش خروجی ساخته‌شده
+npm install
 ```
 
-> پوشهٔ `dist/` از قبل ساخته شده و داخل همین بسته هست؛ اگر نمی‌خواهی کاری با Node داشته باشی، از همان استفاده کن (بخش ۳).
+Start the local development server:
 
-## ۲) انتشار روی گیت‌هاب (گیت‌هاب پیجز)
+```bash
+npm run dev
+```
 
-راه‌اندازی **کاملاً خودکار** است؛ فایل `.github/workflows/deploy.yml` داخل پروژه هست و با هر push، سایت خودکار ساخته و منتشر می‌شود.
+Open:
 
-**گام ۱ — ساخت مخزن:** در GitHub یک مخزن جدید (مثلاً `cdanesh`) خالی بسازید.
+```text
+http://localhost:4321
+```
 
-**گام ۲ — اتصال و ارسال:**
+Build the production website:
+
+```bash
+npm run build
+```
+
+Preview the production build:
+
+```bash
+npm run preview
+```
+
+The generated website is saved in the `dist/` directory.
+
+> **Note:** A prebuilt `dist/` directory is already included in this package. You can deploy it directly without installing Node.js or running a build.
+
+---
+
+## 2. Deploy to GitHub Pages
+
+The project includes an automated GitHub Actions workflow:
+
+```text
+.github/workflows/deploy.yml
+```
+
+Once GitHub Pages is configured, every push to the deployment branch can trigger an automatic build and deployment.
+
+### Step 1 — Configure the Repository
+
+The GitHub repository:
+
+```text
+https://github.com/rasoolbahadran-stack/cdanesh
+```
+
+If the repository already exists, use it instead of creating another one.
+
+### Step 2 — Connect and Push
+
+Check the existing remote:
+
+```bash
+git remote -v
+```
+
+If no `origin` remote exists, add it:
 
 ```bash
 git remote add origin https://github.com/rasoolbahadran-stack/cdanesh.git
+```
+
+If `origin` already exists but points to another repository, update it:
+
+```bash
+git remote set-url origin https://github.com/rasoolbahadran-stack/cdanesh.git
+```
+
+Push the main branch:
+
+```bash
 git push -u origin main
 ```
 
-(اگر نام مخزن را چیز دیگری گذاشتی، همان آدرس را بگذار.)
+### Step 3 — Enable GitHub Pages
 
-**گام ۳ — فعال‌سازی Pages:** در مخزن: `Settings → Pages → Source: GitHub Actions` را انتخاب کن. از این به بعد هر push = انتشار خودکار.
+In your GitHub repository:
 
-**نکتهٔ مهم دربارهٔ ورود:** گیت‌هاب از سال ۲۰۲۱ ورود با «رمز حساب» را برای push غیرفعال کرده؛ به همین دلیل رمز ساده کار نکرد. دو راه درست:
+1. Open **Settings**.
+2. Select **Pages**.
+3. Under **Build and deployment**, choose **GitHub Actions** as the source.
+4. Check the **Actions** tab to confirm that deployment completes successfully.
 
-1. **ساده‌ترین راه (ویندوز):** همان دستور `git push` را بزن؛ پنجرهٔ مرورگر GitHub باز می‌شود و با اکانتت تأیید می‌کنی (Git Credential Manager). نیازی به هیچ توکنی نیست.
-2. **Personal Access Token:** از `Settings → Developer settings → Fine-grained tokens` یک توکن بساز که فقط مجوز `Contents: Read and write` روی همین مخزن دارد و تاریخ انقضای کوتاه (مثلاً ۷ روز) بگذار. در push، به‌جای رمز حساب، همان توکن را وارد کن و بعد از کار، توکن را Revoke کن.
+After the initial deployment, subsequent pushes can automatically publish the updated website.
 
-**اتصال دامنهٔ cdanesh.ir:** بعد از فعال شدن سایت، در `Settings → Pages → Custom domain` بنویس `cdanesh.ir` و در پنل DNS دامنه، یک رکورد CNAME به `rasoolbahadran-stack.github.io` (یا رکوردهای A گیت‌هاب پیجز) تنظیم کن.
+### GitHub Authentication
 
-## ۳) انتشار روی هاست cPanel (سریع‌ترین راه)
+GitHub no longer supports account passwords for Git operations over HTTPS.
 
-بعد از `npm run build` (یا با `dist/` آمادهٔ داخل بسته):
+There are two recommended authentication methods:
 
-1. وارد cPanel شو → File Manager → پوشهٔ `public_html`
-2. **محتوای** پوشهٔ `dist/` را بریز (نه خود پوشه را)
-3. تمام! فایل `.htaccess` هم همراهش هست: صفحهٔ ۴۰۴ و فشرده‌سازی و کش خودکار
+**Option 1 — Git Credential Manager**
 
-هر وقت محتوا را عوض کردی: `npm run build` دوباره و آپلود مجدد محتوای `dist/`.
+Run `git push`. If Git Credential Manager is configured, your browser will open and prompt you to authenticate with GitHub.
 
-## ۴) ساختار پروژه و ویرایش محتوا
+**Option 2 — Personal Access Token (PAT)**
 
+Create a fine-grained token under:
+
+```text
+GitHub → Settings → Developer settings → Personal access tokens
 ```
+
+Grant access only to the required repository, with:
+
+```text
+Contents: Read and write
+```
+
+Use the token instead of your GitHub account password when prompted. Avoid storing the token in project files or committing it to Git.
+
+### Configure the Custom Domain
+
+To connect:
+
+```text
+cdanesh.ir
+```
+
+1. Open **Repository → Settings → Pages**.
+2. Enter `cdanesh.ir` under **Custom domain**.
+3. Configure the required DNS records at your domain registrar, following the records specified by GitHub Pages.
+4. Wait for DNS propagation.
+5. Enable **Enforce HTTPS** once GitHub makes it available.
+
+For an apex domain such as `cdanesh.ir`, use the supported GitHub Pages A records. For a `www` subdomain, configure the appropriate CNAME record.
+
+---
+
+## 3. Deploy to cPanel Hosting
+
+This is the simplest deployment method for standard shared hosting.
+
+After running:
+
+```bash
+npm run build
+```
+
+Astro generates the production files inside:
+
+```text
+dist/
+```
+
+### Deployment Steps
+
+1. Log in to your cPanel account.
+2. Open **File Manager**.
+3. Navigate to:
+
+```text
+public_html/
+```
+
+4. Upload the **contents** of the `dist/` directory, not the `dist` directory itself.
+5. Extract the files if you uploaded a ZIP archive.
+6. Make sure `index.html` is located directly inside `public_html/`.
+
+Your website is now ready to serve.
+
+The package also includes an `.htaccess` file for supported Apache configurations, including:
+
+- Custom 404 error handling.
+- GZIP compression.
+- Browser caching.
+
+Whenever you update the website:
+
+```bash
+npm run build
+```
+
+Upload the updated contents of `dist/` to `public_html/`, replacing the previous deployment files.
+
+---
+
+## 4. Project Structure and Content Management
+
+```text
+/
 ├── public/
 │   └── assets/
-│       ├── css/          ← استایل‌ها (main.css و components.css)
-│       ├── js/           ← اسکریپت‌های سایت (main.js، site.js، forms.js، admin.js)
-│       │   └── data/     ← داده‌ها: مقالات، نمونه‌کارها، سؤالات متداول
-│       ├── fonts/        ← فونت وزیرمتن
-│       └── img/          ← تصاویر
+│       ├── css/
+│       │   ├── main.css
+│       │   └── components.css
+│       │
+│       ├── js/
+│       │   ├── main.js
+│       │   ├── site.js
+│       │   ├── forms.js
+│       │   └── admin.js
+│       │
+│       ├── fonts/
+│       │   └── Vazirmatn
+│       │
+│       └── img/
+│
 ├── src/
-│   ├── layouts/          ← SiteLayout (کروم کامل سایت) و BareLayout (۴۰۴ و ادمین)
-│   ├── components/       ← Header، Footer، Drawer، PageHead
-│   └── pages/            ← ۲۹ صفحهٔ سایت (هر فایل = یک صفحه)
-├── dist/                 ← خروجی آمادهٔ انتشار
-└── .github/workflows/    ← انتشار خودکار گیت‌هاب پیجز
+│   ├── layouts/
+│   │   ├── SiteLayout.astro
+│   │   └── BareLayout.astro
+│   │
+│   ├── components/
+│   │   ├── Header.astro
+│   │   ├── Footer.astro
+│   │   ├── Drawer.astro
+│   │   └── PageHead.astro
+│   │
+│   └── pages/
+│       └── 29 website pages
+│
+├── dist/
+│   └── Production-ready static files
+│
+└── .github/
+    └── workflows/
+        └── deploy.yml
 ```
 
-| می‌خواهی چه چیزی عوض کنی؟ | کجا؟ |
+### Where to Edit Website Content
+
+| Content | File or Location |
 |---|---|
-| متن یک صفحه | `src/pages/همان-صفحه.astro` |
-| **قیمت پکیج‌ها** | `src/pages/index.astro` بخش `id="pricing"` |
-| مقالات مجله | `public/assets/js/data/articles-a.js` و `articles-b.js` |
-| نمونه‌کارها | `public/assets/js/data/portfolio.js` |
-| سؤالات متداول | `public/assets/js/data/faq.js` |
-| منو و فوتر (مشترک) | `src/components/Header.astro` و `Footer.astro` |
-| شماره تلفن / ایمیل | `src/components/Footer.astro` |
+| Individual page content | Corresponding file in `src/pages/` |
+| Package pricing | `src/pages/index.astro`, section `id="pricing"` |
+| Blog articles | `public/assets/js/data/articles-a.js` and `articles-b.js` |
+| Portfolio projects | `public/assets/js/data/portfolio.js` |
+| Frequently asked questions | `public/assets/js/data/faq.js` |
+| Main navigation | `src/components/Header.astro` |
+| Website footer | `src/components/Footer.astro` |
+| Phone number and email | `src/components/Footer.astro` |
 
-بعد از هر تغییر: `npm run build` و آپلود `dist/`.
+### Current Package Pricing
 
-## ۵) پنل مدیریت (نسخهٔ دمو)
+The homepage displays the following packages:
 
-آدرس: `admin.html` — ورود پیش‌فرض: رمز `cdanesh1404`
+| Package | Price |
+|---|---:|
+| Starter | 15 million toman |
+| Professional | 19 million toman |
+| E-commerce | 40 million toman |
+| Custom | Starting at 70 million toman |
 
-این پنل **نسخهٔ نمایشی** است: پیام‌های فرم تماس/درخواست و ویرایش‌های داخل پنل فقط در مرورگرِ همان بازدیدکننده (localStorage) ذخیره می‌شوند — چون سایت استاتیک است و جایی برای ذخیرهٔ سروری ندارد. محتوای واقعی سایت را همان‌طور که در بخش ۴ گفته شد از فایل‌ها ویرایش کن. اگر در آینده پنل واقعی و دیتابیس خواستی، همان نسخهٔ Next.js آماده می‌شود — ولی برای انتشار ساده، همین نسخه کافی و پایدار است.
+Selecting a package automatically passes the selected package to the request form:
 
-## ۶) نکته‌های فنی
+```text
+request.html?pkg=...
+```
 
-- **رفع باگ اسکرول نمونه‌کارها:** hover روی کارت‌های `portfolio.html` حالا با `translateY = ارتفاع تصویر − ارتفاع قاب` تا **لبهٔ آخر تصویر** می‌رود؛ بدون هیچ لایهٔ گرادیان/بلور روی تصویر؛ با خروج ماوس نرم به بالا برمی‌گردد و با `prefers-reduced-motion` غیرفعال می‌شود. در موبایل هم پیش‌نمایش با کشیدن انگشت قابل مرور است.
-- **قیمت‌های پکیج‌ها** (استارتر ۱۵ / حرفه‌ای ۱۹ / فروشگاهی ۴۰ / اختصاصی از ۷۰ میلیون تومان) در صفحهٔ اصلی نمایش داده می‌شوند و انتخاب پکیج خودکار به فرم درخواست (`request.html?pkg=...`) منتقل می‌شود.
-- سئو: canonical، Open Graph، اسکیمای Organization/WebSite/FAQPage، sitemap.xml و robots.txt سر جایشان هستند و صفحات ادمین `noindex`اند.
-- فونت وزیرمتن به‌صورت لوکال بارگذاری می‌شود (بدون وابستگی به سرویس خارجی).
+After editing content or assets, rebuild the website:
+
+```bash
+npm run build
+```
+
+Then deploy the updated `dist/` directory.
+
+---
+
+## 5. Admin Panel — Demo Version
+
+The website includes a demonstration admin panel:
+
+```text
+/admin.html
+```
+
+**Demo login password:**
+
+```text
+cdanesh1404
+```
+
+### Important Limitations
+
+This is a client-side demonstration panel, not a production-ready administration system.
+
+Because the website is fully static:
+
+- Contact form submissions are stored in the visitor's browser using `localStorage`.
+- Requests and messages are not sent to a server.
+- Changes made through the demo panel are stored locally in the current browser.
+- Content displayed on the live website must be edited through the project files described in Section 4.
+- There is no server-side authentication, database, or centralized content management.
+
+**Security warning:** The demo password is publicly visible in the project. It must not be treated as a secure administrator credential. Do not use this panel to manage confidential information or real customer data.
+
+If a production-ready admin system is required in the future, the project can be extended with a backend, database, and proper authentication.
+
+---
+
+## 6. Technical Improvements and Implementation Details
+
+### Portfolio Image Scrolling
+
+The portfolio preview interaction has been improved to display the full image when hovering over a project card.
+
+Implementation details:
+
+- The image moves vertically using `translateY`.
+- The movement distance is calculated from the image height minus the visible frame height.
+- The animation reaches the bottom edge of the full image.
+- No gradient, blur, or overlay is placed over the image.
+- The image returns smoothly to its original position when the pointer leaves the card.
+- The animation respects the `prefers-reduced-motion` accessibility preference.
+- On mobile devices, users can explore image previews using touch gestures.
+
+### Package Selection and Request Forms
+
+The homepage package cards are connected to the request form.
+
+When a visitor selects a package, its identifier is passed through the URL:
+
+```text
+request.html?pkg=...
+```
+
+This allows the request form to identify the selected package automatically.
+
+### SEO and Search Engine Optimization
+
+The website includes the following SEO features:
+
+- Canonical URLs.
+- Open Graph metadata.
+- Organization structured data.
+- WebSite structured data.
+- FAQPage structured data.
+- XML sitemap.
+- robots.txt.
+- `noindex` directives for administrative pages.
+
+### Local Font Hosting
+
+The Vazirmatn font is hosted locally inside the project.
+
+This avoids external font dependencies and provides greater control over font loading and website performance.
+
+---
+
+## 7. Deployment Checklist
+
+Before publishing a production update, verify the following:
+
+- [ ] All content and page changes are saved.
+- [ ] Navigation links work correctly.
+- [ ] Images and static assets load correctly.
+- [ ] Forms behave as expected, with their static-site limitations understood.
+- [ ] SEO metadata and canonical URLs are correct.
+- [ ] The 404 page works correctly.
+- [ ] `npm run build` completes successfully.
+- [ ] The generated `dist/` directory contains the latest files.
+- [ ] The deployed website works on desktop and mobile.
+
+---
+
+**Project:** Cafe Danesh  
+**Architecture:** Astro Static Site  
+**Rendering:** Static Site Generation (SSG)  
+**Database:** Not required  
+**Backend:** Not required  
+**Deployment Targets:** GitHub Pages, cPanel, and standard static hosting providers  
+**Build Output:** `dist/`
