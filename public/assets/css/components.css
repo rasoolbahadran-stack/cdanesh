@@ -757,6 +757,11 @@
   background: linear-gradient(140deg, var(--gold-2), var(--gold-3));
   box-shadow: 0 16px 34px -16px rgba(227, 185, 83, .55);
 }
+/* عکس واقعی بنیان‌گذار (WebP) — هم‌اندازه و هم‌شکل آواتار قبلی */
+.founder-avatar.founder-photo {
+  object-fit: cover; object-position: center 22%;
+  border: 1px solid rgba(227, 185, 83, .35);
+}
 .founder-id .eyebrow { margin-bottom: 2px; }
 .founder-id h2 { font-size: 24px; font-weight: 800; line-height: 1.5; }
 .founder-role { color: var(--gold-2); font-size: 14px; font-weight: 600; }

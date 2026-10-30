@@ -34,7 +34,7 @@
       + '<div class="post-thumb"><img src="' + a.cover + '" alt="' + CDArticles.esc(a.coverAlt || a.title) + '" loading="lazy" width="640" height="380">'
       + '<span class="chip chip-gold">' + CDArticles.esc(a.catLabel) + '</span></div>'
       + '<div class="post-body">'
-      + '<h3><a href="/article?slug=' + encodeURIComponent(a.slug) + '">' + CDArticles.esc(a.title) + '</a></h3>'
+      + '<h3><a href="/blog/' + encodeURIComponent(a.slug) + '">' + CDArticles.esc(a.title) + '</a></h3>'
       + '<p>' + CDArticles.esc(a.excerpt) + '</p>'
       + '<div class="post-meta"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4m8-4v4M3 10h18"/></svg> ' + a.date + '</span>'
       + '<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> ' + fa(a.read) + ' دقیقه مطالعه</span></div>'
@@ -238,8 +238,12 @@
         + '<p class="muted" style="margin-bottom:26px">ممکن است آدرس تغییر کرده یا مقاله هنوز منتشر نشده باشد.</p>'
         + '<a class="btn btn-gold" href="/blog">مشاهده همه مقالات</a></div>';
       document.title = 'مقاله پیدا نشد | کافه‌دانش';
+    } else if (a.status !== 'draft' && !(a.status === 'scheduled' && a.publishAt && new Date(a.publishAt).getTime() > Date.now())) {
+      // مقالهٔ منتشرشده → آدرس تمیز و اصلی: /blog/<slug>
+      location.replace('/blog/' + encodeURIComponent(a.slug));
+      return;
     } else {
-      // متادیتای صفحه
+      // متادیتای صفحه (پیش‌نمایش پیش‌نویس/زمان‌بندی‌شده فقط برای مدیر)
       document.title = (a.seoTitle || (a.title + ' | کافه‌دانش'));
       const md = $('meta[name="description"]');
       if (md) md.setAttribute('content', a.seoDesc || a.excerpt);

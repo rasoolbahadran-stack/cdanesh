@@ -1,5 +1,7 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
+import { serviceRelated, postCardHtml } from '../lib/ssr-articles.mjs';
+const relatedArticles = serviceRelated('support');
 const title = "پشتیبانی و نگهداری سایت | امنیت، به‌روزرسانی و آرامش — کافه‌دانش";
 const description = "قرارداد پشتیبانی سایت با به‌روزرسانی امنیتی، پشتیبان‌گیری منظم، رفع ایراد و تغییرات محتوایی. سایت شما همیشه به‌روز و امن می‌ماند.";
 const canonical = "https://cdanesh.ir/support";
@@ -70,7 +72,10 @@ const canonical = "https://cdanesh.ir/support";
     <div class="section-head side" style="margin-bottom:30px">
       <h2 class="h3">مقالات مرتبط با این خدمت</h2>
     </div>
-    <div class="posts-grid" data-related-articles="support"></div>
+    <div class="posts-grid" data-related-articles="support">
+      {/* مقالات مرتبط در HTML اولیه — قابل خزش برای موتور جست‌وجو */}
+      {relatedArticles.map((a, i) => <Fragment set:html={postCardHtml(a, i)} />)}
+    </div>
   </div>
 </section>
 

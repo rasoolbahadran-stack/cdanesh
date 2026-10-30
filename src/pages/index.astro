@@ -1,8 +1,11 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
+import { serviceRelated, postCardHtml } from '../lib/ssr-articles.mjs';
 const title = "کافه‌دانش | طراحی سایت، سئو و هوش مصنوعی برای رشد واقعی کسب‌وکار";
 const description = "استودیو دیجیتال کافه‌دانش: طراحی سایت اختصاصی، سئو تکنیکال و محتوایی، تولید مقالات تخصصی و راهکارهای هوش مصنوعی — همه در یک تیم.";
 const canonical = "https://cdanesh.ir/";
+/* مقالات اخیر در همان HTML اولیه رندر می‌شوند — قابل خزش برای گوگل */
+const homePosts = serviceRelated(null, 3);
 ---
 
 <SiteLayout title={title} description={description} canonical={canonical}>
@@ -94,7 +97,7 @@ const canonical = "https://cdanesh.ir/";
         <div class="bento-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div>
         <h3>سئو تکنیکال و محتوایی</h3>
         <p>از سرعت و ساختار فنی تا انتخاب کلمه کلیدی و معماری محتوا.</p>
-        <div class="mini-type" aria-hidden="true"><b>Aa</b><span class="dots"><i></i><i></i><i></i><i></i></span></div>
+        <div class="mini-type" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19 9.5 5h1L16 19"/><path d="M5.7 14.5h8.6"/><path d="M18.5 12.5c1.2 0 2.2.7 2.2 1.9 0 1.2-1 1.9-2.2 1.9"/><path d="M18.5 16.3c1.4 0 2.5.8 2.5 2.05 0 1.25-1.1 2.05-2.5 2.05h-1.8v-6.3h1.8" opacity=".9"/></svg><span class="dots"><i></i><i></i><i></i><i></i></span></div>
       </article>
       <article class="bento-card b-third reveal">
         <span class="bento-num">۰۳</span>
@@ -164,10 +167,10 @@ const canonical = "https://cdanesh.ir/";
       <div class="why-visual reveal" data-delay="1">
         <div class="why-ring" aria-hidden="true"></div>
         <div class="why-stat-card">
-          <div class="num" data-count="12" data-suffix="">۰</div>
+          <div class="num" data-count="8" data-suffix="">۸</div>
           <div class="lbl">خدمت تخصصی در یک تیم واحد</div>
-          <div class="row"><span>صفحه تخصصی خدمات</span><b>۴</b></div>
-          <div class="row"><span>ابزار هوشمند محتوا</span><b>۸</b></div>
+          <div class="row"><span>صفحه اختصاصی خدمات</span><b>۸</b></div>
+          <div class="row"><span>توانمندی اصلی تیم</span><b>۷</b></div>
           <div class="row"><span>مرحلهٔ شروع همکاری</span><b>۶</b></div>
         </div>
       </div>
@@ -451,7 +454,8 @@ const canonical = "https://cdanesh.ir/";
       <p class="lead">هر هفته یک مطلب کاربردی درباره طراحی سایت، سئو، محتوا و هوش مصنوعی — به زبان ساده.</p>
     </div>
     <div class="posts-grid" id="home-posts">
-      <!-- مقالات اخیر از بانک مقالات رندر می‌شود -->
+      {/* مقالات اخیر در HTML اولیه — قابل خزش؛ جاوااسکریپت فقط به‌روزرسانی ابری را اضافه می‌کند */}
+      {homePosts.map((a, i) => <Fragment set:html={postCardHtml(a, i)} />)}
     </div>
     <div style="text-align:center; margin-top:36px" class="reveal">
       <a class="btn btn-ghost" href="/blog">مشاهده همه مقالات

@@ -281,7 +281,7 @@
       + '<div class="adm-panel">'
       + '<div class="adm-form-grid">'
       + '<div><label class="adm-label" for="f-title">عنوان مقاله *</label><input class="control" id="f-title" value="' + esc(a.title) + '"><button type="button" class="adm-btn" id="f-makeslug" style="margin-top:6px">تولید اسلاگ از عنوان</button></div>'
-      + '<div><label class="adm-label" for="f-slug">اسلاگ (انگلیسی، یکتا) *</label><input class="control" id="f-slug" dir="ltr" style="text-align:left" value="' + esc(a.slug) + '"><p class="adm-hint">آدرس مقاله: /article?slug=… — پس از انتشار تغییر ندهید.</p></div>'
+      + '<div><label class="adm-label" for="f-slug">اسلاگ (انگلیسی، یکتا) *</label><input class="control" id="f-slug" dir="ltr" style="text-align:left" value="' + esc(a.slug) + '"><p class="adm-hint">آدرس مقاله: /blog/<slug> — پس از انتشار تغییر ندهید. (پیش‌نمایش: /article?slug=…&preview=1)</p></div>'
       + '<div class="field-full"><label class="adm-label" for="f-excerpt">خلاصه / توضیحات متا *</label><textarea class="control" id="f-excerpt" style="min-height:70px">' + esc(a.excerpt) + '</textarea></div>'
       + '<div><label class="adm-label" for="f-cat">دسته‌بندی</label><select class="control" id="f-cat">' + Object.entries(catLabels).map(([k, v]) => '<option value="' + k + '"' + (a.cat === k ? ' selected' : '') + '>' + v + '</option>').join('') + '</select></div>'
       + '<div><label class="adm-label" for="f-tags">برچسب‌ها (با ویرگول)</label><input class="control" id="f-tags" value="' + esc((a.tags || []).join('، ')) + '"></div>'

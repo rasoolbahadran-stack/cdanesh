@@ -1,5 +1,7 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
+import { serviceRelated, postCardHtml } from '../lib/ssr-articles.mjs';
+const relatedArticles = serviceRelated('seo');
 const title = "خدمات سئو تکنیکال و سئوی محتوا | کافه‌دانش";
 const description = "سئو تکنیکال، استراتژی کلمات کلیدی و بهینه‌سازی محتوا — بدون وعده غیرواقعی، با کار اصولی و قابل اندازه‌گیری.";
 const canonical = "https://cdanesh.ir/seo";
@@ -102,7 +104,10 @@ const canonical = "https://cdanesh.ir/seo";
     <div class="section-head side" style="margin-bottom:30px">
       <h2 class="h3">مقالات مرتبط با این خدمت</h2>
     </div>
-    <div class="posts-grid" data-related-articles="seo"></div>
+    <div class="posts-grid" data-related-articles="seo">
+      {/* مقالات مرتبط در HTML اولیه — قابل خزش برای موتور جست‌وجو */}
+      {relatedArticles.map((a, i) => <Fragment set:html={postCardHtml(a, i)} />)}
+    </div>
   </div>
 </section>
 </SiteLayout>

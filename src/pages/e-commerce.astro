@@ -1,5 +1,7 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
+import { serviceRelated, postCardHtml } from '../lib/ssr-articles.mjs';
+const relatedArticles = serviceRelated('e-commerce');
 const title = "طراحی فروشگاه اینترنتی | فروش آنلاین بدون اصطکاک — کافه‌دانش";
 const description = "طراحی فروشگاه اینترنتی اختصاصی با تجربه خرید روان، صفحه محصول تبدیل‌محور، درگاه پرداخت امن و پنل مدیریت آسان. برآورد شفاف پس از نیازسنجی.";
 const canonical = "https://cdanesh.ir/e-commerce";
@@ -70,7 +72,10 @@ const canonical = "https://cdanesh.ir/e-commerce";
     <div class="section-head side" style="margin-bottom:30px">
       <h2 class="h3">مقالات مرتبط با این خدمت</h2>
     </div>
-    <div class="posts-grid" data-related-articles="e-commerce"></div>
+    <div class="posts-grid" data-related-articles="e-commerce">
+      {/* مقالات مرتبط در HTML اولیه — قابل خزش برای موتور جست‌وجو */}
+      {relatedArticles.map((a, i) => <Fragment set:html={postCardHtml(a, i)} />)}
+    </div>
   </div>
 </section>
 

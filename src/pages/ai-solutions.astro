@@ -1,5 +1,7 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
+import { serviceRelated, postCardHtml } from '../lib/ssr-articles.mjs';
+const relatedArticles = serviceRelated('ai-solutions');
 const title = "راهکارهای هوش مصنوعی و اتوماسیون | کافه‌دانش";
 const description = "دستیارهای هوشمند، ابزارهای تولید محتوا و خودکارسازی فرایندها با اتصال امن سمت سرور و بازبینی انسانی.";
 const canonical = "https://cdanesh.ir/ai-solutions";
@@ -113,7 +115,10 @@ const canonical = "https://cdanesh.ir/ai-solutions";
     <div class="section-head side" style="margin-bottom:30px">
       <h2 class="h3">مقالات مرتبط با این خدمت</h2>
     </div>
-    <div class="posts-grid" data-related-articles="ai-solutions"></div>
+    <div class="posts-grid" data-related-articles="ai-solutions">
+      {/* مقالات مرتبط در HTML اولیه — قابل خزش برای موتور جست‌وجو */}
+      {relatedArticles.map((a, i) => <Fragment set:html={postCardHtml(a, i)} />)}
+    </div>
   </div>
 </section>
 </SiteLayout>

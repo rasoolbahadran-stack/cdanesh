@@ -1,5 +1,7 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
+import { serviceRelated, postCardHtml } from '../lib/ssr-articles.mjs';
+const relatedArticles = serviceRelated('uiux');
 const title = "طراحی UI/UX | تجربه کاربری مهندسی‌شده — کافه‌دانش";
 const description = "طراحی رابط و تجربه کاربری بر اساس رفتار واقعی کاربران: معماری اطلاعات، وایرفریم، تست طرح و تحویل راهنمای کامل به تیم توسعه.";
 const canonical = "https://cdanesh.ir/uiux";
@@ -70,7 +72,10 @@ const canonical = "https://cdanesh.ir/uiux";
     <div class="section-head side" style="margin-bottom:30px">
       <h2 class="h3">مقالات مرتبط با این خدمت</h2>
     </div>
-    <div class="posts-grid" data-related-articles="uiux"></div>
+    <div class="posts-grid" data-related-articles="uiux">
+      {/* مقالات مرتبط در HTML اولیه — قابل خزش برای موتور جست‌وجو */}
+      {relatedArticles.map((a, i) => <Fragment set:html={postCardHtml(a, i)} />)}
+    </div>
   </div>
 </section>
 

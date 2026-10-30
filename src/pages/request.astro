@@ -23,10 +23,8 @@ const canonical = "https://cdanesh.ir/request";
 <section class="section-tight">
   <div class="wrap" style="max-width:880px">
     <div class="form-card">
-      <div class="form-ok" role="status">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-        <span><b>درخواست شما ثبت شد!</b> کد پیگیری: <b data-ref></b> — برای هماهنگی جلسه مشاوره، حداکثر ۱ روز کاری بعد تماس می‌گیریم.</span>
-      </div>
+      <!-- پیام موفقیت فقط پس از ثبت واقعی توسط forms.js ساخته و نشان داده می‌شود -->
+      <div class="form-ok" role="status" hidden></div>
       <div class="form-ok form-err-global" role="alert" style="background:rgba(229,118,106,.1); border-color:rgba(229,118,106,.4); color:var(--err); display:none" data-err-global></div>
       <input type="hidden" id="rpackage" name="package">
       <form data-cd-form="request" novalidate>

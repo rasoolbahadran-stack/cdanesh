@@ -1,5 +1,7 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
+import { serviceRelated, postCardHtml } from '../lib/ssr-articles.mjs';
+const relatedArticles = serviceRelated('web-design');
 const title = "طراحی سایت حرفه‌ای و اختصاصی | کافه‌دانش";
 const description = "طراحی سایت اختصاصی، شرکتی، خدماتی و فروشگاهی با UI/UX مهندسی‌شده، کد تمیز و سئو از روز اول — استودیو دیجیتال کافه‌دانش.";
 const canonical = "https://cdanesh.ir/web-design";
@@ -120,7 +122,10 @@ const canonical = "https://cdanesh.ir/web-design";
     <div class="section-head side" style="margin-bottom:30px">
       <h2 class="h3">مقالات مرتبط با این خدمت</h2>
     </div>
-    <div class="posts-grid" data-related-articles="web-design"></div>
+    <div class="posts-grid" data-related-articles="web-design">
+      {/* مقالات مرتبط در HTML اولیه — قابل خزش برای موتور جست‌وجو */}
+      {relatedArticles.map((a, i) => <Fragment set:html={postCardHtml(a, i)} />)}
+    </div>
   </div>
 </section>
 </SiteLayout>

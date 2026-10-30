@@ -1,8 +1,36 @@
 ---
+// ═══ مجله کافه‌دانش — رندر سمت سرور (SSR) ═══
+// prerender=false → این صفحه در هر درخواست روی ورسل رندر می‌شود؛
+// مقالات منتشرشدهٔ ابری (پنل مدیریت) بلافاصله برای همه و برای گوگل دیده می‌شوند.
+export const prerender = false;
+
 import SiteLayout from '../layouts/SiteLayout.astro';
+import { getPublicArticles, postCardHtml, esc, fa, CATS } from '../lib/ssr-articles.mjs';
+
 const title = "مجله کافه‌دانش | مقالات تخصصی طراحی سایت، سئو و هوش مصنوعی";
 const description = "مقالات تخصصی طراحی سایت، سئو، تولید محتوا، سرعت و هوش مصنوعی — به زبان ساده، بدون اغراق و با کاربرد عملی برای کسب‌وکار شما.";
 const canonical = "https://cdanesh.ir/blog";
+
+const posts = await getPublicArticles();
+const PER = 6;
+
+const params = Astro.url.searchParams;
+const cat = CATS.some(c => c.key === params.get('cat')) ? params.get('cat') : 'all';
+let page = Math.max(1, parseInt(params.get('page') || '1', 10) || 1);
+
+const filtered = cat === 'all' ? posts : posts.filter(a => a.cat === cat);
+const pages = Math.max(1, Math.ceil(filtered.length / PER));
+if (page > pages) page = pages;
+const slice = filtered.slice((page - 1) * PER, page * PER);
+
+const catLabel = cat === 'all' ? 'مقالات' : (CATS.find(c => c.key === cat) || {}).label || 'مقالات';
+
+const pageUrl = (n) => {
+  const q = [];
+  if (cat !== 'all') q.push('cat=' + cat);
+  if (n > 1) q.push('page=' + n);
+  return '/blog' + (q.length ? '?' + q.join('&') : '');
+};
 ---
 
 <SiteLayout title={title} description={description} canonical={canonical}>
@@ -22,24 +50,37 @@ const canonical = "https://cdanesh.ir/blog";
 
 <section class="section-tight">
   <div class="wrap">
-    <!-- ابزار جست‌وجو و دسته‌بندی (متصل به داده واقعی مقالات) -->
+    <!-- ابزار جست‌وجو و دسته‌بندی — دکمه‌های دسته از دادهٔ واقعی مقالات ساخته می‌شوند -->
     <div class="blog-tools">
       <div class="blog-search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         <input class="control" id="blog-search" type="search" placeholder="جست‌وجو در مقالات…" aria-label="جست‌وجو در مقالات">
       </div>
       <div class="blog-cats" role="group" aria-label="دسته‌بندی مقالات">
-        <button type="button" class="active" data-cat="all">همه</button>
+        {CATS.map(c => (
+          <button type="button" data-cat={c.key} class={c.key === cat ? 'active' : ''}>{c.label}</button>
+        ))}
       </div>
     </div>
 
-    <div class="posts-grid" id="posts-grid" aria-live="polite"></div>
+    <!-- فهرست مقالات در HTML واقعی صفحه — بدون نیاز به جاوااسکریپت، قابل خزش برای گوگل -->
+    <div class="posts-grid" id="posts-grid" aria-live="polite">
+      {slice.map((a, i) => <Fragment set:html={postCardHtml(a, i % 3)} />)}
+    </div>
 
-    <div class="blog-empty" id="blog-empty">
+    <div class="blog-empty" id="blog-empty" style="display:none">
       <p>مقاله‌ای با این مشخصات پیدا نشد؛ عبارت دیگری امتحان کنید یا دسته‌بندی را عوض کنید.</p>
     </div>
 
-    <nav class="pagination" id="blog-pagination" aria-label="صفحه‌بندی مقالات"></nav>
+    <nav class="pagination" id="blog-pagination" aria-label="صفحه‌بندی مقالات">
+      {pages > 1 && (page > 1 ? <a href={pageUrl(page - 1)} data-page={page - 1} aria-label="صفحه قبل">→</a> : null)}
+      {pages > 1 && Array.from({ length: pages }, (_, i) => i + 1).map(n => (
+        n === page
+          ? <span class="current" aria-current="page">{fa(n)}</span>
+          : <a href={pageUrl(n)} data-page={n} aria-label={'صفحه ' + fa(n)}>{fa(n)}</a>
+      ))}
+      {pages > 1 && page < pages ? <a href={pageUrl(page + 1)} data-page={page + 1} aria-label="صفحه بعد">←</a> : null}
+    </nav>
   </div>
 </section>
 </SiteLayout>

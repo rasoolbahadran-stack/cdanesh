@@ -164,6 +164,13 @@
         const pk = $('#rpackage');
         if (pk) pk.value = '';
         if (okBox) {
+          /* محتوای پیام موفقیت همین‌جا ساخته می‌شود تا در HTML اولیهٔ صفحه
+             (خروجی قابل استخراج موتورهای جست‌وجو) متن «ثبت شد» دیده نشود */
+          const icon = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+          const text = kind === 'request'
+            ? '<b>درخواست شما ثبت شد!</b> کد پیگیری: <b data-ref></b> — برای هماهنگی جلسه مشاوره، حداکثر ۱ روز کاری بعد تماس می‌گیریم.'
+            : '<b>پیام شما ثبت شد!</b> کد پیگیری: <b data-ref></b> — در ساعات کاری حداکثر یک روز کاری پاسخ می‌دهیم.';
+          okBox.innerHTML = icon + '<span>' + text + '</span>';
           const span = okBox.querySelector('[data-ref]');
           if (span) span.textContent = refOut;
           okBox.classList.add('show');

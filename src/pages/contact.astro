@@ -15,7 +15,7 @@ const canonical = "https://cdanesh.ir/contact";
       <span>تماس با ما</span>
     </nav>
     <span class="eyebrow">تماس با ما</span>
-    <h1 class="h1">خوشحال می‌شویم <span class="gold">شنیدیم</span></h1>
+    <h1 class="h1">خوشحال می‌شویم <span class="gold">از شما بشنویم</span></h1>
     <p class="lead">برای سؤال، پیشنهاد همکاری یا سفارش پروژه — از هر مسیری که راحت‌ترید پیام بدهید. پاسخ‌گویی در ساعات کاری معمولاً حداکثر یک روز کاری است.</p>
   </div>
 </section>
@@ -53,10 +53,8 @@ const canonical = "https://cdanesh.ir/contact";
         <div class="form-card">
           <h2 class="h3" style="margin-bottom:6px">پیام مستقیم</h2>
           <p class="muted small" style="margin-bottom:26px">پیام شما ثبت می‌شود و در ساعات کاری حداکثر یک روز کاری پاسخ می‌گیرید.</p>
-          <div class="form-ok" role="status">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-            <span><b>پیام شما ثبت شد!</b> کد پیگیری: <b data-ref></b> — در ساعات کاری حداکثر یک روز کاری پاسخ می‌دهیم.</span>
-          </div>
+          <!-- پیام موفقیت فقط پس از ثبت واقعی توسط forms.js ساخته و نشان داده می‌شود -->
+          <div class="form-ok" role="status" hidden></div>
           <div class="form-ok form-err-global" role="alert" style="background:rgba(229,118,106,.1); border-color:rgba(229,118,106,.4); color:var(--err); display:none" data-err-global></div>
           <form data-cd-form="contact" novalidate>
             <div class="form-grid">

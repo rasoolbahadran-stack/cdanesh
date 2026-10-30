@@ -1,5 +1,7 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
+import { serviceRelated, postCardHtml } from '../lib/ssr-articles.mjs';
+const relatedArticles = serviceRelated('speed');
 const title = "بهینه‌سازی سرعت سایت | Core Web Vitals و تجربه سریع — کافه‌دانش";
 const description = "بهینه‌سازی سرعت سایت با تمرکز بر Core Web Vitals: بهبود LCP و INP و CLS، بهینه‌سازی تصاویر WebP، کش و زیرساخت. بررسی اولیه رایگان.";
 const canonical = "https://cdanesh.ir/speed-optimization";
@@ -70,7 +72,10 @@ const canonical = "https://cdanesh.ir/speed-optimization";
     <div class="section-head side" style="margin-bottom:30px">
       <h2 class="h3">مقالات مرتبط با این خدمت</h2>
     </div>
-    <div class="posts-grid" data-related-articles="speed"></div>
+    <div class="posts-grid" data-related-articles="speed">
+      {/* مقالات مرتبط در HTML اولیه — قابل خزش برای موتور جست‌وجو */}
+      {relatedArticles.map((a, i) => <Fragment set:html={postCardHtml(a, i)} />)}
+    </div>
   </div>
 </section>
 
