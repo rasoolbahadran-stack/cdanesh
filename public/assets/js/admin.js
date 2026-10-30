@@ -73,7 +73,9 @@
     const r = await CDArticles.cloudSave(nextList);
     if (r.ok) { toast(okMsg); return true; }
     if (r.error === 'UNAUTH') { CDStore.logout(); location.replace('/admin-login'); return false; }
-    alert('ذخیره ابری انجام نشد: ' + (r.message || r.error));
+    alert(r.error === 'HTTP_504'
+      ? 'ذخیره ابری انجام نشد: سرور دیر پاسخ داد (تایم‌اوت). چند لحظه بعد دوباره تلاش کنید؛ اگر تکرار شد، صفحه را تازه‌سازی (F5) کنید.'
+      : 'ذخیره ابری انجام نشد: ' + (r.message || r.error));
     return false;
   }
 
@@ -1252,19 +1254,30 @@
   }
 
   async function saveMessages(nextList) {
+    const body = JSON.stringify({ messages: nextList });
     if (msgCloud) {
-      try {
-        const r = await fetch('api/messages', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: nextList }),
-        });
-        const d = await r.json().catch(() => ({}));
-        if (r.ok && d.ok) { msgList = d.messages || nextList; return true; }
-        if (r.status === 401) { CDStore.logout(); location.replace('/admin-login'); return false; }
-        alert('ذخیره ابری پیام‌ها انجام نشد: ' + (d.message || d.error || r.status));
-        return false;
-      } catch (e) { alert('ارتباط با سرور برقرار نشد.'); return false; }
+      let r = null;
+      /* دو تلاش خودکار برای خطاهای گذرا (تایم‌اوت لحظه‌ای سرور)؛
+         PUT کل فهرست است و تکرارش ایمن. */
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          r = await fetch('api/messages', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body,
+          });
+          if (r.status !== 502 && r.status !== 503 && r.status !== 504) break;
+        } catch (e) { r = null; }
+        if (attempt === 0) await new Promise(res => setTimeout(res, 900));
+      }
+      if (!r) { alert('ارتباط با سرور برقرار نشد؛ اتصال اینترنت را بررسی کنید.'); return false; }
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) { msgList = d.messages || nextList; return true; }
+      if (r.status === 401) { CDStore.logout(); location.replace('/admin-login'); return false; }
+      alert(r.status === 504
+        ? 'ذخیرهٔ پیام‌ها انجام نشد: سرور دیر پاسخ داد (تایم‌اوت). چند لحظه بعد دوباره تلاش کنید.'
+        : 'ذخیره ابری پیام‌ها انجام نشد: ' + (d.message || d.error || r.status));
+      return false;
     }
     // حالت دمو: همان ذخیرهٔ مرورگر
     CDStore.write('messages', nextList);
@@ -1568,7 +1581,7 @@
         + '<div><label class="adm-label">رمز جدید (اختیاری — حداقل ۸ کاراکتر)</label><input class="control" id="u-newpass" type="password" dir="ltr" autocomplete="new-password"></div>'
         + '</div>'
         + '<button type="button" class="btn btn-gold btn-sm" id="u-save" style="margin-top:16px">ذخیره اعتبارنامه</button>'
-        + '<p class="adm-hint" style="margin-top:12px">پس از ذخیره، همهٔ نشست‌های فعال روی دستگاه‌های دیگر بسته می‌شوند و مرورگر پیشنهاد ذخیرهٔ رمز جدید می‌دهد — تأیید کنید تا دفعهٔ بعد خودکار پر شود.</p>'
+        + '<p class="adm-hint" style="margin-top:12px">پس از ذخیره، همهٔ نشست‌های فعال روی دستگاه‌های دیگر بسته می‌شوند و مرورگر پیشنهاد ذخیرهٔ رمز جدید می‌دهد — تأیید کنید تا دفعهٔ بعد خودکار پر شود. نکتهٔ اطمینان: رمز ثبت‌شده در ورسل (ADMIN_PASSWORD) همیشه به‌عنوان کلید اضطراری هم کار می‌کند تا دسترسی هیچ‌وقت از دست نرود.</p>'
         + '</div>'
         : '<div class="adm-form-grid" style="margin-top:12px"><div><label class="adm-label">رمز فعلی</label><input class="control" id="p-old" type="password" dir="ltr"></div>'
         + '<div><label class="adm-label">رمز جدید (حداقل ۸ کاراکتر)</label><input class="control" id="p-new" type="password" dir="ltr"></div></div>'

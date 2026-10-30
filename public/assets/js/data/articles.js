@@ -65,11 +65,23 @@
 
   /* ─── ذخیره در فضای ابری (فقط پنل مدیریت) ─── */
   async function cloudSave(list) {
-    const r = await fetch('api/articles', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ articles: list }),
-    });
+    const body = JSON.stringify({ articles: list });
+    let r = null;
+    /* دو تلاش خودکار: خطاهای گذرا (شروع سرد تابع سرور، شلوغی لحظه‌ای) همین‌جا
+       جبران می‌شوند و دیگر پیام «ذخیره انجام نشد 504» را به کاربر نمی‌رساند.
+       PUT کل فهرست است؛ تکرارش ایمن است (آخرین نسخه جایگزین می‌شود). */
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        r = await fetch('api/articles', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body,
+        });
+        if (r.status !== 502 && r.status !== 503 && r.status !== 504) break;
+      } catch (e) { r = null; }
+      if (attempt === 0) await new Promise(res => setTimeout(res, 900));
+    }
+    if (!r) return { ok: false, error: 'NETWORK', message: 'اتصال به سرور برقرار نشد؛ اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.' };
     let d = {};
     try { if ((r.headers.get('content-type') || '').includes('json')) d = await r.json(); } catch (e) { /* noop */ }
     if (r.ok && d.ok) {

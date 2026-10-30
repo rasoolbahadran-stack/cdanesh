@@ -4,7 +4,7 @@
    PUT  /api/articles  {articles:[…]} → ذخیرهٔ کامل فهرست (فقط مدیر)
    داده در Vercel Blob با نام ثابت articles.json نگهداری می‌شود؛
    تا قبل از اولین ذخیره، پاسخ 404/EMPTY است و سایت از دادهٔ همراه پروژه استفاده می‌کند. */
-import { head, put } from '@vercel/blob';
+import { blobHead, blobPut, blobFetch } from '../lib/blob-safe.mjs';
 import { isAuthedAsync, validateArticles, publicOnly, sorted, json, readJsonBody } from '../lib/admin-auth.mjs';
 
 const BLOB_KEY = 'articles.json';
@@ -15,8 +15,8 @@ function isNotFound(e) {
 }
 
 async function readBlob() {
-  const meta = await head(BLOB_KEY); // اگر نباشد throw می‌شود
-  const r = await fetch(meta.url, { cache: 'no-store' });
+  const meta = await blobHead(BLOB_KEY); // اگر نباشد throw می‌شود
+  const r = await blobFetch(meta.url);
   if (!r.ok) throw new Error('BLOB_FETCH_' + r.status);
   const list = await r.json();
   return Array.isArray(list) ? list : [];
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
 
     const clean = sorted(body.articles);
     try {
-      const blob = await put(BLOB_KEY, JSON.stringify(clean), {
+      const blob = await blobPut(BLOB_KEY, JSON.stringify(clean), {
         access: 'public',
         addRandomSuffix: false,
         contentType: 'application/json; charset=utf-8',

@@ -4,7 +4,7 @@
 // DELETE → حذف فایل با پارامتر ?url= (فقط مدیر)
 export const prerender = false;
 
-import { put, list, del } from '@vercel/blob';
+import { blobPut, blobList, blobDel } from '../../../server/lib/blob-safe.mjs';
 import { isAuthedAsync } from '../../../server/lib/admin-auth.mjs';
 
 const PREFIX = 'media/';
@@ -35,7 +35,7 @@ export async function GET({ request }) {
   if (!(await authed(request))) return json(401, { ok: false, error: 'UNAUTH' });
   if (!process.env.BLOB_READ_WRITE_TOKEN) return json(503, { ok: false, error: 'NO_BLOB', message: 'فضای ابری (Vercel Blob) هنوز به پروژه وصل نشده است.' });
   try {
-    const res = await list({ prefix: PREFIX, limit: 500 });
+    const res = await blobList({ prefix: PREFIX, limit: 500 });
     const media = (res.blobs || [])
       .map(b => ({ url: b.url, name: decodeURIComponent((b.pathname || '').replace(PREFIX, '')), size: b.size || 0, uploadedAt: b.uploadedAt || '' }))
       .sort((a, b) => String(b.uploadedAt).localeCompare(String(a.uploadedAt)));
@@ -59,7 +59,7 @@ export async function POST({ request }) {
 
     const buf = Buffer.from(await file.arrayBuffer());
     const key = PREFIX + Date.now().toString(36) + '-' + safeName(file.name);
-    const blob = await put(key, buf, { access: 'public', addRandomSuffix: false, contentType: type });
+    const blob = await blobPut(key, buf, { access: 'public', addRandomSuffix: false, contentType: type });
     return json(200, {
       ok: true,
       media: { url: blob.url, name: decodeURIComponent(key.replace(PREFIX, '')), size: file.size, uploadedAt: blob.uploadedAt || '' },
@@ -75,7 +75,7 @@ export async function DELETE({ request }) {
   try {
     const url = new URL(request.url).searchParams.get('url') || '';
     if (!url.startsWith(PREFIX) && !url.includes('/media/')) return json(400, { ok: false, error: 'BAD_URL' });
-    await del(url);
+    await blobDel(url);
     return json(200, { ok: true });
   } catch (e) {
     return json(500, { ok: false, error: 'BLOB_ERROR', message: String((e && e.message) || e) });

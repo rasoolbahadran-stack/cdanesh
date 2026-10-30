@@ -6,7 +6,7 @@
    ذخیره می‌شود؛ شمارهٔ نسخهٔ رمز (pv) در توکن نشست می‌آید تا با هر تغییر رمز،
    همهٔ نشست‌های فعال روی همهٔ دستگاه‌ها بی‌اعتبار شوند. */
 import crypto from 'node:crypto';
-import { head, put } from '@vercel/blob';
+import { blobHead, blobPut, blobFetch } from './blob-safe.mjs';
 
 export const COOKIE_NAME = 'cd_admin';
 const DAY = 24 * 60 * 60 * 1000;
@@ -30,8 +30,8 @@ async function readUsers(force) {
   if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
   if (!force && usersCache.data && Date.now() - usersCache.at < 45 * 1000) return usersCache.data;
   try {
-    const meta = await head(USERS_KEY);
-    const r = await fetch(meta.url, { cache: 'no-store' });
+    const meta = await blobHead(USERS_KEY);
+    const r = await blobFetch(meta.url);
     if (!r.ok) throw new Error('BLOB_FETCH_' + r.status);
     const u = await r.json();
     usersCache = { data: (u && u.username && u.hash) ? u : null, at: Date.now() };
@@ -43,7 +43,7 @@ async function readUsers(force) {
 }
 
 async function writeUsers(u) {
-  await put(USERS_KEY, JSON.stringify(u), {
+  await blobPut(USERS_KEY, JSON.stringify(u), {
     access: 'public', addRandomSuffix: false, contentType: 'application/json; charset=utf-8',
   });
   usersCache = { data: u, at: Date.now() };
@@ -63,13 +63,23 @@ export function makeUserRecord(username, password, prevPv) {
   };
 }
 
-/* ورود: اول کاربر ابری (users.json)، بعد متغیرهای محیطی (سازگاری با تنظیم اولیه) */
+/* ورود: اول کاربر ابری (users.json)، بعد متغیرهای محیطی (سازگاری با تنظیم اولیه)
+   کلید اضطراری: اگر users.json وجود داشته باشد اما ورود با آن نخورد، رمز ورسل
+   (ADMIN_PASSWORD) همیشه هم پذیرفته می‌شود — تا با هر تغییر رمز در ورسل،
+   دسترسی مدیر هیچ‌وقت از دست نرود (ضد قفل‌شدگی). */
 export async function verifyLogin(username, password) {
   const u = await readUsers().catch(() => null);
   if (u) {
     const userOk = safeEqual(username, u.username);
     const passOk = userOk && safeEqual(hashOf(password, u.salt), u.hash);
-    return { ok: userOk && passOk, pv: u.pv || 0, user: u.username };
+    if (userOk && passOk) return { ok: true, pv: u.pv || 0, user: u.username };
+    if (process.env.ADMIN_PASSWORD) {
+      const envUser = process.env.ADMIN_USERNAME || 'admin';
+      if (safeEqual(username, envUser) && safeEqual(password, process.env.ADMIN_PASSWORD)) {
+        return { ok: true, pv: u.pv || 0, user: envUser };
+      }
+    }
+    return { ok: false, pv: u.pv || 0, user: u.username };
   }
   if (!process.env.ADMIN_PASSWORD) return { ok: false, unconfigured: true, pv: 0 };
   const userOk = safeEqual(username, process.env.ADMIN_USERNAME || 'admin');

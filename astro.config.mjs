@@ -10,7 +10,10 @@ import vercel from '@astrojs/vercel';
 export default defineConfig({
   site: 'https://cdanesh.ir',
   output: 'static',
-  adapter: vercel(),
+  /* maxDuration: 60 → سقف زمان اجرای هر تابع سروری ۶۰ ثانیه؛
+     بدون این، پیش‌فرض پلن رایگان ۱۰ ثانیه است و ذخیرهٔ بزرگ پنل
+     (شروع سرد تابع + چند رفت‌وبرگشت به Blob) گاهی همان‌جا 504 می‌شود. */
+  adapter: vercel({ maxDuration: 60 }),
   build: { format: 'directory' },
   trailingSlash: 'ignore',
   /* checkOrigin باید خاموش باشد: روی ورسل، بازسازی Origin از هدرهای x-forwarded

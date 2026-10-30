@@ -4,7 +4,7 @@
    PUT /api/payments {gateways:[…]} → ذخیرهٔ کل فهرست (فقط مدیر)
    داده در Vercel Blob با نام ثابت payments.json نگهداری می‌شود؛
    تا اولین ذخیره، پاسخ EMPTY است و دکمه‌های پرداخت سایت مخفی می‌مانند. */
-import { head, put } from '@vercel/blob';
+import { blobHead, blobPut, blobFetch } from '../lib/blob-safe.mjs';
 import { isAuthedAsync, json, readJsonBody } from '../lib/admin-auth.mjs';
 
 const BLOB_KEY = 'payments.json';
@@ -15,15 +15,15 @@ function isNotFound(e) {
 }
 
 async function readBlob() {
-  const meta = await head(BLOB_KEY);
-  const r = await fetch(meta.url, { cache: 'no-store' });
+  const meta = await blobHead(BLOB_KEY);
+  const r = await blobFetch(meta.url);
   if (!r.ok) throw new Error('BLOB_FETCH_' + r.status);
   const list = await r.json();
   return Array.isArray(list) ? list : [];
 }
 
 async function writeBlob(list) {
-  await put(BLOB_KEY, JSON.stringify(list), {
+  await blobPut(BLOB_KEY, JSON.stringify(list), {
     access: 'public',
     addRandomSuffix: false,
     contentType: 'application/json; charset=utf-8',

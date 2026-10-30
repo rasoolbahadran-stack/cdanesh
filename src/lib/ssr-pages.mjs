@@ -3,15 +3,23 @@
    ۲) دادهٔ همراه پروژه (src/data/pages.json) — صفحات پایه مثل شرایط استفاده و حریم خصوصی
    خروجی: فهرست صفحات برای /p/<slug> ، /terms ، /privacy و sitemap */
 import bundled from '../data/pages.json';
-import { head } from '@vercel/blob';
 
 const PAGES_KEY = 'pages.json';
+
+/* ایمن‌سازی بحرانی: همان سیاست ssr-articles — import تنبل کتابخانهٔ Blob +
+   سقف زمانی ۴ ثانیه برای هر فراخوانی؛ هر خطا فقط یعنی دادهٔ ابری نمی‌آید،
+   نه مرگ صفحه با 500. */
+let _blobMod = null;
+async function blobHead(key) {
+  if (!_blobMod) _blobMod = await import('@vercel/blob');
+  return _blobMod.head(key, { abortSignal: AbortSignal.timeout(4000) });
+}
 
 export async function readCloudPages() {
   if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
   try {
-    const meta = await head(PAGES_KEY);
-    const r = await fetch(meta.url, { cache: 'no-store' });
+    const meta = await blobHead(PAGES_KEY);
+    const r = await fetch(meta.url, { cache: 'no-store', signal: AbortSignal.timeout(4000) });
     if (!r.ok) return null;
     const data = await r.json();
     const list = Array.isArray(data) ? data : (data && Array.isArray(data.pages) ? data.pages : null);

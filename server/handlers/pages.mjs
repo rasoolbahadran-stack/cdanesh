@@ -5,7 +5,7 @@
                     status: 'published'|'draft', blocks, updated}
    داده در Vercel Blob با نام ثابت pages.json نگهداری می‌شود؛
    /p/<slug> و /terms و /privacy سمت سرور از همین داده رندر می‌شوند. */
-import { head, put } from '@vercel/blob';
+import { blobHead, blobPut, blobFetch } from '../lib/blob-safe.mjs';
 import { isAuthedAsync, json, readJsonBody } from '../lib/admin-auth.mjs';
 
 const BLOB_KEY = 'pages.json';
@@ -16,8 +16,8 @@ function isNotFound(e) {
 }
 
 async function readBlob() {
-  const meta = await head(BLOB_KEY);
-  const r = await fetch(meta.url, { cache: 'no-store' });
+  const meta = await blobHead(BLOB_KEY);
+  const r = await blobFetch(meta.url);
   if (!r.ok) throw new Error('BLOB_FETCH_' + r.status);
   const data = await r.json();
   const list = Array.isArray(data) ? data : (data && Array.isArray(data.pages) ? data.pages : []);
@@ -78,7 +78,7 @@ export default async function handler(req, res) {
     const invalid = validatePages(body.pages);
     if (invalid) return json(res, 400, { ok: false, error: 'INVALID', message: invalid });
     try {
-      const blob = await put(BLOB_KEY, JSON.stringify(body.pages), {
+      const blob = await blobPut(BLOB_KEY, JSON.stringify(body.pages), {
         access: 'public', addRandomSuffix: false, contentType: 'application/json; charset=utf-8',
       });
       return json(res, 200, { ok: true, count: body.pages.length, updatedAt: blob.uploadedAt || new Date().toISOString() });

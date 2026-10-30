@@ -4,16 +4,26 @@
    ۲) دادهٔ همراه پروژه (src/data/articles.json) — همیشه در دسترس
    خروجی: فهرست عمومی مرتب‌شده برای /blog ، /blog/[slug] و sitemap */
 import bundled from '../data/articles.json';
-import { head } from '@vercel/blob';
 
 const BLOB_KEY = 'articles.json';
+
+/* ایمن‌سازی بحرانی: import کتابخانهٔ Blob «تنبل» و داخل try/catch انجام می‌شود؛
+   اگر در محیط انتشار هر مشکلی برای این کتابخانه پیش بیاید (نسخه، باندل، توکن،
+   شبکه)، فقط دادهٔ ابری نمی‌آید — اما صفحهٔ مجله هرگز با خطای 500 نمی‌میرد و
+   با دادهٔ همراه پروژه رندر می‌شود. هر فراخوانی شبکه هم سقف زمانی ۴ ثانیه دارد
+   تا هیچ درخواستی معطل نماند (پیشگیری از 504). */
+let _blobMod = null;
+async function blobHead(key) {
+  if (!_blobMod) _blobMod = await import('@vercel/blob');
+  return _blobMod.head(key, { abortSignal: AbortSignal.timeout(4000) });
+}
 
 /* خواندن فهرست کامل ابری؛ هر خطا → null (صفحه با دادهٔ همراه پروژه رندر می‌شود) */
 export async function readCloudArticles() {
   if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
   try {
-    const meta = await head(BLOB_KEY);
-    const r = await fetch(meta.url, { cache: 'no-store' });
+    const meta = await blobHead(BLOB_KEY);
+    const r = await fetch(meta.url, { cache: 'no-store', signal: AbortSignal.timeout(4000) });
     if (!r.ok) return null;
     const list = await r.json();
     return Array.isArray(list) ? list : null;
