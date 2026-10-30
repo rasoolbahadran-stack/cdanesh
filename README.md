@@ -1,143 +1,381 @@
-# وب‌سایت کافه‌دانش — نسخهٔ Astro (استاتیک، بدون دیتابیس)
+Cafe Danesh — Astro Static Website
 
-سایت کامل کافه‌دانش با [Astro](https://astro.build) بازسازی شده است؛ همان طراحی تأییدشده، همان صفحات و همان رفتار — با این تفاوت که خروجی **کاملاً استاتیک** است:
+A complete static website for **Cafe Danesh**, built with [Astro](https://astro.build).
 
-- ❌ **نیازی به دیتابیس نیست** — نه سرویس خارجی، نه سرور، نه API
-- ✅ خروجی نهایی فقط فایل‌های HTML/CSS/JS است و روی **هر هاستی** بالا می‌آید
-- ✅ گیت‌هاب پیجز، هاست cPanel ایرانی، یا هر فضای میزبانی فایل
+The project preserves the approved visual design, page structure, and core user experience while using a lightweight static architecture.
+
+The website can be deployed to Vercel, GitHub Pages, cPanel, or any standard static hosting provider.
+
+## Key Features
+
+- **Static Architecture:** No database or backend server is required to serve the website.
+- **Fast Performance:** Optimized static HTML, CSS, JavaScript, and assets.
+- **Responsive Design:** Designed for desktop, tablet, and mobile devices.
+- **SEO Ready:** Canonical URLs, Open Graph metadata, structured data, sitemap, and robots.txt.
+- **Local Fonts:** Vazirmatn is hosted locally.
+- **Content Management:** Articles, portfolio projects, and FAQs are managed through project data files.
+- **Admin Demo:** Includes a client-side demonstration admin panel.
+- **Flexible Deployment:** Compatible with Vercel, GitHub Pages, and cPanel hosting.
 
 ---
 
-## ۱) اجرا روی سیستم خودت
+## 1. Requirements
 
-پیش‌نیاز: [Node.js](https://nodejs.org) نسخه ۱۸ یا بالاتر
+- Node.js 18 or later
+- npm
+- Git (recommended)
 
-```bash
-npm install      # نصب وابستگی‌ها (فقط یک بار)
-npm run dev      # اجرای محلی روی http://localhost:4321
-npm run build    # ساخت خروجی نهایی در پوشهٔ dist/
-npm run preview  # پیش‌نمایش خروجی ساخته‌شده
-```
+## 2. Run Locally
 
-> پوشهٔ `dist/` از قبل ساخته شده و داخل همین بسته هست؛ اگر نمی‌خواهی کاری با Node داشته باشی، از همان استفاده کن (بخش ۳).
-
-## ۲) انتشار روی گیت‌هاب (گیت‌هاب پیجز)
-
-راه‌اندازی **کاملاً خودکار** است؛ فایل `.github/workflows/deploy.yml` داخل پروژه هست و با هر push، سایت خودکار ساخته و منتشر می‌شود.
-
-**گام ۱ — ساخت مخزن:** در GitHub یک مخزن جدید (مثلاً `cdanesh`) خالی بسازید.
-
-**گام ۲ — اتصال و ارسال:**
+Install project dependencies:
 
 ```bash
-git remote add origin https://github.com/rasoolbahadran-stack/cdanesh.git
-git push -u origin main
+npm install
 ```
 
-(اگر نام مخزن را چیز دیگری گذاشتی، همان آدرس را بگذار.)
+Start the development server:
 
-**گام ۳ — فعال‌سازی Pages:** در مخزن: `Settings → Pages → Source: GitHub Actions` را انتخاب کن. از این به بعد هر push = انتشار خودکار.
-
-**نکتهٔ مهم دربارهٔ ورود:** گیت‌هاب از سال ۲۰۲۱ ورود با «رمز حساب» را برای push غیرفعال کرده؛ به همین دلیل رمز ساده کار نکرد. دو راه درست:
-
-1. **ساده‌ترین راه (ویندوز):** همان دستور `git push` را بزن؛ پنجرهٔ مرورگر GitHub باز می‌شود و با اکانتت تأیید می‌کنی (Git Credential Manager). نیازی به هیچ توکنی نیست.
-2. **Personal Access Token:** از `Settings → Developer settings → Fine-grained tokens` یک توکن بساز که فقط مجوز `Contents: Read and write` روی همین مخزن دارد و تاریخ انقضای کوتاه (مثلاً ۷ روز) بگذار. در push، به‌جای رمز حساب، همان توکن را وارد کن و بعد از کار، توکن را Revoke کن.
-
-**اتصال دامنهٔ cdanesh.ir:** بعد از فعال شدن سایت، در `Settings → Pages → Custom domain` بنویس `cdanesh.ir` و در پنل DNS دامنه، یک رکورد CNAME به `rasoolbahadran-stack.github.io` (یا رکوردهای A گیت‌هاب پیجز) تنظیم کن.
-
-### به‌روزرسانی نسخه‌های بعدی با GitHub Desktop (پیشنهادی — ساده‌ترین راه)
-
-بعد از این که پروژه یک‌بار روی گیت‌هاب رفت، برای جایگزینی با نسخهٔ جدید (مثل همین فایل ZIP) لازم نیست چیزی دستی پاک یا اضافه کنی؛ **گیت خودش تشخیص می‌دهد کدام فایل‌ها جدید، تغییرکرده یا حذف‌شده‌اند** و مخزن را دقیقاً مثل پوشهٔ محلی می‌کند:
-
-1. **GitHub Desktop را باز کن** → منوی `File → Clone repository` → مخزن `rasoolbahadran-stack/cdanesh` را انتخاب و در یک پوشهٔ محلی (مثلاً `Documents\cdanesh`) کلون کن. (اگر قبلاً کلون کرده‌ای، همین پوشه را با `Repository → Show in Explorer` باز کن.)
-2. در همان پوشه، **همهٔ محتویات را پاک کن به‌جز پوشهٔ پنهان `.git`** — این پوشهٔ مخفی شناسنامهٔ گیت است و نباید پاک شود (در ویندوز: `View → Show → Hidden items` تا دیده شود).
-3. **محتوای پوشهٔ `cdanesh-astro` داخل ZIP** (نه خود پوشه) را داخل همین پوشه کپی کن.
-4. GitHub Desktop بلافاصله همهٔ تغییرها را لیست می‌کند: فایل‌های جدید (سبز)، تغییرکرده (نارنجی) و حذف‌شده (قرمز). اگر چیزی از نسخهٔ قبل دیگر لازم نباشد، خودکار به‌عنوان «حذف‌شده» ثبت می‌شود.
-5. در کادر خلاصه یک عنوان بنویس (مثلاً «به‌روزرسانی سایت — تم روشن پنل») → دکمهٔ `Commit to main` → بعد `Push origin`.
-6. تمام! ورسل با هر push خودکار سایت را دوباره می‌سازد (۲–۳ دقیقه) و تغییرها روی `cdanesh-astro.vercel.app` اعمال می‌شود.
-
-> **نکته:** پوشهٔ `node_modules` را دستی جابه‌جا نکن؛ ساختن سایت روی ورسل/گیت‌هاب خودش وابستگی‌ها را نصب می‌کند. پوشهٔ `dist/` هم داخل بسته هست ولی برای ورسل فقط کد منبع لازم است؛ ورسل خودش `npm run build` را اجرا می‌کند.
-
-## ۳) انتشار روی هاست cPanel (سریع‌ترین راه)
-
-بعد از `npm run build` (یا با `dist/` آمادهٔ داخل بسته):
-
-1. وارد cPanel شو → File Manager → پوشهٔ `public_html`
-2. **محتوای** پوشهٔ `dist/` را بریز (نه خود پوشه را)
-3. تمام! فایل `.htaccess` هم همراهش هست: صفحهٔ ۴۰۴ و فشرده‌سازی و کش خودکار
-
-هر وقت محتوا را عوض کردی: `npm run build` دوباره و آپلود مجدد محتوای `dist/`.
-
-## ۳+) پنل مدیریت «واقعی» — انتشار مقاله از پنل برای همه بازدیدکنندگان
-
-از این نسخه، پنل مدیریت **دو حالته** است و خودش تشخیص می‌دهد در کدام حالت است (نشانِ پایین منوی کناری):
-
-| حالت | ذخیره‌سازی | چه کسی می‌بیند؟ |
-|---|---|---|
-| **ابری (واقعی)** | Vercel Blob — فضای ابری خود ورسل | **همهٔ بازدیدکنندگان، فوراً** |
-| مرورگر (دمو) | localStorage همان مرورگر | فقط خودت در همان مرورگر |
-
-**فعال‌سازی حالت ابری (یک‌بار، حدود ۵ دقیقه) — فقط روی ورسل:**
-
-1. **اتصال فضای ابری:** در داشبورد ورسل، پروژه را باز کن → تب **Storage** → **Create Database** → نوع **Blob** را انتخاب کن → نام بگذار (مثلاً `cdanesh-content`) → **Connect** به همین پروژه. توکن (`BLOB_READ_WRITE_TOKEN`) خودکار ساخته می‌شود.
-2. **تعیین رمز مدیر:** تب **Settings → Environment Variables** → متغیر جدید:
-   - `Key` = `ADMIN_PASSWORD` و `Value` = یک رمز قوی (حداقل ۱۰ کاراکتر) — این رمز در هیچ فایلی ذخیره نمی‌شود و فقط روی سرور ورسل می‌ماند.
-   - (اختیاری) `ADMIN_USERNAME` — پیش‌فرض `admin` است.
-   - برای هر دو محیط **Production** و **Preview** تیک بزن → **Save**.
-3. **انتشار مجدد:** تب **Deployments** → روی آخرین دیپلوی `⋯` → **Redeploy** (تا متغیرها اعمال شود).
-4. **ورود:** `cdanesh.ir/admin` → نام کاربری `admin` و **رمز ابری** که ساختی. نشانِ منو باید «ابری (واقعی)» شود.
-
-از این به بعد: هر مقاله‌ای که در پنل «ذخیره» کنی، **همان لحظه برای همه** منتشر می‌شود — بدون push، بدون build.
-
-**نکته‌های مهم:**
-- «پیش‌نویس» فقط با لینک پیش‌نمایش (`preview=1`) دیده می‌شود و در سایت عمومی نیست.
-- اگر قبلاً در حالت دمو مقاله ساخته یا ویرایش کرده باشی، پنل در حالت ابری یک بنر «انتقال داده‌های آزمایشی» نشان می‌دهد — با یک کلیک همان‌ها به فضای ابری منتقل و منتشر می‌شوند.
-- با تغییر `ADMIN_PASSWORD` در ورسل، همهٔ نشست‌های فعال باطل می‌شوند (خروج خودکار از همه دستگاه‌ها).
-- روی **گیت‌هاب پیجز** سروری وجود ندارد؛ آنجا پنل همان حالت دمو می‌ماند و سایت مقاله‌های همراه پروژه را نشان می‌دهد.
-- پس از هر تغییر در ورسل، اگر مقاله‌ای منتشر کردی و در سایت دیدی قدیمی است، صفحه را یک بار با Ctrl+F5 رفرش کن (کش مرورگر).
-
-## ۴) ساختار پروژه و ویرایش محتوا
-
+```bash
+npm run dev
 ```
+
+Open the local website:
+
+```text
+http://localhost:4321
+```
+
+Build the production website:
+
+```bash
+npm run build
+```
+
+Preview the production build:
+
+```bash
+npm run preview
+```
+
+The production files are generated in:
+
+```text
+dist/
+```
+
+**Note:** A prebuilt `dist/` directory may also be included in the project package. For the latest changes, always generate a fresh production build before deployment.
+
+---
+
+## 3. Deploy to Vercel (Recommended)
+
+Vercel supports automatic deployment from GitHub repositories.
+
+### Initial Setup
+
+1. Open [Vercel](https://vercel.com/).
+2. Sign in using your GitHub account.
+3. Select **Add New → Project**.
+4. Import the repository:
+
+   `rasoolbahadran-stack/cdanesh`
+
+5. Confirm the following build settings:
+
+| Setting          | Value           |
+| ---------------- | --------------- |
+| Framework Preset | Astro           |
+| Root Directory   | `./`            |
+| Build Command    | `npm run build` |
+| Output Directory | `dist`          |
+| Install Command  | `npm install`   |
+
+6. Click **Deploy**.
+
+### Automatic Deployment
+
+After connecting the repository:
+
+- Every push to the production branch triggers a new production deployment.
+- Other branches can generate preview deployments.
+- Deployment logs are available in the Vercel dashboard.
+
+For more information:
+
+https://docs.astro.build/en/guides/deploy/vercel/
+
+---
+
+## 4. Deploy to GitHub Pages
+
+The project may also be deployed through GitHub Pages using GitHub Actions.
+
+Deployment workflow:
+
+```text
+.github/workflows/deploy.yml
+```
+
+### Configuration
+
+1. Open the GitHub repository.
+2. Navigate to **Settings → Pages**.
+3. Under **Build and deployment**, select **GitHub Actions**.
+4. Verify that the deployment workflow is configured for the `main` branch.
+5. Push your changes to GitHub.
+
+GitHub Actions will build and publish the website when the workflow is correctly configured.
+
+**Important:** For a custom domain or repository-based URL, make sure the Astro `site` and `base` settings are configured correctly.
+
+Official documentation:
+
+https://docs.astro.build/en/guides/deploy/github/
+
+---
+
+## 5. Deploy to cPanel Hosting
+
+Astro generates a static production website inside the `dist/` directory.
+
+### Deployment Steps
+
+1. Log in to your cPanel account.
+2. Open **File Manager**.
+3. Navigate to:
+
+```text
+public_html/
+```
+
+4. Upload the contents of the `dist/` directory.
+5. Make sure `index.html` is directly inside `public_html/`.
+6. Confirm that the website assets and images are uploaded correctly.
+
+The project includes an `.htaccess` file for supported Apache configurations, including:
+
+- Custom 404 error handling.
+- GZIP compression.
+- Browser caching.
+
+Whenever the website is updated, run:
+
+```bash
+npm run build
+```
+
+Then upload the updated contents of `dist/`.
+
+---
+
+## 6. Project Structure
+
+```text
+/
 ├── public/
 │   └── assets/
-│       ├── css/          ← استایل‌ها (main.css و components.css)
-│       ├── js/           ← اسکریپت‌های سایت (main.js، site.js، forms.js، admin.js)
-│       │   └── data/     ← داده‌ها: مقالات، نمونه‌کارها، سؤالات متداول
-│       ├── fonts/        ← فونت وزیرمتن
-│       └── img/          ← تصاویر
+│       ├── css/
+│       │   ├── main.css
+│       │   └── components.css
+│       │
+│       ├── js/
+│       │   ├── main.js
+│       │   ├── site.js
+│       │   ├── forms.js
+│       │   ├── admin.js
+│       │   └── data/
+│       │       ├── articles-a.js
+│       │       ├── articles-b.js
+│       │       ├── portfolio.js
+│       │       └── faq.js
+│       │
+│       ├── fonts/
+│       └── img/
+│
 ├── src/
-│   ├── layouts/          ← SiteLayout (کروم کامل سایت) و BareLayout (۴۰۴ و ادمین)
-│   ├── components/       ← Header، Footer، Drawer، PageHead
-│   └── pages/            ← ۲۹ صفحهٔ سایت (هر فایل = یک صفحه)
-├── dist/                 ← خروجی آمادهٔ انتشار
-└── .github/workflows/    ← انتشار خودکار گیت‌هاب پیجز
+│   ├── layouts/
+│   │   ├── SiteLayout.astro
+│   │   └── BareLayout.astro
+│   │
+│   ├── components/
+│   │   ├── Header.astro
+│   │   ├── Footer.astro
+│   │   ├── Drawer.astro
+│   │   └── PageHead.astro
+│   │
+│   └── pages/
+│
+├── dist/
+│   └── Production build output
+│
+├── .github/
+│   └── workflows/
+│       └── deploy.yml
+│
+├── package.json
+├── package-lock.json
+├── astro.config.mjs
+└── README.md
 ```
 
-| می‌خواهی چه چیزی عوض کنی؟ | کجا؟ |
-|---|---|
-| متن یک صفحه | `src/pages/همان-صفحه.astro` |
-| **قیمت پکیج‌ها** | `src/pages/index.astro` بخش `id="pricing"` |
-| مقالات مجله | از پنل مدیریت (حالت ابری) — دادهٔ پایه: `public/assets/js/data/articles-a.js` و `articles-b.js` |
-| **رمز پنل مدیریت (ابری)** | ورسل → Settings → Environment Variables → `ADMIN_PASSWORD` |
-| نمونه‌کارها | `public/assets/js/data/portfolio.js` |
-| سؤالات متداول | `public/assets/js/data/faq.js` |
-| منو و فوتر (مشترک) | `src/components/Header.astro` و `Footer.astro` |
-| شماره تلفن / ایمیل | `src/components/Footer.astro` |
+---
 
-بعد از هر تغییر: `npm run build` و آپلود `dist/`.
+## 7. Website Content Management
 
-## ۵) پنل مدیریت (نسخهٔ دمو)
+The following files are used to manage website content.
 
-آدرس: `admin.html` — ورود پیش‌فرض: رمز `cdanesh1404`
+| Content                    | File                                                      |
+| -------------------------- | --------------------------------------------------------- |
+| Individual website pages   | `src/pages/`                                              |
+| Homepage package pricing   | `src/pages/index.astro`                                   |
+| Blog articles              | `public/assets/js/data/articles-a.js` and `articles-b.js` |
+| Portfolio projects         | `public/assets/js/data/portfolio.js`                      |
+| Frequently Asked Questions | `public/assets/js/data/faq.js`                            |
+| Main navigation            | `src/components/Header.astro`                             |
+| Website footer             | `src/components/Footer.astro`                             |
+| Phone number and email     | `src/components/Footer.astro`                             |
 
-این پنل **نسخهٔ نمایشی** است: پیام‌های فرم تماس/درخواست و ویرایش‌های داخل پنل فقط در مرورگرِ همان بازدیدکننده (localStorage) ذخیره می‌شوند — چون سایت استاتیک است و جایی برای ذخیرهٔ سروری ندارد. محتوای واقعی سایت را همان‌طور که در بخش ۴ گفته شد از فایل‌ها ویرایش کن. اگر در آینده پنل واقعی و دیتابیس خواستی، همان نسخهٔ Next.js آماده می‌شود — ولی برای انتشار ساده، همین نسخه کافی و پایدار است.
+### Package Pricing
 
-## ۶) نکته‌های فنی
+| Package      |                        Price |
+| ------------ | ---------------------------: |
+| Starter      |             15 million toman |
+| Professional |             19 million toman |
+| E-commerce   |             40 million toman |
+| Custom       | Starting at 70 million toman |
 
-- **URL های تمیز:** همهٔ لینک‌های صفحهٔ اصلی به `./` اشاره می‌کنند و فایل `vercel.json` (با `cleanUrls`) روی ورسل باعث می‌شود آدرس‌ها بدون `index.html` و `.html` نمایش داده شوند (مثل `/about` به‌جای `/about.html`) و آدرس‌های قدیمی خودکار به شکل تمیز ریدایرکت ۳۰۸ می‌شوند. روی گیت‌هاب پیجز هم همهٔ لینک‌ها کار می‌کنند (فقط آدرس‌ها در نوار مرورگر پسوند `.html` دارند).
+Selecting a package automatically passes the selected package to the request form:
 
-- **رفع باگ اسکرول نمونه‌کارها:** hover روی کارت‌های `portfolio.html` حالا با `translateY = ارتفاع تصویر − ارتفاع قاب` تا **لبهٔ آخر تصویر** می‌رود؛ بدون هیچ لایهٔ گرادیان/بلور روی تصویر؛ با خروج ماوس نرم به بالا برمی‌گردد و با `prefers-reduced-motion` غیرفعال می‌شود. در موبایل هم پیش‌نمایش با کشیدن انگشت قابل مرور است.
-- **قیمت‌های پکیج‌ها** (استارتر ۱۵ / حرفه‌ای ۱۹ / فروشگاهی ۴۰ / اختصاصی از ۷۰ میلیون تومان) در صفحهٔ اصلی نمایش داده می‌شوند و انتخاب پکیج خودکار به فرم درخواست (`request.html?pkg=...`) منتقل می‌شود.
-- سئو: canonical، Open Graph، اسکیمای Organization/WebSite/FAQPage، sitemap.xml و robots.txt سر جایشان هستند و صفحات ادمین `noindex`اند.
-- فونت وزیرمتن به‌صورت لوکال بارگذاری می‌شود (بدون وابستگی به سرویس خارجی).
+```text
+request.html?pkg=...
+```
+
+### Publishing New Articles
+
+To publish a new article using the current static architecture:
+
+1. Edit the appropriate article data file.
+2. Add the article content and metadata.
+3. Save the changes.
+4. Run `npm run build`.
+5. Push the updated project to GitHub.
+6. Wait for Vercel to complete the production deployment.
+
+The article will become available to all visitors after successful deployment.
+
+---
+
+## 8. Admin Panel — Demo Version
+
+The project includes a demonstration admin panel.
+
+**Admin URL:**
+
+```text
+/admin.html
+```
+
+### Important Limitations
+
+The current admin panel is a client-side demonstration, not a production-ready content management system.
+
+Because the website is static:
+
+- Admin panel changes are stored in the visitor's browser using `localStorage`.
+- Contact form submissions are not automatically stored on a central server.
+- Changes made in one browser are not automatically visible to other visitors.
+- Adding an article through this demo panel does not publish it to the live website.
+- Website content must currently be updated through the project files.
+
+**Security Notice:** Client-side password checks are not secure server-side authentication. Do not use the demonstration panel to manage confidential information or real customer data.
+
+A future version can integrate a database and secure backend to support permanent article storage and centralized content management.
+
+---
+
+## 9. Technical Improvements
+
+### Portfolio Image Scrolling
+
+The portfolio image preview interaction has been improved.
+
+- Uses vertical `translateY` movement.
+- Calculates the movement distance based on the image and container dimensions.
+- Allows visitors to preview the full image.
+- Returns smoothly to its original position.
+- Avoids unnecessary gradient or blur overlays.
+- Respects `prefers-reduced-motion`.
+- Supports touch interaction on mobile devices.
+
+### SEO Implementation
+
+The website includes:
+
+- Canonical URLs.
+- Open Graph metadata.
+- Organization structured data.
+- WebSite structured data.
+- FAQPage structured data.
+- XML sitemap.
+- robots.txt.
+- `noindex` directives for administrative pages.
+
+### Performance
+
+- Locally hosted Vazirmatn font.
+- Static page generation.
+- Optimized asset delivery.
+- Browser caching through supported hosting configurations.
+- Responsive layouts for different screen sizes.
+
+---
+
+## 10. Deployment Checklist
+
+Before publishing a new version, verify:
+
+- [ ] All pages load correctly.
+- [ ] Navigation and footer links work.
+- [ ] Images and assets load correctly.
+- [ ] Articles and portfolio content are up to date.
+- [ ] Forms behave as expected.
+- [ ] Mobile and desktop layouts work properly.
+- [ ] SEO metadata is correct.
+- [ ] The 404 page works correctly.
+- [ ] `npm run build` completes successfully.
+- [ ] The latest version is deployed successfully.
+
+---
+
+## 11. Designer & Project Credits
+
+**Designed & Created by Rasool Bahadoran**
+
+Web Designer | UI/UX Design | Website Development
+
+**Contact Information**
+
+- Name: Rasool Bahadoran
+- Phone: 09165806207
+- Location: Shahid Rajaei Street, Bushehr, Iran
+- Website: https://www.cdanesh.ir
+- GitHub: https://github.com/rasoolbahadran-stack
+
+© 2026 Rasool Bahadoran. All Rights Reserved.
+
+---
+
+## Project Information
+
+| Property           | Description                                 |
+| ------------------ | ------------------------------------------- |
+| Project            | Cafe Danesh                                 |
+| Framework          | Astro                                       |
+| Architecture       | Static Site Generation (SSG)                |
+| Database           | Not required for the current static version |
+| Backend            | Not required for static website delivery    |
+| Build Output       | `dist/`                                     |
+| Primary Deployment | Vercel                                      |
+| Additional Hosting | GitHub Pages, cPanel, and static hosting    |
+
+**Cafe Danesh — A modern, lightweight, and responsive website.**
