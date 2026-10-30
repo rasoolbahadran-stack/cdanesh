@@ -1,10 +1,12 @@
 /* ═══ کافه‌دانش — ورود مدیر به پنل ابری (Vercel Function) ═══
    POST   /api/login   {username, password}  → ست‌کردن کوکی نشست
    GET    /api/login                             → بررسی اعتبار نشست فعلی
+   PUT    /api/login {currentPassword, username?, newPassword?} → تغییر اعتبارنامه از پنل
    DELETE /api/login                             → خروج (پاک‌کردن کوکی)
-   رمز مدیر در Environment Variable با نام ADMIN_PASSWORD نگهداری می‌شود. */
+   اعتبارنامه: اول users.json در فضای ابری (قابل تغییر از پنل)، بعد ADMIN_PASSWORD در ورسل. */
 import {
-  signToken, isAuthed, sessionCookie, clearCookie, safeEqual,
+  signToken, isAuthedAsync, sessionCookie, clearCookie,
+  verifyLogin, changeCredentials,
   failCount, registerFail, clearFails, MAX_FAILS, json, readJsonBody, clientIp,
 } from '../lib/admin-auth.mjs';
 
@@ -15,11 +17,40 @@ export default async function handler(req, res) {
 
   /* ─── بررسی نشست (برای پنل) ─── */
   if (method === 'GET') {
-    if (!process.env.ADMIN_PASSWORD) {
+    const hasUsers = !!(process.env.BLOB_READ_WRITE_TOKEN);
+    if (!process.env.ADMIN_PASSWORD && !hasUsers) {
       return json(res, 503, { ok: false, error: 'PASSWORD_NOT_SET' });
     }
-    if (isAuthed(req)) return json(res, 200, { ok: true, mode: 'cloud', user: 'admin' });
+    if (await isAuthedAsync(req)) return json(res, 200, { ok: true, mode: 'cloud', user: 'admin' });
     return json(res, 401, { ok: false, error: 'NO_SESSION' });
+  }
+
+  /* ─── تغییر نام کاربری/رمز از خود پنل (فقط با نشست معتبر) ─── */
+  if (method === 'PUT') {
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      return json(res, 503, { ok: false, error: 'NO_BLOB', message: 'فضای ابری وصل نیست؛ ابتدا در ورسل Blob را متصل و ADMIN_PASSWORD را ثبت کن.' });
+    }
+    if (!(await isAuthedAsync(req))) return json(res, 401, { ok: false, error: 'UNAUTH', message: 'نشست منقضی شده؛ دوباره وارد شو.' });
+    let body;
+    try { body = await readJsonBody(req, 10 * 1024); }
+    catch (e) { return json(res, 400, { ok: false, error: 'BAD_BODY' }); }
+    const currentPassword = String(body.currentPassword == null ? '' : body.currentPassword);
+    const newUsername = String(body.username || '').trim().slice(0, 40);
+    const newPassword = String(body.newPassword == null ? '' : body.newPassword);
+    if (newUsername && !/^[a-zA-Z0-9._-]{3,40}$/.test(newUsername)) {
+      return json(res, 400, { ok: false, error: 'BAD_USER', message: 'نام کاربری فقط حروف/عدد انگلیسی، نقطه، خط تیره و زیرخط — حداقل ۳ کاراکتر.' });
+    }
+    if (!newUsername && !newPassword) return json(res, 400, { ok: false, error: 'NOTHING_TO_CHANGE', message: 'چیزی برای تغییر وارد نشده است.' });
+    if (newPassword && newPassword.length < 8) {
+      return json(res, 400, { ok: false, error: 'WEAK_PASS', message: 'رمز جدید حداقل ۸ کاراکتر باشد.' });
+    }
+    const r = await changeCredentials(currentPassword, newUsername, newPassword);
+    if (!r.ok) {
+      return json(res, 403, { ok: false, error: 'BAD_CURRENT', message: 'رمز فعلی درست نیست.' });
+    }
+    // نشست تازه با نسخهٔ جدید صادر می‌شود (نشست‌های دیگر دستگاه‌ها باطل شده‌اند)
+    res.setHeader('Set-Cookie', sessionCookie(signToken(MAX_AGE_SEC, Date.now(), r.pv), MAX_AGE_SEC));
+    return json(res, 200, { ok: true, username: r.username, message: 'اعتبارنامهٔ مدیر به‌روزرسانی شد؛ نشست‌های دیگر دستگاه‌ها بسته شدند.' });
   }
 
   /* ─── خروج ─── */
@@ -30,7 +61,8 @@ export default async function handler(req, res) {
 
   /* ─── ورود ─── */
   if (method === 'POST') {
-    if (!process.env.ADMIN_PASSWORD) {
+    const configured = !!(process.env.ADMIN_PASSWORD || process.env.BLOB_READ_WRITE_TOKEN);
+    if (!configured) {
       return json(res, 503, {
         ok: false, error: 'PASSWORD_NOT_SET',
         message: 'رمز مدیر (ADMIN_PASSWORD) هنوز در تنظیمات ورسل ثبت نشده است.',
@@ -51,13 +83,12 @@ export default async function handler(req, res) {
 
     const username = String(body.username || '').trim();
     const password = String(body.password == null ? '' : body.password);
-    const userOk = safeEqual(username, process.env.ADMIN_USERNAME || 'admin');
-    const passOk = safeEqual(password, process.env.ADMIN_PASSWORD);
+    const v = await verifyLogin(username, password);
 
-    if (userOk && passOk) {
+    if (v.ok) {
       clearFails(ip);
-      res.setHeader('Set-Cookie', sessionCookie(signToken(), MAX_AGE_SEC));
-      return json(res, 200, { ok: true, mode: 'cloud', user: 'admin' });
+      res.setHeader('Set-Cookie', sessionCookie(signToken(MAX_AGE_SEC, Date.now(), v.pv), MAX_AGE_SEC));
+      return json(res, 200, { ok: true, mode: 'cloud', user: v.user || 'admin' });
     }
 
     const left = MAX_FAILS - registerFail(ip);

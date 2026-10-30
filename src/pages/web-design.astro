@@ -1,13 +1,20 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
+import ServiceFaq from '../components/ServiceFaq.astro';
+import faqData from '../data/faq-pages.json';
+const faqItems = (faqData['web-design'] || []).filter(x => x.on !== false);
+const faqSchema = { '@context': 'https://schema.org', '@type': 'FAQPage',
+  mainEntity: faqItems.map(it => ({ '@type': 'Question', name: it.q, acceptedAnswer: { '@type': 'Answer', text: it.a } })) };
+
 import { serviceRelated, postCardHtml } from '../lib/ssr-articles.mjs';
 const relatedArticles = serviceRelated('web-design');
-const title = "طراحی سایت حرفه‌ای و اختصاصی | کافه‌دانش";
+const title = "طراحی سایت اختصاصی شرکتی و فروشگاهی | کافه‌دانش";
 const description = "طراحی سایت اختصاصی، شرکتی، خدماتی و فروشگاهی با UI/UX مهندسی‌شده، کد تمیز و سئو از روز اول — استودیو دیجیتال کافه‌دانش.";
 const canonical = "https://cdanesh.ir/web-design";
 ---
 
 <SiteLayout title={title} description={description} canonical={canonical}>
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} slot="head" />
 <!-- ═══ هیرو صفحه خدمت ═══ -->
 <section class="page-hero">
   <div class="wrap">
@@ -114,7 +121,7 @@ const canonical = "https://cdanesh.ir/web-design";
       <span class="eyebrow">سؤالات متداول</span>
       <h2 class="h2">درباره طراحی سایت</h2>
     </div>
-    <div class="faq-list" data-page-faq="web-design"></div>
+    <ServiceFaq pageKey="web-design" className="faq-list" />
   </div>
 </section>
 <section class="section-tight" style="padding-top:30px">

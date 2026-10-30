@@ -1,11 +1,16 @@
 /* ═══ کافه‌دانش — هستهٔ احراز هویت و اعتبارسنجی پنل ابری ═══
    این ماژول منطق مشترک api/login.mjs و api/articles.mjs است و
    عمداً «خالص» نوشته شده تا با تست واحد هم قابل بررسی باشد.
-   رمز مدیر در متغیر محیطی ورسل نگهداری می‌شود و هرگز در کد عمومی نیست. */
+   رمز مدیر در متغیر محیطی ورسل نگهداری می‌شود و هرگز در کد عمومی نیست.
+   تغییر نام کاربری/رمز از خود پنل: در Vercel Blob (users.json) با هش pbkdf2
+   ذخیره می‌شود؛ شمارهٔ نسخهٔ رمز (pv) در توکن نشست می‌آید تا با هر تغییر رمز،
+   همهٔ نشست‌های فعال روی همهٔ دستگاه‌ها بی‌اعتبار شوند. */
 import crypto from 'node:crypto';
+import { head, put } from '@vercel/blob';
 
 export const COOKIE_NAME = 'cd_admin';
 const DAY = 24 * 60 * 60 * 1000;
+const USERS_KEY = 'users.json';
 
 function secret() {
   // اگر ADMIN_SESSION_SECRET ست شده باشد از همان استفاده می‌شود؛
@@ -14,21 +19,104 @@ function secret() {
   return process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD || '';
 }
 
-/* ─── توکن نشست: exp.hmac(exp) ─── */
-export function signToken(ttlMs = 7 * DAY, now = Date.now()) {
+/* ─── کاربران ابری (users.json در Blob) با کش ۴۵ ثانیه‌ای ─── */
+let usersCache = { data: null, at: 0 };
+
+function isNotFound(e) {
+  return e && (e.name === 'BlobNotFoundError' || /not ?found|does ?not exist|NoSuchKey/i.test(String((e && e.message) || e)));
+}
+
+async function readUsers(force) {
+  if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
+  if (!force && usersCache.data && Date.now() - usersCache.at < 45 * 1000) return usersCache.data;
+  try {
+    const meta = await head(USERS_KEY);
+    const r = await fetch(meta.url, { cache: 'no-store' });
+    if (!r.ok) throw new Error('BLOB_FETCH_' + r.status);
+    const u = await r.json();
+    usersCache = { data: (u && u.username && u.hash) ? u : null, at: Date.now() };
+  } catch (e) {
+    if (!isNotFound(e)) usersCache = { data: null, at: Date.now() };
+    else usersCache = { data: null, at: Date.now() }; // هنوز ساخته نشده → fallback به env
+  }
+  return usersCache.data;
+}
+
+async function writeUsers(u) {
+  await put(USERS_KEY, JSON.stringify(u), {
+    access: 'public', addRandomSuffix: false, contentType: 'application/json; charset=utf-8',
+  });
+  usersCache = { data: u, at: Date.now() };
+}
+
+const hashOf = (password, salt) =>
+  crypto.pbkdf2Sync(String(password), String(salt), 120000, 32, 'sha256').toString('hex');
+
+export function makeUserRecord(username, password, prevPv) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  return {
+    username: String(username || 'admin').slice(0, 40),
+    salt,
+    hash: hashOf(password, salt),
+    pv: (prevPv || 0) + 1,
+    updated: new Date().toISOString(),
+  };
+}
+
+/* ورود: اول کاربر ابری (users.json)، بعد متغیرهای محیطی (سازگاری با تنظیم اولیه) */
+export async function verifyLogin(username, password) {
+  const u = await readUsers().catch(() => null);
+  if (u) {
+    const userOk = safeEqual(username, u.username);
+    const passOk = userOk && safeEqual(hashOf(password, u.salt), u.hash);
+    return { ok: userOk && passOk, pv: u.pv || 0, user: u.username };
+  }
+  if (!process.env.ADMIN_PASSWORD) return { ok: false, unconfigured: true, pv: 0 };
+  const userOk = safeEqual(username, process.env.ADMIN_USERNAME || 'admin');
+  const passOk = safeEqual(password, process.env.ADMIN_PASSWORD);
+  return { ok: userOk && passOk, pv: 0, user: process.env.ADMIN_USERNAME || 'admin' };
+}
+
+/* تغییر اعتبارنامه (فقط با نشست معتبر — از پنل) */
+export async function changeCredentials(currentPassword, newUsername, newPassword) {
+  const cur = await readUsers(true).catch(() => null);
+  // بررسی رمز فعلی: ابری یا محیطی
+  let okCur = false, pv = 0;
+  if (cur) { okCur = safeEqual(hashOf(currentPassword, cur.salt), cur.hash); pv = cur.pv || 0; }
+  else if (process.env.ADMIN_PASSWORD) { okCur = safeEqual(currentPassword, process.env.ADMIN_PASSWORD); pv = 0; }
+  if (!okCur) return { ok: false, error: 'BAD_CURRENT' };
+  const rec = makeUserRecord(newUsername || (cur ? cur.username : (process.env.ADMIN_USERNAME || 'admin')), newPassword, pv);
+  await writeUsers(rec);
+  return { ok: true, username: rec.username, pv: rec.pv };
+}
+
+/* شمارهٔ نسخهٔ اعتبارنامه — برای باطل‌کردن نشست‌ها پس از تغییر رمز */
+export async function currentPv() {
+  const u = await readUsers().catch(() => null);
+  return u ? (u.pv || 0) : 0;
+}
+
+/* ─── توکن نشست: exp.pv.hmac(exp:pv) ───
+   pv = شمارهٔ نسخهٔ رمز؛ با تغییر رمز از پنل، pv بالا می‌رود و
+   توکن‌های قدیمی روی همهٔ دستگاه‌ها بی‌اعتبار می‌شوند.
+   توکن‌های قدیمی (exp.sig) به‌صورت سازگارانه pv=۰ فرض می‌شوند. */
+export function signToken(ttlMs = 7 * DAY, now = Date.now(), pv = 0) {
   const exp = String(now + ttlMs);
-  const sig = crypto.createHmac('sha256', secret()).update('cdanesh-admin:' + exp).digest('base64url');
-  return exp + '.' + sig;
+  const v = String(pv || 0);
+  const sig = crypto.createHmac('sha256', secret()).update('cdanesh-admin:' + exp + ':' + v).digest('base64url');
+  return exp + '.' + v + '.' + sig;
 }
 
 export function verifyToken(token, now = Date.now()) {
   if (!token || !secret()) return false;
-  const dot = token.indexOf('.');
-  if (dot < 1) return false;
-  const exp = token.slice(0, dot);
-  const sig = token.slice(dot + 1);
+  const parts = token.split('.');
+  if (parts.length < 2) return false;
+  const exp = parts[0];
+  const v = parts.length === 3 ? parts[1] : '0';
+  const sig = parts[parts.length - 1];
   if (!/^\d+$/.test(exp) || Number(exp) < now) return false;
-  const want = crypto.createHmac('sha256', secret()).update('cdanesh-admin:' + exp).digest('base64url');
+  if (!/^\d+$/.test(v)) return false;
+  const want = crypto.createHmac('sha256', secret()).update('cdanesh-admin:' + exp + ':' + v).digest('base64url');
   const a = Buffer.from(sig), b = Buffer.from(want);
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
@@ -42,6 +130,17 @@ export function getCookie(req, name = COOKIE_NAME) {
 
 export function isAuthed(req, now = Date.now()) {
   return verifyToken(getCookie(req), now);
+}
+
+/* احراز هویت کامل: اعتبار توکن + تطبیق نسخهٔ رمز (باطل‌کردن نشست پس از تغییر رمز)
+   کش ۴۵ ثانیه‌ای readUsers یعنی بیش از یک درخواست اضافی به Blob در هر ۴۵ ثانیه نمی‌رود. */
+export async function isAuthedAsync(req, now = Date.now()) {
+  if (!verifyToken(getCookie(req), now)) return false;
+  const token = getCookie(req);
+  const parts = token.split('.');
+  const tokenPv = parts.length === 3 ? Number(parts[1]) : 0;
+  const pv = await currentPv();
+  return tokenPv === pv;
 }
 
 export function sessionCookie(token, maxAgeSec) {

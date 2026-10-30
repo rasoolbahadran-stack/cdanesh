@@ -5,7 +5,7 @@
    داده در Vercel Blob با نام ثابت payments.json نگهداری می‌شود؛
    تا اولین ذخیره، پاسخ EMPTY است و دکمه‌های پرداخت سایت مخفی می‌مانند. */
 import { head, put } from '@vercel/blob';
-import { isAuthed, json, readJsonBody } from '../lib/admin-auth.mjs';
+import { isAuthedAsync, json, readJsonBody } from '../lib/admin-auth.mjs';
 
 const BLOB_KEY = 'payments.json';
 const MAX_GATEWAYS = 20;
@@ -65,7 +65,7 @@ export default async function handler(req, res) {
     if (!hasBlob) {
       return json(res, 503, { ok: false, error: 'NO_BLOB', message: 'فضای ابری (Vercel Blob) هنوز به پروژه وصل نشده است.' });
     }
-    const authed = isAuthed(req);
+    const authed = await isAuthedAsync(req);
     let list;
     try { list = await readBlob(); }
     catch (e) {
@@ -82,7 +82,7 @@ export default async function handler(req, res) {
     if (!hasBlob) {
       return json(res, 503, { ok: false, error: 'NO_BLOB', message: 'فضای ابری (Vercel Blob) هنوز به پروژه وصل نشده است.' });
     }
-    if (!isAuthed(req)) return json(res, 401, { ok: false, error: 'UNAUTH', message: 'نشست منقضی شده؛ دوباره وارد شو.' });
+    if (!(await isAuthedAsync(req))) return json(res, 401, { ok: false, error: 'UNAUTH', message: 'نشست منقضی شده؛ دوباره وارد شو.' });
 
     let body;
     try { body = await readJsonBody(req, 256 * 1024); }

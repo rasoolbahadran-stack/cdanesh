@@ -1,5 +1,11 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
+import ServiceFaq from '../components/ServiceFaq.astro';
+import faqData from '../data/faq-pages.json';
+const faqItems = (faqData['support'] || []).filter(x => x.on !== false);
+const faqSchema = { '@context': 'https://schema.org', '@type': 'FAQPage',
+  mainEntity: faqItems.map(it => ({ '@type': 'Question', name: it.q, acceptedAnswer: { '@type': 'Answer', text: it.a } })) };
+
 import { serviceRelated, postCardHtml } from '../lib/ssr-articles.mjs';
 const relatedArticles = serviceRelated('support');
 const title = "پشتیبانی و نگهداری سایت | امنیت، به‌روزرسانی و آرامش — کافه‌دانش";
@@ -8,6 +14,7 @@ const canonical = "https://cdanesh.ir/support";
 ---
 
 <SiteLayout title={title} description={description} canonical={canonical}>
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} slot="head" />
 <section class="page-hero">
   <div class="wrap">
     <nav class="breadcrumb" aria-label="مسیر صفحه">
@@ -63,7 +70,7 @@ const canonical = "https://cdanesh.ir/support";
     <div class="section-head side" style="margin-bottom:30px">
       <h2 class="h3">سؤالات متداول پشتیبانی و نگهداری</h2>
     </div>
-    <div class="faq-list" data-page-faq="support"></div>
+    <ServiceFaq pageKey="support" className="faq-list" />
   </div>
 </section>
 

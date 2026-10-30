@@ -5,7 +5,7 @@
    داده در Vercel Blob با نام ثابت articles.json نگهداری می‌شود؛
    تا قبل از اولین ذخیره، پاسخ 404/EMPTY است و سایت از دادهٔ همراه پروژه استفاده می‌کند. */
 import { head, put } from '@vercel/blob';
-import { isAuthed, validateArticles, publicOnly, sorted, json, readJsonBody } from '../lib/admin-auth.mjs';
+import { isAuthedAsync, validateArticles, publicOnly, sorted, json, readJsonBody } from '../lib/admin-auth.mjs';
 
 const BLOB_KEY = 'articles.json';
 
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
     const url = new URL(req.url, 'http://local');
     const scope = url.searchParams.get('scope');
     // امنیت: بدون نشست مدیر، فقط مقالات عمومی (بدون پیش‌نویس/زمان‌بندی‌شده) برمی‌گردد
-    const out = (scope === 'public' || !isAuthed(req)) ? publicOnly(list) : list;
+    const out = (scope === 'public' || !(await isAuthedAsync(req))) ? publicOnly(list) : list;
     return json(res, 200, { ok: true, mode: 'cloud', count: out.length, articles: sorted(out) });
   }
 
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
     if (!hasBlob) {
       return json(res, 503, { ok: false, error: 'NO_BLOB', message: 'فضای ابری (Vercel Blob) هنوز به پروژه وصل نشده است.' });
     }
-    if (!isAuthed(req)) return json(res, 401, { ok: false, error: 'UNAUTH', message: 'نشست منقضی شده؛ دوباره وارد شو.' });
+    if (!(await isAuthedAsync(req))) return json(res, 401, { ok: false, error: 'UNAUTH', message: 'نشست منقضی شده؛ دوباره وارد شو.' });
 
     let body;
     try { body = await readJsonBody(req); }

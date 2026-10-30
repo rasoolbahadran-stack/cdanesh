@@ -4,11 +4,11 @@
    PUT  /api/messages {messages:[…]}  → ذخیرهٔ کل فهرست (وضعیت‌ها/حذف — فقط مدیر)
    داده در Vercel Blob با نام ثابت messages.json نگهداری می‌شود. */
 import { head, put } from '@vercel/blob';
-import { isAuthed, json, readJsonBody, clientIp } from '../lib/admin-auth.mjs';
+import { isAuthedAsync, json, readJsonBody, clientIp } from '../lib/admin-auth.mjs';
 
 const BLOB_KEY = 'messages.json';
 const MAX_MESSAGES = 300;
-const MAX_LEN = { name: 80, phone: 14, email: 120, service: 40, subject: 200, package: 80, message: 4000 };
+const MAX_LEN = { name: 80, phone: 14, email: 120, service: 40, subject: 200, package: 80, budget: 60, message: 4000 };
 
 /* نبود فایل در Blob با خطای مشخص */
 function isNotFound(e) {
@@ -70,6 +70,7 @@ function buildRecord(body, now) {
   const subject = clean(m.subject, MAX_LEN.subject);
   const service = clean(m.service, MAX_LEN.service);
   const pkg = clean(m.package, MAX_LEN.package);
+  const budget = clean(m.budget, MAX_LEN.budget);
 
   if (name.length < 2) return { error: 'نام را کامل وارد کنید.' };
   if (!/^09\d{9}$/.test(phone)) return { error: 'شماره موبایل معتبر نیست.' };
@@ -86,7 +87,7 @@ function buildRecord(body, now) {
     rec: {
       id: 'm' + d.getTime().toString(36) + Math.random().toString(36).slice(2, 6),
       ref, kind, name, phone, email,
-      service, subject, package: pkg, message,
+      service, subject, package: pkg, budget, message,
       date: d.toISOString(),
       status: 'new',
     },
@@ -158,7 +159,7 @@ export default async function handler(req, res) {
     if (!hasBlob) {
       return json(res, 503, { ok: false, error: 'NO_BLOB', message: 'فضای ابری (Vercel Blob) هنوز به پروژه وصل نشده است.' });
     }
-    if (!isAuthed(req)) return json(res, 401, { ok: false, error: 'UNAUTH', message: 'نشست منقضی شده؛ دوباره وارد شو.' });
+    if (!(await isAuthedAsync(req))) return json(res, 401, { ok: false, error: 'UNAUTH', message: 'نشست منقضی شده؛ دوباره وارد شو.' });
     try {
       const list = await readBlob();
       return json(res, 200, { ok: true, mode: 'cloud', count: list.length, messages: newestFirst(list) });
@@ -173,7 +174,7 @@ export default async function handler(req, res) {
     if (!hasBlob) {
       return json(res, 503, { ok: false, error: 'NO_BLOB', message: 'فضای ابری (Vercel Blob) هنوز به پروژه وصل نشده است.' });
     }
-    if (!isAuthed(req)) return json(res, 401, { ok: false, error: 'UNAUTH', message: 'نشست منقضی شده؛ دوباره وارد شو.' });
+    if (!(await isAuthedAsync(req))) return json(res, 401, { ok: false, error: 'UNAUTH', message: 'نشست منقضی شده؛ دوباره وارد شو.' });
 
     let body;
     try { body = await readJsonBody(req, 2 * 1024 * 1024); }

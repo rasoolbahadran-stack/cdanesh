@@ -1,5 +1,11 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
+import ServiceFaq from '../components/ServiceFaq.astro';
+import faqData from '../data/faq-pages.json';
+const faqItems = (faqData['content-production'] || []).filter(x => x.on !== false);
+const faqSchema = { '@context': 'https://schema.org', '@type': 'FAQPage',
+  mainEntity: faqItems.map(it => ({ '@type': 'Question', name: it.q, acceptedAnswer: { '@type': 'Answer', text: it.a } })) };
+
 import { serviceRelated, postCardHtml } from '../lib/ssr-articles.mjs';
 const relatedArticles = serviceRelated('content-production');
 const title = "تولید محتوای تخصصی و سئوشده | کافه‌دانش";
@@ -8,6 +14,7 @@ const canonical = "https://cdanesh.ir/content-production";
 ---
 
 <SiteLayout title={title} description={description} canonical={canonical}>
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} slot="head" />
 <!-- ═══ هیرو صفحه خدمت ═══ -->
 <section class="page-hero">
   <div class="wrap">
@@ -111,7 +118,7 @@ const canonical = "https://cdanesh.ir/content-production";
       <span class="eyebrow">سؤالات متداول</span>
       <h2 class="h2">درباره تولید محتوا</h2>
     </div>
-    <div class="faq-list" data-page-faq="content-production"></div>
+    <ServiceFaq pageKey="content-production" className="faq-list" />
   </div>
 </section>
 <section class="section-tight" style="padding-top:30px">

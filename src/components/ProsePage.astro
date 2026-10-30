@@ -1,0 +1,46 @@
+---
+/* ═══ چیدمان مشترک صفحات متنی ابری (پروژه‌ای /terms ، /privacy و /p/<slug>) ═══ */
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { renderBlocks, tocFrom } from '../lib/ssr-articles.mjs';
+
+interface Props {
+  page: any;        // رکورد صفحه: {slug, eyebrow, title, lead, seoTitle, seoDesc, blocks, updated}
+  canonical: string;
+  robots?: string;
+}
+const { page, canonical, robots = '' } = Astro.props;
+const title = page.seoTitle || (page.title + ' | کافه‌دانش');
+const description = page.seoDesc || page.lead || '';
+const toc = tocFrom(page.blocks);
+---
+
+<SiteLayout title={title} description={description} canonical={canonical} robots={robots}>
+  <section class="page-hero">
+    <div class="wrap">
+      <nav class="breadcrumb" aria-label="مسیر صفحه">
+        <a href="/">خانه</a>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+        <span>{page.eyebrow || page.title}</span>
+      </nav>
+      <span class="eyebrow">{page.eyebrow || 'صفحه'}</span>
+      <h1 class="h1">{page.title}</h1>
+      {page.lead && <p class="lead">{page.lead}</p>}
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="wrap" style="max-width:880px">
+      <div class="prose" style="padding-top:10px">
+        <Fragment set:html={renderBlocks(page.blocks)} />
+      </div>
+      {toc.length > 2 && (
+        <div class="aside-card" style="margin-top:44px">
+          <b>در این صفحه</b>
+          <nav class="toc" aria-label="فهرست مطالب">
+            {toc.map(sh => <a href={'#' + sh.id} class={sh.level === 3 ? 'toc-l3' : ''}>{sh.t}</a>)}
+          </nav>
+        </div>
+      )}
+    </div>
+  </section>
+</SiteLayout>

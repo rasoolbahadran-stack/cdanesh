@@ -312,6 +312,8 @@
 .prose th, .prose td { border: 1px solid var(--line); padding: 11px 14px; text-align: right; }
 .prose th { background: rgba(255, 255, 255, .04); color: var(--txt); }
 .prose .check-list li::before { content: '✓'; background: none; color: var(--gold); font-weight: 800; top: 0; inset-inline-start: 0; width: auto; height: auto; }
+.prose a { color: var(--gold-2); text-decoration: underline; text-underline-offset: 4px; text-decoration-color: rgba(227, 185, 83, .45); transition: color .2s, text-decoration-color .2s; }
+.prose a:hover { color: var(--gold); text-decoration-color: var(--gold); }
 
 /* کارت‌های محتوا داخل صفحات خدمات */
 .feat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 34px; }
@@ -353,6 +355,11 @@
 .article-meta { display: flex; gap: 20px; flex-wrap: wrap; font-size: 13px; color: var(--faint); padding-bottom: 24px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
 .article-meta span { display: inline-flex; align-items: center; gap: 7px; }
 .article-meta svg { width: 15px; height: 15px; }
+/* سایدبار مقاله: چسبیده تا انتهای محتوا (مثل مستندات استاندارد) */
+.article-aside { position: sticky; top: 104px; align-self: start; }
+.article-aside .aside-card { position: static; max-height: calc(100vh - 140px); overflow-y: auto; }
+.toc-l3 { padding-inline-start: 28px !important; font-size: 12.5px; }
+.toc-l3::before { width: 2px !important; }
 .share-row { display: flex; gap: 9px; align-items: center; margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--line); }
 .share-row b { font-size: 13.5px; margin-inline-end: 4px; }
 .share-row a { width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line-2); display: flex; align-items: center; justify-content: center; color: var(--mut); transition: .2s; }
@@ -412,6 +419,8 @@
   .why-ring { width: min(400px, 84vw); height: min(400px, 84vw); }
   .split { grid-template-columns: 1fr; }
   .aside-card { position: static; }
+  .article-aside { position: static; }
+  .article-aside .aside-card { max-height: none; overflow: visible; }
   .b-wide, .b-slim { grid-column: span 12; }
   .b-third { grid-column: span 6; }
   .steps { grid-template-columns: repeat(2, 1fr); gap: 30px; }
@@ -492,6 +501,8 @@
 
 /* نسخه لمسی: بدون انیمیشن خودکار — پیش‌نمایش با کشیدن انگشت + باز کردن جزئیات */
 @media (hover: none) {
+  .article-aside { position: static; }
+  .article-aside .aside-card { max-height: none; overflow: visible; }
   .pf-frame { aspect-ratio: auto; height: 420px; }
   .pf-scroll { position: static; height: 100%; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; scrollbar-width: none; }
   .pf-scroll::-webkit-scrollbar { display: none; }
@@ -706,7 +717,8 @@
 .adm-msg-body { white-space: pre-wrap; font-size: 14px; line-height: 2.05; color: var(--mut); }
 .adm-check { display: flex; align-items: flex-start; gap: 12px; padding: 13px 4px; border-bottom: 1px solid var(--line); font-size: 13.5px; }
 .adm-check:last-child { border-bottom: 0; }
-.adm-check input { width: 17px; height: 17px; accent-color: var(--gold); margin-top: 5px; flex-shrink: 0; }
+.adm-check input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--gold); margin-top: 5px; flex-shrink: 0; }
+.adm-check > input:not([type="checkbox"]) { flex: 1; }
 .adm-check b { display: block; font-size: 13.5px; }
 .adm-check span { color: var(--faint); font-size: 12px; line-height: 1.9; }
 .adm-meter { height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .07); overflow: hidden; }

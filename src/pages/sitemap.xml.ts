@@ -5,6 +5,7 @@ export const prerender = false;
 
 import type { APIRoute } from 'astro';
 import { getPublicArticles } from '../lib/ssr-articles.mjs';
+import { getPublicPages } from '../lib/ssr-pages.mjs';
 
 const STATIC_PATHS = [
   '', '/services', '/web-design', '/e-commerce', '/uiux', '/seo',
@@ -20,12 +21,22 @@ export const GET: APIRoute = async () => {
   const today = new Date().toISOString().slice(0, 10);
   let articles = [];
   try { articles = await getPublicArticles(); } catch { articles = []; }
+  let pages = [];
+  try { pages = (await getPublicPages()).filter(p => p.slug !== 'terms' && p.slug !== 'privacy'); } catch { pages = []; }
 
   const urls = STATIC_PATHS.map(p => ({
     loc: 'https://cdanesh.ir' + p,
     lastmod: today,
     cf: p === '' || p === '/blog' ? 'daily' : 'weekly',
   }));
+
+  for (const pg of pages) {
+    urls.push({
+      loc: 'https://cdanesh.ir/p/' + encodeURIComponent(pg.slug || ''),
+      lastmod: today,
+      cf: 'monthly',
+    });
+  }
 
   for (const a of articles) {
     urls.push({

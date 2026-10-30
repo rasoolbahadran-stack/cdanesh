@@ -116,6 +116,7 @@
         service: ($('#rsvc', form) || {}).value || '',
         subject: ($('#' + (kind === 'request' ? 'rsubj' : 'csubj'), form) || {}).value || '',
         package: (($('#rpackage')) || {}).value || '',
+        budget: (($('#rbudget')) || {}).value || '',
         message: ($('#' + (kind === 'request' ? 'rmsg' : 'cmsg'), form) || {}).value || '',
         date: now.toISOString(),
         status: 'new',
@@ -135,15 +136,20 @@
             body: JSON.stringify({
               kind: msg.kind, name: msg.name, phone: msg.phone, email: msg.email,
               service: msg.service, subject: msg.subject, package: msg.package,
-              message: msg.message, website: honey ? honey.value : '',
+              budget: msg.budget, message: msg.message, website: honey ? honey.value : '',
             }),
           });
           const ct = r.headers.get('content-type') || '';
           if (ct.includes('application/json')) {
             const d = await r.json().catch(() => ({}));
             if (r.ok && d.ok) { saved = true; if (d.ref) refOut = d.ref; }
-            // خطای اعتبارسنجی/اسپم → پیام روشن به کاربر؛ خطای سرور/نبود Blob → بی‌صدا به حالت دمو
+            // خطای اعتبارسنجی/اسپم/نبود فضای ابری → پیام روشن به کاربر با مسیر جایگزین
             else if (r.status === 400 || r.status === 429) { serverError = d.message || 'ثبت پیام انجام نشد؛ دوباره تلاش کنید.'; }
+            else if (r.status === 503 && (d.error === 'NO_BLOB' || d.error === 'PASSWORD_NOT_SET')) {
+              serverError = 'پیام‌رسانی سایت موقتاً فعال نیست؛ درخواست شما ذخیره نشد. لطفاً مستقیم تماس بگیرید یا در واتس‌اپ پیام دهید: ۰۹۱۶ ۵۸۰ ۶۲۰۷';
+            } else if (r.status >= 500) {
+              serverError = 'در ثبت پیام خطایی رخ داد؛ لطفاً دوباره تلاش کنید یا با شماره ۰۹۱۶ ۵۸۰ ۶۲۰۷ تماس بگیرید.';
+            }
           }
           // بدون JSON یعنی API وجود ندارد (دمو) — خطا نشان داده نمی‌شود
         } catch (err) { /* شبکه/API نیست → دمو */ }

@@ -117,11 +117,31 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
-  // متن درون‌خطی مجاز: <strong> و <b> (پس از escape، تگ‌های امن بازسازی می‌شوند)
+  /* متن درون‌خطی مجاز: پس از escape کامل، فقط تگ‌های امنِ فهرست سفید بازسازی می‌شوند
+     (سازگار با نسخهٔ SSR در src/lib/ssr-articles.mjs — هنگام تغییر هر دو همگام شوند) */
+  function sanitizeAttrs(tag, attrs) {
+    const out = [];
+    const re = /([a-zA-Z-]+)\s*=\s*("([^"]*)"|'([^']*)')/g;
+    let m;
+    while ((m = re.exec(attrs || ''))) {
+      const name = m[1].toLowerCase();
+      const val = m[3] != null ? m[3] : m[4];
+      if (/^on/i.test(name)) continue;
+      if (tag === 'a' && name === 'href') {
+        if (/^(https?:|\/|#|tel:|mailto:)/i.test(val.trim())) out.push('href="' + val.replace(/"/g, '&quot;') + '"');
+        continue;
+      }
+      if (tag === 'a' && name === 'title') { out.push('title="' + val.replace(/"/g, '&quot;') + '"'); continue; }
+      if (name === 'dir' && (val === 'rtl' || val === 'ltr')) { out.push('dir="' + val + '"'); continue; }
+    }
+    return out.length ? ' ' + out.join(' ') : '';
+  }
   function rich(s) {
-    return esc(s)
-      .replace(/&lt;strong&gt;/g, '<strong>').replace(/&lt;\/strong&gt;/g, '</strong>')
-      .replace(/&lt;b&gt;/g, '<b>').replace(/&lt;\/b&gt;/g, '</b>');
+    let h = esc(s);
+    h = h.replace(/&lt;(\/?)((?:a|b|strong|i|em|u|br|code|mark|small|sub|sup|span)\b)((?:[^&]|&(?!gt;))*)&gt;/gi, function (m, c, t, at) {
+      return '<' + c + t.toLowerCase() + sanitizeAttrs(t.toLowerCase(), at.replace(/&quot;/g, '"').replace(/&#39;/g, "'")) + '>';
+    });
+    return h;
   }
   function renderBlocks(blocks) {
     let h = '', openList = null;
@@ -129,7 +149,8 @@
     (blocks || []).forEach(b => {
       if (b.p) { closeList(); h += '<p>' + rich(b.p) + '</p>'; return; }
       if (b.h2) { closeList(); h += '<h2 id="' + esc(b.id || '') + '">' + esc(b.h2) + '</h2>'; return; }
-      if (b.h3) { closeList(); h += '<h3>' + esc(b.h3) + '</h3>'; return; }
+      if (b.h3) { closeList(); h += '<h3' + (b.id ? ' id="' + esc(b.id) + '"' : '') + '>' + esc(b.h3) + '</h3>'; return; }
+      if (b.html) { closeList(); h += b.html; return; } /* بلوک HTML — در لحظهٔ ذخیره پاک‌سازی شده است */
       if (b.ul) { closeList(); openList = 'ul'; h += '<ul>' + b.ul.map(li => '<li>' + rich(li) + '</li>').join('') ; return; }
       if (b.ol) { closeList(); openList = 'ol'; h += '<ol>' + b.ol.map(li => '<li>' + rich(li) + '</li>').join('') ; return; }
       if (b.quote) { closeList(); h += '<blockquote>' + rich(b.quote) + '</blockquote>'; return; }

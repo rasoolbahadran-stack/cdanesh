@@ -178,3 +178,119 @@ body.adm-light select.control option,
 body.adm-light select.control optgroup { background: #ffffff; color: #241f3d; }
 body.adm-light select.control option:checked,
 body.adm-light select.control option:hover { background: #f3edff; color: #4c39a8; }
+
+/* ═════════════ ویرایشگر HTML (WYSIWYG + کد) ═════════════ */
+.ed-toolbar {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  padding: 9px; border: 1px solid var(--line); border-bottom: 0;
+  border-radius: 14px 14px 0 0;
+  background: #faf9fd;
+  position: sticky; top: 0; z-index: 5;
+}
+.ed-btn {
+  min-width: 36px; height: 34px; padding: 0 10px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  border: 1px solid transparent; border-radius: 9px;
+  font-size: 12.5px; color: var(--mut); cursor: pointer; transition: .15s;
+}
+.ed-btn:hover { background: #f1eefb; color: var(--txt); border-color: var(--line); }
+.ed-btn.active { background: #5b3fd1; color: #fff; }
+.ed-sep { width: 1px; height: 22px; background: var(--line); margin-inline: 5px; align-self: center; }
+.ed-canvas {
+  min-height: 420px; max-height: 70vh; overflow-y: auto;
+  padding: 24px 26px;
+  border: 1px solid var(--line); border-radius: 0 0 14px 14px;
+  background: #ffffff;
+  font-size: 15px; line-height: 2.15; color: #3a3550;
+  outline: none;
+}
+.ed-canvas:focus { border-color: #a48ef0; box-shadow: 0 0 0 4px rgba(138, 108, 240, .12); }
+.ed-canvas:empty::before { content: 'متن مقاله را همین‌جا بنویسید…'; color: var(--faint); }
+.ed-canvas h2 { font-size: 22px; font-weight: 800; color: #241f3d; margin: 34px 0 10px; }
+.ed-canvas h3 { font-size: 17.5px; font-weight: 700; color: #241f3d; margin: 26px 0 8px; }
+.ed-canvas p { margin-bottom: 12px; }
+.ed-canvas ul, .ed-canvas ol { padding-inline-start: 26px; margin-bottom: 12px; list-style: disc; }
+.ed-canvas ol { list-style: decimal; }
+.ed-canvas li { margin-bottom: 6px; }
+.ed-canvas blockquote {
+  border-inline-start: 3px solid #e3b953; background: #fdf9ef;
+  padding: 12px 18px; border-radius: 0 12px 12px 0; margin: 14px 0; color: #4c4364;
+}
+.ed-canvas table { border-collapse: collapse; width: 100%; margin: 14px 0; }
+.ed-canvas th, .ed-canvas td { border: 1px solid var(--line); padding: 9px 12px; font-size: 13.5px; }
+.ed-canvas th { background: #f6f4fd; }
+.ed-canvas img { border-radius: 12px; max-width: 100%; height: auto; margin: 10px 0; }
+.ed-canvas .prose-cta {
+  background: linear-gradient(150deg, rgba(227,185,83,.12), rgba(227,185,83,.03));
+  border: 1px solid rgba(227,185,83,.4); border-radius: 14px;
+  padding: 14px 18px; margin: 18px 0;
+}
+.ed-src { border-radius: 0 0 14px 14px; }
+
+/* ═════════════ کتابخانه رسانه ═════════════ */
+#cd-media-root { display: none; }
+.cd-media-veil {
+  position: fixed; inset: 0; background: rgba(20, 14, 45, .45);
+  backdrop-filter: blur(4px); z-index: 400;
+}
+.cd-media {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: min(880px, 94vw); max-height: 88vh;
+  background: #ffffff; border: 1px solid var(--line); border-radius: 22px;
+  box-shadow: 0 40px 90px -30px rgba(30, 20, 70, .5);
+  display: flex; flex-direction: column; z-index: 401; overflow: hidden;
+}
+.cd-media-head {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 20px; border-bottom: 1px solid var(--line);
+}
+.cd-media-head b { font-size: 15px; color: #241f3d; }
+.cd-media-hint { flex: 1; font-size: 11.5px; color: var(--faint); }
+.cd-media-drop {
+  margin: 16px 20px 0; padding: 22px;
+  border: 2px dashed #d9d5ea; border-radius: 16px;
+  text-align: center; color: var(--mut); font-size: 13.5px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  transition: .2s;
+}
+.cd-media-drop.drag { border-color: #8a6cf0; background: #f6f4fd; }
+.cd-media-grid {
+  padding: 16px 20px 20px; overflow-y: auto;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px;
+}
+.cd-media-item {
+  border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+  background: #fbfaff; display: flex; flex-direction: column;
+}
+.cd-media-thumb {
+  height: 110px; background: #efeafd;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.cd-media-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.cd-media-filetype {
+  font-size: 15px; font-weight: 800; color: #5b3fd1;
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.cd-media-name {
+  padding: 8px 10px 2px; font-size: 11.5px; color: var(--txt);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; direction: ltr; text-align: left;
+}
+.cd-media-size { padding: 0 10px 8px; font-size: 10.5px; color: var(--faint); }
+.cd-media-actions { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 8px 10px; }
+.cd-media-actions .adm-btn { font-size: 10.5px; padding: 5px 8px; }
+
+/* ═════════════ بنر راهنمای اتصال ابری ═════════════ */
+.adm-setup-step {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 12px 16px; border-radius: 12px;
+  background: rgba(255, 255, 255, .6);
+  border: 1px solid rgba(232, 194, 104, .35);
+  margin-bottom: 10px;
+}
+.adm-setup-step b { font-size: 13px; color: #241f3d; }
+.adm-setup-step span { font-size: 12.5px; color: var(--mut); line-height: 2; }
+
+@media (max-width: 700px) {
+  .cd-media-grid { grid-template-columns: 1fr 1fr; }
+  .ed-toolbar { position: static; }
+}

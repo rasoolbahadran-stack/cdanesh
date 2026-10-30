@@ -6,7 +6,7 @@
 export const prerender = false;
 
 import SiteLayout from '../../layouts/SiteLayout.astro';
-import { getPublicArticles, bySlugFrom, relatedFrom, renderBlocks, postCardHtml, esc, fa } from '../../lib/ssr-articles.mjs';
+import { getPublicArticles, bySlugFrom, relatedFrom, renderBlocks, postCardHtml, esc, fa, tocFrom } from '../../lib/ssr-articles.mjs';
 
 const { slug } = Astro.params;
 const posts = await getPublicArticles();
@@ -21,7 +21,7 @@ const description = a.seoDesc || a.excerpt;
 const canonical = 'https://cdanesh.ir/blog/' + a.slug;
 const url = canonical;
 
-const h2s = (a.blocks || []).filter(b => b.h2).map(b => ({ id: b.id, t: b.h2 }));
+const toc = tocFrom(a.blocks);
 const related = relatedFrom(posts, a, 3);
 const shareUrl = url, shareTxt = a.title;
 
@@ -91,11 +91,11 @@ const crumbLd = {
         <span class="copy-ok" id="copy-ok" hidden>لینک کپی شد</span>
       </div>
     </article>
-    <aside>
-      {h2s.length > 1 && (
-        <div class="aside-card"><b>فهرست مطالب</b>
-          <nav class="toc" aria-label="فهرست مطالب مقاله">
-            {h2s.map(sh => <a href={'#' + sh.id}>{sh.t}</a>)}
+    <aside class="article-aside">
+      {toc.length > 1 && (
+        <div class="aside-card toc-card"><b>فهرست مطالب</b>
+          <nav class="toc" aria-label="فهرست مطالب مقاله" id="article-toc">
+            {toc.map(sh => <a href={'#' + sh.id} class={sh.level === 3 ? 'toc-l3' : ''}>{sh.t}</a>)}
           </nav>
         </div>
       )}
@@ -140,6 +140,29 @@ const crumbLd = {
         .then(function () { var ok = document.getElementById('copy-ok'); if (ok) { ok.hidden = false; setTimeout(function () { ok.hidden = true; }, 2200); } })
         .catch(function () {});
     });
+    /* اسکرول‌اسپای فهرست مطالب — هایلایت بخش فعلی هنگام خواندن */
+    var tocNav = document.getElementById('article-toc');
+    if (tocNav && 'IntersectionObserver' in window) {
+      var links = Array.prototype.slice.call(tocNav.querySelectorAll('a'));
+      var targets = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); }).filter(Boolean);
+      var current = null;
+      var setActive = function (id) {
+        if (id === current) return;
+        current = id;
+        links.forEach(function (a) { a.classList.toggle('active', a.getAttribute('href') === '#' + id); });
+      };
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) setActive(en.target.id);
+        });
+      }, { rootMargin: '-25% 0px -65% 0px', threshold: 0 });
+      targets.forEach(function (t) { io.observe(t); });
+      window.addEventListener('scroll', function () {
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200) {
+          if (targets.length) setActive(targets[targets.length - 1].id);
+        }
+      }, { passive: true });
+    }
   })();
 </script>
 </SiteLayout>

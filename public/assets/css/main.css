@@ -169,7 +169,9 @@ input, select, textarea { font: inherit; }
   position: fixed; top: 14px; inset-inline: 0; z-index: 120;
   display: flex; justify-content: center;
   padding-inline: 18px; pointer-events: none;
+  transition: transform .38s cubic-bezier(.32, .72, .28, 1), opacity .3s ease;
 }
+.site-header.header-hidden { transform: translateY(-130%); opacity: 0; }
 .nav-pill {
   pointer-events: auto;
   width: 100%; max-width: var(--wrap);
@@ -393,12 +395,28 @@ select.control option:checked, select.control option:hover { background: rgba(22
   .footer-grid { grid-template-columns: 1fr 1fr; gap: 36px; }
 }
 
+/* ─── فوتر مینیمال برای موبایل و تبلت ── */
+@media (max-width: 900px) {
+  .footer { margin-top: 84px; padding-top: 48px; }
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 22px 20px; }
+  .footer-brand { grid-column: 1 / -1; }
+  .footer-brand p { margin: 10px 0 14px; font-size: 13.5px; }
+  .footer-brand .btn { padding: 10px 20px; font-size: 13.5px; }
+  .footer-col > b { margin-bottom: 10px; font-size: 13.5px; }
+  .footer-col ul { gap: 7px; }
+  .footer-col a { font-size: 12.5px; }
+  .footer-contact { margin-top: 30px; padding: 14px 0; font-size: 12.5px; gap: 10px; }
+  .footer-copy { padding: 13px 0 18px; font-size: 11.5px; }
+  .footer-mark { display: none; }
+}
+
 @media (max-width: 560px) {
   .wrap { padding-inline: 18px; }
   .section { padding-block: 60px; }
-  .footer-grid { grid-template-columns: 1fr; gap: 30px; }
-  .footer { border-radius: 32px 32px 0 0; margin-top: 72px; }
+  .footer { border-radius: 28px 28px 0 0; margin-top: 56px; padding-top: 38px; }
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 18px 16px; }
   .footer-contact { justify-content: center; text-align: center; }
+  .footer-contact .fc-links { gap: 12px; }
   .brand-name { font-size: 16.5px; }
   .nav-pill { gap: 14px; height: 64px; }
   :root { --header-h: 64px; }

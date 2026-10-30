@@ -11,13 +11,24 @@
   /* ─── اعداد فارسی ─── */
   const fa = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
 
-  /* ─── حالت اسکرول هدر + دکمه بالا ─── */
+  /* ─── حالت اسکرول هدر + مخفی‌شدن هنگام اسکرول پایین و بازگشت هنگام اسکرول بالا ─── */
   const pill = $('.nav-pill');
+  const siteHeader = $('.site-header');
   const toTop = $('.to-top');
+  let lastY = 0;
   function onScroll() {
     const y = window.scrollY;
     if (pill) pill.classList.toggle('scrolled', y > 24);
     if (toTop) toTop.classList.toggle('show', y > 700);
+    // هدر شناور: اسکرول پایین → محو؛ اسکرول بالا → نمایان
+    if (siteHeader && !document.body.classList.contains('drawer-open')) {
+      const megaOpen = !!document.querySelector('.has-mega.open');
+      if (!megaOpen) {
+        if (y > lastY + 6 && y > 160) siteHeader.classList.add('header-hidden');
+        else if (y < lastY - 6 || y < 160) siteHeader.classList.remove('header-hidden');
+      }
+    }
+    lastY = y;
   }
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();

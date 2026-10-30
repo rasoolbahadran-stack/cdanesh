@@ -98,17 +98,20 @@
       + '<span class="fx" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></button>'
       + '<div class="faq-a"><div>' + CDArticles.esc(it.a) + '</div></div></div>'
     ).join('');
-    // داده ساختاریافته FAQ مطابق محتوای واقعی صفحه
-    const ld = document.createElement('script');
-    ld.type = 'application/ld+json';
-    ld.textContent = JSON.stringify({
-      '@context': 'https://schema.org', '@type': 'FAQPage',
-      mainEntity: items.map(it => ({
-        '@type': 'Question', name: it.q,
-        acceptedAnswer: { '@type': 'Answer', text: it.a },
-      })),
-    });
-    document.head.appendChild(ld);
+    // داده ساختاریافته FAQ فقط وقتی در HTML اولیهٔ صفحه نیست
+    // (صفحات خدمات اسکیمای FAQPage را سمت سرور دارند — این‌جا فقط برای صفحهٔ /faq)
+    if (!$$('script[type="application/ld+json"]').some(s => /FAQPage/.test(s.textContent || ''))) {
+      const ld = document.createElement('script');
+      ld.type = 'application/ld+json';
+      ld.textContent = JSON.stringify({
+        '@context': 'https://schema.org', '@type': 'FAQPage',
+        mainEntity: items.map(it => ({
+          '@type': 'Question', name: it.q,
+          acceptedAnswer: { '@type': 'Answer', text: it.a },
+        })),
+      });
+      document.head.appendChild(ld);
+    }
   });
 
   /* ─── مقالات مرتبط در صفحات خدمات ─── */

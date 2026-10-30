@@ -1,45 +1,17 @@
 ---
-import SiteLayout from '../layouts/SiteLayout.astro';
-const title = "شرایط استفاده | کافه‌دانش";
-const description = "قواعد استفاده از وب‌سایت و خدمات کافه‌دانش.";
-const canonical = "https://cdanesh.ir/terms";
+// ═══ شرایط استفاده — محتوا از صفحات ابری پنل (با دادهٔ پایهٔ پروژه) ═══
+// prerender=false → ویرایش این صفحه در پنل (بخش «صفحات») بلافاصله منتشر می‌شود.
+export const prerender = false;
+
+import ProsePage from '../components/ProsePage.astro';
+import { getPublicPages, pageBySlug } from '../lib/ssr-pages.mjs';
+
+const pages = await getPublicPages();
+const page = pageBySlug(pages, 'terms');
+
+if (!page) {
+  return Astro.redirect('/404');
+}
 ---
 
-<SiteLayout title={title} description={description} canonical={canonical}>
-<!-- ═══ هیرو ═══ -->
-<section class="page-hero">
-  <div class="wrap">
-    <nav class="breadcrumb" aria-label="مسیر صفحه">
-      <a href="/">خانه</a>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
-      <span>شرایط استفاده</span>
-    </nav>
-    <span class="eyebrow">شرایط استفاده</span>
-    <h1 class="h1">قواعد استفاده از <span class="gold">سایت و خدمات</span></h1>
-    <p class="lead">با استفاده از وب‌سایت کافه‌دانش، این شرایط را می‌پذیرید. آخرین به‌روزرسانی: آبان ۱۴۰۵.</p>
-  </div>
-</section>
-
-<section class="section-tight">
-  <div class="wrap" style="max-width:880px">
-    <div class="prose">
-      <h2 id="t1">استفاده از محتوا</h2>
-      <p>محتوای آموزشی مجله برای استفاده شخصی و ارجاع با ذکر منبع آزاد است. بازنشر کامل مقالات، تصاویر و نمونه‌کارهای سایت بدون اجازه کتبی مجاز نیست. لوگو و هویت بصری کافه‌دانش متعلق به همین برند است.</p>
-      <h2 id="t2">ابزارهای هوش مصنوعی</h2>
-      <ul class="check-list">
-        <li>خروجی ابزارها «پیش‌نویس» است و مسئولیت بازبینی و استفاده نهایی با کاربر است.</li>
-        <li>استفاده خودکار و انبوه (اسکریپت، ربات) مجاز نیست؛ محدودیت نرخ برای جلوگیری از سوءاستفاده فعال است.</li>
-        <li>ورود اطلاعات حساس یا غیرقانونی به ابزارها ممنوع است.</li>
-      </ul>
-      <h2 id="t3">سفارش خدمات و قراردادها</h2>
-      <p>شرکت در جلسه مشاوره یا ارسال فرم، به‌معنای الزام به خرید نیست. شرایط نهایی هر پروژه (دامنه کار، زمان‌بندی، هزینه و پرداخت‌ها) در قرارداد مکتوب جداگانه تعیین می‌شود که مرجع رسمی همکاری است.</p>
-      <h2 id="t4">حدود مسئولیت</h2>
-      <p>محتوای آموزشی سایت جنبه اطلاع‌رسانی دارد و توصیه حقوقی یا مالی محسوب نمی‌شود. ما تضمین رتبه مشخص در موتورهای جست‌وجو نمی‌کنیم — نتیجه سئو تابع عوامل متعدد خارج از کنترل هر تیمی است.</p>
-      <h2 id="t5">قانون حاکم</h2>
-      <p>این شرایط تابع قوانین جمهوری اسلامی ایران است و هر اختلاف، ابتدا از مسیر گفت‌وگو و سپس مراجع قانونی صالح پیگیری می‌شود.</p>
-      <h2 id="t6">سؤال درباره شرایط؟</h2>
-      <p>هر بخش که نیاز به توضیح دارد، از طریق <a href="/contact" style="color:var(--gold)">صفحه تماس</a> بپرسید؛ پاسخ شفاف می‌دهیم.</p>
-    </div>
-  </div>
-</section>
-</SiteLayout>
+<ProsePage page={page} canonical="https://cdanesh.ir/terms" />
