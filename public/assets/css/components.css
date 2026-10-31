@@ -315,6 +315,18 @@
 .prose a { color: var(--gold-2); text-decoration: underline; text-underline-offset: 4px; text-decoration-color: rgba(227, 185, 83, .45); transition: color .2s, text-decoration-color .2s; }
 .prose a:hover { color: var(--gold); text-decoration-color: var(--gold); }
 
+/* ═══ کارت بدنهٔ مقاله — زمینهٔ کمی روشن‌تر برای خوانایی راحت‌تر متن اصلی ═══
+   فقط روی صفحهٔ مقاله (/blog/<slug>) اعمال می‌شود؛ هویت بصری تیرهٔ سایت حفظ می‌شود. */
+.article-body-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .055), rgba(255, 255, 255, .022));
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: var(--r-lg);
+  padding: 36px 40px 40px;
+  box-shadow: 0 24px 60px -40px rgba(0, 0, 0, .55);
+}
+.article-body-card h2 { scroll-margin-top: 130px; }
+@media (max-width: 760px) { .article-body-card { padding: 24px 20px 28px; } }
+
 /* جعبهٔ نویسنده در انتهای مقاله */
 .author-box { display: flex; gap: 16px; align-items: center; margin-top: 46px; padding: 20px 22px; border: 1px solid rgba(227, 185, 83, .3); border-radius: 18px; background: linear-gradient(150deg, rgba(227, 185, 83, .1), rgba(227, 185, 83, .02)); }
 .author-box img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(227, 185, 83, .5); flex-shrink: 0; }
@@ -806,20 +818,3 @@ a.founder-chip:hover { border-color: var(--gold); color: var(--gold-2); transfor
 @media (max-width: 700px) {
   .fc-credit { display: block; margin: 6px 0 0; padding: 0; border: 0; }
 }
-
-/* ═══ صفحهٔ مطالعهٔ مقاله — ستون اصلی + پنل خواناتر ═══
-   ستون مقاله (متن + پرسش‌ها + مقالات مرتبط) یک بلوک واحد است تا
-   سایدبار چسبان (.article-aside) تا انتهای صفحه همراه خواننده بماند. */
-.article-main-col { min-width: 0; }
-
-/* فضای محتوای مقاله کمی روشن‌تر از زمینهٔ صفحه — خوانایی بیشتر، حفظ هویت تیره */
-.prose-panel {
-  background: rgba(255, 255, 255, .045);
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  padding: clamp(20px, 3.4vw, 40px);
-  color: #d6d4e0;
-}
-.prose-panel > p, .prose-panel > ul li, .prose-panel > ol li { color: #d6d4e0; }
-.prose-panel .author-box, .prose-panel .share-row { margin-top: 40px; }
-@media (max-width: 640px) { .prose-panel { padding: 18px 16px; border-radius: 16px; } }

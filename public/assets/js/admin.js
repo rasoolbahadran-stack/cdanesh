@@ -37,7 +37,7 @@
     if (!t) {
       t = document.createElement('div');
       t.id = 'adm-toast';
-      t.style.cssText = 'position:fixed; bottom:24px; inset-inline-start:50%; transform:translateX(50%); background:#0a0a0e; border:1px solid rgba(227,185,83,.5); color:var(--gold-2); padding:11px 22px; border-radius:999px; font-size:13.5px; z-index:300; box-shadow:0 20px 50px -20px rgba(0,0,0,.9)';
+      t.style.cssText = 'position:fixed; bottom:24px; inset-inline-start:50%; transform:translateX(50%); background:#0a0a0e; border:1px solid rgba(227,185,83,.5); color:var(--gold-2); padding:11px 22px; border-radius:999px; font-size:13.5px; z-index:300; box-shadow:0 20px 50px -20px rgba(0,0,0,.9); pointer-events:none';
       document.body.appendChild(t);
     }
     t.textContent = msg;
@@ -45,94 +45,6 @@
     clearTimeout(t._h);
     t._h = setTimeout(() => { t.style.opacity = '0'; }, 2600);
   };
-
-  /* ─── مودال عمومی پنل (مشاهدهٔ پیام، اجرای کد و …) ───
-     خروجی: {root, body, close} — بستن با ESC یا کلیک روی پس‌زمینه */
-  function openModal(title, bodyHtml, footHtml, opts) {
-    opts = opts || {};
-    const root = document.createElement('div');
-    root.className = 'cd-modal-root';
-    root.innerHTML = '<div class="cd-modal-veil"></div>'
-      + '<div class="cd-modal" role="dialog" aria-label="' + esc(title) + '" dir="rtl">'
-      + '<div class="cd-modal-head"><b>' + esc(title) + '</b>'
-      + '<button type="button" class="adm-btn" data-modal-close>بستن</button></div>'
-      + '<div class="cd-modal-body">' + (bodyHtml || '') + '</div>'
-      + (footHtml ? '<div class="cd-modal-foot">' + footHtml + '</div>' : '')
-      + '</div>';
-    document.body.appendChild(root);
-    const onKey = e => { if (e.key === 'Escape') close(); };
-    const close = () => {
-      root.remove();
-      document.removeEventListener('keydown', onKey);
-      if (opts.onClose) { try { opts.onClose(); } catch (e) { /* noop */ } }
-    };
-    document.addEventListener('keydown', onKey);
-    root.addEventListener('click', e => {
-      if (e.target.closest('[data-modal-close]') || e.target.classList.contains('cd-modal-veil')) close();
-    });
-    return { root, body: $('.cd-modal-body', root), close };
-  }
-
-  /* ─── ویجت اجرای سریع کد HTML — کد دلخواه را بچسبان، اجرا کن، همان‌جا ببین ───
-     اجرا داخل قاب ایزوله (sandbox بدون same-origin) است؛ روی پنل و نشست اثر ندارد. */
-  function openHtmlRunner(opts) {
-    opts = opts || {};
-    let timer = null;
-    const scope = opts.scope || 'متن';
-    const mod = openModal('اجرای سریع کد HTML',
-      '<div class="html-run-wrap">'
-      + '<textarea class="control" id="hr-code" spellcheck="false" placeholder="<h2>سلام</h2> و <style>…</style> و <script>…</script>"></textarea>'
-      + '<div class="html-run-bar">'
-      + '<button type="button" class="btn btn-gold btn-sm" id="hr-run">▶ اجرا و مشاهده</button>'
-      + '<label><input type="checkbox" id="hr-auto"> اجرای خودکار هنگام تایپ</label>'
-      + '<button type="button" class="adm-btn" id="hr-clear">خالی کردن</button>'
-      + '</div>'
-      + '<iframe class="html-run-frame" id="hr-frame" sandbox="allow-scripts allow-modals allow-popups allow-forms" title="پیش‌نمایش اجرای کد"></iframe>'
-      + '<p class="html-run-hint">هر HTML/CSS/JS دلخواه را همین‌جا تست کنید؛ اجرا در قاب ایزوله است. با «درج در ' + esc(scope) + '» کد به محتوای فعلی اضافه می‌شود — کدهای دارای style/script در حالت کد ویرایشگر درج می‌شوند تا کامل حفظ شوند.</p>'
-      + '</div>',
-      '<button type="button" class="btn btn-gold" id="hr-insert">درج در ' + esc(scope) + '</button>',
-      { onClose: () => { clearTimeout(timer); } });
-    const ta = $('#hr-code', mod.root);
-    if (opts.code) ta.value = opts.code;
-    const run = () => {
-      const code = ta.value;
-      const doc = /<html[\s>]/i.test(code)
-        ? code
-        : '<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><style>html,body{margin:0;padding:18px;background:#fff;color:#241f3d;font-family:Vazirmatn,Tahoma,sans-serif;line-height:2}</style></head><body>' + code + '</body></html>';
-      $('#hr-frame', mod.root).srcdoc = doc;
-    };
-    ta.addEventListener('input', () => {
-      if (!$('#hr-auto', mod.root).checked) return;
-      clearTimeout(timer);
-      timer = setTimeout(run, 700);
-    });
-    $('#hr-run', mod.root).addEventListener('click', run);
-    $('#hr-clear', mod.root).addEventListener('click', () => { ta.value = ''; ta.focus(); });
-    $('#hr-insert', mod.root).addEventListener('click', () => {
-      const code = ta.value.trim();
-      if (!code) { toast('چیزی برای درج نیست'); return; }
-      if (opts.insert) opts.insert(code);
-      mod.close();
-    });
-    run();
-  }
-
-  /* ─── سند پیش‌نمایش زنده — با همان استایل‌های واقعی سایت ───
-     قاب با sandbox ایزوله است؛ کدهای style/script مقاله فقط داخل همین قاب اجرا می‌شوند. */
-  function previewDoc(o) {
-    return '<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">'
-      + '<link rel="stylesheet" href="/assets/css/main.css"><link rel="stylesheet" href="/assets/css/components.css">'
-      + '<style>body{padding:0 0 70px} .pv-wrap{max-width:1040px;margin:0 auto;padding:0 clamp(14px,3vw,32px)} '
-      + '.pv-hero{padding:calc(24px + var(--header-h, 88px)) 0 40px} '
-      + '.pv-note{position:fixed;top:10px;inset-inline-start:12px;font-size:10px;color:#f2d488;background:rgba(10,10,13,.72);padding:4px 12px;border-radius:99px;z-index:99}</style>'
-      + '</head><body>'
-      + '<span class="pv-note">پیش‌نمایش زنده — مثل صفحهٔ واقعی سایت</span>'
-      + o.hero
-      + '<section class="section-tight" style="padding-top:6px"><div class="pv-wrap">'
-      + '<div class="prose prose-panel">' + (o.body || '') + '</div>'
-      + o.after
-      + '</div></section></body></html>';
-  }
 
   /* ─── لایه ابری مقالات: وضعیت، ذخیره، مهاجرت دمو → ابر ─── */
   const isCloud = () => !!(window.CDArticles && CDArticles.mode && CDArticles.mode() === 'cloud');
@@ -291,9 +203,9 @@
   const ED_ICONS = {
     h2: '<b style="font-size:15px">H2</b>', h3: '<b style="font-size:13px">H3</b>', p: '<b style="font-size:12px">متن</b>',
     bold: '<b>B</b>', italic: '<i>I</i>', ul: '• فهرست', ol: '۱. فهرست', quote: '❝', link: '🔗', image: '🖼',
-    table: 'جدول', hr: '—', html: '&lt;/&gt;', run: '▶ اجرا',
+    table: 'جدول', hr: '—', htmlblock: '<b dir="ltr" style="font-size:11px">HTML</b>', html: '&lt;/&gt;',
   };
-  const ED_HTML_HINT = '<p class="adm-hint" style="margin-top:10px">با دکمهٔ <b dir="ltr">&lt;/&gt;</b> به حالت کد بروید و HTML آزاد بنویسید — کدهای <b dir="ltr">CSS (&lt;style&gt;)</b> و <b dir="ltr">JavaScript (&lt;script&gt;)</b> هم پذیرفته می‌شود. برای حفظ کدها، در همان حالت کد ذخیره یا منتشر کنید.</p>';
+  const ED_HTML_HINT = '<p class="adm-hint" style="margin-top:10px">مستقیم بنویسید (مثل وردپرس). با دکمهٔ <b dir="ltr">HTML</b> کد آزاد پیست کنید و همان لحظه نتیجهٔ رندرشده را ببینید؛ با <b dir="ltr">&lt;/&gt;</b> هم به حالت کد بروید — کدهای <b dir="ltr">CSS (&lt;style&gt;)</b> و <b dir="ltr">JavaScript (&lt;script&gt;)</b> کامل حفظ می‌شوند.</p>';
   function edToolbarHtml() {
     const btn = (cmd, title) => '<button type="button" class="ed-btn" data-cmd="' + cmd + '" title="' + title + '" tabindex="-1">' + ED_ICONS[cmd] + '</button>';
     return '<div class="ed-toolbar" dir="rtl">'
@@ -305,8 +217,51 @@
       + '<span class="ed-sep"></span>'
       + btn('link', 'لینک') + btn('image', 'تصویر از کتابخانه رسانه') + btn('table', 'جدول') + btn('hr', 'خط جداکننده')
       + '<span class="ed-sep"></span>'
-      + btn('html', 'حالت کد — پشتیبانی کامل HTML/CSS/JS') + btn('run', 'اجرای سریع کد HTML (تست زنده)')
+      + btn('htmlblock', 'ابزار HTML — کد آزاد با پیش‌نمایش زنده')
+      + btn('html', 'حالت کد — پشتیبانی کامل HTML/CSS/JS')
       + '</div>';
+  }
+
+  /* ═══ ابزار HTML — پیست کد آزاد + پیش‌نمایش زنده (iframe ایزوله) ═══
+     کد عیناً داخل مقاله/صفحه ذخیره می‌شود؛ CSS و JavaScript هم پشتیبانی می‌شود. */
+  function openHtmlWidget(insert) {
+    let root = $('#cd-html-root');
+    if (!root) { root = document.createElement('div'); root.id = 'cd-html-root'; document.body.appendChild(root); }
+    const wrapDoc = code => '<!DOCTYPE html><html dir="rtl" lang="fa"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
+      + '<style>body{font-family:Vazirmatn,Tahoma,sans-serif;background:#fff;color:#24243a;margin:0;padding:16px;line-height:2;font-size:15px}img{max-width:100%;height:auto}</style></head><body>'
+      + String(code || '') + '</body></html>';
+    root.innerHTML = '<div class="adm-modal-veil" data-close="1"></div>'
+      + '<div class="adm-modal adm-modal-lg" role="dialog" aria-label="ابزار HTML" dir="rtl">'
+      + '<div class="adm-modal-head"><b>ابزار HTML — کد آزاد با پیش‌نمایش زنده</b><button type="button" class="adm-btn" data-close="1">بستن ✕</button></div>'
+      + '<div class="adm-modal-body adm-modal-split2">'
+      + '<div><label class="adm-label">کد HTML / CSS / JS خود را این‌جا پیست کنید</label>'
+      + '<textarea class="control" id="hw-src" dir="ltr" spellcheck="false" style="min-height:340px; font-size:12.5px; line-height:1.9; font-family:monospace; text-align:left"></textarea></div>'
+      + '<div><label class="adm-label">نتیجهٔ رندرشده (همان لحظه به‌روز می‌شود)</label>'
+      + '<iframe id="hw-view" style="width:100%; height:340px; border:1px solid var(--line); border-radius:12px; background:#fff" sandbox="allow-scripts" title="پیش‌نمایش HTML"></iframe></div>'
+      + '</div>'
+      + '<div class="adm-modal-foot"><span class="adm-hint">کد شما عیناً داخل مقاله/صفحه ذخیره می‌شود — <b dir="ltr">&lt;style&gt;</b> و <b dir="ltr">&lt;script&gt;</b> هم حفظ می‌شود.</span>'
+      + '<span style="flex:1"></span>'
+      + '<button type="button" class="adm-btn" id="hw-clear">پاک کردن کد</button>'
+      + '<button type="button" class="btn btn-gold btn-sm" id="hw-insert">درج در متن</button></div></div>';
+    root.style.display = 'block';
+    document.body.classList.add('adm-modal-open');
+    const srcEl = $('#hw-src', root);
+    const view = $('#hw-view', root);
+    let t = null;
+    const render = () => { view.srcdoc = wrapDoc(srcEl.value); };
+    srcEl.addEventListener('input', () => { clearTimeout(t); t = setTimeout(render, 300); });
+    $('#hw-clear', root).addEventListener('click', () => { srcEl.value = ''; render(); srcEl.focus(); });
+    const close = () => { root.style.display = 'none'; document.body.classList.remove('adm-modal-open'); };
+    root.addEventListener('click', e => {
+      if (e.target.closest('[data-close]')) { close(); return; }
+      if (e.target.closest('#hw-insert')) {
+        const code = srcEl.value.trim();
+        if (!code) { toast('اول کد HTML را در کادر سمت راست وارد کنید.'); return; }
+        close();
+        insert(code);
+      }
+    });
+    render();
   }
 
   /* ویرایشگر: WYSIWYG پیش‌فرض + toggle کد HTML؛ خروجی getHtml() همیشه HTML کامل بدنه است */
@@ -318,32 +273,24 @@
     const canvas = $('.ed-canvas', host);
     const src = $('.ed-src', host);
     let mode = 'wysiwyg';
-    let rawKept = false; // اگر در حالت کد style/script نوشته شده و برگشته، تا ذخیرهٔ بعدی خام می‌ماند
-    canvas.innerHTML = sanitizeHtml(initialHtml) || '<p><br></p>';
+    /* محتوای پنل، خودِ مدیر است → بارگذاری و بازگشت از حالت کد «trusted» انجام می‌شود؛
+       به این ترتیب بلوک‌های HTML آزاد (شامل style/script) موقع ویرایش مجدد هم
+       بدون حذف می‌مانند (رفع از دست رفتن کدها در ذخیرهٔ دوباره). */
+    canvas.innerHTML = String(initialHtml || '') || '<p><br></p>';
 
     const syncToSrc = () => { src.value = canvas.innerHTML.replace(/<\/(p|h2|h3|ul|ol|li|blockquote|div|table|tr|figure)>/g, '$&\n'); };
-    const syncFromSrc = () => { canvas.innerHTML = sanitizeHtml(src.value) || '<p><br></p>'; };
+    const syncFromSrc = () => { canvas.innerHTML = String(src.value || '') || '<p><br></p>'; };
 
     function exec(cmd) {
-      if (cmd === 'run') {
-        /* ویجت اجرای سریع: تست زندهٔ کد دلخواه + درج در محتوای همین ویرایشگر */
-        openHtmlRunner({
-          scope: 'متن',
-          code: mode === 'html' ? String(src.value || '') : '',
-          insert: h => api.insertHtml(h),
-        });
-        return;
-      }
       if (cmd === 'html') {
         if (mode === 'wysiwyg') {
           syncToSrc(); canvas.style.display = 'none'; src.style.display = 'block'; mode = 'html';
         } else {
-          const hasCode = /<\s*(script|style)\b/i.test(src.value);
-          if (hasCode && !confirm('در کد شما تگ style یا script هست.\nبازگشت به حالت ویژوال، این کدها را از پیش‌نمایش حذف می‌کند (برای حفظ کامل، در حالت کد ذخیره کنید).\n\nادامه می‌دهید؟')) return;
-          rawKept = hasCode;
+          /* بازگشت به ویژوال، دیگر چیزی را حذف نمی‌کند — کدها همین‌طور حفظ می‌شوند */
           syncFromSrc(); src.style.display = 'none'; canvas.style.display = 'block'; mode = 'wysiwyg';
         }
         $$('.ed-btn', host).forEach(b => { if (b.dataset.cmd === 'html') b.classList.toggle('active', mode === 'html'); });
+        host.dispatchEvent(new Event('input', { bubbles: true }));
         return;
       }
       if (mode === 'html') { syncFromSrc(); src.style.display = 'none'; canvas.style.display = 'block'; mode = 'wysiwyg'; $$('.ed-btn', host).forEach(b => { if (b.dataset.cmd === 'html') b.classList.remove('active'); }); }
@@ -379,6 +326,23 @@
           + '<tbody><tr><td>—</td><td>—</td><td>—</td></tr><tr><td>—</td><td>—</td><td>—</td></tr></tbody></table></div><p><br></p>');
         return;
       }
+      if (cmd === 'htmlblock') {
+        openHtmlWidget(code => {
+          canvas.focus();
+          try {
+            /* درج در انتهای محتوا — پیش‌بینی‌پذیر و همیشه خارج از ساختار قبلی */
+            const range = document.createRange();
+            range.selectNodeContents(canvas);
+            range.collapse(false);
+            const frag = range.createContextualFragment(String(code || ''));
+            range.insertNode(frag);
+          } catch (e) {
+            document.execCommand('insertHTML', false, esc(code));
+          }
+          host.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+        return;
+      }
     }
     host.addEventListener('click', e => {
       const b = e.target.closest('.ed-btn');
@@ -391,32 +355,48 @@
       if (html) document.execCommand('insertHTML', false, sanitizeHtml(html));
       else document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain'));
     });
-    const api = {
-      /* حالت کد → همان متن خام (با style/script) ذخیره می‌شود؛ حالت ویژوال → HTML پاک‌سازی‌شده */
-      getHtml() { return mode === 'html' ? String(src.value || '') : (rawKept && !canvas.innerHTML.trim() ? String(src.value || '') : canvas.innerHTML); },
-      setHtml(h) { if (mode === 'html') src.value = h; else canvas.innerHTML = sanitizeHtml(h) || '<p><br></p>'; },
-      focus() { (mode === 'html' ? src : canvas).focus(); },
-      /* درج کد از ویجت اجرا: کدهای دارای style/script به حالت کد می‌روند تا کامل حفظ شوند */
-      insertHtml(h) {
-        if (/<\s*(script|style)\b/i.test(h)) {
-          if (mode !== 'html') exec('html');
-          src.value = String(src.value || '') + (String(src.value || '').trim() ? '\n' : '') + h;
-          toast('کد در حالت کد ویرایشگر درج شد (حفظ کامل style/script)');
-          return;
-        }
-        if (mode === 'html') {
-          src.value = String(src.value || '') + (String(src.value || '').trim() ? '\n' : '') + h;
-          return;
-        }
-        canvas.focus();
-        const clean = sanitizeHtml(h);
-        if (!document.execCommand('insertHTML', false, clean)) canvas.insertAdjacentHTML('beforeend', clean);
+    return {
+      /* حالت کد → همان متن خام (با style/script)؛ حالت ویژوال → HTML واقعی بدنه
+         (بلوک‌های HTML آزاد هم در همان‌جا حفظ می‌شوند) */
+      getHtml() { return mode === 'html' ? String(src.value || '') : canvas.innerHTML; },
+      setHtml(h) {
+        if (mode === 'html') src.value = h;
+        else canvas.innerHTML = String(h || '') || '<p><br></p>';
+        host.dispatchEvent(new Event('input', { bubbles: true }));
       },
+      focus() { (mode === 'html' ? src : canvas).focus(); },
     };
-    return api;
   }
 
   /* ─── تبدیل HTML ویرایشگر ↔ بلوک‌های ذخیره‌سازی ─── */
+  /* متن درون‌خطی: پس از escape کامل، فقط تگ‌های امنِ فهرست سفید بازسازی می‌شوند
+     (سازگار با نسخهٔ SSR در src/lib/ssr-articles.mjs و نسخهٔ کلاینت data/articles.js).
+     ⚠ رفع باگ: این تابع قبلاً در blocksToHtml استفاده می‌شد اما تعریفش جا افتاده بود؛
+     نتیجه: ویرایش هر مقاله/صفحه‌ای که فهرست، نقل‌قول یا جدول داشت، ویرایشگر را خراب می‌کرد. */
+  function sanitizeAttrsInline(tag, attrs) {
+    const out = [];
+    const re = /([a-zA-Z-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
+    let m;
+    while ((m = re.exec(attrs || ''))) {
+      const name = m[1].toLowerCase();
+      const val = m[2] != null ? m[2] : m[3];
+      if (/^on/i.test(name)) continue;
+      if (tag === 'a' && name === 'href') {
+        if (/^(https?:|\/|#|tel:|mailto:)/i.test(val.trim())) out.push('href="' + val.replace(/"/g, '&quot;') + '"');
+        continue;
+      }
+      if (tag === 'a' && name === 'title') { out.push('title="' + val.replace(/"/g, '&quot;') + '"'); continue; }
+      if (name === 'dir' && (val === 'rtl' || val === 'ltr')) { out.push('dir="' + val + '"'); continue; }
+    }
+    return out.length ? ' ' + out.join(' ') : '';
+  }
+  function rich(s) {
+    let h = esc(s);
+    h = h.replace(/&lt;(\/?)((?:a|b|strong|i|em|u|br|code|mark|small|sub|sup|span)\b)((?:[^&]|&(?!gt;))*)&gt;/gi, (m0, c, t, at) =>
+      '<' + c + t.toLowerCase() + sanitizeAttrsInline(t.toLowerCase(), at.replace(/&quot;/g, '"').replace(/&#39;/g, "'")) + '>');
+    return h;
+  }
+
   const CTA_DIV = (c) => '<div class="prose-cta" data-pre="' + esc(c.pre || '') + '" data-link="' + esc(c.link || '') + '" data-label="' + esc(c.label || '') + '" data-post="' + esc(c.post || '') + '"><p>' + esc(c.pre || '') + ' <a href="' + esc(c.link || '') + '">' + esc(c.label || '') + '</a>' + esc(c.post || '') + '</p></div>';
 
   function htmlToBlocks(html) {
@@ -839,12 +819,15 @@
     const catLabels = { design: 'طراحی و تجربه کاربری', seo: 'سئو', content: 'تولید محتوا', performance: 'عملکرد و سرعت', ai: 'هوش مصنوعی' };
 
     view.innerHTML =
-      '<div class="adm-topbar"><div><h1>' + (isNew ? 'مقاله جدید' : 'ویرایش مقاله') + '</h1><p class="lead">' + (isNew ? 'بنویسید، منتشر کنید — بلافاصله در مجله برای همه و گوگل نمایش داده می‌شود.' : esc(a.title)) + '</p></div>'
-      + '<div class="adm-actions"><button type="button" class="btn btn-ghost" id="art-back">بازگشت</button>'
-      + '<button type="button" class="btn btn-ghost" id="art-preview">پیش‌نمایش زنده</button>'
+      '<div class="adm-topbar"><div><h1>' + (isNew ? 'مقاله جدید' : 'ویرایش مقاله') + '</h1><p class="lead">' + (isNew ? 'بنویسید، منتشر کنید — بلافاصله در مجله برای همه و گوگل نمایش داده می‌شود. پیش‌نمایش زنده در سمت چپ.' : esc(a.title)) + '</p></div>'
+      + '<div class="adm-actions">'
+      + (!isNew ? '<a class="btn btn-ghost" target="_blank" rel="noopener" href="' + (((a.status || 'published') === 'published') ? ('/blog/' + encodeURIComponent(a.slug)) : ('/article?slug=' + encodeURIComponent(a.slug) + '&preview=1')) + '">پیش‌نمایش در سایت</a>' : '')
+      + '<button type="button" class="btn btn-ghost" id="art-back">بازگشت</button>'
       + '<button type="button" class="btn btn-ghost" id="art-save-draft">ذخیره پیش‌نویس</button>'
       + '<button type="button" class="btn btn-ghost" id="art-save">ذخیره</button>'
       + '<button type="button" class="btn btn-gold" id="art-publish">' + (isNew ? 'انتشار مقاله' : 'انتشار') + '</button></div></div>'
+      + '<div class="adm-editor-split">'
+      + '<div class="adm-editor-col">'
       + '<div class="adm-panel">'
       + '<div class="adm-form-grid">'
       + '<div><label class="adm-label" for="f-title">عنوان مقاله *</label><input class="control" id="f-title" value="' + esc(a.title) + '"><button type="button" class="adm-btn" id="f-makeslug" style="margin-top:6px">تولید اسلاگ از عنوان</button></div>'
@@ -873,60 +856,22 @@
       + '<div><label class="adm-label" for="f-seodesc">توضیحات متا</label><input class="control" id="f-seodesc" value="' + esc(a.seoDesc || '') + '"></div>'
       + '</div>'
       + '<div style="margin-top:22px"><label class="adm-label">محتوای مقاله *</label>'
-      + '<p class="adm-hint" style="margin-bottom:10px">مثل وردپرس مستقیم بنویسید (WYSIWYG) یا با دکمهٔ <b dir="ltr">&lt;/&gt;</b> حالت کد HTML را باز کنید؛ دکمهٔ <b>▶ اجرا</b> کد دلخواه را زنده تست می‌کند. برای عکس و فایل، دکمهٔ 🖼 کتابخانه رسانه را باز می‌کند.</p>'
-      + '<div class="adm-edit-wrap" id="art-editwrap">'
-      + '<div><div id="f-editor"></div></div>'
-      + '<div class="adm-preview-pane" id="art-preview-pane">'
-      + '<div class="adm-preview-bar"><b>پیش‌نمایش زنده — دقیقاً مثل صفحهٔ مقاله در سایت</b>'
-      + '<div style="display:flex; gap:6px"><button type="button" class="adm-btn" id="pv-desktop">دسکتاپ</button><button type="button" class="adm-btn" id="pv-mobile">موبایل</button></div></div>'
-      + '<iframe class="adm-preview-frame" id="art-preview-frame" title="پیش‌نمایش زندهٔ مقاله" sandbox="allow-scripts allow-popups"></iframe>'
+      + '<p class="adm-hint" style="margin-bottom:10px">مثل وردپرس مستقیم بنویسید (WYSIWYG)، عکس و جدول درج کنید یا با دکمهٔ <b dir="ltr">HTML</b> کد آزاد با پیش‌نمایش زنده اضافه کنید.</p>'
+      + '<div id="f-editor"></div>'
       + '</div></div>'
-      + '</div></div>';
+      + '</div>'
+      + '<aside class="adm-preview-col" id="art-preview-col">'
+      + '<div class="adm-preview-head"><b>پیش‌نمایش زنده — سمت چپ</b><span>همان چیزی که در سایت منتشر می‌شود</span></div>'
+      + '<div class="adm-site-preview" dir="rtl">'
+      + '<figure class="pv-cover" id="pv-cover-wrap"><img id="pv-cover" alt=""></figure>'
+      + '<div class="pv-meta" id="pv-meta"></div>'
+      + '<h1 class="pv-title" id="pv-title"></h1>'
+      + '<div class="pv-prose" id="pv-body"></div>'
+      + '</div>'
+      + '</aside>'
+      + '</div>';
 
     const editor = makeEditor($('#f-editor'), blocksToHtml(a.blocks));
-
-    /* ─── پیش‌نمایش زندهٔ مقاله — همان استایل‌های صفحهٔ واقعی سایت، در قاب ایزوله ─── */
-    const pvWrap = $('#art-editwrap');
-    const pvFrame = $('#art-preview-frame');
-    const pvVal = sel => { const el = $(sel); return el ? el.value.trim() : ''; };
-    const pvHero = () => {
-      const title = pvVal('#f-title') || 'عنوان مقاله شما';
-      const catEl = $('#f-cat');
-      const catLabel = (catEl && catLabels[catEl.value]) || 'مقاله';
-      const author = pvVal('#f-author') || 'رسول بهادران';
-      const read = fa(parseInt(pvVal('#f-read'), 10) || 5);
-      const date = isNew ? jalaliToday() : (a.date || jalaliToday());
-      const cover = pvVal('#f-cover') || COVER_OPTIONS[0];
-      const coverAlt = pvVal('#f-coveralt') || title;
-      return '<section class="page-hero pv-hero"><div class="pv-wrap">'
-        + '<div class="article-cats"><span class="chip chip-gold">' + esc(catLabel) + '</span></div>'
-        + '<h1 style="font-size:clamp(24px,3.2vw,38px); font-weight:800; margin:10px 0 14px">' + esc(title) + '</h1>'
-        + '<div class="article-meta"><span>' + esc(date) + '</span><span>' + esc(read) + ' دقیقه مطالعه</span><span>' + esc(author) + '</span></div>'
-        + '<figure style="margin:20px 0 0"><img src="' + esc(cover) + '" alt="' + esc(coverAlt) + '" style="width:100%; border-radius:18px; border:1px solid var(--line)"></figure>'
-        + '</div></section>';
-    };
-    const pvAfter = () => {
-      const author = pvVal('#f-author') || 'رسول بهادران';
-      return '<div class="author-box"><img src="/assets/img/founder-rasool.webp" alt="" style="width:56px;height:56px;border-radius:50%;object-fit:cover">'
-        + '<div><b>' + esc(author) + '</b><span>طراح و توسعه‌دهندهٔ وب و متخصص سئو — بنیان‌گذار استودیوی دیجیتال کافه‌دانش در بوشهر</span></div></div>';
-    };
-    const updPreview = () => {
-      pvFrame.srcdoc = previewDoc({ hero: pvHero(), body: editor.getHtml(), after: pvAfter() });
-    };
-    let pvTimer = null;
-    const updPreviewDeb = () => { clearTimeout(pvTimer); pvTimer = setTimeout(updPreview, 500); };
-    $('#art-preview').addEventListener('click', () => {
-      const on = pvWrap.classList.toggle('show-preview');
-      $('#art-preview').textContent = on ? 'بستن پیش‌نمایش' : 'پیش‌نمایش زنده';
-      if (on) updPreview();
-    });
-    $('#pv-desktop').addEventListener('click', () => pvFrame.classList.remove('is-mobile'));
-    $('#pv-mobile').addEventListener('click', () => pvFrame.classList.add('is-mobile'));
-    $('#f-editor').addEventListener('input', updPreviewDeb);
-    ['#f-title', '#f-cover', '#f-coveralt', '#f-cat', '#f-author', '#f-read'].forEach(sel => {
-      const el = $(sel);
-      if (el) el.addEventListener('input', updPreviewDeb);
-    });
 
     const updSlugPreview = () => {
       const s = $('#f-slug').value.trim() || '<slug>';
@@ -941,8 +886,31 @@
         $('#f-cover').value = url;
         $('#cover-preview').src = url;
         if (name && !$('#f-coveralt').value.trim()) $('#f-coveralt').value = name;
+        updatePreview();
       });
     });
+
+    /* ─── پیش‌نمایش زنده (سمت چپ) — همان رندرِ سایت (CDArticles.renderBlocks) ─── */
+    const updatePreview = () => {
+      const titleEl = $('#pv-title');
+      if (!titleEl) return;
+      titleEl.textContent = $('#f-title').value.trim() || 'عنوان مقاله';
+      const catSel = $('#f-cat');
+      $('#pv-meta').textContent = jalaliToday()
+        + ' · ' + ($('#f-read').value || '5') + ' دقیقه مطالعه'
+        + ' · ' + ($('#f-author').value.trim() || 'رسول بهادران')
+        + (catSel ? ' · ' + catSel.options[catSel.selectedIndex].text : '');
+      const cov = $('#f-cover').value.trim();
+      const wrap = $('#pv-cover-wrap');
+      if (cov) { wrap.hidden = false; $('#pv-cover').src = cov; } else { wrap.hidden = true; }
+      try { $('#pv-body').innerHTML = CDArticles.renderBlocks(htmlToBlocks(editor.getHtml())); }
+      catch (e) { /* noop */ }
+    };
+    let pvTimer = null;
+    const updatePreviewLazy = () => { clearTimeout(pvTimer); pvTimer = setTimeout(updatePreview, 300); };
+    $('#f-editor').addEventListener('input', updatePreviewLazy);
+    view.addEventListener('input', e => { if (!e.target.closest('#f-editor')) updatePreviewLazy(); });
+    updatePreview();
 
     $('#f-makeslug').addEventListener('click', () => {
       const s = $('#f-title').value.trim()
@@ -1179,11 +1147,14 @@
 
     const build = (p) => {
       view.innerHTML =
-        '<div class="adm-topbar"><div><h1>' + (isNew ? 'صفحه جدید' : 'ویرایش صفحه') + '</h1><p class="lead">' + (isNew ? 'صفحهٔ متنی جدید بسازید؛ در /p/&lt;slug&gt; منتشر می‌شود.' : esc(p.title)) + '</p></div>'
-        + '<div class="adm-actions"><button type="button" class="btn btn-ghost" id="pg-back">بازگشت</button>'
-        + '<button type="button" class="btn btn-ghost" id="pf-preview">پیش‌نمایش زنده</button>'
+        '<div class="adm-topbar"><div><h1>' + (isNew ? 'صفحه جدید' : 'ویرایش صفحه') + '</h1><p class="lead">' + (isNew ? 'صفحهٔ متنی جدید بسازید؛ در /p/&lt;slug&gt; منتشر می‌شود. پیش‌نمایش زنده در سمت چپ.' : esc(p.title)) + '</p></div>'
+        + '<div class="adm-actions">'
+        + (!isNew ? '<a class="btn btn-ghost" target="_blank" rel="noopener" href="' + esc(pageUrlOf(p)) + '">مشاهده در سایت</a>' : '')
+        + '<button type="button" class="btn btn-ghost" id="pg-back">بازگشت</button>'
         + '<button type="button" class="btn btn-ghost" id="pg-save-draft">ذخیره پیش‌نویس</button>'
         + '<button type="button" class="btn btn-gold" id="pg-publish">' + (isNew ? 'انتشار صفحه' : 'انتشار') + '</button></div></div>'
+        + '<div class="adm-editor-split">'
+        + '<div class="adm-editor-col">'
         + '<div class="adm-panel"><div class="adm-form-grid">'
         + '<div><label class="adm-label" for="pf-title">عنوان صفحه *</label><input class="control" id="pf-title" value="' + esc(p.title) + '"></div>'
         + '<div><label class="adm-label" for="pf-slug">اسلاگ (یک‌تا) *</label><input class="control" id="pf-slug" dir="ltr" style="text-align:left" value="' + esc(p.slug) + '"' + (p.slug === 'terms' || p.slug === 'privacy' ? ' readonly' : '') + '><p class="adm-hint" id="pf-url">آدرس نهایی: <b dir="ltr">https://cdanesh.ir' + esc(pageUrlOf(p)) + '</b></p></div>'
@@ -1193,45 +1164,40 @@
         + '<div><label class="adm-label" for="pf-seodesc">توضیحات متا</label><input class="control" id="pf-seodesc" value="' + esc(p.seoDesc || '') + '"></div>'
         + '</div>'
         + '<div style="margin-top:22px"><label class="adm-label">محتوای صفحه *</label>'
-        + '<div class="adm-edit-wrap" id="pf-editwrap">'
-        + '<div><div id="pf-editor"></div></div>'
-        + '<div class="adm-preview-pane" id="pf-preview-pane">'
-        + '<div class="adm-preview-bar"><b>پیش‌نمایش زنده — مثل صفحهٔ واقعی سایت</b>'
-        + '<div style="display:flex; gap:6px"><button type="button" class="adm-btn" id="pfv-desktop">دسکتاپ</button><button type="button" class="adm-btn" id="pfv-mobile">موبایل</button></div></div>'
-        + '<iframe class="adm-preview-frame" id="pf-preview-frame" title="پیش‌نمایش زندهٔ صفحه" sandbox="allow-scripts allow-popups"></iframe>'
-        + '</div></div></div></div>';
+        + '<p class="adm-hint" style="margin-bottom:10px">با دکمهٔ <b dir="ltr">HTML</b> کد آزاد با پیش‌نمایش زنده اضافه کنید؛ عکس از کتابخانه رسانه.</p>'
+        + '<div id="pf-editor"></div></div></div>'
+        + '</div>'
+        + '<aside class="adm-preview-col">'
+        + '<div class="adm-preview-head"><b>پیش‌نمایش زنده — سمت چپ</b><span>همان چیزی که در سایت منتشر می‌شود</span></div>'
+        + '<div class="adm-site-preview" dir="rtl">'
+        + '<div class="pv-meta" id="pvp-eyebrow" hidden></div>'
+        + '<h1 class="pv-title" id="pvp-title"></h1>'
+        + '<div class="pv-meta" id="pvp-lead" hidden></div>'
+        + '<div class="pv-prose" id="pvp-body"></div>'
+        + '</div>'
+        + '</aside>'
+        + '</div>';
 
       const editor = makeEditor($('#pf-editor'), blocksToHtml(p.blocks || []));
 
-      /* ─── پیش‌نمایش زندهٔ صفحه — همان استایل‌های صفحهٔ واقعی سایت ─── */
-      const pvWrap = $('#pf-editwrap');
-      const pvFrame = $('#pf-preview-frame');
-      const pvVal = sel => { const el = $(sel); return el ? el.value.trim() : ''; };
-      const updPreview = () => {
-        const title = pvVal('#pf-title') || 'عنوان صفحه';
-        const eyebrow = pvVal('#pf-eyebrow') || 'صفحه';
-        const lead = pvVal('#pf-lead');
-        const hero = '<section class="page-hero pv-hero"><div class="pv-wrap">'
-          + '<span class="eyebrow">' + esc(eyebrow) + '</span>'
-          + '<h1 style="font-size:clamp(26px,3.4vw,44px); font-weight:800; margin:10px 0 0">' + esc(title) + '</h1>'
-          + (lead ? '<p class="lead" style="margin-top:14px">' + esc(lead) + '</p>' : '')
-          + '</div></section>';
-        pvFrame.srcdoc = previewDoc({ hero, body: editor.getHtml(), after: '' });
+      /* ─── پیش‌نمایش زنده صفحه (سمت چپ) ─── */
+      const updatePagePreview = () => {
+        const titleEl = $('#pvp-title');
+        if (!titleEl) return;
+        const eyebrow = $('#pf-eyebrow').value.trim();
+        const lead = $('#pf-lead').value.trim();
+        const ebEl = $('#pvp-eyebrow'), ldEl = $('#pvp-lead');
+        ebEl.hidden = !eyebrow; if (eyebrow) ebEl.textContent = eyebrow;
+        ldEl.hidden = !lead; if (lead) ldEl.textContent = lead;
+        titleEl.textContent = $('#pf-title').value.trim() || 'عنوان صفحه';
+        try { $('#pvp-body').innerHTML = CDArticles.renderBlocks(htmlToBlocks(editor.getHtml())); }
+        catch (e) { /* noop */ }
       };
-      let pvTimer = null;
-      const updPreviewDeb = () => { clearTimeout(pvTimer); pvTimer = setTimeout(updPreview, 500); };
-      $('#pf-preview').addEventListener('click', () => {
-        const on = pvWrap.classList.toggle('show-preview');
-        $('#pf-preview').textContent = on ? 'بستن پیش‌نمایش' : 'پیش‌نمایش زنده';
-        if (on) updPreview();
-      });
-      $('#pfv-desktop').addEventListener('click', () => pvFrame.classList.remove('is-mobile'));
-      $('#pfv-mobile').addEventListener('click', () => pvFrame.classList.add('is-mobile'));
-      $('#pf-editor').addEventListener('input', updPreviewDeb);
-      ['#pf-title', '#pf-eyebrow', '#pf-lead'].forEach(sel => {
-        const el = $(sel);
-        if (el) el.addEventListener('input', updPreviewDeb);
-      });
+      let pvTimerP = null;
+      const updatePagePreviewLazy = () => { clearTimeout(pvTimerP); pvTimerP = setTimeout(updatePagePreview, 300); };
+      $('#pf-editor').addEventListener('input', updatePagePreviewLazy);
+      view.addEventListener('input', e => { if (!e.target.closest('#pf-editor')) updatePagePreviewLazy(); });
+      updatePagePreview();
 
       $('#pf-slug').addEventListener('input', () => {
         const s = $('#pf-slug').value.trim();
@@ -1497,25 +1463,31 @@
     badge.hidden = n === 0;
   }
 
-  /* ═════════════ پیام‌ها ═════════════ */
+  /* ═════════════ پیام‌ها ═════════════
+     کلیک روی هر پیام → پنجرهٔ کامل پیام (خواندن راحت + همهٔ دکمه‌های پاسخ و مدیریت)؛
+     باز کردن پیام جدید، خودکار «خوانده‌شده» می‌شود؛ همهٔ تغییرات ابری ذخیره می‌شوند. */
   function renderMessages() {
     swapView();
     const cloud = msgCloud === true;
-    const list = msgList;
     updateMsgBadge();
 
     view.innerHTML = setupBannerHtml()
       + '<div class="adm-topbar"><div><h1>پیام‌ها و درخواست‌ها</h1><p class="lead">پیام‌های ثبت‌شده از فرم‌های تماس و درخواست خدمات'
       + (cloud ? ' — <b style="color:var(--ok)">ذخیره ابری فعال است؛ پیام‌های همه بازدیدکنندگان این‌جا می‌آید.</b>' : ' — حالت دمو: فقط پیام‌های همین مرورگر.') + '</p></div>'
-      + '<div class="adm-actions"><button type="button" class="btn btn-ghost" id="msg-export">خروجی JSON</button></div></div>'
+      + '<div class="adm-actions"><button type="button" class="btn btn-ghost" id="msg-refresh">به‌روزرسانی فهرست</button>'
+      + '<button type="button" class="btn btn-ghost" id="msg-export">خروجی JSON</button></div></div>'
       + '<div class="adm-panel"><div class="adm-tabs" id="msg-tabs">'
-      + '<button type="button" data-f="all" class="active">همه (' + fa(list.length) + ')</button>'
-      + '<button type="button" data-f="new">جدید (' + fa(list.filter(m => (m.status || 'new') === 'new').length) + ')</button>'
+      + '<button type="button" data-f="all" class="active">همه (' + fa(msgList.length) + ')</button>'
+      + '<button type="button" data-f="new">جدید (' + fa(msgList.filter(m => (m.status || 'new') === 'new').length) + ')</button>'
       + '<button type="button" data-f="read">خوانده‌شده</button>'
       + '<button type="button" data-f="replied">پاسخ‌داده‌شده</button>'
-      + '</div><div id="msg-list"></div></div>';
+      + '</div>'
+      + '<p class="adm-hint" style="margin:12px 4px 0">برای باز کردن و خواندن کامل هر پیام، <b>روی خود پیام کلیک کنید</b> — پنجرهٔ کامل پیام با همهٔ دکمه‌های پاسخ باز می‌شود و پیام جدید خودکار «خوانده‌شده» می‌شود.</p>'
+      + '<div id="msg-list" style="margin-top:10px"></div></div>';
 
     const listBox = $('#msg-list');
+    let curFilter = 'all';
+
     /* شمارهٔ ایران → فرمت واتس‌اپ (۰۹… → ۹۸۹…) */
     const waLink = (m) => {
       const d = String(m.phone || '').replace(/[۰-۹]/g, x => '۰۱۲۳۴۵۶۷۸۹'.indexOf(x)).replace(/\D/g, '');
@@ -1524,77 +1496,108 @@
       const txt = 'سلام ' + (m.name || '') + '، در پاسخ به ' + (m.kind === 'request' ? 'درخواست' : 'پیام') + ' شما در کافه‌دانش (کد ' + (m.ref || '') + ')';
       return 'https://wa.me/' + intl + '?text=' + encodeURIComponent(txt);
     };
+    const snippet = m => {
+      const t = ((m.subject ? 'موضوع: ' + m.subject + ' — ' : '') + (m.message || '')).replace(/\s+/g, ' ').trim();
+      return t.length > 110 ? t.slice(0, 110) + '…' : t;
+    };
+
     const draw = f => {
-      const items = list.filter(m => f === 'all' || (m.status || 'new') === f);
-      listBox.innerHTML = items.map(m =>
-        '<div class="adm-check msg-card" data-open="' + esc(m.id) + '" style="flex-wrap:wrap; cursor:pointer" tabindex="0" role="button" aria-label="مشاهدهٔ پیام از ' + esc(m.name || '') + '">'
-        + '<span class="status-pill ' + (m.status === 'new' ? 'st-new' : m.status === 'replied' ? 'st-pub' : 'st-draft') + '">' + (m.status === 'new' ? 'جدید' : m.status === 'replied' ? 'پاسخ داده شد' : 'خوانده‌شده') + '</span>'
-        + '<div style="flex:1; min-width:240px"><b style="font-size:13.5px">' + esc(m.name || '—') + '</b> <span dir="ltr" style="font-size:11.5px; color:var(--faint)">' + esc(m.phone || '') + (m.email ? ' · ' + esc(m.email) : '') + '</span>'
-        + '<br><span style="font-size:12px; color:var(--mut)">' + (m.kind === 'request' ? 'درخواست خدمات' : 'پیام تماس') + (m.package ? ' — پکیج: ' + esc(m.package) : '') + (m.budget ? ' — بودجه: ' + esc(m.budget) : '') + ' — کد ' + esc(m.ref) + ' — ' + faDate(m.date) + '</span>'
-        + '<div class="adm-msg-body msg-clamp" style="margin-top:8px; border-top:1px solid var(--line); padding-top:8px">' + esc((m.subject ? 'موضوع: ' + m.subject + '\n' : '') + (m.message || '')) + '</div>'
-        + '<button type="button" class="msg-open-btn" data-open="' + esc(m.id) + '">مشاهدهٔ کامل پیام و پاسخ ←</button>'
-        + '</div>'
-        + '<div style="display:grid; gap:6px">'
-        + (waLink(m) ? '<a class="adm-btn primary" href="' + esc(waLink(m)) + '" target="_blank" rel="noopener">پاسخ در واتس‌اپ</a>' : '')
-        + (m.email ? '<a class="adm-btn" href="mailto:' + esc(m.email) + '?subject=' + encodeURIComponent('پاسخ به پیام شما — کافه‌دانش ' + (m.ref || '')) + '">پاسخ ایمیلی</a>' : '')
-        + '<a class="adm-btn" href="tel:' + esc(m.phone || '') + '">تماس با فرستنده</a>'
-        + '<button class="adm-btn" data-read="' + esc(m.id) + '">خوانده‌شده</button>'
-        + '<button class="adm-btn" data-reply="' + esc(m.id) + '">پاسخ داده شد</button>'
-        + '<button class="adm-btn danger" data-del="' + esc(m.id) + '">حذف</button>'
-        + '</div></div>').join('')
+      if (f) curFilter = f;
+      const items = msgList.filter(m => curFilter === 'all' || (m.status || 'new') === curFilter);
+      listBox.innerHTML = items.map(m => {
+        const st = m.status || 'new';
+        return '<div class="msg-row adm-check" data-id="' + esc(m.id) + '" data-act="open" role="button" tabindex="0" aria-label="باز کردن پیام">'
+          + '<span class="status-pill ' + (st === 'new' ? 'st-new' : st === 'replied' ? 'st-pub' : 'st-draft') + '">' + (st === 'new' ? 'جدید' : st === 'replied' ? 'پاسخ داده شد' : 'خوانده‌شده') + '</span>'
+          + '<div style="flex:1; min-width:220px">'
+          + '<b style="font-size:13.5px">' + esc(m.name || '—') + '</b> <span dir="ltr" style="font-size:11.5px; color:var(--faint)">' + esc(m.phone || '') + (m.email ? ' · ' + esc(m.email) : '') + '</span>'
+          + '<div class="msg-snippet">' + esc(snippet(m)) + '</div>'
+          + '<span style="font-size:11.5px; color:var(--faint)">' + (m.kind === 'request' ? 'درخواست خدمات' : 'پیام تماس')
+          + (m.package ? ' — پکیج: ' + esc(m.package) : '') + (m.budget ? ' — بودجه: ' + esc(m.budget) : '')
+          + ' — کد ' + esc(m.ref) + ' — ' + faDate(m.date) + '</span>'
+          + '</div>'
+          + '<div class="msg-quick">'
+          + '<button type="button" class="adm-btn primary" data-act="open">باز کردن و خواندن</button>'
+          + '<button type="button" class="adm-btn danger" data-act="del">حذف</button>'
+          + '</div></div>';
+      }).join('')
         || '<div class="adm-empty">پیامی در این وضعیت وجود ندارد. فرم‌های سایت، پیام‌ها را همین‌جا ثبت می‌کنند.</div>';
     };
-
-    /* ─── مشاهدهٔ کامل یک پیام (مودال) ───
-       باز کردن پیامِ جدید، خودکار آن را «خوانده‌شده» ثبت می‌کند (رفتار صندوق ورودی) */
-    const openMsgDetail = (id) => {
-      const m = msgList.find(x => x.id === id);
-      if (!m) return;
-      const row = (k, v, extra) => v ? ('<div class="mrow"><b>' + k + ':</b><span' + (extra || '') + '>' + esc(v) + '</span></div>') : '';
-      const mod = openModal((m.kind === 'request' ? 'درخواست خدمات' : 'پیام تماس') + ' — ' + (m.name || ''),
-        '<div class="msg-detail-grid">'
-        + row('فرستنده', m.name) + row('موبایل', m.phone, ' dir="ltr"') + row('ایمیل', m.email, ' dir="ltr"')
-        + row('کد پیگیری', m.ref, ' dir="ltr"') + row('تاریخ', faDate(m.date))
-        + row('خدمت', m.service) + row('پکیج', m.package) + row('بودجه', m.budget)
-        + '</div>'
-        + (m.subject ? '<p style="margin:0 0 8px"><b style="font-size:13px">موضوع: ' + esc(m.subject) + '</b></p>' : '')
-        + '<div class="msg-full-text">' + esc(m.message || '') + '</div>',
-        (waLink(m) ? '<a class="adm-btn primary" href="' + esc(waLink(m)) + '" target="_blank" rel="noopener">پاسخ در واتس‌اپ</a>' : '')
-        + (m.email ? '<a class="adm-btn" href="mailto:' + esc(m.email) + '?subject=' + encodeURIComponent('پاسخ به پیام شما — کافه‌دانش ' + (m.ref || '')) + '">پاسخ ایمیلی</a>' : '')
-        + (m.phone ? '<a class="adm-btn" href="tel:' + esc(m.phone) + '">تماس صوتی</a>' : '')
-        + (m.status !== 'read' ? '<button class="adm-btn" data-mact="read">خوانده‌شده</button>' : '')
-        + (m.status !== 'replied' ? '<button class="adm-btn" data-mact="replied">پاسخ داده شد</button>' : '')
-        + '<button class="adm-btn danger" data-mact="del">حذف پیام</button>');
-      const pill = $('.status-pill', mod.root);
-      if ((m.status || 'new') === 'new') {
-        const next = msgList.map(x => x.id === m.id ? Object.assign({}, x, { status: 'read' }) : x);
-        saveMessages(next).then(ok => {
-          if (!ok) return;
-          updateMsgBadge();
-          if (pill) { pill.className = 'status-pill st-draft'; pill.textContent = 'خوانده‌شده'; }
-          const rb = $('[data-mact="read"]', mod.root);
-          if (rb) rb.remove();
-          // فهرست پشت مودال هم تازه شود تا نشان‌ها همیشه دقیق باشند
-          renderMessages();
-        });
-      }
-      mod.root.addEventListener('click', async e => {
-        const b = e.target.closest('button[data-mact]');
-        if (!b) return;
-        const act = b.dataset.mact;
-        if (act === 'del' && !confirm('این پیام برای همیشه حذف شود؟')) return;
-        b.disabled = true;
-        const next = act === 'del'
-          ? msgList.filter(x => x.id !== m.id)
-          : msgList.map(x => x.id === m.id ? Object.assign({}, x, { status: act }) : x);
-        const ok = await saveMessages(next);
-        if (ok) { mod.close(); renderMessages(); }
-        else b.disabled = false;
-      });
-    };
-
     draw('all');
     bindSetupRecheck();
+
+    /* تغییر وضعیت/حذف — همیشه روی آخرین فهرست ابری */
+    const setStatus = async (id, status) => {
+      const next = msgList.map(m => m.id === id ? Object.assign({}, m, { status }) : m);
+      const ok = await saveMessages(next);
+      if (ok) { updateMsgBadge(); draw(); }
+      return ok;
+    };
+    const removeById = async id => {
+      const next = msgList.filter(m => m.id !== id);
+      const ok = await saveMessages(next);
+      if (ok) { updateMsgBadge(); draw(); }
+      return ok;
+    };
+
+    /* ─── پنجرهٔ کامل پیام (باز کردن/خواندن/پاسخ/حذف) ─── */
+    const openMessageModal = async (rec) => {
+      let m = rec;
+      // پیام جدید با باز شدن، خودکار خوانده‌شده می‌شود
+      if ((m.status || 'new') === 'new') {
+        m = Object.assign({}, m, { status: 'read' });
+        await setStatus(m.id, 'read');
+      }
+      const wa = waLink(m);
+      let root = $('#cd-msg-root');
+      if (!root) { root = document.createElement('div'); root.id = 'cd-msg-root'; document.body.appendChild(root); }
+      root.innerHTML = '<div class="adm-modal-veil" data-close="1"></div>'
+        + '<div class="adm-modal" role="dialog" aria-label="مشاهدهٔ پیام" dir="rtl">'
+        + '<div class="adm-modal-head"><b>' + (m.kind === 'request' ? 'درخواست خدمات' : 'پیام تماس') + ' — کد ' + esc(m.ref) + '</b>'
+        + '<button type="button" class="adm-btn" data-close="1">بستن ✕</button></div>'
+        + '<div class="adm-modal-body">'
+        + '<div class="msg-grid">'
+        + '<div><small>نام</small><b>' + esc(m.name || '—') + '</b></div>'
+        + '<div><small>موبایل</small><b dir="ltr">' + esc(m.phone || '—') + '</b></div>'
+        + (m.email ? '<div><small>ایمیل</small><b dir="ltr">' + esc(m.email) + '</b></div>' : '')
+        + (m.service ? '<div><small>خدمت</small><b>' + esc(m.service) + '</b></div>' : '')
+        + (m.package ? '<div><small>پکیج</small><b>' + esc(m.package) + '</b></div>' : '')
+        + (m.budget ? '<div><small>بودجه</small><b>' + esc(m.budget) + '</b></div>' : '')
+        + (m.subject ? '<div><small>موضوع</small><b>' + esc(m.subject) + '</b></div>' : '')
+        + '<div><small>تاریخ</small><b>' + faDate(m.date) + '</b></div>'
+        + '</div>'
+        + '<div class="msg-full"><small>متن کامل پیام</small><p>' + esc(m.message || '') + '</p></div>'
+        + '</div>'
+        + '<div class="adm-modal-foot">'
+        + (wa ? '<a class="btn btn-gold btn-sm" href="' + esc(wa) + '" target="_blank" rel="noopener">پاسخ در واتس‌اپ</a>' : '')
+        + (m.phone ? '<a class="btn btn-ghost btn-sm" href="tel:' + esc(m.phone) + '">تماس با فرستنده</a>' : '')
+        + (m.email ? '<a class="btn btn-ghost btn-sm" href="mailto:' + esc(m.email) + '?subject=' + encodeURIComponent('پاسخ به پیام ' + (m.ref || '') + ' — کافه‌دانش') + '">پاسخ با ایمیل</a>' : '')
+        + '<span style="flex:1"></span>'
+        + '<button type="button" class="adm-btn" data-act="copy">کپی متن پیام</button>'
+        + '<button type="button" class="adm-btn" data-act="unread">علامت‌گذاری «جدید»</button>'
+        + '<button type="button" class="adm-btn primary" data-act="replied">پاسخ داده شد</button>'
+        + '<button type="button" class="adm-btn danger" data-act="del">حذف پیام</button>'
+        + '</div></div>';
+      root.style.display = 'block';
+      document.body.classList.add('adm-modal-open');
+      const close = () => { root.style.display = 'none'; document.body.classList.remove('adm-modal-open'); };
+      root.addEventListener('click', async e => {
+        if (e.target.closest('[data-close]')) { close(); return; }
+        const b = e.target.closest('button[data-act]');
+        if (!b) return;
+        const act = b.dataset.act;
+        if (act === 'copy') {
+          try { await navigator.clipboard.writeText(m.message || ''); toast('متن پیام کپی شد'); }
+          catch (err) { prompt('متن پیام:', m.message || ''); }
+        }
+        if (act === 'unread') { const ok = await setStatus(m.id, 'new'); if (ok) { toast('وضعیت: جدید'); close(); } }
+        if (act === 'replied') { const ok = await setStatus(m.id, 'replied'); if (ok) { toast('وضعیت: پاسخ داده شد'); close(); } }
+        if (act === 'del') {
+          if (!confirm('این پیام برای همیشه حذف شود؟')) return;
+          const ok = await removeById(m.id);
+          if (ok) { toast('پیام حذف شد'); close(); }
+        }
+      });
+    };
 
     $('#msg-tabs').addEventListener('click', e => {
       const b = e.target.closest('button[data-f]');
@@ -1602,33 +1605,35 @@
       $$('#msg-tabs button').forEach(x => x.classList.toggle('active', x === b));
       draw(b.dataset.f);
     });
-    listBox.addEventListener('click', async e => {
-      /* کلیک روی کارت یا دکمهٔ «مشاهدهٔ کامل» → مودال پیام؛
-         دکمه‌های عملیاتی (خوانده/پاسخ/حذف) همان مسیر قبلی خودشان */
-      const actionBtn = e.target.closest('button[data-read],button[data-reply],button[data-del]');
-      if (!actionBtn) {
-        const openT = e.target.closest('[data-open]');
-        if (openT && !e.target.closest('a')) { openMsgDetail(openT.dataset.open); }
+    listBox.addEventListener('click', e => {
+      // دکمه‌ها
+      const b = e.target.closest('button[data-act]');
+      if (b) {
+        const row = b.closest('.msg-row');
+        const m = row ? msgList.find(x => x.id === row.dataset.id) : null;
+        if (!m) return;
+        if (b.dataset.act === 'open') openMessageModal(m);
+        if (b.dataset.act === 'del') {
+          if (!confirm('این پیام حذف شود؟')) return;
+          b.disabled = true;
+          removeById(m.id).then(ok => { if (!ok) b.disabled = false; });
+        }
         return;
       }
-      const b = actionBtn;
-      const id = b.dataset.read || b.dataset.reply || b.dataset.del;
-      if (!id) return;
-      if (b.dataset.del && !confirm('این پیام حذف شود؟')) return;
-      b.disabled = true;
-      const next = list.map(m => {
-        if (m.id !== id) return m;
-        if (b.dataset.read) return Object.assign({}, m, { status: 'read' });
-        if (b.dataset.reply) return Object.assign({}, m, { status: 'replied' });
-        return null; // حذف
-      }).filter(Boolean);
-      const ok = await saveMessages(next);
-      if (ok) renderMessages(); else b.disabled = false;
+      if (e.target.closest('a')) return; // لینک‌ها (واتس‌اپ/تماس) به‌صورت عادی
+      // کلیک روی خود پیام → باز کردن کامل
+      const row = e.target.closest('.msg-row');
+      if (row) {
+        const m = msgList.find(x => x.id === row.dataset.id);
+        if (m) openMessageModal(m);
+      }
     });
-    listBox.addEventListener('keydown', e => {
-      if (e.key !== 'Enter' && e.key !== ' ') return;
-      const t = e.target.closest('[data-open]');
-      if (t && !e.target.closest('button,a')) { e.preventDefault(); openMsgDetail(t.dataset.open); }
+    $('#msg-refresh').addEventListener('click', async () => {
+      const btn = $('#msg-refresh');
+      btn.disabled = true; btn.textContent = 'در حال دریافت…';
+      await loadMessages();
+      updateMsgBadge();
+      renderMessages();
     });
     $('#msg-export').addEventListener('click', () => {
       const blob = new Blob([JSON.stringify(msgList, null, 2)], { type: 'application/json' });
@@ -1638,6 +1643,17 @@
       a.click();
       URL.revokeObjectURL(a.href);
     });
+  }
+
+  /* ═════════════ کتابخانه رسانه (نمای مستقل) ═════════════ */
+  function renderMedia() {
+    swapView();
+    view.innerHTML = setupBannerHtml()
+      + '<div class="adm-topbar"><div><h1>کتابخانه رسانه</h1><p class="lead">آپلود و مدیریت تصاویر و فایل‌ها روی فضای ابری — برای تصویر شاخص، داخل متن مقالات و صفحات</p></div>'
+      + '<div class="adm-actions"><button type="button" class="btn btn-gold" id="media-open">باز کردن کتابخانه رسانه</button></div></div>'
+      + '<div class="adm-panel"><p class="adm-hint">در پنجرهٔ کتابخانه می‌توانید فایل را بکشید و رها کنید یا از دستگاه انتخاب کنید؛ تصاویر بزرگ خودکار به WebP فشرده می‌شوند تا سایت سریع بماند (سقف هر فایل ۴ مگابایت). برای هر فایل: کپی لینک یا حذف. از داخل ویرایشگر مقاله/صفحه هم همین کتابخانه با دکمهٔ 🖼 باز می‌شود.</p></div>';
+    $('#media-open').addEventListener('click', () => openMedia({}));
+    bindSetupRecheck();
   }
 
   /* ═════════════ درگاه پرداخت ═════════════ */
@@ -1776,8 +1792,13 @@
       + '<div class="adm-check"><span class="adm-audit-ok">●</span><div><b>Article</b><span>صفحه مقاله — به‌صورت پویا</span></div></div>'
       + '<div class="adm-check"><span class="adm-audit-ok">●</span><div><b>BreadcrumbList</b><span>مسیر صفحات داخلی</span></div></div>'
       + '<p class="adm-hint">نمایش FAQ یا امتیازهای ویژه در نتایج گوگل تضمینی نیست؛ این داده‌ها فقط ساختار واقعی محتوا را برای موتور جست‌وجو روشن می‌کنند.</p></div>'
-      + '<div class="adm-panel" style="margin-top:18px"><div class="adm-panel-head"><b>نام برند در گوگل</b></div>'
-      + '<p class="adm-hint">اگر گوگل هنوز توضیح قدیمی (مثل «پلتفرم آموزشی») را نشان می‌دهد، این کارها را انجام دهید:<br>۱) در <b>Google Search Console</b> → بخش URL Inspection آدرس <b dir="ltr">https://cdanesh.ir/</b> را بدهید و «Request Indexing» بزنید.<br>۲) همان کار را برای /about و /services انجام دهید.<br>۳) اگر پروفایل کسب‌وکار گوگل (Google Business) دارید، نام و توضیح آن‌جا را هم هماهنگ کنید.<br>۴) چند روز تا چند هفته صبر کنید — گوگل به‌تدریج توضیح جدید را جایگزین می‌کند.</p></div>';
+      + '<div class="adm-panel" style="margin-top:18px"><div class="adm-panel-head"><b>نام برند در گوگل — «کافه‌دانش»</b><span class="chip">متادیتای سایت درست است</span></div>'
+      + '<p class="adm-hint">نام برند در همهٔ متادیتاهای سایت صحیح و یکدست است: <b>«کافه‌دانش»</b> — در title همهٔ صفحات، <b dir="ltr">og:site_name</b>، دادهٔ ساختاریافتهٔ Organization و WebSite و نقشهٔ سایت. اگر گوگل هنوز نام قدیمی یا نادرست (مثل «کافه ئانش» یا توضیح قدیمی) نشان می‌دهد، این دادهٔ قدیمیِ ایندکس گوگل است، نه سایت:<br>'
+      + '۱) در <b>Google Search Console</b> → بخش URL Inspection آدرس <b dir="ltr">https://cdanesh.ir/</b> را بدهید و «Request Indexing» بزنید.<br>'
+      + '۲) همین کار را برای /about ، /services و /blog انجام دهید.<br>'
+      + '۳) در بخش Sitemaps نقشهٔ سایت <b dir="ltr">https://cdanesh.ir/sitemap.xml</b> را دوباره ثبت کنید.<br>'
+      + '۴) اگر پروفایل کسب‌وکار گوگل (Google Business) دارید، نام و توضیح آن‌جا را هم دقیقاً «کافه‌دانش» کنید.<br>'
+      + '۵) چند روز تا چند هفته صبر کنید — گوگل به‌تدریج توضیح و نام جدید را جایگزین می‌کند. برای دیدن وضعیت ایندکس فعلی، در گوگل <b dir="ltr">site:cdanesh.ir</b> را جست‌وجو کنید.</p></div>';
   }
 
   /* ═════════════ عملکرد و امنیت ═════════════ */
@@ -1861,6 +1882,9 @@
       + '<li>در داشبورد ورسل → پروژهٔ کافه‌دانش → <b>Settings → Environment Variables</b> دو متغیر بساز: <b dir="ltr">TELEGRAM_BOT_TOKEN</b> و <b dir="ltr">TELEGRAM_CHAT_ID</b> و مقادیر را وارد کن.</li>'
       + '<li>در تب Deployments یک Redeploy بزن. تمام — از این به بعد پیام‌ها همان لحظه به تلگرامت می‌رسد.</li>'
       + '</ol></div>'
+      + (isCloud() ? '<div class="adm-panel" style="margin-top:18px"><div class="adm-panel-head"><b>پشتیبان‌گیری داده‌های ابری</b><span class="chip">پیشنهادشده</span></div>'
+        + '<p class="adm-hint" style="margin-bottom:12px">کل مقالات، پیام‌ها، صفحات و فهرست رسانه از فضای ابری دریافت و به‌صورت یک فایل JSON دانلود می‌شود. این فایل را هر از گاهی در جای امن نگه دارید.</p>'
+        + '<button type="button" class="btn btn-ghost btn-sm" id="c-export">خروجی کامل داده‌های ابری (JSON)</button></div>' : '')
       + '<div class="adm-panel" style="margin-top:18px"><div class="adm-panel-head"><b>داده‌های نسخه آزمایشی</b><span class="chip chip-gold">در همین مرورگر</span></div>'
       + '<p class="adm-hint" style="margin-bottom:14px">مقالات ساخته‌شده در پنل، ویرایش‌ها، پیام‌ها و تنظیمات در حافظه مرورگر (localStorage) ذخیره می‌شوند. برای انتقال به دستگاه دیگر از خروجی استفاده کنید.</p>'
       + '<div class="adm-actions"><button type="button" class="btn btn-ghost btn-sm" id="d-export">خروجی همه داده‌ها</button>'
@@ -1908,6 +1932,25 @@
       CDStore.saveSettings({ adminPass: nw });
       $('#p-old').value = $('#p-new').value = '';
       toast('رمز مدیر تغییر کرد');
+    });
+    const cExport = $('#c-export');
+    if (cExport) cExport.addEventListener('click', async () => {
+      cExport.disabled = true; cExport.textContent = 'در حال دریافت از ابر…';
+      const grab = async (u, k) => {
+        try { const r = await fetch(u, { headers: { Accept: 'application/json' } }); const d = await r.json().catch(() => ({})); return (d && d.ok && d[k]) ? d[k] : []; }
+        catch (e) { return []; }
+      };
+      const [arts, msgs, pgs, media] = await Promise.all([
+        grab('api/articles', 'articles'), grab('api/messages', 'messages'), grab('api/pages', 'pages'), grab('api/media', 'media'),
+      ]);
+      const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), articles: arts, messages: msgs, pages: pgs, media }, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'cdanesh-cloud-backup.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      cExport.disabled = false; cExport.textContent = 'خروجی کامل داده‌های ابری (JSON)';
+      toast('پشتیبان کامل دانلود شد');
     });
     $('#d-export').addEventListener('click', () => {
       const data = {};
@@ -2103,10 +2146,6 @@
 
   /* ═════════════ مسیریابی ═════════════ */
   function route() {
-    // مودال‌های باز (مشاهدهٔ پیام / اجرای کد) و کتابخانه رسانه با تغییر مسیر بسته می‌شوند
-    $$('.cd-modal-root').forEach(el => el.remove());
-    const mediaRoot = $('#cd-media-root');
-    if (mediaRoot) mediaRoot.style.display = 'none';
     const h = (location.hash || '#/dashboard').replace(/^#\//, '');
     const [mod, ...rest] = h.split('/');
     $$('.admin-side nav a').forEach(a => a.classList.toggle('active', a.dataset.nav === (mod || 'dashboard')));
@@ -2117,6 +2156,7 @@
     if (mod === 'pages' && rest[0] === 'edit') return renderPageEditor(decodeURIComponent(rest[1] || ''));
     switch (mod) {
       case 'articles': return renderArticles();
+      case 'media': return renderMedia();
       case 'pages': return renderPages();
       case 'portfolio': return renderPortfolio();
       case 'faq': return renderFaq();

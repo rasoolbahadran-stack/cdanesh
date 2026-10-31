@@ -3,12 +3,10 @@
 // صفحات ساخته‌شده و ویرایش‌شده از بخش «صفحات» پنل مدیریت؛
 // prerender=false → در هر درخواست سمت سرور از دادهٔ ابری رندر می‌شود
 // (متن کامل در HTML واقعی — قابل خزش برای گوگل).
-// صفحهٔ پیش‌نویس برای بازدیدکنندهٔ عادی ۴۰۴ می‌شود، اما با نشست معتبرِ
-// مدیر (همان کوکی پنل) به‌صورت پیش‌نمایش noindex رندر می‌شود.
 export const prerender = false;
 
 import ProsePage from '../../components/ProsePage.astro';
-import { getPublicPages, getAllPages, pageBySlug, RESERVED_SLUGS } from '../../lib/ssr-pages.mjs';
+import { getPublicPages, pageBySlug, getAllPages, RESERVED_SLUGS } from '../../lib/ssr-pages.mjs';
 import { isAuthedAsync } from '../../../server/lib/admin-auth.mjs';
 
 const { slug } = Astro.params;
@@ -18,24 +16,27 @@ if (!key || RESERVED_SLUGS.has(key)) {
   return Astro.redirect('/404');
 }
 
-/* نشست مدیر از کوکی پنل — شئ سازگار با getCookie هندلرهای کلاسیک */
-const nodeReq = { headers: { cookie: Astro.request.headers.get('cookie') || '' } };
-let adminOk = false;
-try { adminOk = await isAuthedAsync(nodeReq); } catch { adminOk = false; }
+const pages = await getPublicPages();
+let page = pageBySlug(pages, key);
+let isDraftPreview = false;
 
-let page = pageBySlug(await getPublicPages(), key);
-let robots = '';
-
-if (!page && adminOk) {
-  // پیش‌نویس (یا انتشار لغوشده) — فقط برای مدیر، با noindex
-  page = pageBySlug(await getAllPages(), key) || null;
-  if (page) robots = 'noindex, nofollow';
+if (!page) {
+  /* پیش‌نویس یا ناموجود؟ فقط مدیرِ واردشده می‌تواند پیش‌نمایش پیش‌نویس را ببیند
+     (noindex — برای گوگل همان رفتار قبلی: 404/ریدایرکت). */
+  try {
+    const authed = await isAuthedAsync({ headers: { cookie: Astro.request.headers.get('cookie') || '' } });
+    if (authed) {
+      const all = await getAllPages();
+      const draft = pageBySlug(all, key);
+      if (draft) { page = draft; isDraftPreview = true; }
+    }
+  } catch (e) { /* بدون نشست معتبر → مثل قبل 404 */ }
 }
 
 if (!page) {
-  // صفحهٔ عمومی نیست یا وجود ندارد → صفحهٔ ۴۰۴
+  // صفحهٔ عمومی نیست (پیش‌نویس) یا وجود ندارد → صفحهٔ ۴۰۴
   return Astro.redirect('/404');
 }
 ---
 
-<ProsePage page={page} canonical={'https://cdanesh.ir/p/' + page.slug} robots={robots} />
+<ProsePage page={page} canonical={'https://cdanesh.ir/p/' + page.slug} draftPreview={isDraftPreview} />

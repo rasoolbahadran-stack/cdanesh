@@ -69,7 +69,11 @@ body {
     radial-gradient(860px 460px at 88% -8%, rgba(227, 185, 83, .07), transparent 62%);
   background-repeat: no-repeat;
   text-align: right;
+  /* overflow-x: clip (به‌جای hidden) → position:sticky سایدبار مقاله کار می‌کند؛
+     «hidden» روی body اسکرول‌کانتینر می‌سازد و sticky را می‌شکند. مقدار دوم فقط
+     در مرورگرهای مدرن اعمال می‌شود و در قدیمی‌ها hidden می‌ماند. */
   overflow-x: hidden;
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
 }
 

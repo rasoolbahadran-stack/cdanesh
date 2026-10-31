@@ -295,92 +295,97 @@ body.adm-light select.control option:hover { background: #f3edff; color: #4c39a8
   .ed-toolbar { position: static; }
 }
 
-/* ═════════════ مودال عمومی پنل (مشاهدهٔ پیام / اجرای کد HTML) ═════════════ */
-.cd-modal-veil {
-  position: fixed; inset: 0; background: rgba(20, 14, 45, .5);
+/* ═════════════ مودال عمومی پنل (مشاهدهٔ پیام / ابزار HTML) ═════════════ */
+body.adm-modal-open { overflow: hidden; }
+.adm-modal-veil {
+  position: fixed; inset: 0; background: rgba(20, 14, 45, .45);
   backdrop-filter: blur(4px); z-index: 400;
 }
-.cd-modal {
+.adm-modal {
   position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  width: min(760px, 94vw); max-height: 90vh;
+  width: min(720px, 94vw); max-height: 90vh;
   background: #ffffff; border: 1px solid var(--line); border-radius: 22px;
-  box-shadow: 0 40px 90px -30px rgba(30, 20, 70, .55);
+  box-shadow: 0 40px 90px -30px rgba(30, 20, 70, .5);
   display: flex; flex-direction: column; z-index: 401; overflow: hidden;
 }
-.cd-modal-head {
-  display: flex; align-items: center; gap: 12px;
-  padding: 15px 20px; border-bottom: 1px solid var(--line);
+.adm-modal-lg { width: min(1060px, 96vw); }
+.adm-modal-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  padding: 16px 20px; border-bottom: 1px solid var(--line);
 }
-.cd-modal-head b { font-size: 15px; color: #241f3d; flex: 1; }
-.cd-modal-body { padding: 18px 20px; overflow-y: auto; font-size: 13.5px; }
-.cd-modal-foot {
-  display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end;
-  padding: 13px 20px; border-top: 1px solid var(--line); background: #fbfaff;
+.adm-modal-head b { font-size: 15px; color: #241f3d; }
+.adm-modal-body { padding: 18px 20px; overflow-y: auto; }
+.adm-modal-split2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.adm-modal-foot {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+  padding: 14px 20px; border-top: 1px solid var(--line); background: #faf9fd;
 }
 
-/* ─── مشاهدهٔ کامل پیام ─── */
-.msg-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; margin-bottom: 16px; }
-.msg-detail-grid .mrow { display: flex; gap: 8px; align-items: baseline; min-width: 0; }
-.msg-detail-grid .mrow > b { flex: none; font-size: 12px; color: var(--faint); font-weight: 700; }
-.msg-detail-grid .mrow > span { font-size: 13px; color: var(--txt); word-break: break-word; min-width: 0; }
-.msg-full-text {
-  white-space: pre-wrap; font-size: 14px; line-height: 2.15; color: #2c2748;
-  background: #f8f7fc; border: 1px solid var(--line); border-radius: 14px;
-  padding: 16px 18px; margin-top: 4px;
-}
-.adm-msg-body { white-space: pre-wrap; }
+/* ─── مشاهدهٔ پیام ─── */
+.msg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.msg-grid > div { background: #fbfaff; border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; }
+.msg-grid small { display: block; font-size: 10.5px; color: var(--faint); margin-bottom: 3px; }
+.msg-grid b { font-size: 13.5px; color: var(--txt); word-break: break-word; }
+.msg-full { background: #fbfaff; border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+.msg-full small { display: block; font-size: 10.5px; color: var(--faint); margin-bottom: 8px; }
+.msg-full p { font-size: 15px; line-height: 2.15; color: var(--txt); white-space: pre-wrap; word-break: break-word; margin: 0; }
 
-/* بستن متن کوتاه در کارت پیام — متن کامل در مودال باز می‌شود */
-.msg-clamp {
-  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
-  overflow: hidden; cursor: pointer;
+/* ─── ردیف پیام در فهرست ─── */
+.msg-row { cursor: pointer; transition: background .15s; }
+.msg-row:hover { background: #faf9fe; }
+.msg-row:focus-visible { outline: 2px solid #8a6cf0; outline-offset: 2px; }
+.msg-snippet {
+  margin-top: 6px; font-size: 13px; color: var(--mut); line-height: 1.95;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-.msg-open-btn {
-  background: none; border: none; padding: 2px 0; margin-top: 4px;
-  color: #5b3fd1; font-size: 11.5px; font-weight: 700; cursor: pointer;
-}
-.msg-open-btn:hover { text-decoration: underline; }
+.msg-quick { display: grid; gap: 6px; }
+.msg-quick .adm-btn { white-space: nowrap; }
+@media (max-width: 760px) { .msg-quick { grid-auto-flow: column; } .adm-modal-split2 { grid-template-columns: 1fr; } }
 
-/* ─── ویجت اجرای کد HTML ─── */
-.html-run-wrap { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
-.html-run-wrap textarea {
-  width: 100%; min-height: 190px; max-height: 34vh; resize: vertical;
-  font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; line-height: 1.9;
-  direction: ltr; text-align: left; border-radius: 12px;
+/* ═════════════ ویرایشگر دو ستونه: ویرایش (راست) + پیش‌نمایش زنده (چپ) ═════════════ */
+.adm-editor-split {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px; align-items: start;
 }
-.html-run-frame {
-  width: 100%; height: 320px; border: 1px solid var(--line); border-radius: 14px;
-  background: #ffffff;
+.adm-preview-col { position: sticky; top: 16px; }
+.adm-preview-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  flex-wrap: wrap; margin-bottom: 10px; padding: 0 4px;
 }
-.html-run-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.html-run-bar label { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--mut); cursor: pointer; }
-.html-run-hint { font-size: 11.5px; color: var(--faint); line-height: 1.9; }
-
-/* ═════════════ پیش‌نمایش زندهٔ مقاله/صفحه — کنار (سمت چپِ) ویرایشگر ═════════════ */
-.adm-edit-wrap { display: block; }
-.adm-edit-wrap.show-preview { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
-.adm-preview-pane { display: none; }
-.adm-edit-wrap.show-preview .adm-preview-pane {
-  display: flex; flex-direction: column; gap: 8px;
-  position: sticky; top: 14px;
+.adm-preview-head b { font-size: 13.5px; color: #4c39a8; }
+.adm-preview-head span { font-size: 11px; color: var(--faint); }
+/* پیش‌نمایش با همان حال‌وهوای تیرهٔ سایت رندر می‌شود */
+.adm-site-preview {
+  background: #17171f;
+  background-image: radial-gradient(700px 380px at 12% -6%, rgba(124, 77, 255, .16), transparent 62%);
+  color: #f4f3ef; border: 1px solid var(--line); border-radius: 18px;
+  padding: 26px 24px 30px; max-height: calc(100vh - 190px); overflow-y: auto;
+  font-family: 'Vazirmatn', Tahoma, sans-serif;
 }
-.adm-preview-bar {
-  display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: space-between;
-}
-.adm-preview-bar b { font-size: 12.5px; color: var(--mut); }
-.adm-preview-frame {
-  width: 100%; height: calc(100vh - 150px); min-height: 460px;
-  border: 1px solid var(--line); border-radius: 16px; background: #2e2455;
-  transition: width .25s ease;
-}
-.adm-preview-frame.is-mobile { width: 400px; max-width: 100%; margin-inline: auto; }
-
-@media (max-width: 1100px) {
-  .adm-edit-wrap.show-preview { grid-template-columns: 1fr; }
-  .adm-edit-wrap.show-preview .adm-preview-pane { position: static; }
-  .adm-preview-frame { height: 70vh; }
-}
-@media (max-width: 700px) {
-  .msg-detail-grid { grid-template-columns: 1fr; }
-  .cd-modal { width: 96vw; }
+.pv-cover { margin: 0 0 16px; }
+.pv-cover img { width: 100%; border-radius: 14px; border: 1px solid rgba(255,255,255,.1); }
+.pv-cover[hidden] { display: none; }
+.pv-meta { font-size: 11.5px; color: #83828b; border-bottom: 1px solid rgba(255,255,255,.08); padding-bottom: 13px; margin-bottom: 14px; }
+.pv-title { font-size: 21px; font-weight: 800; color: #ffffff; line-height: 1.7; margin: 0 0 16px; }
+.pv-prose { font-size: 14px; line-height: 2.15; color: #b3b1b9; }
+.pv-prose > * + * { margin-top: 14px; }
+.pv-prose h2 { font-size: 18.5px; font-weight: 800; color: #f4f3ef; margin-top: 26px; }
+.pv-prose h3 { font-size: 15.5px; font-weight: 700; color: #f4f3ef; margin-top: 20px; }
+.pv-prose strong { color: #f4f3ef; }
+.pv-prose ul, .pv-prose ol { padding-inline-start: 22px; display: flex; flex-direction: column; gap: 8px; }
+.pv-prose ul { list-style: disc; } .pv-prose ol { list-style: decimal; }
+.pv-prose li::marker { color: #e3b953; }
+.pv-prose blockquote { border-inline-start: 3px solid #e3b953; background: rgba(227,185,83,.1); border-radius: 0 12px 12px 0; padding: 12px 16px; color: #f4f3ef; }
+.pv-prose a { color: #f2d488; text-decoration: underline; text-underline-offset: 3px; }
+.pv-prose img { max-width: 100%; height: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,.1); }
+.pv-prose table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.pv-prose th, .pv-prose td { border: 1px solid rgba(255,255,255,.1); padding: 8px 10px; text-align: right; }
+.pv-prose th { background: rgba(255,255,255,.05); color: #f4f3ef; }
+.pv-prose .table-wrap { overflow-x: auto; }
+.pv-prose figure { margin: 0; }
+.pv-prose figcaption { font-size: 11.5px; color: #83828b; margin-top: 6px; text-align: center; }
+@media (max-width: 1150px) {
+  .adm-editor-split { grid-template-columns: 1fr; }
+  .adm-preview-col { position: static; }
+  .adm-site-preview { max-height: 60vh; }
 }
