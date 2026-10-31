@@ -6,7 +6,7 @@
    اعتبارنامه: اول users.json در فضای ابری (قابل تغییر از پنل)، بعد ADMIN_PASSWORD در ورسل. */
 import {
   signToken, isAuthedAsync, sessionCookie, clearCookie,
-  verifyLogin, changeCredentials,
+  verifyLogin, changeCredentials, currentPv,
   failCount, registerFail, clearFails, MAX_FAILS, json, readJsonBody, clientIp,
 } from '../lib/admin-auth.mjs';
 
@@ -87,7 +87,24 @@ export default async function handler(req, res) {
 
     if (v.ok) {
       clearFails(ip);
-      res.setHeader('Set-Cookie', sessionCookie(signToken(MAX_AGE_SEC, Date.now(), v.pv), MAX_AGE_SEC));
+      /* نسخهٔ معتبر رمز (pv) مستقیماً از ابر خوانده می‌شود. اگر خواندن ابر موقتاً
+         خراب باشد، «توکن pv=0» صادر نمی‌کنیم — چنین توکنی بعد از هر ذخیره‌ای
+         UNAUTH می‌خورد و کاربر در حلقهٔ ورود↔خروج گیر می‌کند. به‌جایش چند تلاش
+         کوتاه می‌کنیم و اگر ابر در دسترس نشد، خطای روشنِ قابل‌تلاش می‌دهیم. */
+      let pv = await currentPv();
+      if (pv === null) {
+        for (let i = 0; i < 2 && pv === null; i++) {
+          await new Promise(r => setTimeout(r, 700));
+          pv = await currentPv();
+        }
+        if (pv === null) {
+          return json(res, 503, {
+            ok: false, error: 'BLOB_DEGRADED',
+            message: 'فضای ابری موقتاً در دسترس نیست و ورود انجام نشد. چند لحظه بعد دوباره تلاش کنید.',
+          });
+        }
+      }
+      res.setHeader('Set-Cookie', sessionCookie(signToken(MAX_AGE_SEC, Date.now(), pv), MAX_AGE_SEC));
       return json(res, 200, { ok: true, mode: 'cloud', user: v.user || 'admin' });
     }
 

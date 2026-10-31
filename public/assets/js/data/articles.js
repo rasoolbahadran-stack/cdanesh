@@ -38,29 +38,49 @@
     return merged.sort((x, y) => (y.sort || 0) - (x.sort || 0));
   }
 
-  /* ─── دریافت وضعیت ابری (بدون قطع‌کردن صفحه در خطا) ─── */
+  /* ─── دریافت وضعیت ابری (بدون قطع‌کردن صفحه در خطا) ───
+     سه تلاش خودکار: شروع سرد تابع سرور یا کندی لحظه‌ای، همین‌جا جبران می‌شود.
+     اگر همه شکست بخورد، وضعیت «محلی» می‌شود اما lastError برای پیام روشن پنل
+     نگه داشته می‌شود تا هیچ شکستی بی‌صدا نماند. */
+  let lastErr = null; // {status, message} — آخرین خطای دریافت فهرست ابری
+
   async function loadRemote() {
-    try {
-      const r = await fetch('api/articles', { headers: { Accept: 'application/json' } });
-      const ct = r.headers.get('content-type') || '';
-      if (!ct.includes('application/json')) { mode = 'local'; return null; } // سرور/API نیست
-      const d = await r.json().catch(() => ({}));
-      if (r.ok && d && d.ok && Array.isArray(d.articles)) {
-        const prev = all();
-        cloudList = d.articles;
-        mode = 'cloud';
-        notify(prev, d.articles);
-        return d.articles;
-      }
-      if (r.status === 404 && d && d.error === 'EMPTY') {
-        // API هست ولی هنوز چیزی ذخیره نشده: حالت ابری با بذر دادهٔ پروژه
-        mode = 'cloud';
-        subs.forEach(f => { try { f(null); } catch (e) { /* noop */ } }); // فقط برای به‌روزرسانی نشان/نماها
+    for (let attempt = 0; attempt < 3; attempt++) {
+      lastErr = null;
+      try {
+        const r = await fetch('api/articles', { headers: { Accept: 'application/json' } });
+        const ct = r.headers.get('content-type') || '';
+        if (!ct.includes('application/json')) { // پاسخ غیر JSON (خطای لایهٔ وب)
+          lastErr = { status: r.status, message: 'پاسخ نامعتبر سرور (' + r.status + ')' };
+          if (attempt < 2) { await new Promise(res => setTimeout(res, 900)); continue; }
+          mode = 'local'; return null;
+        }
+        const d = await r.json().catch(() => ({}));
+        if (r.ok && d && d.ok && Array.isArray(d.articles)) {
+          const prev = all();
+          cloudList = d.articles;
+          mode = 'cloud';
+          notify(prev, d.articles);
+          return d.articles;
+        }
+        if (r.status === 404 && d && d.error === 'EMPTY') {
+          // API هست ولی هنوز چیزی ذخیره نشده: حالت ابری با بذر دادهٔ پروژه
+          mode = 'cloud';
+          subs.forEach(f => { try { f(null); } catch (e) { /* noop */ } }); // فقط برای به‌روزرسانی نشان/نماها
+          return null;
+        }
+        lastErr = { status: r.status, message: (d && (d.message || d.error)) || ('HTTP ' + r.status) };
+        if (r.status >= 500 && attempt < 2) { await new Promise(res => setTimeout(res, 900)); continue; }
+        mode = 'local';
+        return null;
+      } catch (e) {
+        lastErr = { status: 0, message: 'ارتباط با سرور برقرار نشد' };
+        if (attempt < 2) { await new Promise(res => setTimeout(res, 900)); continue; }
+        mode = 'local';
         return null;
       }
-      mode = 'local';
-      return null;
-    } catch (e) { mode = 'local'; return null; }
+    }
+    return null;
   }
 
   /* ─── ذخیره در فضای ابری (فقط پنل مدیریت) ─── */
@@ -200,6 +220,7 @@
     mode: () => mode,
     cloudList: () => cloudList,
     loadRemote,
+    lastError: () => lastErr,
     cloudSave,
     subscribe,
   };

@@ -19,5 +19,3 @@ npm-debug.log*
 # vercel build output (should never be committed)
 .vercel/
 .env.local
-.vercel
-.env*

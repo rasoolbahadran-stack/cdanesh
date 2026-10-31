@@ -131,7 +131,15 @@ const robots = "noindex, nofollow";
     if (st === 200 && d.ok) {
       try { localStorage.removeItem(FAIL_KEY); } catch (e2) { /* noop */ }
       CDStore.login('admin', { mode: 'cloud' });
-      location.replace('/admin');
+      /* اگر ورود به‌خاطر انقضای نشست وسط یک ویرایش اجباری شده بود، بعد از ورود
+         دقیقاً به همان صفحهٔ پنل برمی‌گردیم (متن ویرایش هم خودکار بازیابی می‌شود). */
+      let next = '';
+      try {
+        const n = sessionStorage.getItem('cd_next');
+        if (n && /^#[A-Za-z0-9_\-\/%\u0600-\u06FF.]+$/.test(n)) next = n;
+        sessionStorage.removeItem('cd_next');
+      } catch (e2) { /* noop */ }
+      location.replace('/admin' + next);
       return;
     }
     if (st === 401) {

@@ -32,16 +32,34 @@ function isNotFound(e) {
 async function readUsers(force) {
   if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
   if (!force && usersCache.data && Date.now() - usersCache.at < 45 * 1000) return usersCache.data;
-  try {
+  const read = async () => {
     const meta = await blobHead(USERS_KEY);
     const r = await blobFetch(meta.url);
     if (!r.ok) throw new Error('BLOB_FETCH_' + r.status);
-    const u = await r.json();
+    return r.json();
+  };
+  try {
+    const u = await read();
     usersCache = { data: (u && u.username && u.hash) ? u : null, at: Date.now() };
     usersReadDegraded = false;
   } catch (e) {
-    usersCache = { data: null, at: Date.now() };
-    usersReadDegraded = !isNotFound(e); // «فایل نیست» وضعیت عادی است؛ بقیه = زیرساخت
+    /* یک تلاش فوری دیگر: خطاهای گذرا (شروع سرد، کندی لحظه‌ای شبکه) همین‌جا جبران می‌شود */
+    let u = null, failed = e;
+    if (!isNotFound(e)) {
+      try {
+        await new Promise(r => setTimeout(r, 400));
+        u = await read();
+      } catch (e2) { failed = e2; }
+    }
+    if (u) {
+      usersCache = { data: (u && u.username && u.hash) ? u : null, at: Date.now() };
+      usersReadDegraded = false;
+      return usersCache.data;
+    }
+    /* نکتهٔ مهم: شکستِ خواندن «کش» نمی‌شود (at=0) — درخواست بعدی دوباره تلاش می‌کند
+       و از یک خطای گذرا، ۴۵ ثانیه وضعیت خراب ساخته نمی‌شود. */
+    usersCache = { data: null, at: 0 };
+    usersReadDegraded = !isNotFound(failed); // «فایل نیست» وضعیت عادی است؛ بقیه = زیرساخت
   }
   return usersCache.data;
 }

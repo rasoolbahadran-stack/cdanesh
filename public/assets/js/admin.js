@@ -48,6 +48,29 @@
 
   /* ─── لایه ابری مقالات: وضعیت، ذخیره، مهاجرت دمو → ابر ─── */
   const isCloud = () => !!(window.CDArticles && CDArticles.mode && CDArticles.mode() === 'cloud');
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  /* اطمینان از آماده‌بودن لایهٔ ابری پیش از هر ذخیرهٔ مهم.
+     اگر نشست ابری داریم ولی لایهٔ مقالات هنوز «محلی» است (مثلاً یک GET موقع باز شدن
+     پنل به‌خاطر شروع سرد سرور شکست خورده)، خودکار دوباره تلاش می‌کنیم؛ اگر هنوز
+     آماده نشد، پیام روشن برمی‌گردانیم تا هیچ‌وقت ذخیرهٔ «فقط همین مرورگر» بی‌صدا رخ ندهد.
+     خروجی: null یعنی ادامه بده (ابری آماده است یا دموی واقعی)؛ رشته یعنی پیام خطا. */
+  async function ensureCloudReady() {
+    if (isCloud()) return null;
+    const sess = window.CDStore && CDStore.session();
+    const cloudSess = !!(sess && sess.mode === 'cloud');
+    if (!cloudSess) return null; // دموی واقعی (میزبان بدون سرور) — رفتار قبلی
+    for (let i = 0; i < 2 && !isCloud(); i++) {
+      try { await CDArticles.loadRemote(); } catch (e) { /* noop */ }
+      if (isCloud()) return null;
+      await sleep(900);
+    }
+    if (isCloud()) return null;
+    const le = (CDArticles.lastError && CDArticles.lastError()) || null;
+    return 'اتصال به ذخیره‌سازی ابری همین حالا برقرار نشد'
+      + (le && le.message ? ' — ' + le.message : '')
+      + '. چند لحظه صبر کنید و دوباره دکمهٔ انتشار را بزنید؛ متن‌های شما تا لحظهٔ انتشار در همین صفحه حفظ می‌شود.';
+  }
 
   function updateStorBadge() {
     const b = $('#stor-badge');
@@ -72,7 +95,15 @@
   async function cloudPut(nextList, okMsg) {
     const r = await CDArticles.cloudSave(nextList);
     if (r.ok) { toast(okMsg); return true; }
-    if (r.error === 'UNAUTH') { CDStore.logout(); location.replace('/admin-login'); return false; }
+    if (r.error === 'UNAUTH') {
+      /* مقصد را نگه می‌داریم تا بعد از ورود دوباره، همان‌جا برگردیم؛ متنِ در حال
+         ویرایش هم قبل از ذخیره در sessionStorage گذاشته شده و خودکار بازیابی می‌شود. */
+      try { sessionStorage.setItem('cd_next', location.hash || '#/articles'); } catch (e) { /* noop */ }
+      CDStore.logout();
+      alert('نشست ورود منقضی شده است. بعد از ورود دوباره، همین صفحه باز می‌شود و متنِ در حال ویرایش خودکار بازیابی می‌شود؛ سپس دکمهٔ انتشار را بزنید.');
+      location.replace('/admin-login');
+      return false;
+    }
     alert(r.error === 'HTTP_504'
       ? 'ذخیره ابری انجام نشد: سرور دیر پاسخ داد (تایم‌اوت). چند لحظه بعد دوباره تلاش کنید؛ اگر تکرار شد، صفحه را تازه‌سازی (F5) کنید.'
       : 'ذخیره ابری انجام نشد: ' + (r.message || r.error));
@@ -805,15 +836,21 @@
   }
 
   /* ═════════════ نمای ویرایش/تولید مقاله — ویرایشگر حرفه‌ای ═════════════ */
-  function renderArticleEditor(key) {
+  async function renderArticleEditor(key) {
     swapView();
     const isNew = !key;
-    const a = isNew ? {
+    let a = isNew ? {
       title: '', slug: '', excerpt: '', cat: 'seo', catLabel: 'سئو', tags: [], author: 'رسول بهادران',
       date: '—', read: 5, cover: COVER_OPTIONS[0], coverAlt: '', seoTitle: '', seoDesc: '',
       status: 'draft', publishAt: '', blocks: [],
     } : findArticle(key);
 
+    if (!isNew && !a) {
+      /* شاید فهرست ابری هنوز نرسیده باشد (مثلاً بازگشت خودکار از صفحهٔ ورود) —
+         یک بار درخواست فهرست می‌زنیم و دوباره جست‌وجو می‌کنیم؛ نشد → فهرست مقالات */
+      try { await CDArticles.loadRemote(); } catch (e) { /* noop */ }
+      a = findArticle(key);
+    }
     if (!isNew && !a) { location.hash = '#/articles'; return; }
 
     const catLabels = { design: 'طراحی و تجربه کاربری', seo: 'سئو', content: 'تولید محتوا', performance: 'عملکرد و سرعت', ai: 'هوش مصنوعی' };
@@ -912,6 +949,35 @@
     view.addEventListener('input', e => { if (!e.target.closest('#f-editor')) updatePreviewLazy(); });
     updatePreview();
 
+    /* بازیابی خودکار پیش‌نویس ذخیره‌نشده (مثلاً بعد از پرش اجباری به صفحهٔ ورود هنگام ذخیره) */
+    try {
+      const dkey = 'cd_draft_art_' + (isNew ? 'new' : (a.id || a.slug));
+      const raw = sessionStorage.getItem(dkey);
+      if (raw) {
+        const dr = JSON.parse(raw);
+        if (dr && dr.data && Date.now() - (dr.at || 0) < 2 * 60 * 60 * 1000) {
+          $('#f-title').value = dr.data.title || '';
+          $('#f-slug').value = dr.data.slug || '';
+          $('#f-excerpt').value = dr.data.excerpt || '';
+          if (dr.data.cat && $('#f-cat').querySelector('option[value="' + dr.data.cat + '"]')) $('#f-cat').value = dr.data.cat;
+          $('#f-tags').value = (dr.data.tags || []).join('، ');
+          $('#f-author').value = dr.data.author || '';
+          $('#f-read').value = dr.data.read || 5;
+          if (dr.data.cover) { $('#f-cover').value = dr.data.cover; $('#cover-preview').src = dr.data.cover; }
+          $('#f-coveralt').value = dr.data.coverAlt || '';
+          $('#f-seotitle').value = dr.data.seoTitle || '';
+          $('#f-seodesc').value = dr.data.seoDesc || '';
+          if (dr.data.status && $('#f-status').querySelector('option[value="' + dr.data.status + '"]')) $('#f-status').value = dr.data.status;
+          if (dr.data.publishAt) $('#f-publishat').value = dr.data.publishAt;
+          if (dr.html) editor.setHtml(dr.html);
+          updSlugPreview(); updatePreview();
+          toast('پیش‌نویس ذخیره‌نشدهٔ قبلی بازیابی شد — برای انتشار، دکمهٔ انتشار را بزنید.');
+        } else {
+          sessionStorage.removeItem(dkey);
+        }
+      }
+    } catch (e) { /* noop */ }
+
     $('#f-makeslug').addEventListener('click', () => {
       const s = $('#f-title').value.trim()
         .replace(/[؟?!,،.:؛«»()\[\]{}"'@#$%^&*+=|\\/~`]/g, '')
@@ -959,7 +1025,13 @@
       if (!data) return;
       const status = data.status;
       if (!isCloud()) {
-        // حالت دمو — فقط همین مرورگر؛ بنر راهنمای اتصال ابری نمایش داده می‌شود
+        /* ضد ذخیرهٔ بی‌صدا: اگر نشست ابری داریم ولی لایهٔ ابری هنوز محلی است،
+           اول دوباره تلاش می‌کنیم؛ اگر نشد پیام روشن و توقف — نه ذخیرهٔ فیک مرورگر. */
+        const blocker = await ensureCloudReady();
+        if (blocker) { alert(blocker); return; }
+      }
+      if (!isCloud()) {
+        // حالت دمو (میزبان بدون سرور) — فقط همین مرورگر؛ بنر راهنمای اتصال ابری نمایش داده می‌شود
         if (isNew) {
           const rec = Object.assign({ id: 'n' + Date.now(), date: jalaliToday(), sort: gregSortToday() }, data);
           CDStore.addNewArticle(rec);
@@ -981,8 +1053,15 @@
         : status === 'scheduled' ? 'مقاله زمان‌بندی شد — سر موعد خودکار عمومی می‌شود'
         : 'انتشار شد — مقاله همین حالا در مجله برای همه و گوگل نمایش داده می‌شود');
       try {
+        /* پیش‌نویس زندهٔ همین لحظه نگه داشته می‌شود تا اگر وسط ذخیره نشست پرید،
+           بعد از ورود دوباره، هیچ متنی از دست نرود. */
+        const dkey = 'cd_draft_art_' + (isNew ? 'new' : (a.id || a.slug));
+        try { sessionStorage.setItem(dkey, JSON.stringify({ at: Date.now(), data, html: editor.getHtml() })); } catch (e) { /* noop */ }
         const ok = await cloudUpsert(rec, orig, msg);
-        if (ok) location.hash = '#/articles';
+        if (ok) {
+          try { sessionStorage.removeItem(dkey); } catch (e) { /* noop */ }
+          location.hash = '#/articles';
+        }
       } finally {
         /* ضدقفل‌شدن: در هر حالت (موفق، خطا، حتی خطای غیرمنتظره) دکمه‌ها آزاد می‌شوند
            تا دیگر کلیک روی دکمه بی‌اثر و بی‌پیام نشود. */
@@ -1101,16 +1180,24 @@
     };
 
     async function saveCloudPages(list, msg) {
-      if (!isCloud()) { alert('برای ذخیرهٔ صفحات، ابتدا فضای ابری را وصل کنید (بنر راهنما در داشبورد).'); return false; }
+      if (!isCloud()) {
+        const blocker = await ensureCloudReady();
+        if (blocker) { alert(blocker); return false; }
+        if (!isCloud()) { alert('برای ذخیرهٔ صفحات، ابتدا فضای ابری را وصل کنید (بنر راهنما در داشبورد).'); return false; }
+      }
       try {
         const r = await fetch('api/pages', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ pages: list }),
+          signal: AbortSignal.timeout(65000), // کمی بیشتر از سقف ۶۰ ثانیه‌ای سرور
         });
         const d = await r.json().catch(() => ({}));
         if (r.ok && d.ok) { toast(msg || 'صفحات ذخیره شد — بلافاصله روی سایت منتشر شد'); return true; }
-        if (r.status === 401) { CDStore.logout(); location.replace('/admin-login'); return false; }
+        if (r.status === 401) {
+          try { sessionStorage.setItem('cd_next', location.hash || '#/pages'); } catch (e) { /* noop */ }
+          CDStore.logout(); location.replace('/admin-login'); return false;
+        }
         alert('ذخیره انجام نشد: ' + (d.message || d.error || r.status));
         return false;
       } catch (e) { alert('ارتباط با سرور برقرار نشد.'); return false; }
@@ -1237,6 +1324,10 @@
           : [rec].concat(list);
         const btns = ['#pg-publish', '#pg-save-draft'].map(s => $(s));
         btns.forEach(b => { if (b) b.disabled = true; });
+        if (!isCloud()) {
+          const blocker = await ensureCloudReady();
+          if (blocker) { alert(blocker); btns.forEach(b => { if (b) b.disabled = false; }); return; }
+        }
         if (!isCloud()) { alert('برای ذخیره، ابتدا فضای ابری را وصل کنید (بنر راهنما در داشبورد).'); btns.forEach(b => { if (b) b.disabled = false; }); return; }
         try {
           const r2 = await fetch('api/pages', {
