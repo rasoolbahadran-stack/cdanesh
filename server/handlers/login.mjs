@@ -6,7 +6,7 @@
    اعتبارنامه: اول users.json در فضای ابری (قابل تغییر از پنل)، بعد ADMIN_PASSWORD در ورسل. */
 import {
   signToken, isAuthedAsync, sessionCookie, clearCookie,
-  verifyLogin, changeCredentials, currentPv,
+  verifyLogin, changeCredentials, currentPv, hasAnyStorage,
   failCount, registerFail, clearFails, MAX_FAILS, json, readJsonBody, clientIp,
 } from '../lib/admin-auth.mjs';
 
@@ -17,18 +17,18 @@ export default async function handler(req, res) {
 
   /* ─── بررسی نشست (برای پنل) ─── */
   if (method === 'GET') {
-    const hasUsers = !!(process.env.BLOB_READ_WRITE_TOKEN);
+    const hasUsers = hasAnyStorage();
     if (!process.env.ADMIN_PASSWORD && !hasUsers) {
       return json(res, 503, { ok: false, error: 'PASSWORD_NOT_SET' });
     }
-    if (await isAuthedAsync(req)) return json(res, 200, { ok: true, mode: 'cloud', user: 'admin' });
+    if (await isAuthedAsync(req)) return json(res, 200, { ok: true, mode: 'cloud', user: 'admin', db: !!process.env.DATABASE_URL });
     return json(res, 401, { ok: false, error: 'NO_SESSION' });
   }
 
   /* ─── تغییر نام کاربری/رمز از خود پنل (فقط با نشست معتبر) ─── */
   if (method === 'PUT') {
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      return json(res, 503, { ok: false, error: 'NO_BLOB', message: 'فضای ابری وصل نیست؛ ابتدا در ورسل Blob را متصل و ADMIN_PASSWORD را ثبت کن.' });
+    if (!hasAnyStorage()) {
+      return json(res, 503, { ok: false, error: 'NO_BLOB', message: 'فضای ذخیره‌سازی وصل نیست؛ ابتدا دیتابیس (DATABASE_URL) یا Blob را در ورسل متصل کن.' });
     }
     if (!(await isAuthedAsync(req))) return json(res, 401, { ok: false, error: 'UNAUTH', message: 'نشست منقضی شده؛ دوباره وارد شو.' });
     let body;
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
 
   /* ─── ورود ─── */
   if (method === 'POST') {
-    const configured = !!(process.env.ADMIN_PASSWORD || process.env.BLOB_READ_WRITE_TOKEN);
+    const configured = !!(process.env.ADMIN_PASSWORD || hasAnyStorage());
     if (!configured) {
       return json(res, 503, {
         ok: false, error: 'PASSWORD_NOT_SET',

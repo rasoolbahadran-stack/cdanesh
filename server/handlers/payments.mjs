@@ -1,35 +1,14 @@
-/* ═══ کافه‌دانش — مدیریت درگاه پرداخت (Vercel Function + Vercel Blob) ═══
+/* ═══ کافه‌دانش CMS — مدیریت درگاه پرداخت (دیتابیس Postgres / سازگاری Blob) ═══
    GET /api/payments            → درگاه‌های فعال برای سایت (عمومی)؛
                                   با کوکی مدیر → کل فهرست
    PUT /api/payments {gateways:[…]} → ذخیرهٔ کل فهرست (فقط مدیر)
-   داده در Vercel Blob با نام ثابت payments.json نگهداری می‌شود؛
-   تا اولین ذخیره، پاسخ EMPTY است و دکمه‌های پرداخت سایت مخفی می‌مانند. */
-import { blobHead, blobPut, blobFetch, ADMIN_MS } from '../lib/blob-safe.mjs';
+   داده در لایهٔ store.mjs نگهداری می‌شود (Postgres با DATABASE_URL، وگرنه Blob
+   با کلید payments.json)؛ تا اولین ذخیره، پاسخ خالی است و دکمه‌های پرداخت مخفی می‌مانند. */
+import { readDoc, writeDoc, DB_MS } from '../lib/store.mjs';
 import { isAuthedAsync, json, readJsonBody } from '../lib/admin-auth.mjs';
 
-const BLOB_KEY = 'payments.json';
+const DOC_KEY = 'payments.json';
 const MAX_GATEWAYS = 20;
-
-function isNotFound(e) {
-  return e && (e.name === 'BlobNotFoundError' || /not ?found|does ?not exist|NoSuchKey/i.test(String((e && e.message) || e)));
-}
-
-async function readBlob() {
-  const meta = await blobHead(BLOB_KEY);
-  const r = await blobFetch(meta.url);
-  if (!r.ok) throw new Error('BLOB_FETCH_' + r.status);
-  const list = await r.json();
-  return Array.isArray(list) ? list : [];
-}
-
-async function writeBlob(list, ms) {
-  await blobPut(BLOB_KEY, JSON.stringify(list), {
-    access: 'public',
-    addRandomSuffix: false,
-    contentType: 'application/json; charset=utf-8',
-    ...(ms ? { ms } : {}),
-  });
-}
 
 const clean = (v, max) => String(v == null ? '' : v).trim().slice(0, max);
 
@@ -64,29 +43,30 @@ function singleActive(list) {
 
 export default async function handler(req, res) {
   const method = (req.method || 'GET').toUpperCase();
-  const hasBlob = !!process.env.BLOB_READ_WRITE_TOKEN;
+  const hasStorage = !!process.env.BLOB_READ_WRITE_TOKEN || !!process.env.DATABASE_URL;
+  const noStorage = () => json(res, 503, {
+    ok: false, error: 'NO_BLOB',
+    message: 'فضای ذخیره‌سازی (دیتابیس یا Blob) هنوز به پروژه وصل نشده است.',
+  });
 
   if (method === 'GET') {
-    if (!hasBlob) {
-      return json(res, 503, { ok: false, error: 'NO_BLOB', message: 'فضای ابری (Vercel Blob) هنوز به پروژه وصل نشده است.' });
-    }
+    if (!hasStorage) return noStorage();
     const authed = await isAuthedAsync(req);
-    let list;
-    try { list = await readBlob(); }
-    catch (e) {
-      if (isNotFound(e)) return json(res, 200, { ok: true, mode: 'cloud', count: 0, gateways: [] });
-      return json(res, 500, { ok: false, error: 'BLOB_ERROR', message: String((e && e.message) || e) });
+    let list = [];
+    try {
+      const data = await readDoc(DOC_KEY, { ms: DB_MS });
+      list = Array.isArray(data) ? data : [];
+    } catch (e) {
+      return json(res, 500, { ok: false, error: 'STORE_ERROR', message: String((e && e.message) || e) });
     }
     const out = authed
       ? list
       : list.filter(g => g.active).map(g => ({ id: g.id, name: g.name, url: g.url, pkg: g.pkg || '' })); // عمومی: فقط فعال‌ها بدون یادداشت
-    return json(res, 200, { ok: true, mode: 'cloud', count: out.length, gateways: out });
+    return json(res, 200, { ok: true, mode: 'cloud', db: !!process.env.DATABASE_URL, count: out.length, gateways: out });
   }
 
   if (method === 'PUT' || method === 'POST') {
-    if (!hasBlob) {
-      return json(res, 503, { ok: false, error: 'NO_BLOB', message: 'فضای ابری (Vercel Blob) هنوز به پروژه وصل نشده است.' });
-    }
+    if (!hasStorage) return noStorage();
     if (!(await isAuthedAsync(req))) return json(res, 401, { ok: false, error: 'UNAUTH', message: 'نشست منقضی شده؛ دوباره وارد شو.' });
 
     let body;
@@ -109,10 +89,10 @@ export default async function handler(req, res) {
     }));
 
     try {
-      await writeBlob(cleanList, ADMIN_MS); // عملیات مدیر — سقف ۶۰ ثانیه
+      await writeDoc(DOC_KEY, cleanList, { ms: DB_MS }); // عملیات مدیر
       return json(res, 200, { ok: true, count: cleanList.length, gateways: cleanList });
     } catch (e) {
-      return json(res, 500, { ok: false, error: 'BLOB_ERROR', message: String((e && e.message) || e) });
+      return json(res, 500, { ok: false, error: 'STORE_ERROR', message: String((e && e.message) || e) });
     }
   }
 

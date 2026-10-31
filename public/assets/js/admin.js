@@ -79,7 +79,11 @@
     const cloud = isCloud();
     b.classList.toggle('on', cloud);
     b.innerHTML = cloud
-      ? '<span class="dot" aria-hidden="true"></span><span>ذخیره‌سازی ابری (واقعی) — <b>مقالات، پیام‌ها، صفحات و رسانه</b> برای همه منتشر می‌شوند</span>'
+      ? '<span class="dot" aria-hidden="true"></span><span>'
+        + (SETUP.probed && SETUP.db === true
+          ? 'پایگاه داده + Blob متصل — <b>ذخیره‌سازی سریع، انتشار فوری برای همه</b>'
+          : 'ذخیره‌سازی ابری (واقعی) — <b>مقالات، پیام‌ها، صفحات و رسانه</b> برای همه منتشر می‌شوند')
+        + '</span>'
       : '<span class="dot" aria-hidden="true"></span><span>حالت آزمایشی: مرورگر — برای انتشار واقعی، بنر راهنما را در داشبورد ببینید</span>';
   }
 
@@ -123,6 +127,63 @@
   function cloudDelete(rec, okMsg) {
     const next = CDArticles.all().filter(x => !((rec.id && x.id === rec.id) || x.slug === rec.slug));
     return cloudPut(next, okMsg);
+  }
+
+  /* ═══ ذخیرهٔ تکی مقاله (مسیر جدید CMS) ═══
+   فقط همین مقاله به سرور می‌رود (به‌جای کل فهرست)؛ سرور به‌صورت اتمیک ادغام
+   می‌کند، اسلاگ تکراری را می‌گیرد و نسخهٔ قبلی را در «تاریخچه» نگه می‌دارد.
+   با پایگاه داده معمولاً زیر ۱ ثانیه تمام می‌شود. */
+  async function cloudSaveOne(rec, orig, okMsg) {
+    const doFetch = () => fetch('api/articles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ article: rec, origId: (orig && orig.id) || '', origSlug: (orig && orig.slug) || '' }),
+      signal: AbortSignal.timeout(30000),
+    });
+    let r = null;
+    try { r = await doFetch(); }
+    catch (e) {
+      await sleep(900);
+      try { r = await doFetch(); }
+      catch (e2) { alert('ذخیره انجام نشد: ارتباط با سرور برقرار نشد. چند لحظه بعد دوباره تلاش کنید — متن شما حفظ شده است.'); return false; }
+    }
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d.ok) {
+      toast(okMsg);
+      try { await CDArticles.loadRemote(); } catch (e) { /* noop */ }
+      return true;
+    }
+    if (r.status === 401 || d.error === 'UNAUTH') {
+      try { sessionStorage.setItem('cd_next', location.hash || '#/articles'); } catch (e) { /* noop */ }
+      CDStore.logout();
+      alert('نشست ورود منقضی شده است. بعد از ورود دوباره، همین صفحه باز می‌شود و متنِ در حال ویرایش خودکار بازیابی می‌شود؛ سپس دکمهٔ انتشار را بزنید.');
+      location.replace('/admin-login');
+      return false;
+    }
+    alert('ذخیره انجام نشد: ' + (d.message || d.error || ('HTTP ' + r.status)));
+    return false;
+  }
+
+  /* حذف تکی مقاله روی سرور (اتمیک + تاریخچه) */
+  async function deleteArticleRemote(rec, okMsg) {
+    const doFetch = () => fetch('api/articles?key=' + encodeURIComponent((rec.id || rec.slug)), {
+      method: 'DELETE', signal: AbortSignal.timeout(30000),
+    });
+    let r = null;
+    try { r = await doFetch(); }
+    catch (e) { await sleep(900); try { r = await doFetch(); } catch (e2) { alert('حذف انجام نشد: ارتباط با سرور برقرار نشد.'); return false; } }
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d.ok) {
+      toast(okMsg);
+      try { await CDArticles.loadRemote(); } catch (e) { /* noop */ }
+      return true;
+    }
+    if (r.status === 401 || d.error === 'UNAUTH') {
+      try { sessionStorage.setItem('cd_next', location.hash || '#/articles'); } catch (e) { /* noop */ }
+      CDStore.logout(); location.replace('/admin-login'); return false;
+    }
+    alert('حذف انجام نشد: ' + (d.message || d.error || ('HTTP ' + r.status)));
+    return false;
   }
 
   /* تاریخ شمسی ساده برای نمایش پیام‌ها */
@@ -590,7 +651,7 @@
     const load = async () => {
       grid.innerHTML = '<div class="adm-empty">در حال دریافت…</div>';
       try {
-        const r = await fetch('api/media', { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(65000) });
+        const r = await fetch('api/media', { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(30000) });
         const d = await r.json().catch(() => ({}));
         if (r.ok && d.ok) { mediaCache = d.media || []; draw(); }
         else { grid.innerHTML = '<div class="adm-empty">دریافت فهرست ناموفق بود: ' + esc(d.message || d.error || '') + '</div>'; }
@@ -604,7 +665,7 @@
           const payload = await imageToWebp(f);
           const fd = new FormData();
           fd.append('file', payload, payload.name || f.name);
-          const r = await fetch('api/media', { method: 'POST', body: fd, signal: AbortSignal.timeout(65000) });
+          const r = await fetch('api/media', { method: 'POST', body: fd, signal: AbortSignal.timeout(30000) });
           const d = await r.json().catch(() => ({}));
           if (r.ok && d.ok) { mediaCache = [d.media].concat(mediaCache || []); draw(); }
           else { alert('آپلود «' + f.name + '» انجام نشد: ' + (d.message || d.error || r.status)); }
@@ -637,7 +698,7 @@
       if (b.dataset.act === 'del') {
         if (!confirm('این فایل از فضای ابری حذف شود؟')) return;
         b.disabled = true;
-        fetch('api/media?url=' + encodeURIComponent(url), { method: 'DELETE', signal: AbortSignal.timeout(65000) })
+        fetch('api/media?url=' + encodeURIComponent(url), { method: 'DELETE', signal: AbortSignal.timeout(30000) })
           .then(r => r.json().catch(() => ({})))
           .then(d => {
             if (d.ok) { mediaCache = (mediaCache || []).filter(m => m.url !== url); draw(); toast('فایل حذف شد'); }
@@ -787,8 +848,8 @@
         const next = (a.status || 'published') === 'published' ? 'draft' : 'published';
         if (isCloud()) {
           b.disabled = true;
-          cloudUpsert({ status: next }, a, next === 'published' ? 'مقاله منتشر شد — برای همه بازدیدکنندگان فعال است' : 'انتشار لغو شد (پیش‌نویس)')
-            .then(ok => { if (ok) renderArticles(); });
+          cloudSaveOne({ status: next }, { id: a.id, slug: a.slug }, next === 'published' ? 'مقاله منتشر شد — برای همه بازدیدکنندگان فعال است' : 'انتشار لغو شد (پیش‌نویس)')
+            .then(ok => { if (ok) renderArticles(); else b.disabled = false; });
         } else {
           if (a.id) CDStore.updateNewArticle(a.id, { status: next });
           else CDStore.saveArticleOverride(a.slug, { status: next });
@@ -797,10 +858,10 @@
         }
       }
       if (b.dataset.act === 'delete') {
-        if (confirm('این مقاله کاملاً حذف شود؟')) {
+        if (confirm('این مقاله کاملاً حذف شود؟ (نسخهٔ قبلی در تاریخچه می‌ماند)')) {
           if (isCloud()) {
             b.disabled = true;
-            cloudDelete(a, 'مقاله حذف شد').then(ok => { if (ok) renderArticles(); });
+            deleteArticleRemote(a, 'مقاله حذف شد').then(ok => { if (ok) renderArticles(); else b.disabled = false; });
           } else {
             CDStore.deleteNewArticle(a.id); toast('مقاله حذف شد'); renderArticles();
           }
@@ -858,6 +919,7 @@
     view.innerHTML =
       '<div class="adm-topbar"><div><h1>' + (isNew ? 'مقاله جدید' : 'ویرایش مقاله') + '</h1><p class="lead">' + (isNew ? 'بنویسید، منتشر کنید — بلافاصله در مجله برای همه و گوگل نمایش داده می‌شود. پیش‌نمایش زنده در سمت چپ.' : esc(a.title)) + '</p></div>'
       + '<div class="adm-actions">'
+      + (!isNew ? '<button type="button" class="btn btn-ghost" id="art-history">تاریخچه</button>' : '')
       + (!isNew ? '<a class="btn btn-ghost" target="_blank" rel="noopener" href="' + (((a.status || 'published') === 'published') ? ('/blog/' + encodeURIComponent(a.slug)) : ('/article?slug=' + encodeURIComponent(a.slug) + '&preview=1')) + '">پیش‌نمایش در سایت</a>' : '')
       + '<button type="button" class="btn btn-ghost" id="art-back">بازگشت</button>'
       + '<button type="button" class="btn btn-ghost" id="art-save-draft">ذخیره پیش‌نویس</button>'
@@ -1057,7 +1119,8 @@
            بعد از ورود دوباره، هیچ متنی از دست نرود. */
         const dkey = 'cd_draft_art_' + (isNew ? 'new' : (a.id || a.slug));
         try { sessionStorage.setItem(dkey, JSON.stringify({ at: Date.now(), data, html: editor.getHtml() })); } catch (e) { /* noop */ }
-        const ok = await cloudUpsert(rec, orig, msg);
+        /* ذخیرهٔ تکی روی سرور (اتمیک + تاریخچه) — فقط همین مقاله منتقل می‌شود */
+        const ok = await cloudSaveOne(rec, orig, msg);
         if (ok) {
           try { sessionStorage.removeItem(dkey); } catch (e) { /* noop */ }
           location.hash = '#/articles';
@@ -1071,6 +1134,71 @@
     $('#art-save').addEventListener('click', () => save());
     $('#art-publish').addEventListener('click', () => save('published'));
     $('#art-save-draft').addEventListener('click', () => save('draft'));
+
+    /* ─── تاریخچهٔ نسخه‌ها: فهرست ۱۰ نسخهٔ آخر + بازیابی داخل همین ویرایشگر ─── */
+    const histBtn = $('#art-history');
+    if (histBtn) histBtn.addEventListener('click', () => {
+      const key = a.id || a.slug;
+      const veil = document.createElement('div'); veil.className = 'adm-modal-veil';
+      const modal = document.createElement('div'); modal.className = 'adm-modal adm-modal-lg';
+      modal.setAttribute('dir', 'rtl');
+      modal.innerHTML = '<div class="adm-modal-head"><b>تاریخچهٔ نسخه‌های مقاله</b><button type="button" class="adm-btn" id="rev-close">بستن</button></div>'
+        + '<div class="adm-modal-body"><div class="adm-empty">در حال دریافت…</div></div>';
+      document.body.appendChild(veil); document.body.appendChild(modal);
+      document.body.classList.add('adm-modal-open');
+      const close = () => { veil.remove(); modal.remove(); document.body.classList.remove('adm-modal-open'); };
+      $('#rev-close', modal).addEventListener('click', close);
+      veil.addEventListener('click', close);
+      const body = $('.adm-modal-body', modal);
+      fetch('api/articles?revisions=' + encodeURIComponent(key), { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(30000) })
+        .then(r => r.json().catch(() => ({})))
+        .then(d => {
+          if (!d.ok) { body.innerHTML = '<div class="adm-empty">دریافت تاریخچه ناموفق بود: ' + esc(d.message || d.error || '') + '</div>'; return; }
+          if (d.supported === false) {
+            body.innerHTML = '<div class="adm-empty">تاریخچهٔ نسخه‌ها فقط با پایگاه داده فعال می‌شود.<br>ابتدا طبق راهنمای داشبورد، دیتابیس را وصل و داده‌ها را منتقل کنید.</div>';
+            return;
+          }
+          const revs = d.revisions || [];
+          if (!revs.length) {
+            body.innerHTML = '<div class="adm-empty">هنوز نسخهٔ قبلی‌ای ثبت نشده است.<br>هر بار که مقاله را ویرایش و ذخیره کنید، نسخهٔ قبلی به‌طور خودکار همین‌جا نگه داشته می‌شود (۱۰ نسخهٔ آخر).</div>';
+            return;
+          }
+          body.innerHTML = '<p class="adm-hint" style="margin-bottom:12px">۱۰ نسخهٔ آخر ذخیره می‌شود. «بازیابی» نسخه را داخل همین ویرایشگر برمی‌گرداند — برای اعمال نهایی، دکمهٔ انتشار را بزنید.</p>'
+            + '<div class="rev-list">' + revs.map(rv => {
+              const t = (rv.data && (rv.data.title || rv.data.slug)) || '—';
+              const st = rv.data && rv.data.status === 'draft' ? 'پیش‌نویس' : 'منتشرشده';
+              return '<div class="rev-item" data-id="' + esc(String(rv.id)) + '">'
+                + '<div><b>' + esc(t) + '</b><span class="rev-meta">' + faDate(rv.savedAt) + ' · ' + st + '</span></div>'
+                + '<button type="button" class="adm-btn primary" data-restore="' + esc(String(rv.id)) + '">بازیابی این نسخه</button>'
+                + '</div>';
+            }).join('') + '</div>';
+          body.addEventListener('click', e => {
+            const b2 = e.target.closest('button[data-restore]');
+            if (!b2) return;
+            const rv = revs.find(x => String(x.id) === b2.dataset.restore);
+            if (!rv || !rv.data) return;
+            const rd = rv.data;
+            $('#f-title').value = rd.title || '';
+            $('#f-slug').value = rd.slug || '';
+            $('#f-excerpt').value = rd.excerpt || '';
+            if (rd.cat && $('#f-cat').querySelector('option[value="' + rd.cat + '"]')) $('#f-cat').value = rd.cat;
+            $('#f-tags').value = (rd.tags || []).join('، ');
+            $('#f-author').value = rd.author || '';
+            $('#f-read').value = rd.read || 5;
+            if (rd.cover) { $('#f-cover').value = rd.cover; $('#cover-preview').src = rd.cover; }
+            $('#f-coveralt').value = rd.coverAlt || '';
+            $('#f-seotitle').value = rd.seoTitle || '';
+            $('#f-seodesc').value = rd.seoDesc || '';
+            if (rd.status && $('#f-status').querySelector('option[value="' + rd.status + '"]')) $('#f-status').value = rd.status;
+            $('#f-publishat').value = rd.publishAt || '';
+            try { editor.setHtml(blocksToHtml(rd.blocks || [])); } catch (e3) { /* noop */ }
+            updSlugPreview(); updatePreview();
+            close();
+            toast('نسخهٔ ' + faDate(rv.savedAt) + ' بازیابی شد — برای اعمال، دکمهٔ ذخیره/انتشار را بزنید');
+          });
+        })
+        .catch(() => { body.innerHTML = '<div class="adm-empty">ارتباط با سرور برقرار نشد.</div>'; });
+    });
   }
 
   /* ═════════════ صفحات: صفحات ابری + سئوی صفحات سایت ═════════════ */
@@ -1190,7 +1318,7 @@
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ pages: list }),
-          signal: AbortSignal.timeout(65000), // کمی بیشتر از سقف ۶۰ ثانیه‌ای سرور
+          signal: AbortSignal.timeout(30000), // سقف سمت مرورگر — با دیتابیس سریع است
         });
         const d = await r.json().catch(() => ({}));
         if (r.ok && d.ok) { toast(msg || 'صفحات ذخیره شد — بلافاصله روی سایت منتشر شد'); return true; }
@@ -1334,7 +1462,7 @@
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ pages: next }),
-            signal: AbortSignal.timeout(65000), // کمی بیشتر از سقف ۶۰ ثانیه‌ای سرور
+            signal: AbortSignal.timeout(30000), // سقف سمت مرورگر — با دیتابیس سریع است
           });
           const d2 = await r2.json().catch(() => ({}));
           if (r2.ok && d2.ok) {
@@ -1533,7 +1661,7 @@
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body,
-            signal: AbortSignal.timeout(65000), // کمی بیشتر از سقف ۶۰ ثانیه‌ای سرور
+            signal: AbortSignal.timeout(30000), // سقف سمت مرورگر — با دیتابیس سریع است
           });
           if (r.status !== 502 && r.status !== 503 && r.status !== 504) break;
         } catch (e) { r = null; }
@@ -2115,7 +2243,7 @@
   }
 
   /* بنر راهنمای اتصال فضای ابری — وقتی Blob یا رمز تنظیم نشده باشد نمایش داده می‌شود */
-  const SETUP = { probed: false, blob: null, pass: null };
+  const SETUP = { probed: false, blob: null, pass: null, db: null, dbError: '', keys: null };
 
   function probeCloud() {
     return Promise.all([
@@ -2132,6 +2260,17 @@
           SETUP.blob = !(r.status === 503 && d.error === 'NO_BLOB');
         })
         .catch(() => { SETUP.blob = false; }),
+      /* وضعیت دیتابیس CMS + سندهای در انتظار مهاجرت */
+      fetch('api/migrate', { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(30000) })
+        .then(async r => {
+          const d = await r.json().catch(() => ({}));
+          if (r.ok && d.ok) {
+            SETUP.db = !!(d.db && d.db.enabled && d.db.ok);
+            SETUP.dbError = (d.db && d.db.error) || '';
+            SETUP.keys = d.keys || [];
+          } else { SETUP.db = null; }
+        })
+        .catch(() => { SETUP.db = null; }),
     ]).then(() => {
       SETUP.probed = true;
       updateStorBadge();
@@ -2157,7 +2296,21 @@
       + '<div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:14px">'
       + '<button type="button" class="btn btn-gold btn-sm" id="setup-recheck">بررسی دوبارهٔ وضعیت</button>'
       + '<span class="adm-hint" id="setup-status">' + (!SETUP.blob ? 'فضای ابری: متصل نیست' : 'فضای ابری: متصل ✓') + ' · ' + (!SETUP.pass ? 'رمز مدیر: ثبت نشده' : 'رمز مدیر: ثبت ✓') + '</span>'
-      + '</div></div>';
+      + '</div></div>'
+      /* بنر ارتقا به پایگاه داده — وقتی Blob و رمز درست‌اند ولی دیتابیس وصل نیست */
+      + (SETUP.blob && SETUP.pass && SETUP.db === false ? dbUpgradeBannerHtml() : '');
+  }
+
+  /* بنر ارتقا: اتصال پایگاه دادهٔ رایگان (Neon) از خود داشبورد ورسل */
+  function dbUpgradeBannerHtml() {
+    const s1 = '<div class="adm-setup-step"><b>گام ۱ — ساخت پایگاه دادهٔ رایگان</b><span>ورسل → پروژهٔ cdanesh → تب <b>Storage</b> → <b>Marketplace</b> → <b>Neon</b> → Continue → پلن <b>Free</b> → <b>Connect to Project</b>. متغیر <b dir="ltr">DATABASE_URL</b> خودکار ثبت می‌شود.</span></div>';
+    const s2 = '<div class="adm-setup-step"><b>گام ۲ — انتشار مجدد</b><span>در کامپیوتر خودت: <b dir="ltr">git add -A && git commit -m "..." && git push</b> و بعد <b dir="ltr">vercel --prod</b>. (همیشه اول commit و push، بعد deploy.)</span></div>';
+    const s3 = '<div class="adm-setup-step"><b>گام ۳ — مهاجرت یک‌کلیکی</b><span>به همین داشبورد برگرد؛ دکمهٔ «انتقال داده‌های قدیمی به پایگاه داده» را می‌بینی. یک بار بزن — مقالات، پیام‌ها، صفحات، درگاه‌ها و کاربر مدیر به دیتابیس منتقل می‌شوند و از آن بعد، ذخیره‌سازی سریع و پایدار می‌شود (خداحافظ تایم‌اوت و UNAUTH کاذب).</span></div>';
+    return '<div class="adm-panel adm-setup adm-upgrade" style="margin-bottom:18px">'
+      + '<div class="adm-panel-head"><b>⬆ ارتقا به پایگاه دادهٔ واقعی (پیشنهادی — حدود ۵ دقیقه، رایگان)</b></div>'
+      + '<p class="adm-hint" style="margin-bottom:14px">الان داده‌ها روی <b>Vercel Blob</b> (فایل JSON) ذخیره می‌شوند؛ همین است که باعث شروع سرد، تایم‌اوت ذخیره و خطای «وارد نشدی» می‌شود. با اتصال پایگاه دادهٔ Postgres (پلن رایگان Neon) همهٔ این‌ها ریشه‌کن می‌شود و تاریخچهٔ نسخه‌ها هم فعال می‌شود:</p>'
+      + s1 + s2 + s3
+      + '<div style="margin-top:14px"><button type="button" class="btn btn-gold btn-sm" id="setup-recheck">بررسی دوبارهٔ وضعیت</button></div></div>';
   }
 
   function bindSetupRecheck() {
@@ -2237,12 +2390,79 @@
       + '</div>'
       + '<a class="btn btn-ghost btn-sm btn-block" href="#/articles" style="margin-top:8px">مدیریت مقالات</a></div></div>'
       + '</div>'
-      + '<div class="adm-panel" style="margin-top:18px"><div class="adm-panel-head"><b>' + (isCloud() ? 'وضعیت انتشار و ذخیره‌سازی' : 'راهنمای سریع پنل') + '</b></div>'
-      + (isCloud()
-        ? '<p class="adm-hint">اتصال ابری فعال است: مقاله‌ها، پیام‌های فرم‌ها، صفحات و رسانه در فضای ابری ورسل (Vercel Blob) ذخیره می‌شوند — «انتشار» به‌معنای نمایش فوری برای همه بازدیدکنندگان و گوگل است. پیش‌نویس‌ها فقط با لینک پیش‌نمایش دیده می‌شوند.</p>'
-        : '<p class="adm-hint">حالت آزمایشی (بدون سرور): تغییرات فقط در همین مرورگر ذخیره می‌شوند. بنر زودهنگام بالای همین صفحه، سه گام اتصال ابری را توضیح می‌دهد.</p>')
+      + '<div class="adm-panel" style="margin-top:18px"><div class="adm-panel-head"><b>' + (isCloud() ? 'وضعیت سیستم و ذخیره‌سازی' : 'راهنمای سریع پنل') + '</b></div>'
+      + (isCloud() ? sysCardHtml() : '<p class="adm-hint">حالت آزمایشی (بدون سرور): تغییرات فقط در همین مرورگر ذخیره می‌شوند. بنر زودهنگام بالای همین صفحه، سه گام اتصال ابری را توضیح می‌دهد.</p>')
       + '</div>';
     bindSetupRecheck();
+    bindSysCard();
+  }
+
+  /* ─── کارت وضعیت سیستم: دیتابیس، Blob، مصرف فضای رسانه، مهاجرت یک‌کلیکی ─── */
+  function sysCardHtml() {
+    const pending = (SETUP.keys || []).filter(k => k.blob && k.blob.exists && !(k.db && k.db.exists));
+    const dbOk = SETUP.db === true;
+    const dbRow = SETUP.db === null
+      ? '<div class="sys-row"><span class="sys-dot unknown"></span><div><b>پایگاه داده</b><span>در حال بررسی…</span></div></div>'
+      : dbOk
+        ? '<div class="sys-row"><span class="sys-dot ok"></span><div><b>پایگاه داده (Postgres) متصل است</b><span>ذخیره‌سازی سریع و پایدار فعال شد — تاریخچهٔ نسخه‌ها هم فعال است.</span></div></div>'
+        : '<div class="sys-row"><span class="sys-dot warn"></span><div><b>پایگاه داده متصل نیست</b><span>فعلاً روی Vercel Blob (فایل JSON) ذخیره می‌شود. برای حذف ریشهٔ تایم‌اوت‌ها، بنر «ارتقا به پایگاه داده» در بالای صفحه را انجام بده.</span></div></div>';
+    const blobRow = '<div class="sys-row"><span class="sys-dot ' + (SETUP.blob ? 'ok' : 'warn') + '"></span><div><b>' + (SETUP.blob ? 'فضای فایل‌ها (Blob) متصل است' : 'فضای فایل‌ها (Blob) متصل نیست') + '</b><span>تصاویر و فایل‌ها این‌جا ذخیره می‌شوند — پلن رایگان ورسل ۱ گیگابایت می‌دهد (حدود ۷٬۰۰۰ عکس فشردهٔ WebP).</span></div></div>';
+    const migrateRow = (dbOk && pending.length)
+      ? '<div class="sys-row sys-migrate"><span class="sys-dot warn"></span><div><b>انتقال داده‌های قدیمی به پایگاه داده</b><span>'
+        + pending.map(k => esc(k.label || k.key)).join('، ')
+        + ' هنوز روی Blob هستند و در دیتابیس نیستند. یک بار منتقل کن؛ بعد از آن دیتابیس منبع اصلی است و فایل‌های Blob هم به‌عنوان پشتیبان می‌مانند.</span>'
+        + '<button type="button" class="btn btn-gold btn-sm" id="sys-migrate" style="margin-top:10px">انتقال داده‌های قدیمی به پایگاه داده</button><span class="adm-hint" id="sys-migrate-out" style="display:block; margin-top:8px"></span></div></div>'
+      : (dbOk ? '<div class="sys-row"><span class="sys-dot ok"></span><div><b>مهاجرت داده‌ها</b><span>همهٔ داده‌ها در پایگاه داده هستند. ✓</span></div></div>' : '');
+    return dbRow + blobRow
+      + '<div class="sys-row" style="display:block"><div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:6px"><b>مصرف فضای رسانه (Blob)</b><span id="sys-media-txt">…</span></div>'
+      + '<div class="adm-meter"><i id="sys-media-bar" style="width:0%; background:var(--gold)"></i></div>'
+      + '<span class="adm-hint" style="display:block; margin-top:6px">تصاویر هنگام آپلود خودکار فشرده می‌شوند (WebP تا عرض ۱۶۰۰px)؛ فایل‌های بلااستفاده را از کتابخانه رسانه حذف کن تا فضا آزاد بماند.</span></div>'
+      + migrateRow;
+  }
+
+  function bindSysCard() {
+    /* مصرف رسانه — از همان api/media که فهرست می‌دهد، totalSize هم برمی‌گردد */
+    const mediaTxt = $('#sys-media-txt'), mediaBar = $('#sys-media-bar');
+    if (mediaTxt) {
+      fetch('api/media', { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(30000) })
+        .then(r => r.json().catch(() => ({})))
+        .then(d => {
+          if (!d.ok) { mediaTxt.textContent = '—'; return; }
+          const used = d.totalSize || 0;
+          const quota = 1024 * 1024 * 1024; // ۱ گیگابایت پلن رایگان Blob
+          const pct = Math.min(100, Math.round(used / quota * 1000) / 10);
+          mediaTxt.textContent = humanSize(used) + ' از ~۱ گیگابایت (' + fa(d.count || (d.media || []).length) + ' فایل)';
+          if (mediaBar) mediaBar.style.width = Math.max(2, pct) + '%';
+        })
+        .catch(() => { mediaTxt.textContent = '—'; });
+    }
+    const btn = $('#sys-migrate');
+    if (btn) btn.addEventListener('click', async () => {
+      btn.disabled = true; btn.textContent = 'در حال انتقال… (چند ثانیه)';
+      const out = $('#sys-migrate-out');
+      try {
+        const r = await fetch('api/migrate', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}), signal: AbortSignal.timeout(30000),
+        });
+        const d = await r.json().catch(() => ({}));
+        if (r.ok && d.ok) {
+          const parts = (d.migrated || []).map(m => m.label + ' (' + fa(m.count) + ' مورد)');
+          const skipped = (d.skipped || []).filter(s => s.reason === 'empty').map(s => s.label + ': در Blob خالی بود');
+          if (out) out.textContent = parts.join('، ') + (skipped.length ? ' — ' + skipped.join('، ') : '');
+          toast('مهاجرت کامل شد ✓ — ' + (d.message || ''));
+          await probeCloud();
+        } else if (r.status === 401) {
+          CDStore.logout(); location.replace('/admin-login');
+        } else {
+          if (out) out.textContent = d.message || d.error || 'خطا';
+          btn.disabled = false; btn.textContent = 'انتقال داده‌های قدیمی به پایگاه داده';
+        }
+      } catch (e) {
+        if (out) out.textContent = 'ارتباط با سرور برقرار نشد؛ دوباره تلاش کن.';
+        btn.disabled = false; btn.textContent = 'انتقال داده‌های قدیمی به پایگاه داده';
+      }
+    });
   }
 
   /* ═════════════ مسیریابی ═════════════ */

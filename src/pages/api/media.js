@@ -39,7 +39,8 @@ export async function GET({ request }) {
     const media = (res.blobs || [])
       .map(b => ({ url: b.url, name: decodeURIComponent((b.pathname || '').replace(PREFIX, '')), size: b.size || 0, uploadedAt: b.uploadedAt || '' }))
       .sort((a, b) => String(b.uploadedAt).localeCompare(String(a.uploadedAt)));
-    return json(200, { ok: true, mode: 'cloud', media });
+    const totalSize = media.reduce((s, m) => s + (m.size || 0), 0);
+    return json(200, { ok: true, mode: 'cloud', media, totalSize, count: media.length });
   } catch (e) {
     return json(500, { ok: false, error: 'BLOB_ERROR', message: String((e && e.message) || e) });
   }
@@ -47,7 +48,7 @@ export async function GET({ request }) {
 
 export async function POST({ request }) {
   if (!(await authed(request))) return json(401, { ok: false, error: 'UNAUTH' });
-  if (!process.env.BLOB_READ_WRITE_TOKEN) return json(503, { ok: false, error: 'NO_BLOB', message: 'فضای ابری (Vercel Blob) هنوز به پروژه وصل نشده است.' });
+  if (!process.env.BLOB_READ_WRITE_TOKEN) return json(503, { ok: false, error: 'NO_BLOB', message: 'کتابخانه رسانه به Vercel Blob نیاز دارد؛ فضای Blob در ورسل وصل نیست.' });
   try {
     const form = await request.formData();
     const file = form.get('file');

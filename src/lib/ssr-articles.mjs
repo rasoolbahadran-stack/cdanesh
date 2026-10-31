@@ -1,11 +1,12 @@
-/* ═══ کافه‌دانش — دادهٔ مقالات برای رندر سمت سرور (SSR) ═══
-   دقیقاً همان منطق public/assets/js/data/articles.js روی سرور:
-   ۱) فهرست ابری (Vercel Blob) — مقالات منتشرشدهٔ پنل مدیریت
-   ۲) دادهٔ همراه پروژه (src/data/articles.json) — همیشه در دسترس
+/* ═══ کافه‌دانش CMS — دادهٔ مقالات برای رندر سمت سرور (SSR) ═══
+   ترتیب منابع: ۱) پایگاه داده (Postgres — منبع اصلی CMS)
+              ۲) Vercel Blob (سازگاری قدیم و پشتیبان مهاجرت)
+              ۳) دادهٔ همراه پروژه (src/data/articles.json) — همیشه در دسترس
    خروجی: فهرست عمومی مرتب‌شده برای /blog ، /blog/[slug] و sitemap */
 import bundled from '../data/articles.json';
+import { readDoc, dbEnabled } from '../../server/lib/store.mjs';
 
-const BLOB_KEY = 'articles.json';
+const DOC_KEY = 'articles.json';
 
 /* ایمن‌سازی بحرانی: import کتابخانهٔ Blob «تنبل» و داخل try/catch انجام می‌شود؛
    اگر در محیط انتشار هر مشکلی برای این کتابخانه پیش بیاید (نسخه، باندل، توکن،
@@ -18,11 +19,24 @@ async function blobHead(key) {
   return _blobMod.head(key, { abortSignal: AbortSignal.timeout(4000) });
 }
 
+/* خواندن از دیتابیس (منبع اصلی) — هر خطا → null (رفتن به سراغ Blob/دادهٔ پروژه) */
+async function readDbArticles() {
+  if (!dbEnabled()) return null;
+  try {
+    const v = await readDoc(DOC_KEY);
+    return Array.isArray(v) ? v : null;
+  } catch (e) {
+    return null;
+  }
+}
+
 /* خواندن فهرست کامل ابری؛ هر خطا → null (صفحه با دادهٔ همراه پروژه رندر می‌شود) */
 export async function readCloudArticles() {
+  const fromDb = await readDbArticles();
+  if (fromDb) return fromDb;
   if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
   try {
-    const meta = await blobHead(BLOB_KEY);
+    const meta = await blobHead(DOC_KEY);
     const r = await fetch(meta.url, { cache: 'no-store', signal: AbortSignal.timeout(4000) });
     if (!r.ok) return null;
     const list = await r.json();

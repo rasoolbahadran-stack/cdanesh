@@ -1,58 +1,63 @@
 /* ═══════════════════════════════════════════════════════════════
-   کافه‌دانش — تم روشن پنل مدیریت (admin-light)
-   فقط روی صفحات admin.html / admin-login.html / admin-dashboard.html
-   لود می‌شود و هیچ تأثیری روی صفحات عمومی سایت ندارد.
-   پالت: زمینه خنثی روشن + کارت سفید + اکسنت بنفش برند + طلایی
+   کافه‌دانش CMS — تم مدیریت (روشن، ملایم، مینیمال و مدرن)
+   هویت بصری: کرم/بژ گرم + سفید + قهوه‌ای کافه + طلایی دانش
+   فقط روی /admin و /admin-login لود می‌شود و هیچ تأثیری روی
+   صفحات عمومی سایت ندارد.
    ═══════════════════════════════════════════════════════════════ */
 
 /* ─── توکن‌های روشن ───────────────────────────────────────── */
 body.adm-light {
-  --bg-0: #f3f2f9;
+  --bg-0: #f7f4ee;
   --bg-1: #ffffff;
-  --bg-2: #faf9fd;
+  --bg-2: #fbf9f5;
   --panel: #ffffff;
   --card: #ffffff;
-  --card-2: #f8f7fc;
-  --line: #e7e4f1;
-  --line-2: #d9d5ea;
+  --card-2: #faf8f3;
+  --line: #e9e3d8;
+  --line-2: #dbd3c4;
 
-  --txt: #241f3d;
-  --mut: #5f5b78;
-  --faint: #8f8ba6;
+  --txt: #262019;
+  --mut: #6e6559;
+  --faint: #a29a8c;
 
-  --ok: #1f9d63;
-  --warn: #a8791a;
-  --err: #d84a4a;
-  --gold-soft: rgba(227, 185, 83, .16);
+  --brand: #7a5230;        /* قهوه‌ای کافه‌دانش */
+  --brand-2: #5e3f22;
+  --brand-soft: #f3ebdf;
+  --gold: #c8963e;
+  --gold-soft: #f8f0de;
 
-  --shadow-1: 0 1px 2px rgba(30, 20, 70, .05), 0 18px 40px -28px rgba(30, 20, 70, .25);
-  --shadow-gold: 0 14px 30px -14px rgba(227, 185, 83, .45);
+  --ok: #2f7d52;
+  --warn: #b07a17;
+  --err: #c2472f;
+
+  --shadow-1: 0 1px 2px rgba(66, 50, 28, .04), 0 18px 42px -30px rgba(66, 50, 28, .28);
+  --shadow-gold: 0 14px 30px -14px rgba(200, 150, 62, .5);
 
   color: var(--txt);
-  background-color: #f3f2f9;
+  background-color: #f7f4ee;
   background-image:
-    radial-gradient(900px 480px at 12% -6%, rgba(124, 77, 255, .06), transparent 62%),
-    radial-gradient(860px 460px at 88% -8%, rgba(227, 185, 83, .09), transparent 62%);
+    radial-gradient(900px 480px at 14% -6%, rgba(200, 150, 62, .07), transparent 62%),
+    radial-gradient(860px 460px at 86% -8%, rgba(122, 82, 48, .06), transparent 62%);
 }
 
 /* فوکوس واضح برای دسترس‌پذیری */
-body.adm-light :focus-visible { outline: 2px solid #8a6cf0; outline-offset: 2px; border-radius: 6px; }
+body.adm-light :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 8px; }
 
 /* ─── سایدبار ─────────────────────────────────────────────── */
 body.adm-light .admin-side {
   background: #ffffff;
   border-inline-end: 1px solid var(--line);
-  box-shadow: -1px 0 0 rgba(30, 20, 70, .02);
+  box-shadow: -1px 0 0 rgba(66, 50, 28, .02);
 }
 body.adm-light .admin-side nav a { color: var(--mut); }
-body.adm-light .admin-side nav a:hover { background: #f6f4fd; color: var(--txt); }
+body.adm-light .admin-side nav a:hover { background: var(--card-2); color: var(--txt); }
 body.adm-light .admin-side nav a.active {
-  background: #efeafd;
-  color: #5b3fd1;
+  background: var(--brand-soft);
+  color: var(--brand-2);
   font-weight: 700;
-  box-shadow: inset 3px 0 0 #7a5fd0;
+  box-shadow: inset 3px 0 0 var(--brand);
 }
-body.adm-light .admin-side .brand-name small { color: var(--faint); }
+body.adm-light .admin-side .brand-name small { color: var(--faint); letter-spacing: 2.5px; }
 
 /* ─── کارت‌های آمار و پنل‌ها ──────────────────────────────── */
 body.adm-light .admin-card,
@@ -60,62 +65,96 @@ body.adm-light .adm-panel {
   background: #ffffff;
   box-shadow: var(--shadow-1);
 }
-body.adm-light .admin-card b { color: #4c39a8; }
+body.adm-light .admin-card b { color: var(--brand-2); }
 body.adm-light .admin-card small { color: var(--faint); }
-body.adm-light .adm-kpi .ico { background: #fdf6e4; border-color: #eddfb2; color: #8a6d1f; }
+body.adm-light .adm-kpi .ico {
+  background: var(--brand-soft);
+  border-color: #e6d9c3;
+  color: var(--brand);
+}
 
 /* ─── جدول‌ها ─────────────────────────────────────────────── */
 body.adm-light .adm-table th { color: var(--faint); border-bottom-color: var(--line); }
-body.adm-light .adm-table td { border-bottom-color: #efedf7; }
+body.adm-light .adm-table td { border-bottom-color: #f1ede5; }
 body.adm-light .adm-table tbody tr { transition: background .15s; }
-body.adm-light .adm-table tbody tr:hover { background: #faf9fe; }
+body.adm-light .adm-table tbody tr:hover { background: #fbf9f4; }
 
 /* ─── نشان‌های وضعیت ─────────────────────────────────────── */
-body.adm-light .st-pub { background: rgba(31, 157, 99, .12); color: #177a4c; }
-body.adm-light .st-draft { background: #efedf6; color: var(--mut); }
-body.adm-light .st-new { background: #f9f0d5; color: #8a6d1f; }
+body.adm-light .st-pub { background: rgba(47, 125, 82, .12); color: #256b45; }
+body.adm-light .st-draft { background: #f1ece2; color: var(--mut); }
+body.adm-light .st-new { background: var(--gold-soft); color: #8a651c; }
 
 /* ─── دکمه‌ها و تب‌ها ─────────────────────────────────────── */
-body.adm-light .adm-btn { background: #ffffff; border-color: #d9d5ea; color: var(--mut); }
-body.adm-light .adm-btn:hover { color: var(--txt); border-color: #a48ef0; background: #faf9fe; }
-body.adm-light .adm-btn.primary { background: #f7eed6; border-color: #ecd9a8; color: #8a6d1f; }
-body.adm-light .adm-btn.primary:hover { background: #f2e5c2; border-color: #dfc684; }
-body.adm-light .adm-btn.danger { color: #c93d3d; border-color: #f0cfcf; }
-body.adm-light .adm-btn.danger:hover { background: #fdf1f1; border-color: #e3a8a8; }
+body.adm-light .adm-btn { background: #ffffff; border-color: var(--line-2); color: var(--mut); }
+body.adm-light .adm-btn:hover { color: var(--txt); border-color: var(--brand); background: #fdfbf7; }
+body.adm-light .adm-btn.primary { background: var(--brand-soft); border-color: #e3d3b8; color: var(--brand-2); }
+body.adm-light .adm-btn.primary:hover { background: #ecdfc9; border-color: #d6c09c; }
+body.adm-light .adm-btn.danger { color: #bb4432; border-color: #eccfc7; }
+body.adm-light .adm-btn.danger:hover { background: #fdf3f0; border-color: #dfb0a4; }
 
 body.adm-light .adm-tabs button { background: #ffffff; border-color: var(--line); color: var(--mut); }
-body.adm-light .adm-tabs button:hover { color: var(--txt); border-color: #b9a5f0; }
+body.adm-light .adm-tabs button:hover { color: var(--txt); border-color: var(--brand); }
 body.adm-light .adm-tabs button.active {
-  background: #5b3fd1;
-  border-color: #5b3fd1;
+  background: var(--brand);
+  border-color: var(--brand);
   color: #ffffff;
-  box-shadow: 0 10px 22px -12px rgba(91, 63, 209, .55);
+  box-shadow: 0 10px 22px -12px rgba(122, 82, 48, .6);
 }
 
-body.adm-light .btn-ghost { background: #ffffff; border-color: #d9d5ea; color: var(--mut); }
-body.adm-light .btn-ghost:hover { border-color: #8a6cf0; color: #5b3fd1; background: #faf9fe; }
+body.adm-light .btn-ghost { background: #ffffff; border-color: var(--line-2); color: var(--mut); }
+body.adm-light .btn-ghost:hover { border-color: var(--brand); color: var(--brand-2); background: #fdfbf7; }
+body.adm-light .btn-gold { box-shadow: 0 12px 26px -14px rgba(122, 82, 48, .55); }
 
 /* ─── ورودی‌ها ───────────────────────────────────────────── */
 body.adm-light .control {
   background: #ffffff;
-  border: 1px solid #dcd8ea;
+  border: 1px solid var(--line-2);
   color: var(--txt);
 }
-body.adm-light .control::placeholder { color: #a8a4bd; }
+body.adm-light .control::placeholder { color: #b3ab9c; }
 body.adm-light .control:focus {
-  border-color: #8a6cf0;
-  box-shadow: 0 0 0 4px rgba(91, 63, 209, .12);
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px rgba(122, 82, 48, .1);
   outline: none;
 }
-body.adm-light .control-error { border-color: #e3a8a8 !important; }
-body.adm-light .adm-preview { background: #fbfaff; }
+body.adm-light .control-error { border-color: #dfb0a4 !important; }
+body.adm-light .adm-preview { background: #fdfbf7; }
 
 /* ─── اجزای کمکی ─────────────────────────────────────────── */
-body.adm-light .adm-meter { background: #edeaf6; }
-body.adm-light .adm-viewport-note { background: #fbf5e3; border-color: #eddfb2; color: #8a6d1f; }
-body.adm-light .adm-check { border-bottom-color: #efedf7; }
-body.adm-light .adm-check input { accent-color: #5b3fd1; }
+body.adm-light .adm-meter { background: #efe9dd; }
+body.adm-light .adm-viewport-note { background: var(--gold-soft); border-color: #e8d8b4; color: #8a651c; }
+body.adm-light .adm-check { border-bottom-color: #f1ede5; }
+body.adm-light .adm-check input { accent-color: var(--brand); }
 body.adm-light .adm-badge-count { box-shadow: var(--shadow-gold); }
+
+/* ─── کارت وضعیت سیستم (دیتابیس/Blob/مصرف/مهاجرت) ─────────── */
+.sys-row {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 13px 4px;
+  border-bottom: 1px solid #f1ede5;
+}
+.sys-row:last-child { border-bottom: 0; }
+.sys-row > div { flex: 1; min-width: 0; }
+.sys-row b { display: block; font-size: 13.5px; color: var(--txt); }
+.sys-row span { display: block; font-size: 12.5px; color: var(--mut); line-height: 2; margin-top: 2px; }
+.sys-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  flex: none; margin-top: 6px; background: #c9c0b0;
+}
+.sys-dot.ok { background: var(--ok); box-shadow: 0 0 0 3px rgba(47, 125, 82, .14); }
+.sys-dot.warn { background: var(--warn); box-shadow: 0 0 0 3px rgba(176, 122, 23, .16); }
+.sys-dot.unknown { background: #c9c0b0; }
+.sys-migrate { background: #fdfaf3; border: 1px solid #ecdfc6; border-radius: 14px; padding: 14px 16px; }
+
+/* ─── لیست تاریخچهٔ نسخه‌ها ────────────────────────────────── */
+.rev-list { display: grid; gap: 8px; }
+.rev-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  border: 1px solid var(--line); border-radius: 12px;
+  padding: 11px 14px; background: #fdfbf7;
+}
+.rev-item b { font-size: 13px; color: var(--txt); }
+.rev-meta { display: block; font-size: 11px; color: var(--faint); margin-top: 3px; }
 
 /* ─── پیام موفقیت/خطا فرم ────────────────────────────────── */
 body.adm-light .form-card {
@@ -124,19 +163,19 @@ body.adm-light .form-card {
   box-shadow: var(--shadow-1);
 }
 body.adm-light .form-ok {
-  background: rgba(31, 157, 99, .09);
-  border-color: rgba(31, 157, 99, .35);
-  color: #177a4c;
+  background: rgba(47, 125, 82, .09);
+  border-color: rgba(47, 125, 82, .35);
+  color: #256b45;
 }
 
 /* ─── صفحه ورود ──────────────────────────────────────────── */
 body.adm-light .login-veil {
   background:
-    radial-gradient(700px 380px at 15% -5%, rgba(124, 77, 255, .10), transparent 60%),
-    radial-gradient(700px 380px at 85% -8%, rgba(227, 185, 83, .13), transparent 60%),
-    #f3f2f9;
+    radial-gradient(700px 380px at 15% -5%, rgba(200, 150, 62, .12), transparent 60%),
+    radial-gradient(700px 380px at 85% -8%, rgba(122, 82, 48, .1), transparent 60%),
+    #f7f4ee;
 }
-body.adm-light .login-veil .form-card { box-shadow: 0 24px 60px -30px rgba(30, 20, 70, .3); }
+body.adm-light .login-veil .form-card { box-shadow: 0 24px 60px -30px rgba(66, 50, 28, .35); }
 body.adm-light .login-veil .form-note,
 body.adm-light .form-note { color: var(--faint); }
 
@@ -147,8 +186,8 @@ body.adm-light .stor-badge {
   border-radius: 10px;
   font-size: 11.5px;
   line-height: 1.7;
-  background: #fbfaff;
-  border: 1px dashed #d9d5ea;
+  background: #fdfbf7;
+  border: 1px dashed var(--line-2);
   color: var(--mut);
   display: flex;
   align-items: flex-start;
@@ -156,35 +195,35 @@ body.adm-light .stor-badge {
 }
 body.adm-light .stor-badge .dot {
   width: 8px; height: 8px; border-radius: 50%;
-  background: #b6b1cc; flex: none; margin-top: 5px;
+  background: #c9c0b0; flex: none; margin-top: 5px;
 }
 body.adm-light .stor-badge.on {
-  background: #f2fbf6;
-  border-color: rgba(31, 157, 99, .45);
-  color: #177a4c;
+  background: #f2faf5;
+  border-color: rgba(47, 125, 82, .45);
+  color: #256b45;
 }
-body.adm-light .stor-badge.on .dot { background: #1f9d63; box-shadow: 0 0 0 3px rgba(31, 157, 99, .15); }
+body.adm-light .stor-badge.on .dot { background: var(--ok); box-shadow: 0 0 0 3px rgba(47, 125, 82, .15); }
 
 /* ─── اسکرول‌بار ظریف ────────────────────────────────────── */
 body.adm-light ::-webkit-scrollbar { width: 10px; height: 10px; }
 body.adm-light ::-webkit-scrollbar-track { background: transparent; }
-body.adm-light ::-webkit-scrollbar-thumb { background: #d5d1e4; border-radius: 99px; border: 2px solid #f3f2f9; }
-body.adm-light ::-webkit-scrollbar-thumb:hover { background: #bfb8dc; }
+body.adm-light ::-webkit-scrollbar-thumb { background: #ddd5c5; border-radius: 99px; border: 2px solid #f7f4ee; }
+body.adm-light ::-webkit-scrollbar-thumb:hover { background: #c9bfa9; }
 
 /* ─── منوی کشویی (select) در تم روشن ───────────────────────
    main.css برای سایت تیره color-scheme: dark ست می‌کند؛ این‌جا برمی‌گردانیم */
 body.adm-light select.control { color-scheme: light; }
 body.adm-light select.control option,
-body.adm-light select.control optgroup { background: #ffffff; color: #241f3d; }
+body.adm-light select.control optgroup { background: #ffffff; color: #262019; }
 body.adm-light select.control option:checked,
-body.adm-light select.control option:hover { background: #f3edff; color: #4c39a8; }
+body.adm-light select.control option:hover { background: var(--brand-soft); color: var(--brand-2); }
 
 /* ═════════════ ویرایشگر HTML (WYSIWYG + کد) ═════════════ */
 .ed-toolbar {
   display: flex; flex-wrap: wrap; gap: 4px;
   padding: 9px; border: 1px solid var(--line); border-bottom: 0;
   border-radius: 14px 14px 0 0;
-  background: #faf9fd;
+  background: #faf7f1;
   position: sticky; top: 0; z-index: 5;
 }
 .ed-btn {
@@ -193,36 +232,36 @@ body.adm-light select.control option:hover { background: #f3edff; color: #4c39a8
   border: 1px solid transparent; border-radius: 9px;
   font-size: 12.5px; color: var(--mut); cursor: pointer; transition: .15s;
 }
-.ed-btn:hover { background: #f1eefb; color: var(--txt); border-color: var(--line); }
-.ed-btn.active { background: #5b3fd1; color: #fff; }
+.ed-btn:hover { background: var(--brand-soft); color: var(--txt); border-color: var(--line); }
+.ed-btn.active { background: var(--brand); color: #fff; }
 .ed-sep { width: 1px; height: 22px; background: var(--line); margin-inline: 5px; align-self: center; }
 .ed-canvas {
   min-height: 420px; max-height: 70vh; overflow-y: auto;
   padding: 24px 26px;
   border: 1px solid var(--line); border-radius: 0 0 14px 14px;
   background: #ffffff;
-  font-size: 15px; line-height: 2.15; color: #3a3550;
+  font-size: 15px; line-height: 2.15; color: #3b342a;
   outline: none;
 }
-.ed-canvas:focus { border-color: #a48ef0; box-shadow: 0 0 0 4px rgba(138, 108, 240, .12); }
+.ed-canvas:focus { border-color: var(--brand); box-shadow: 0 0 0 4px rgba(122, 82, 48, .1); }
 .ed-canvas:empty::before { content: 'متن مقاله را همین‌جا بنویسید…'; color: var(--faint); }
-.ed-canvas h2 { font-size: 22px; font-weight: 800; color: #241f3d; margin: 34px 0 10px; }
-.ed-canvas h3 { font-size: 17.5px; font-weight: 700; color: #241f3d; margin: 26px 0 8px; }
+.ed-canvas h2 { font-size: 22px; font-weight: 800; color: #262019; margin: 34px 0 10px; }
+.ed-canvas h3 { font-size: 17.5px; font-weight: 700; color: #262019; margin: 26px 0 8px; }
 .ed-canvas p { margin-bottom: 12px; }
 .ed-canvas ul, .ed-canvas ol { padding-inline-start: 26px; margin-bottom: 12px; list-style: disc; }
 .ed-canvas ol { list-style: decimal; }
 .ed-canvas li { margin-bottom: 6px; }
 .ed-canvas blockquote {
-  border-inline-start: 3px solid #e3b953; background: #fdf9ef;
-  padding: 12px 18px; border-radius: 0 12px 12px 0; margin: 14px 0; color: #4c4364;
+  border-inline-start: 3px solid var(--gold); background: #fbf6ea;
+  padding: 12px 18px; border-radius: 0 12px 12px 0; margin: 14px 0; color: #4c4436;
 }
 .ed-canvas table { border-collapse: collapse; width: 100%; margin: 14px 0; }
 .ed-canvas th, .ed-canvas td { border: 1px solid var(--line); padding: 9px 12px; font-size: 13.5px; }
-.ed-canvas th { background: #f6f4fd; }
+.ed-canvas th { background: #faf7f1; }
 .ed-canvas img { border-radius: 12px; max-width: 100%; height: auto; margin: 10px 0; }
 .ed-canvas .prose-cta {
-  background: linear-gradient(150deg, rgba(227,185,83,.12), rgba(227,185,83,.03));
-  border: 1px solid rgba(227,185,83,.4); border-radius: 14px;
+  background: linear-gradient(150deg, rgba(200,150,62,.12), rgba(200,150,62,.03));
+  border: 1px solid rgba(200,150,62,.4); border-radius: 14px;
   padding: 14px 18px; margin: 18px 0;
 }
 .ed-src { border-radius: 0 0 14px 14px; }
@@ -230,45 +269,45 @@ body.adm-light select.control option:hover { background: #f3edff; color: #4c39a8
 /* ═════════════ کتابخانه رسانه ═════════════ */
 #cd-media-root { display: none; }
 .cd-media-veil {
-  position: fixed; inset: 0; background: rgba(20, 14, 45, .45);
+  position: fixed; inset: 0; background: rgba(38, 28, 16, .45);
   backdrop-filter: blur(4px); z-index: 400;
 }
 .cd-media {
   position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
   width: min(880px, 94vw); max-height: 88vh;
   background: #ffffff; border: 1px solid var(--line); border-radius: 22px;
-  box-shadow: 0 40px 90px -30px rgba(30, 20, 70, .5);
+  box-shadow: 0 40px 90px -30px rgba(66, 50, 28, .5);
   display: flex; flex-direction: column; z-index: 401; overflow: hidden;
 }
 .cd-media-head {
   display: flex; align-items: center; gap: 14px;
   padding: 16px 20px; border-bottom: 1px solid var(--line);
 }
-.cd-media-head b { font-size: 15px; color: #241f3d; }
+.cd-media-head b { font-size: 15px; color: #262019; }
 .cd-media-hint { flex: 1; font-size: 11.5px; color: var(--faint); }
 .cd-media-drop {
   margin: 16px 20px 0; padding: 22px;
-  border: 2px dashed #d9d5ea; border-radius: 16px;
+  border: 2px dashed var(--line-2); border-radius: 16px;
   text-align: center; color: var(--mut); font-size: 13.5px;
   display: flex; flex-direction: column; align-items: center; gap: 8px;
   transition: .2s;
 }
-.cd-media-drop.drag { border-color: #8a6cf0; background: #f6f4fd; }
+.cd-media-drop.drag { border-color: var(--brand); background: var(--brand-soft); }
 .cd-media-grid {
   padding: 16px 20px 20px; overflow-y: auto;
   display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px;
 }
 .cd-media-item {
   border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
-  background: #fbfaff; display: flex; flex-direction: column;
+  background: #fdfbf7; display: flex; flex-direction: column;
 }
 .cd-media-thumb {
-  height: 110px; background: #efeafd;
+  height: 110px; background: var(--brand-soft);
   display: flex; align-items: center; justify-content: center; overflow: hidden;
 }
 .cd-media-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .cd-media-filetype {
-  font-size: 15px; font-weight: 800; color: #5b3fd1;
+  font-size: 15px; font-weight: 800; color: var(--brand);
   text-transform: uppercase; letter-spacing: 1px;
 }
 .cd-media-name {
@@ -279,33 +318,37 @@ body.adm-light select.control option:hover { background: #f3edff; color: #4c39a8
 .cd-media-actions { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 8px 10px; }
 .cd-media-actions .adm-btn { font-size: 10.5px; padding: 5px 8px; }
 
-/* ═════════════ بنر راهنمای اتصال ابری ═════════════ */
+/* ═════════════ بنرهای راهنما (اتصال ابری / ارتقا به دیتابیس) ═════════════ */
 .adm-setup-step {
   display: flex; flex-direction: column; gap: 3px;
   padding: 12px 16px; border-radius: 12px;
-  background: rgba(255, 255, 255, .6);
-  border: 1px solid rgba(232, 194, 104, .35);
+  background: rgba(255, 255, 255, .65);
+  border: 1px solid rgba(200, 150, 62, .35);
   margin-bottom: 10px;
 }
-.adm-setup-step b { font-size: 13px; color: #241f3d; }
+.adm-setup-step b { font-size: 13px; color: #262019; }
 .adm-setup-step span { font-size: 12.5px; color: var(--mut); line-height: 2; }
+.adm-upgrade.adm-setup {
+  border: 1px solid rgba(122, 82, 48, .4);
+  background: linear-gradient(150deg, rgba(122,82,48,.08), rgba(200,150,62,.05));
+}
 
 @media (max-width: 700px) {
   .cd-media-grid { grid-template-columns: 1fr 1fr; }
   .ed-toolbar { position: static; }
 }
 
-/* ═════════════ مودال عمومی پنل (مشاهدهٔ پیام / ابزار HTML) ═════════════ */
+/* ═════════════ مودال عمومی پنل (مشاهدهٔ پیام / ابزار HTML / تاریخچه) ═════════════ */
 body.adm-modal-open { overflow: hidden; }
 .adm-modal-veil {
-  position: fixed; inset: 0; background: rgba(20, 14, 45, .45);
+  position: fixed; inset: 0; background: rgba(38, 28, 16, .45);
   backdrop-filter: blur(4px); z-index: 400;
 }
 .adm-modal {
   position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
   width: min(720px, 94vw); max-height: 90vh;
   background: #ffffff; border: 1px solid var(--line); border-radius: 22px;
-  box-shadow: 0 40px 90px -30px rgba(30, 20, 70, .5);
+  box-shadow: 0 40px 90px -30px rgba(66, 50, 28, .5);
   display: flex; flex-direction: column; z-index: 401; overflow: hidden;
 }
 .adm-modal-lg { width: min(1060px, 96vw); }
@@ -313,27 +356,27 @@ body.adm-modal-open { overflow: hidden; }
   display: flex; align-items: center; justify-content: space-between; gap: 14px;
   padding: 16px 20px; border-bottom: 1px solid var(--line);
 }
-.adm-modal-head b { font-size: 15px; color: #241f3d; }
+.adm-modal-head b { font-size: 15px; color: #262019; }
 .adm-modal-body { padding: 18px 20px; overflow-y: auto; }
 .adm-modal-split2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .adm-modal-foot {
   display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
-  padding: 14px 20px; border-top: 1px solid var(--line); background: #faf9fd;
+  padding: 14px 20px; border-top: 1px solid var(--line); background: #faf7f1;
 }
 
 /* ─── مشاهدهٔ پیام ─── */
 .msg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
-.msg-grid > div { background: #fbfaff; border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; }
+.msg-grid > div { background: #fdfbf7; border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; }
 .msg-grid small { display: block; font-size: 10.5px; color: var(--faint); margin-bottom: 3px; }
 .msg-grid b { font-size: 13.5px; color: var(--txt); word-break: break-word; }
-.msg-full { background: #fbfaff; border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+.msg-full { background: #fdfbf7; border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
 .msg-full small { display: block; font-size: 10.5px; color: var(--faint); margin-bottom: 8px; }
 .msg-full p { font-size: 15px; line-height: 2.15; color: var(--txt); white-space: pre-wrap; word-break: break-word; margin: 0; }
 
 /* ─── ردیف پیام در فهرست ─── */
 .msg-row { cursor: pointer; transition: background .15s; }
-.msg-row:hover { background: #faf9fe; }
-.msg-row:focus-visible { outline: 2px solid #8a6cf0; outline-offset: 2px; }
+.msg-row:hover { background: #fbf9f4; }
+.msg-row:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .msg-snippet {
   margin-top: 6px; font-size: 13px; color: var(--mut); line-height: 1.95;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
@@ -352,38 +395,38 @@ body.adm-modal-open { overflow: hidden; }
   display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
   flex-wrap: wrap; margin-bottom: 10px; padding: 0 4px;
 }
-.adm-preview-head b { font-size: 13.5px; color: #4c39a8; }
+.adm-preview-head b { font-size: 13.5px; color: var(--brand-2); }
 .adm-preview-head span { font-size: 11px; color: var(--faint); }
 /* پیش‌نمایش با همان حال‌وهوای تیرهٔ سایت رندر می‌شود */
 .adm-site-preview {
-  background: #17171f;
-  background-image: radial-gradient(700px 380px at 12% -6%, rgba(124, 77, 255, .16), transparent 62%);
-  color: #f4f3ef; border: 1px solid var(--line); border-radius: 18px;
+  background: #1c1712;
+  background-image: radial-gradient(700px 380px at 12% -6%, rgba(200, 150, 62, .14), transparent 62%);
+  color: #f4f1ea; border: 1px solid var(--line); border-radius: 18px;
   padding: 26px 24px 30px; max-height: calc(100vh - 190px); overflow-y: auto;
   font-family: 'Vazirmatn', Tahoma, sans-serif;
 }
 .pv-cover { margin: 0 0 16px; }
 .pv-cover img { width: 100%; border-radius: 14px; border: 1px solid rgba(255,255,255,.1); }
 .pv-cover[hidden] { display: none; }
-.pv-meta { font-size: 11.5px; color: #83828b; border-bottom: 1px solid rgba(255,255,255,.08); padding-bottom: 13px; margin-bottom: 14px; }
+.pv-meta { font-size: 11.5px; color: #97907f; border-bottom: 1px solid rgba(255,255,255,.08); padding-bottom: 13px; margin-bottom: 14px; }
 .pv-title { font-size: 21px; font-weight: 800; color: #ffffff; line-height: 1.7; margin: 0 0 16px; }
-.pv-prose { font-size: 14px; line-height: 2.15; color: #b3b1b9; }
+.pv-prose { font-size: 14px; line-height: 2.15; color: #bcb4a4; }
 .pv-prose > * + * { margin-top: 14px; }
-.pv-prose h2 { font-size: 18.5px; font-weight: 800; color: #f4f3ef; margin-top: 26px; }
-.pv-prose h3 { font-size: 15.5px; font-weight: 700; color: #f4f3ef; margin-top: 20px; }
-.pv-prose strong { color: #f4f3ef; }
+.pv-prose h2 { font-size: 18.5px; font-weight: 800; color: #f4f1ea; margin-top: 26px; }
+.pv-prose h3 { font-size: 15.5px; font-weight: 700; color: #f4f1ea; margin-top: 20px; }
+.pv-prose strong { color: #f4f1ea; }
 .pv-prose ul, .pv-prose ol { padding-inline-start: 22px; display: flex; flex-direction: column; gap: 8px; }
 .pv-prose ul { list-style: disc; } .pv-prose ol { list-style: decimal; }
-.pv-prose li::marker { color: #e3b953; }
-.pv-prose blockquote { border-inline-start: 3px solid #e3b953; background: rgba(227,185,83,.1); border-radius: 0 12px 12px 0; padding: 12px 16px; color: #f4f3ef; }
-.pv-prose a { color: #f2d488; text-decoration: underline; text-underline-offset: 3px; }
+.pv-prose li::marker { color: var(--gold); }
+.pv-prose blockquote { border-inline-start: 3px solid var(--gold); background: rgba(200,150,62,.1); border-radius: 0 12px 12px 0; padding: 12px 16px; color: #f4f1ea; }
+.pv-prose a { color: #f0d49a; text-decoration: underline; text-underline-offset: 3px; }
 .pv-prose img { max-width: 100%; height: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,.1); }
 .pv-prose table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .pv-prose th, .pv-prose td { border: 1px solid rgba(255,255,255,.1); padding: 8px 10px; text-align: right; }
-.pv-prose th { background: rgba(255,255,255,.05); color: #f4f3ef; }
+.pv-prose th { background: rgba(255,255,255,.05); color: #f4f1ea; }
 .pv-prose .table-wrap { overflow-x: auto; }
 .pv-prose figure { margin: 0; }
-.pv-prose figcaption { font-size: 11.5px; color: #83828b; margin-top: 6px; text-align: center; }
+.pv-prose figcaption { font-size: 11.5px; color: #97907f; margin-top: 6px; text-align: center; }
 @media (max-width: 1150px) {
   .adm-editor-split { grid-template-columns: 1fr; }
   .adm-preview-col { position: static; }

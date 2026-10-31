@@ -1,28 +1,15 @@
-/* ═══ کافه‌دانش — صفحات ابری (Vercel Function + Vercel Blob) ═══
+/* ═══ کافه‌دانش CMS — صفحات ابری (دیتابیس Postgres / سازگاری Blob) ═══
    GET  /api/pages  → کل فهرست (فقط مدیر)
    PUT  /api/pages  {pages:[…]} → ذخیرهٔ کل فهرست (فقط مدیر)
    ساختار هر صفحه: {slug, eyebrow?, title, lead?, seoTitle, seoDesc,
                     status: 'published'|'draft', blocks, updated}
-   داده در Vercel Blob با نام ثابت pages.json نگهداری می‌شود؛
-   /p/<slug> و /terms و /privacy سمت سرور از همین داده رندر می‌شوند. */
-import { blobHead, blobPut, blobFetch, ADMIN_MS } from '../lib/blob-safe.mjs';
+   داده در لایهٔ store.mjs نگهداری می‌شود (Postgres با DATABASE_URL، وگرنه Blob
+   با کلید pages.json)؛ /p/<slug> و /terms و /privacy سمت سرور از همین داده رندر می‌شوند. */
+import { readDoc, writeDoc, DB_MS } from '../lib/store.mjs';
 import { isAuthedAsync, json, readJsonBody } from '../lib/admin-auth.mjs';
 
-const BLOB_KEY = 'pages.json';
+const DOC_KEY = 'pages.json';
 const MAX_PAGES = 60;
-
-function isNotFound(e) {
-  return e && (e.name === 'BlobNotFoundError' || /not ?found|does ?not exist|NoSuchKey/i.test(String((e && e.message) || e)));
-}
-
-async function readBlob() {
-  const meta = await blobHead(BLOB_KEY);
-  const r = await blobFetch(meta.url);
-  if (!r.ok) throw new Error('BLOB_FETCH_' + r.status);
-  const data = await r.json();
-  const list = Array.isArray(data) ? data : (data && Array.isArray(data.pages) ? data.pages : []);
-  return list;
-}
 
 /* اسلاگ رزروشده = مسیرهای استاتیک سایت که نباید در /p/<slug> بازنویسی شوند */
 const RESERVED = new Set(['blog', 'article', 'admin', 'admin-login', 'api', 'assets', 'p']);
@@ -52,22 +39,27 @@ function validatePages(list) {
 
 export default async function handler(req, res) {
   const method = (req.method || 'GET').toUpperCase();
-  const hasBlob = !!process.env.BLOB_READ_WRITE_TOKEN;
+  const hasStorage = !!process.env.BLOB_READ_WRITE_TOKEN || !!process.env.DATABASE_URL;
+  const noStorage = () => json(res, 503, {
+    ok: false, error: 'NO_BLOB',
+    message: 'فضای ذخیره‌سازی (دیتابیس یا Blob) هنوز به پروژه وصل نشده است.',
+  });
 
   if (method === 'GET') {
-    if (!hasBlob) return json(res, 503, { ok: false, error: 'NO_BLOB', message: 'فضای ابری (Vercel Blob) هنوز به پروژه وصل نشده است.' });
+    if (!hasStorage) return noStorage();
     if (!(await isAuthedAsync(req))) return json(res, 401, { ok: false, error: 'UNAUTH', message: 'نشست منقضی شده؛ دوباره وارد شو.' });
     let list = [];
-    try { list = await readBlob(); }
-    catch (e) {
-      if (isNotFound(e)) return json(res, 200, { ok: true, mode: 'cloud', count: 0, pages: [] });
-      return json(res, 500, { ok: false, error: 'BLOB_ERROR', message: String((e && e.message) || e) });
+    try {
+      const data = await readDoc(DOC_KEY, { ms: DB_MS });
+      list = Array.isArray(data) ? data : (data && Array.isArray(data.pages) ? data.pages : []);
+    } catch (e) {
+      return json(res, 500, { ok: false, error: 'STORE_ERROR', message: String((e && e.message) || e) });
     }
-    return json(res, 200, { ok: true, mode: 'cloud', count: list.length, pages: list });
+    return json(res, 200, { ok: true, mode: 'cloud', db: !!process.env.DATABASE_URL, count: list.length, pages: list });
   }
 
   if (method === 'PUT' || method === 'POST') {
-    if (!hasBlob) return json(res, 503, { ok: false, error: 'NO_BLOB', message: 'فضای ابری (Vercel Blob) هنوز به پروژه وصل نشده است.' });
+    if (!hasStorage) return noStorage();
     if (!(await isAuthedAsync(req))) return json(res, 401, { ok: false, error: 'UNAUTH', message: 'نشست منقضی شده؛ دوباره وارد شو.' });
     let body;
     try { body = await readJsonBody(req); }
@@ -78,13 +70,10 @@ export default async function handler(req, res) {
     const invalid = validatePages(body.pages);
     if (invalid) return json(res, 400, { ok: false, error: 'INVALID', message: invalid });
     try {
-      const blob = await blobPut(BLOB_KEY, JSON.stringify(body.pages), {
-        access: 'public', addRandomSuffix: false, contentType: 'application/json; charset=utf-8',
-        ms: ADMIN_MS, // عملیات مدیر (انتشار/ویرایش صفحه) — سقف ۶۰ ثانیه
-      });
-      return json(res, 200, { ok: true, count: body.pages.length, updatedAt: blob.uploadedAt || new Date().toISOString() });
+      await writeDoc(DOC_KEY, body.pages, { ms: DB_MS }); // عملیات مدیر
+      return json(res, 200, { ok: true, count: body.pages.length, updatedAt: new Date().toISOString() });
     } catch (e) {
-      return json(res, 500, { ok: false, error: 'BLOB_ERROR', message: String((e && e.message) || e) });
+      return json(res, 500, { ok: false, error: 'STORE_ERROR', message: String((e && e.message) || e) });
     }
   }
 

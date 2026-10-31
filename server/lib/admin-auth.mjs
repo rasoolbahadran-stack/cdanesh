@@ -2,11 +2,12 @@
    این ماژول منطق مشترک api/login.mjs و api/articles.mjs است و
    عمداً «خالص» نوشته شده تا با تست واحد هم قابل بررسی باشد.
    رمز مدیر در متغیر محیطی ورسل نگهداری می‌شود و هرگز در کد عمومی نیست.
-   تغییر نام کاربری/رمز از خود پنل: در Vercel Blob (users.json) با هش pbkdf2
-   ذخیره می‌شود؛ شمارهٔ نسخهٔ رمز (pv) در توکن نشست می‌آید تا با هر تغییر رمز،
+   تغییر نام کاربری/رمز از خود پنل: در لایهٔ ذخیره‌سازی (دیتابیس Postgres یا
+   در نبود آن Vercel Blob — کلید users.json) با هش pbkdf2 ذخیره می‌شود؛ شمارهٔ نسخهٔ رمز (pv) در توکن نشست می‌آید تا با هر تغییر رمز،
    همهٔ نشست‌های فعال روی همهٔ دستگاه‌ها بی‌اعتبار شوند. */
 import crypto from 'node:crypto';
 import { blobHead, blobPut, blobFetch } from './blob-safe.mjs';
+import { readDoc, writeDoc, dbEnabled } from './store.mjs';
 
 export const COOKIE_NAME = 'cd_admin';
 const DAY = 24 * 60 * 60 * 1000;
@@ -29,15 +30,27 @@ function isNotFound(e) {
   return e && (e.name === 'BlobNotFoundError' || /not ?found|does ?not exist|NoSuchKey/i.test(String((e && e.message) || e)));
 }
 
-async function readUsers(force) {
+/* آیا فضای ذخیره‌سازی ساخت‌یافته داریم؟ (دیتابیس یا Blob — کافی است یکی)
+   دیتابیس (DATABASE_URL) اولویت دارد؛ Blob حالت سازگاری قدیم است. */
+export function hasAnyStorage() {
+  return dbEnabled() || !!process.env.BLOB_READ_WRITE_TOKEN;
+}
+
+/* خواندن users.json از لایهٔ ذخیره‌سازی (دیتابیس → در نبود آن Blob).
+   نبود سند = null (عادی)؛ خطای زیرساخت = throw (که با retry/کش مدیریت می‌شود). */
+async function readUsersRaw() {
+  if (dbEnabled()) return readDoc(USERS_KEY);
   if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
+  const meta = await blobHead(USERS_KEY);
+  const r = await blobFetch(meta.url);
+  if (!r.ok) throw new Error('BLOB_FETCH_' + r.status);
+  return r.json();
+}
+
+async function readUsers(force) {
+  if (!hasAnyStorage()) return null;
   if (!force && usersCache.data && Date.now() - usersCache.at < 45 * 1000) return usersCache.data;
-  const read = async () => {
-    const meta = await blobHead(USERS_KEY);
-    const r = await blobFetch(meta.url);
-    if (!r.ok) throw new Error('BLOB_FETCH_' + r.status);
-    return r.json();
-  };
+  const read = readUsersRaw;
   try {
     const u = await read();
     usersCache = { data: (u && u.username && u.hash) ? u : null, at: Date.now() };
@@ -59,16 +72,20 @@ async function readUsers(force) {
     /* نکتهٔ مهم: شکستِ خواندن «کش» نمی‌شود (at=0) — درخواست بعدی دوباره تلاش می‌کند
        و از یک خطای گذرا، ۴۵ ثانیه وضعیت خراب ساخته نمی‌شود. */
     usersCache = { data: null, at: 0 };
-    usersReadDegraded = !isNotFound(failed); // «فایل نیست» وضعیت عادی است؛ بقیه = زیرساخت
+    usersReadDegraded = !isNotFound(failed); // «سند نیست» وضعیت عادی است؛ بقیه = زیرساخت
   }
   return usersCache.data;
 }
 
 async function writeUsers(u) {
-  await blobPut(USERS_KEY, JSON.stringify(u), {
-    access: 'public', addRandomSuffix: false, contentType: 'application/json; charset=utf-8',
-  });
+  await writeDoc(USERS_KEY, u);
   usersCache = { data: u, at: Date.now() };
+}
+
+/* بعد از مهاجرت یک‌کلیکی (Blob → دیتابیس) کش کاربر باید خالی شود */
+export function resetUsersCache() {
+  usersCache = { data: null, at: 0 };
+  usersReadDegraded = false;
 }
 
 const hashOf = (password, salt) =>
@@ -227,19 +244,26 @@ export function validateArticles(list) {
   if (list.length > 300) return 'تعداد مقالات بیش از حد مجاز (۳۰۰) است.';
   const seen = new Set();
   for (const a of list) {
-    if (!a || typeof a !== 'object' || Array.isArray(a)) return 'ساختار یکی از مقاله‌ها نامعتبر است.';
-    if (typeof a.slug !== 'string' || !/^[a-zA-Z0-9\u0600-\u06FF-]{1,80}$/.test(a.slug)) {
-      return 'اسلاگ نامعتبر است: ' + String(a.slug == null ? '—' : a.slug).slice(0, 40);
-    }
-    if (typeof a.title !== 'string' || !a.title.trim() || a.title.length > 300) {
-      return 'عنوان مقاله با اسلاگ «' + a.slug + '» نامعتبر است.';
-    }
+    const msg = validateSingleArticle(a);
+    if (msg) return msg;
     if (seen.has(a.slug)) return 'اسلاگ تکراری است: ' + a.slug;
     seen.add(a.slug);
-    if (JSON.stringify(a).length > 200 * 1024) return 'حجم مقاله «' + a.slug + '» بیش از حد مجاز است.';
-    if (a.status && !['published', 'draft', 'scheduled'].includes(a.status)) {
-      return 'وضعیت نامعتبر برای مقاله «' + a.slug + '».';
-    }
+  }
+  return null;
+}
+
+/* اعتبارسنجی «یک» مقاله (ذخیرهٔ تکی POST) — همان قواعد، با پیام دقیق */
+export function validateSingleArticle(a) {
+  if (!a || typeof a !== 'object' || Array.isArray(a)) return 'ساختار مقاله نامعتبر است.';
+  if (typeof a.slug !== 'string' || !/^[a-zA-Z0-9\u0600-\u06FF-]{1,80}$/.test(a.slug)) {
+    return 'اسلاگ نامعتبر است: ' + String(a.slug == null ? '—' : a.slug).slice(0, 40);
+  }
+  if (typeof a.title !== 'string' || !a.title.trim() || a.title.length > 300) {
+    return 'عنوان مقاله با اسلاگ «' + a.slug + '» نامعتبر است.';
+  }
+  if (JSON.stringify(a).length > 200 * 1024) return 'حجم مقاله «' + a.slug + '» بیش از حد مجاز است.';
+  if (a.status && !['published', 'draft', 'scheduled'].includes(a.status)) {
+    return 'وضعیت نامعتبر برای مقاله «' + a.slug + '».';
   }
   return null;
 }

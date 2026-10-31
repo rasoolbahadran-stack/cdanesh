@@ -1,8 +1,10 @@
-/* ═══ کافه‌دانش — دادهٔ صفحات ابری برای رندر سمت سرور (SSR) ═══
-   ۱) فهرست ابری (Vercel Blob / pages.json) — صفحات ساخته‌شده و ویرایش‌شده از پنل
-   ۲) دادهٔ همراه پروژه (src/data/pages.json) — صفحات پایه مثل شرایط استفاده و حریم خصوصی
+/* ═══ کافه‌دانش CMS — دادهٔ صفحات ابری برای رندر سمت سرور (SSR) ═══
+   ترتیب منابع: ۱) پایگاه داده (Postgres — منبع اصلی CMS)
+              ۲) Vercel Blob / pages.json (سازگاری قدیم)
+              ۳) دادهٔ همراه پروژه (src/data/pages.json) — شرایط استفاده و حریم خصوصی
    خروجی: فهرست صفحات برای /p/<slug> ، /terms ، /privacy و sitemap */
 import bundled from '../data/pages.json';
+import { readDoc, dbEnabled } from '../../server/lib/store.mjs';
 
 const PAGES_KEY = 'pages.json';
 
@@ -15,7 +17,21 @@ async function blobHead(key) {
   return _blobMod.head(key, { abortSignal: AbortSignal.timeout(4000) });
 }
 
+async function readDbPages() {
+  if (!dbEnabled()) return null;
+  try {
+    const v = await readDoc(PAGES_KEY);
+    if (Array.isArray(v)) return v;
+    if (v && Array.isArray(v.pages)) return v.pages;
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+
 export async function readCloudPages() {
+  const fromDb = await readDbPages();
+  if (fromDb) return fromDb;
   if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
   try {
     const meta = await blobHead(PAGES_KEY);

@@ -1,36 +1,15 @@
-/* ═══ کافه‌دانش — پیام‌های ابری (فرم تماس و درخواست) ═══
-   POST /api/messages  {message:{…}}  → ثبت پیام جدید (عمومی — فرم‌های سایت)
+/* ═══ کافه‌دانش CMS — پیام‌های ابری (فرم تماس و درخواست) ═══
+   POST /api/messages  {message:{…}}  → ثبت پیام جدید (عمومی — فرم‌های سایت؛ اتمیک)
    GET  /api/messages                 → کل فهرست (فقط مدیر)
    PUT  /api/messages {messages:[…]}  → ذخیرهٔ کل فهرست (وضعیت‌ها/حذف — فقط مدیر)
-   داده در Vercel Blob با نام ثابت messages.json نگهداری می‌شود. */
-import { blobHead, blobPut, blobFetch, ADMIN_MS } from '../lib/blob-safe.mjs';
+   داده در لایهٔ store.mjs نگهداری می‌شود: با DATABASE_URL در Postgres
+   (تراکنش اتمیک — دو فرم هم‌زمان هرگز پیام گم نمی‌کند)، وگرنه Vercel Blob. */
+import { readDoc, writeDoc, modifyDoc, DB_MS } from '../lib/store.mjs';
 import { isAuthedAsync, json, readJsonBody, clientIp } from '../lib/admin-auth.mjs';
 
-const BLOB_KEY = 'messages.json';
+const DOC_KEY = 'messages.json';
 const MAX_MESSAGES = 300;
 const MAX_LEN = { name: 80, phone: 14, email: 120, service: 40, subject: 200, package: 80, budget: 60, message: 4000 };
-
-/* نبود فایل در Blob با خطای مشخص */
-function isNotFound(e) {
-  return e && (e.name === 'BlobNotFoundError' || /not ?found|does ?not exist|NoSuchKey/i.test(String((e && e.message) || e)));
-}
-
-async function readBlob() {
-  const meta = await blobHead(BLOB_KEY);
-  const r = await blobFetch(meta.url);
-  if (!r.ok) throw new Error('BLOB_FETCH_' + r.status);
-  const list = await r.json();
-  return Array.isArray(list) ? list : [];
-}
-
-async function writeBlob(list, ms) {
-  await blobPut(BLOB_KEY, JSON.stringify(list), {
-    access: 'public',
-    addRandomSuffix: false,
-    contentType: 'application/json; charset=utf-8',
-    ...(ms ? { ms } : {}),
-  });
-}
 
 /* ─── نرمال‌سازی ارقام فارسی/عربی و اعتبارسنجی موبایل ایران ─── */
 function normalizeDigits(v) {
@@ -117,11 +96,17 @@ export default async function handler(req, res) {
   const method = (req.method || 'GET').toUpperCase();
   const hasBlob = !!process.env.BLOB_READ_WRITE_TOKEN;
 
-  /* ─── ثبت پیام جدید (عمومی) ─── */
-  if (method === 'POST') {
-    if (!hasBlob) {
-      return json(res, 503, { ok: false, error: 'NO_BLOB', message: 'فضای ابری (Vercel Blob) هنوز به پروژه وصل نشده است.' });
+  const noStorage = () => {
+    if (!process.env.BLOB_READ_WRITE_TOKEN && !process.env.DATABASE_URL) {
+      return json(res, 503, { ok: false, error: 'NO_BLOB', message: 'فضای ذخیره‌سازی (دیتابیس یا Blob) هنوز به پروژه وصل نشده است.' });
     }
+    return null;
+  };
+
+  /* ─── ثبت پیام جدید (عمومی — اتمیک) ─── */
+  if (method === 'POST') {
+    const ns = noStorage();
+    if (ns) return ns;
     const ip = clientIp(req);
     if (tooMany(ip)) {
       return json(res, 429, { ok: false, error: 'RATE_LIMITED', message: 'پیام‌های زیادی ارسال شده؛ کمی بعد دوباره تلاش کنید.' });
@@ -140,15 +125,12 @@ export default async function handler(req, res) {
     const built = buildRecord(body, new Date());
     if (built.error) return json(res, 400, { ok: false, error: 'INVALID', message: built.error });
 
-    let list = [];
-    try { list = await readBlob(); }
-    catch (e) {
-      if (!isNotFound(e)) return json(res, 500, { ok: false, error: 'BLOB_ERROR', message: String((e && e.message) || e) });
-    }
-    list.unshift(built.rec);
-    if (list.length > MAX_MESSAGES) list = list.slice(0, MAX_MESSAGES);
+    let count = 0;
     try {
-      await writeBlob(list);
+      const { next } = await modifyDoc(DOC_KEY,
+        list => [built.rec].concat(Array.isArray(list) ? list : []).slice(0, MAX_MESSAGES),
+        { ms: DB_MS });
+      count = next.length;
       /* اعلان فوری تلگرام (اختیاری): اگر TELEGRAM_BOT_TOKEN و TELEGRAM_CHAT_ID
          در متغیرهای محیطی ورسل تنظیم شده باشد، پیام همان لحظه برای مدیر ارسال می‌شود.
          هر خطا روی ثبت پیام اثر ندارد (fire-and-forget با تایم‌اوت). */
@@ -179,32 +161,30 @@ export default async function handler(req, res) {
           } finally { clearTimeout(timer); }
         }
       } catch (e) { /* اعلان اختیاری است — خطا نادیده گرفته می‌شود */ }
-      return json(res, 200, { ok: true, ref: built.rec.ref, id: built.rec.id, count: list.length });
+      return json(res, 200, { ok: true, ref: built.rec.ref, id: built.rec.id, count });
     } catch (e) {
-      return json(res, 500, { ok: false, error: 'BLOB_ERROR', message: String((e && e.message) || e) });
+      return json(res, 500, { ok: false, error: 'STORE_ERROR', message: String((e && e.message) || e) });
     }
   }
 
   /* ─── فهرست پیام‌ها (فقط مدیر) ─── */
   if (method === 'GET') {
-    if (!hasBlob) {
-      return json(res, 503, { ok: false, error: 'NO_BLOB', message: 'فضای ابری (Vercel Blob) هنوز به پروژه وصل نشده است.' });
-    }
+    const ns = noStorage();
+    if (ns) return ns;
     if (!(await isAuthedAsync(req))) return json(res, 401, { ok: false, error: 'UNAUTH', message: 'نشست منقضی شده؛ دوباره وارد شو.' });
     try {
-      const list = await readBlob();
-      return json(res, 200, { ok: true, mode: 'cloud', count: list.length, messages: newestFirst(list) });
+      const list = await readDoc(DOC_KEY, { ms: DB_MS });
+      const arr = Array.isArray(list) ? list : [];
+      return json(res, 200, { ok: true, mode: 'cloud', db: !!process.env.DATABASE_URL, count: arr.length, messages: newestFirst(arr) });
     } catch (e) {
-      if (isNotFound(e)) return json(res, 200, { ok: true, mode: 'cloud', count: 0, messages: [] });
-      return json(res, 500, { ok: false, error: 'BLOB_ERROR', message: String((e && e.message) || e) });
+      return json(res, 500, { ok: false, error: 'STORE_ERROR', message: String((e && e.message) || e) });
     }
   }
 
   /* ─── ذخیرهٔ کل فهرست (وضعیت/حذف — فقط مدیر) ─── */
   if (method === 'PUT') {
-    if (!hasBlob) {
-      return json(res, 503, { ok: false, error: 'NO_BLOB', message: 'فضای ابری (Vercel Blob) هنوز به پروژه وصل نشده است.' });
-    }
+    const ns = noStorage();
+    if (ns) return ns;
     if (!(await isAuthedAsync(req))) return json(res, 401, { ok: false, error: 'UNAUTH', message: 'نشست منقضی شده؛ دوباره وارد شو.' });
 
     let body;
@@ -219,10 +199,10 @@ export default async function handler(req, res) {
 
     const cleanList = newestFirst(body.messages).slice(0, MAX_MESSAGES);
     try {
-      await writeBlob(cleanList, ADMIN_MS); // عملیات مدیر — سقف ۶۰ ثانیه
+      await writeDoc(DOC_KEY, cleanList, { ms: DB_MS }); // عملیات مدیر
       return json(res, 200, { ok: true, count: cleanList.length, messages: cleanList });
     } catch (e) {
-      return json(res, 500, { ok: false, error: 'BLOB_ERROR', message: String((e && e.message) || e) });
+      return json(res, 500, { ok: false, error: 'STORE_ERROR', message: String((e && e.message) || e) });
     }
   }
 

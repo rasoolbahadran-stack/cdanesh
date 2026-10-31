@@ -14,11 +14,31 @@ export function toNodeReqRes(request, bodyText) {
   const add = ev => cb => { (listeners[ev] = listeners[ev] || []).push(cb); };
   const fire = ev => (...args) => { (listeners[ev] || []).forEach(cb => { try { cb(...args); } catch { /* noop */ } }); };
 
+  /* بدنهٔ درخواست: فقط وقتی هم شنوندهٔ data و هم end وصل شده باشند تحویل داده می‌شود.
+     قبلاً با queueMicrotaskِ بی‌قید و شرط ارسال می‌شد؛ چون هندلرها اول await احراز هویت
+     می‌کنند و بعد readJsonBody را وصل می‌کنند، رویدادها گم می‌شد و درخواست برای همیشه
+     معلق می‌ماند — ریشهٔ واقعی «دکمهٔ انتشار هیچ عکس‌العملی نمی‌دهد». */
+  const bodyStr = bodyText == null ? '' : String(bodyText);
+  let delivered = false;
+  const tryDeliver = () => {
+    if (delivered || !listeners.data || !listeners.end) return;
+    delivered = true;
+    queueMicrotask(() => {
+      try {
+        if (bodyStr) fire('data')(bodyStr);
+        fire('end')();
+      } catch (e) {
+        fire('error')(e);
+      }
+    });
+  };
+
   const req = {
     method: request.method || 'GET',
+    url: request.url || '/', // برای خواندن پارامترهای کوئری (?scope=public ، ?revisions= و ?key=)
     headers,
     socket: { remoteAddress: '' },
-    on: (ev, cb) => add(ev)(cb),
+    on: (ev, cb) => { add(ev)(cb); if (ev === 'data' || ev === 'end') tryDeliver(); },
     destroy() { /* noop */ },
   };
 
@@ -31,16 +51,6 @@ export function toNodeReqRes(request, bodyText) {
     ended: false,
     end(body) { this.body = body == null ? '' : String(body); this.ended = true; },
   };
-
-  /* بدنهٔ درخواست بلافاصله پس از اتصال شنونده‌ها (قرار انتظار readJsonBody) تحویل می‌شود */
-  queueMicrotask(() => {
-    try {
-      if (bodyText) fire('data')(bodyText);
-      fire('end')();
-    } catch (e) {
-      fire('error')(e);
-    }
-  });
 
   return { req, res };
 }
