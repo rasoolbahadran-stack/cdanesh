@@ -3,7 +3,7 @@
    GET  /api/messages                 → کل فهرست (فقط مدیر)
    PUT  /api/messages {messages:[…]}  → ذخیرهٔ کل فهرست (وضعیت‌ها/حذف — فقط مدیر)
    داده در Vercel Blob با نام ثابت messages.json نگهداری می‌شود. */
-import { blobHead, blobPut, blobFetch } from '../lib/blob-safe.mjs';
+import { blobHead, blobPut, blobFetch, ADMIN_MS } from '../lib/blob-safe.mjs';
 import { isAuthedAsync, json, readJsonBody, clientIp } from '../lib/admin-auth.mjs';
 
 const BLOB_KEY = 'messages.json';
@@ -23,11 +23,12 @@ async function readBlob() {
   return Array.isArray(list) ? list : [];
 }
 
-async function writeBlob(list) {
+async function writeBlob(list, ms) {
   await blobPut(BLOB_KEY, JSON.stringify(list), {
     access: 'public',
     addRandomSuffix: false,
     contentType: 'application/json; charset=utf-8',
+    ...(ms ? { ms } : {}),
   });
 }
 
@@ -218,7 +219,7 @@ export default async function handler(req, res) {
 
     const cleanList = newestFirst(body.messages).slice(0, MAX_MESSAGES);
     try {
-      await writeBlob(cleanList);
+      await writeBlob(cleanList, ADMIN_MS); // عملیات مدیر — سقف ۶۰ ثانیه
       return json(res, 200, { ok: true, count: cleanList.length, messages: cleanList });
     } catch (e) {
       return json(res, 500, { ok: false, error: 'BLOB_ERROR', message: String((e && e.message) || e) });

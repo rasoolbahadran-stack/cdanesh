@@ -21,6 +21,9 @@ function secret() {
 
 /* ─── کاربران ابری (users.json در Blob) با کش ۴۵ ثانیه‌ای ─── */
 let usersCache = { data: null, at: 0 };
+/* آخرین خواندن users.json به‌خاطر خطای زیرساخت (کندی/قطعی Blob) شکست خورد —
+   نه به‌خاطر «فایل هنوز ساخته نشده». برای تفکیک UNAUTH کاذب از pv=۰ واقعی. */
+let usersReadDegraded = false;
 
 function isNotFound(e) {
   return e && (e.name === 'BlobNotFoundError' || /not ?found|does ?not exist|NoSuchKey/i.test(String((e && e.message) || e)));
@@ -35,9 +38,10 @@ async function readUsers(force) {
     if (!r.ok) throw new Error('BLOB_FETCH_' + r.status);
     const u = await r.json();
     usersCache = { data: (u && u.username && u.hash) ? u : null, at: Date.now() };
+    usersReadDegraded = false;
   } catch (e) {
-    if (!isNotFound(e)) usersCache = { data: null, at: Date.now() };
-    else usersCache = { data: null, at: Date.now() }; // هنوز ساخته نشده → fallback به env
+    usersCache = { data: null, at: Date.now() };
+    usersReadDegraded = !isNotFound(e); // «فایل نیست» وضعیت عادی است؛ بقیه = زیرساخت
   }
   return usersCache.data;
 }
@@ -101,9 +105,11 @@ export async function changeCredentials(currentPassword, newUsername, newPasswor
 }
 
 /* شمارهٔ نسخهٔ اعتبارنامه — برای باطل‌کردن نشست‌ها پس از تغییر رمز */
+/* نسخهٔ فعلی رمز؛ null یعنی «به‌دلیل خطای زیرساخت نامشخص» (نه pv=۰) */
 export async function currentPv() {
   const u = await readUsers().catch(() => null);
-  return u ? (u.pv || 0) : 0;
+  if (u) { usersReadDegraded = false; return u.pv || 0; }
+  return usersReadDegraded ? null : 0;
 }
 
 /* ─── توکن نشست: exp.pv.hmac(exp:pv) ───
@@ -150,6 +156,10 @@ export async function isAuthedAsync(req, now = Date.now()) {
   const parts = token.split('.');
   const tokenPv = parts.length === 3 ? Number(parts[1]) : 0;
   const pv = await currentPv();
+  /* اگر users.json فقط به‌خاطر کندی/قطعی Blob خوانده نشد (pv = null)،
+     توکن از نظر رمزنگاری معتبر است؛ نباید مدیر را بی‌جهت UNAUTH کنیم.
+     (اگر واقعاً رمز عوض شده باشد، دفعهٔ بعد که Blob خوانا شود اعمال می‌شود.) */
+  if (pv === null) return true;
   return tokenPv === pv;
 }
 

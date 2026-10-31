@@ -76,6 +76,9 @@
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body,
+          /* سقف سمت مرورگر: کمی بیشتر از سقف ۶۰ ثانیه‌ای سرور (عملیات مدیر) تا
+             هیچ‌وقت درخواست بی‌جواب معلق نماند و دکمه‌ها قفل نشوند. */
+          signal: AbortSignal.timeout(65000),
         });
         if (r.status !== 502 && r.status !== 503 && r.status !== 504) break;
       } catch (e) { r = null; }

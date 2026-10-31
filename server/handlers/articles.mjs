@@ -4,7 +4,7 @@
    PUT  /api/articles  {articles:[…]} → ذخیرهٔ کامل فهرست (فقط مدیر)
    داده در Vercel Blob با نام ثابت articles.json نگهداری می‌شود؛
    تا قبل از اولین ذخیره، پاسخ 404/EMPTY است و سایت از دادهٔ همراه پروژه استفاده می‌کند. */
-import { blobHead, blobPut, blobFetch } from '../lib/blob-safe.mjs';
+import { blobHead, blobPut, blobFetch, ADMIN_MS } from '../lib/blob-safe.mjs';
 import { isAuthedAsync, validateArticles, publicOnly, sorted, json, readJsonBody } from '../lib/admin-auth.mjs';
 
 const BLOB_KEY = 'articles.json';
@@ -65,6 +65,7 @@ export default async function handler(req, res) {
         access: 'public',
         addRandomSuffix: false,
         contentType: 'application/json; charset=utf-8',
+        ms: ADMIN_MS, // عملیات مدیر (انتشار/ویرایش) — سقف ۶۰ ثانیه
       });
       return json(res, 200, {
         ok: true, count: clean.length,

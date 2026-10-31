@@ -5,7 +5,7 @@
                     status: 'published'|'draft', blocks, updated}
    داده در Vercel Blob با نام ثابت pages.json نگهداری می‌شود؛
    /p/<slug> و /terms و /privacy سمت سرور از همین داده رندر می‌شوند. */
-import { blobHead, blobPut, blobFetch } from '../lib/blob-safe.mjs';
+import { blobHead, blobPut, blobFetch, ADMIN_MS } from '../lib/blob-safe.mjs';
 import { isAuthedAsync, json, readJsonBody } from '../lib/admin-auth.mjs';
 
 const BLOB_KEY = 'pages.json';
@@ -80,6 +80,7 @@ export default async function handler(req, res) {
     try {
       const blob = await blobPut(BLOB_KEY, JSON.stringify(body.pages), {
         access: 'public', addRandomSuffix: false, contentType: 'application/json; charset=utf-8',
+        ms: ADMIN_MS, // عملیات مدیر (انتشار/ویرایش صفحه) — سقف ۶۰ ثانیه
       });
       return json(res, 200, { ok: true, count: body.pages.length, updatedAt: blob.uploadedAt || new Date().toISOString() });
     } catch (e) {

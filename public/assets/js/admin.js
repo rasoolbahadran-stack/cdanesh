@@ -559,7 +559,7 @@
     const load = async () => {
       grid.innerHTML = '<div class="adm-empty">در حال دریافت…</div>';
       try {
-        const r = await fetch('api/media', { headers: { Accept: 'application/json' } });
+        const r = await fetch('api/media', { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(65000) });
         const d = await r.json().catch(() => ({}));
         if (r.ok && d.ok) { mediaCache = d.media || []; draw(); }
         else { grid.innerHTML = '<div class="adm-empty">دریافت فهرست ناموفق بود: ' + esc(d.message || d.error || '') + '</div>'; }
@@ -573,7 +573,7 @@
           const payload = await imageToWebp(f);
           const fd = new FormData();
           fd.append('file', payload, payload.name || f.name);
-          const r = await fetch('api/media', { method: 'POST', body: fd });
+          const r = await fetch('api/media', { method: 'POST', body: fd, signal: AbortSignal.timeout(65000) });
           const d = await r.json().catch(() => ({}));
           if (r.ok && d.ok) { mediaCache = [d.media].concat(mediaCache || []); draw(); }
           else { alert('آپلود «' + f.name + '» انجام نشد: ' + (d.message || d.error || r.status)); }
@@ -606,7 +606,7 @@
       if (b.dataset.act === 'del') {
         if (!confirm('این فایل از فضای ابری حذف شود؟')) return;
         b.disabled = true;
-        fetch('api/media?url=' + encodeURIComponent(url), { method: 'DELETE' })
+        fetch('api/media?url=' + encodeURIComponent(url), { method: 'DELETE', signal: AbortSignal.timeout(65000) })
           .then(r => r.json().catch(() => ({})))
           .then(d => {
             if (d.ok) { mediaCache = (mediaCache || []).filter(m => m.url !== url); draw(); toast('فایل حذف شد'); }
@@ -980,9 +980,14 @@
         ? 'پیش‌نویس در فضای ابری ذخیره شد'
         : status === 'scheduled' ? 'مقاله زمان‌بندی شد — سر موعد خودکار عمومی می‌شود'
         : 'انتشار شد — مقاله همین حالا در مجله برای همه و گوگل نمایش داده می‌شود');
-      const ok = await cloudUpsert(rec, orig, msg);
-      if (ok) location.hash = '#/articles';
-      else saveBtns.forEach(b => { if (b) b.disabled = false; });
+      try {
+        const ok = await cloudUpsert(rec, orig, msg);
+        if (ok) location.hash = '#/articles';
+      } finally {
+        /* ضدقفل‌شدن: در هر حالت (موفق، خطا، حتی خطای غیرمنتظره) دکمه‌ها آزاد می‌شوند
+           تا دیگر کلیک روی دکمه بی‌اثر و بی‌پیام نشود. */
+        saveBtns.forEach(b => { if (b) b.disabled = false; });
+      }
     };
     $('#art-save').addEventListener('click', () => save());
     $('#art-publish').addEventListener('click', () => save('published'));
@@ -1238,6 +1243,7 @@
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ pages: next }),
+            signal: AbortSignal.timeout(65000), // کمی بیشتر از سقف ۶۰ ثانیه‌ای سرور
           });
           const d2 = await r2.json().catch(() => ({}));
           if (r2.ok && d2.ok) {
@@ -1245,9 +1251,12 @@
             location.hash = '#/pages';
           } else {
             alert('ذخیره انجام نشد: ' + (d2.message || d2.error || r2.status));
-            btns.forEach(b => { if (b) b.disabled = false; });
           }
-        } catch (e) { alert('ارتباط با سرور برقرار نشد.'); btns.forEach(b => { if (b) b.disabled = false; }); }
+        } catch (e) { alert('ارتباط با سرور برقرار نشد.'); }
+        finally {
+          /* ضدقفل‌شدن: دکمه‌ها در هر حالت (موفق/خطا) آزاد می‌شوند */
+          btns.forEach(b => { if (b) b.disabled = false; });
+        }
       };
       $('#pg-publish').addEventListener('click', () => save('published'));
       $('#pg-save-draft').addEventListener('click', () => save('draft'));
@@ -1433,6 +1442,7 @@
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body,
+            signal: AbortSignal.timeout(65000), // کمی بیشتر از سقف ۶۰ ثانیه‌ای سرور
           });
           if (r.status !== 502 && r.status !== 503 && r.status !== 504) break;
         } catch (e) { r = null; }
