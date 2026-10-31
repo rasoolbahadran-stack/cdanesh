@@ -46,6 +46,94 @@
     t._h = setTimeout(() => { t.style.opacity = '0'; }, 2600);
   };
 
+  /* ─── مودال عمومی پنل (مشاهدهٔ پیام، اجرای کد و …) ───
+     خروجی: {root, body, close} — بستن با ESC یا کلیک روی پس‌زمینه */
+  function openModal(title, bodyHtml, footHtml, opts) {
+    opts = opts || {};
+    const root = document.createElement('div');
+    root.className = 'cd-modal-root';
+    root.innerHTML = '<div class="cd-modal-veil"></div>'
+      + '<div class="cd-modal" role="dialog" aria-label="' + esc(title) + '" dir="rtl">'
+      + '<div class="cd-modal-head"><b>' + esc(title) + '</b>'
+      + '<button type="button" class="adm-btn" data-modal-close>بستن</button></div>'
+      + '<div class="cd-modal-body">' + (bodyHtml || '') + '</div>'
+      + (footHtml ? '<div class="cd-modal-foot">' + footHtml + '</div>' : '')
+      + '</div>';
+    document.body.appendChild(root);
+    const onKey = e => { if (e.key === 'Escape') close(); };
+    const close = () => {
+      root.remove();
+      document.removeEventListener('keydown', onKey);
+      if (opts.onClose) { try { opts.onClose(); } catch (e) { /* noop */ } }
+    };
+    document.addEventListener('keydown', onKey);
+    root.addEventListener('click', e => {
+      if (e.target.closest('[data-modal-close]') || e.target.classList.contains('cd-modal-veil')) close();
+    });
+    return { root, body: $('.cd-modal-body', root), close };
+  }
+
+  /* ─── ویجت اجرای سریع کد HTML — کد دلخواه را بچسبان، اجرا کن، همان‌جا ببین ───
+     اجرا داخل قاب ایزوله (sandbox بدون same-origin) است؛ روی پنل و نشست اثر ندارد. */
+  function openHtmlRunner(opts) {
+    opts = opts || {};
+    let timer = null;
+    const scope = opts.scope || 'متن';
+    const mod = openModal('اجرای سریع کد HTML',
+      '<div class="html-run-wrap">'
+      + '<textarea class="control" id="hr-code" spellcheck="false" placeholder="<h2>سلام</h2> و <style>…</style> و <script>…</script>"></textarea>'
+      + '<div class="html-run-bar">'
+      + '<button type="button" class="btn btn-gold btn-sm" id="hr-run">▶ اجرا و مشاهده</button>'
+      + '<label><input type="checkbox" id="hr-auto"> اجرای خودکار هنگام تایپ</label>'
+      + '<button type="button" class="adm-btn" id="hr-clear">خالی کردن</button>'
+      + '</div>'
+      + '<iframe class="html-run-frame" id="hr-frame" sandbox="allow-scripts allow-modals allow-popups allow-forms" title="پیش‌نمایش اجرای کد"></iframe>'
+      + '<p class="html-run-hint">هر HTML/CSS/JS دلخواه را همین‌جا تست کنید؛ اجرا در قاب ایزوله است. با «درج در ' + esc(scope) + '» کد به محتوای فعلی اضافه می‌شود — کدهای دارای style/script در حالت کد ویرایشگر درج می‌شوند تا کامل حفظ شوند.</p>'
+      + '</div>',
+      '<button type="button" class="btn btn-gold" id="hr-insert">درج در ' + esc(scope) + '</button>',
+      { onClose: () => { clearTimeout(timer); } });
+    const ta = $('#hr-code', mod.root);
+    if (opts.code) ta.value = opts.code;
+    const run = () => {
+      const code = ta.value;
+      const doc = /<html[\s>]/i.test(code)
+        ? code
+        : '<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><style>html,body{margin:0;padding:18px;background:#fff;color:#241f3d;font-family:Vazirmatn,Tahoma,sans-serif;line-height:2}</style></head><body>' + code + '</body></html>';
+      $('#hr-frame', mod.root).srcdoc = doc;
+    };
+    ta.addEventListener('input', () => {
+      if (!$('#hr-auto', mod.root).checked) return;
+      clearTimeout(timer);
+      timer = setTimeout(run, 700);
+    });
+    $('#hr-run', mod.root).addEventListener('click', run);
+    $('#hr-clear', mod.root).addEventListener('click', () => { ta.value = ''; ta.focus(); });
+    $('#hr-insert', mod.root).addEventListener('click', () => {
+      const code = ta.value.trim();
+      if (!code) { toast('چیزی برای درج نیست'); return; }
+      if (opts.insert) opts.insert(code);
+      mod.close();
+    });
+    run();
+  }
+
+  /* ─── سند پیش‌نمایش زنده — با همان استایل‌های واقعی سایت ───
+     قاب با sandbox ایزوله است؛ کدهای style/script مقاله فقط داخل همین قاب اجرا می‌شوند. */
+  function previewDoc(o) {
+    return '<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">'
+      + '<link rel="stylesheet" href="/assets/css/main.css"><link rel="stylesheet" href="/assets/css/components.css">'
+      + '<style>body{padding:0 0 70px} .pv-wrap{max-width:1040px;margin:0 auto;padding:0 clamp(14px,3vw,32px)} '
+      + '.pv-hero{padding:calc(24px + var(--header-h, 88px)) 0 40px} '
+      + '.pv-note{position:fixed;top:10px;inset-inline-start:12px;font-size:10px;color:#f2d488;background:rgba(10,10,13,.72);padding:4px 12px;border-radius:99px;z-index:99}</style>'
+      + '</head><body>'
+      + '<span class="pv-note">پیش‌نمایش زنده — مثل صفحهٔ واقعی سایت</span>'
+      + o.hero
+      + '<section class="section-tight" style="padding-top:6px"><div class="pv-wrap">'
+      + '<div class="prose prose-panel">' + (o.body || '') + '</div>'
+      + o.after
+      + '</div></section></body></html>';
+  }
+
   /* ─── لایه ابری مقالات: وضعیت، ذخیره، مهاجرت دمو → ابر ─── */
   const isCloud = () => !!(window.CDArticles && CDArticles.mode && CDArticles.mode() === 'cloud');
 
@@ -203,7 +291,7 @@
   const ED_ICONS = {
     h2: '<b style="font-size:15px">H2</b>', h3: '<b style="font-size:13px">H3</b>', p: '<b style="font-size:12px">متن</b>',
     bold: '<b>B</b>', italic: '<i>I</i>', ul: '• فهرست', ol: '۱. فهرست', quote: '❝', link: '🔗', image: '🖼',
-    table: 'جدول', hr: '—', html: '&lt;/&gt;',
+    table: 'جدول', hr: '—', html: '&lt;/&gt;', run: '▶ اجرا',
   };
   const ED_HTML_HINT = '<p class="adm-hint" style="margin-top:10px">با دکمهٔ <b dir="ltr">&lt;/&gt;</b> به حالت کد بروید و HTML آزاد بنویسید — کدهای <b dir="ltr">CSS (&lt;style&gt;)</b> و <b dir="ltr">JavaScript (&lt;script&gt;)</b> هم پذیرفته می‌شود. برای حفظ کدها، در همان حالت کد ذخیره یا منتشر کنید.</p>';
   function edToolbarHtml() {
@@ -217,7 +305,7 @@
       + '<span class="ed-sep"></span>'
       + btn('link', 'لینک') + btn('image', 'تصویر از کتابخانه رسانه') + btn('table', 'جدول') + btn('hr', 'خط جداکننده')
       + '<span class="ed-sep"></span>'
-      + btn('html', 'حالت کد — پشتیبانی کامل HTML/CSS/JS')
+      + btn('html', 'حالت کد — پشتیبانی کامل HTML/CSS/JS') + btn('run', 'اجرای سریع کد HTML (تست زنده)')
       + '</div>';
   }
 
@@ -237,6 +325,15 @@
     const syncFromSrc = () => { canvas.innerHTML = sanitizeHtml(src.value) || '<p><br></p>'; };
 
     function exec(cmd) {
+      if (cmd === 'run') {
+        /* ویجت اجرای سریع: تست زندهٔ کد دلخواه + درج در محتوای همین ویرایشگر */
+        openHtmlRunner({
+          scope: 'متن',
+          code: mode === 'html' ? String(src.value || '') : '',
+          insert: h => api.insertHtml(h),
+        });
+        return;
+      }
       if (cmd === 'html') {
         if (mode === 'wysiwyg') {
           syncToSrc(); canvas.style.display = 'none'; src.style.display = 'block'; mode = 'html';
@@ -294,12 +391,29 @@
       if (html) document.execCommand('insertHTML', false, sanitizeHtml(html));
       else document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain'));
     });
-    return {
+    const api = {
       /* حالت کد → همان متن خام (با style/script) ذخیره می‌شود؛ حالت ویژوال → HTML پاک‌سازی‌شده */
       getHtml() { return mode === 'html' ? String(src.value || '') : (rawKept && !canvas.innerHTML.trim() ? String(src.value || '') : canvas.innerHTML); },
       setHtml(h) { if (mode === 'html') src.value = h; else canvas.innerHTML = sanitizeHtml(h) || '<p><br></p>'; },
       focus() { (mode === 'html' ? src : canvas).focus(); },
+      /* درج کد از ویجت اجرا: کدهای دارای style/script به حالت کد می‌روند تا کامل حفظ شوند */
+      insertHtml(h) {
+        if (/<\s*(script|style)\b/i.test(h)) {
+          if (mode !== 'html') exec('html');
+          src.value = String(src.value || '') + (String(src.value || '').trim() ? '\n' : '') + h;
+          toast('کد در حالت کد ویرایشگر درج شد (حفظ کامل style/script)');
+          return;
+        }
+        if (mode === 'html') {
+          src.value = String(src.value || '') + (String(src.value || '').trim() ? '\n' : '') + h;
+          return;
+        }
+        canvas.focus();
+        const clean = sanitizeHtml(h);
+        if (!document.execCommand('insertHTML', false, clean)) canvas.insertAdjacentHTML('beforeend', clean);
+      },
     };
+    return api;
   }
 
   /* ─── تبدیل HTML ویرایشگر ↔ بلوک‌های ذخیره‌سازی ─── */
@@ -727,6 +841,7 @@
     view.innerHTML =
       '<div class="adm-topbar"><div><h1>' + (isNew ? 'مقاله جدید' : 'ویرایش مقاله') + '</h1><p class="lead">' + (isNew ? 'بنویسید، منتشر کنید — بلافاصله در مجله برای همه و گوگل نمایش داده می‌شود.' : esc(a.title)) + '</p></div>'
       + '<div class="adm-actions"><button type="button" class="btn btn-ghost" id="art-back">بازگشت</button>'
+      + '<button type="button" class="btn btn-ghost" id="art-preview">پیش‌نمایش زنده</button>'
       + '<button type="button" class="btn btn-ghost" id="art-save-draft">ذخیره پیش‌نویس</button>'
       + '<button type="button" class="btn btn-ghost" id="art-save">ذخیره</button>'
       + '<button type="button" class="btn btn-gold" id="art-publish">' + (isNew ? 'انتشار مقاله' : 'انتشار') + '</button></div></div>'
@@ -758,11 +873,60 @@
       + '<div><label class="adm-label" for="f-seodesc">توضیحات متا</label><input class="control" id="f-seodesc" value="' + esc(a.seoDesc || '') + '"></div>'
       + '</div>'
       + '<div style="margin-top:22px"><label class="adm-label">محتوای مقاله *</label>'
-      + '<p class="adm-hint" style="margin-bottom:10px">مثل وردپرس مستقیم بنویسید (WYSIWYG) یا با دکمهٔ <b dir="ltr">&lt;/&gt;</b> حالت کد HTML را باز کنید. برای عکس و فایل، دکمهٔ 🖼 کتابخانه رسانه را باز می‌کند.</p>'
-      + '<div id="f-editor"></div>'
+      + '<p class="adm-hint" style="margin-bottom:10px">مثل وردپرس مستقیم بنویسید (WYSIWYG) یا با دکمهٔ <b dir="ltr">&lt;/&gt;</b> حالت کد HTML را باز کنید؛ دکمهٔ <b>▶ اجرا</b> کد دلخواه را زنده تست می‌کند. برای عکس و فایل، دکمهٔ 🖼 کتابخانه رسانه را باز می‌کند.</p>'
+      + '<div class="adm-edit-wrap" id="art-editwrap">'
+      + '<div><div id="f-editor"></div></div>'
+      + '<div class="adm-preview-pane" id="art-preview-pane">'
+      + '<div class="adm-preview-bar"><b>پیش‌نمایش زنده — دقیقاً مثل صفحهٔ مقاله در سایت</b>'
+      + '<div style="display:flex; gap:6px"><button type="button" class="adm-btn" id="pv-desktop">دسکتاپ</button><button type="button" class="adm-btn" id="pv-mobile">موبایل</button></div></div>'
+      + '<iframe class="adm-preview-frame" id="art-preview-frame" title="پیش‌نمایش زندهٔ مقاله" sandbox="allow-scripts allow-popups"></iframe>'
+      + '</div></div>'
       + '</div></div>';
 
     const editor = makeEditor($('#f-editor'), blocksToHtml(a.blocks));
+
+    /* ─── پیش‌نمایش زندهٔ مقاله — همان استایل‌های صفحهٔ واقعی سایت، در قاب ایزوله ─── */
+    const pvWrap = $('#art-editwrap');
+    const pvFrame = $('#art-preview-frame');
+    const pvVal = sel => { const el = $(sel); return el ? el.value.trim() : ''; };
+    const pvHero = () => {
+      const title = pvVal('#f-title') || 'عنوان مقاله شما';
+      const catEl = $('#f-cat');
+      const catLabel = (catEl && catLabels[catEl.value]) || 'مقاله';
+      const author = pvVal('#f-author') || 'رسول بهادران';
+      const read = fa(parseInt(pvVal('#f-read'), 10) || 5);
+      const date = isNew ? jalaliToday() : (a.date || jalaliToday());
+      const cover = pvVal('#f-cover') || COVER_OPTIONS[0];
+      const coverAlt = pvVal('#f-coveralt') || title;
+      return '<section class="page-hero pv-hero"><div class="pv-wrap">'
+        + '<div class="article-cats"><span class="chip chip-gold">' + esc(catLabel) + '</span></div>'
+        + '<h1 style="font-size:clamp(24px,3.2vw,38px); font-weight:800; margin:10px 0 14px">' + esc(title) + '</h1>'
+        + '<div class="article-meta"><span>' + esc(date) + '</span><span>' + esc(read) + ' دقیقه مطالعه</span><span>' + esc(author) + '</span></div>'
+        + '<figure style="margin:20px 0 0"><img src="' + esc(cover) + '" alt="' + esc(coverAlt) + '" style="width:100%; border-radius:18px; border:1px solid var(--line)"></figure>'
+        + '</div></section>';
+    };
+    const pvAfter = () => {
+      const author = pvVal('#f-author') || 'رسول بهادران';
+      return '<div class="author-box"><img src="/assets/img/founder-rasool.webp" alt="" style="width:56px;height:56px;border-radius:50%;object-fit:cover">'
+        + '<div><b>' + esc(author) + '</b><span>طراح و توسعه‌دهندهٔ وب و متخصص سئو — بنیان‌گذار استودیوی دیجیتال کافه‌دانش در بوشهر</span></div></div>';
+    };
+    const updPreview = () => {
+      pvFrame.srcdoc = previewDoc({ hero: pvHero(), body: editor.getHtml(), after: pvAfter() });
+    };
+    let pvTimer = null;
+    const updPreviewDeb = () => { clearTimeout(pvTimer); pvTimer = setTimeout(updPreview, 500); };
+    $('#art-preview').addEventListener('click', () => {
+      const on = pvWrap.classList.toggle('show-preview');
+      $('#art-preview').textContent = on ? 'بستن پیش‌نمایش' : 'پیش‌نمایش زنده';
+      if (on) updPreview();
+    });
+    $('#pv-desktop').addEventListener('click', () => pvFrame.classList.remove('is-mobile'));
+    $('#pv-mobile').addEventListener('click', () => pvFrame.classList.add('is-mobile'));
+    $('#f-editor').addEventListener('input', updPreviewDeb);
+    ['#f-title', '#f-cover', '#f-coveralt', '#f-cat', '#f-author', '#f-read'].forEach(sel => {
+      const el = $(sel);
+      if (el) el.addEventListener('input', updPreviewDeb);
+    });
 
     const updSlugPreview = () => {
       const s = $('#f-slug').value.trim() || '<slug>';
@@ -1017,6 +1181,7 @@
       view.innerHTML =
         '<div class="adm-topbar"><div><h1>' + (isNew ? 'صفحه جدید' : 'ویرایش صفحه') + '</h1><p class="lead">' + (isNew ? 'صفحهٔ متنی جدید بسازید؛ در /p/&lt;slug&gt; منتشر می‌شود.' : esc(p.title)) + '</p></div>'
         + '<div class="adm-actions"><button type="button" class="btn btn-ghost" id="pg-back">بازگشت</button>'
+        + '<button type="button" class="btn btn-ghost" id="pf-preview">پیش‌نمایش زنده</button>'
         + '<button type="button" class="btn btn-ghost" id="pg-save-draft">ذخیره پیش‌نویس</button>'
         + '<button type="button" class="btn btn-gold" id="pg-publish">' + (isNew ? 'انتشار صفحه' : 'انتشار') + '</button></div></div>'
         + '<div class="adm-panel"><div class="adm-form-grid">'
@@ -1028,9 +1193,46 @@
         + '<div><label class="adm-label" for="pf-seodesc">توضیحات متا</label><input class="control" id="pf-seodesc" value="' + esc(p.seoDesc || '') + '"></div>'
         + '</div>'
         + '<div style="margin-top:22px"><label class="adm-label">محتوای صفحه *</label>'
-        + '<div id="pf-editor"></div></div></div>';
+        + '<div class="adm-edit-wrap" id="pf-editwrap">'
+        + '<div><div id="pf-editor"></div></div>'
+        + '<div class="adm-preview-pane" id="pf-preview-pane">'
+        + '<div class="adm-preview-bar"><b>پیش‌نمایش زنده — مثل صفحهٔ واقعی سایت</b>'
+        + '<div style="display:flex; gap:6px"><button type="button" class="adm-btn" id="pfv-desktop">دسکتاپ</button><button type="button" class="adm-btn" id="pfv-mobile">موبایل</button></div></div>'
+        + '<iframe class="adm-preview-frame" id="pf-preview-frame" title="پیش‌نمایش زندهٔ صفحه" sandbox="allow-scripts allow-popups"></iframe>'
+        + '</div></div></div></div>';
 
       const editor = makeEditor($('#pf-editor'), blocksToHtml(p.blocks || []));
+
+      /* ─── پیش‌نمایش زندهٔ صفحه — همان استایل‌های صفحهٔ واقعی سایت ─── */
+      const pvWrap = $('#pf-editwrap');
+      const pvFrame = $('#pf-preview-frame');
+      const pvVal = sel => { const el = $(sel); return el ? el.value.trim() : ''; };
+      const updPreview = () => {
+        const title = pvVal('#pf-title') || 'عنوان صفحه';
+        const eyebrow = pvVal('#pf-eyebrow') || 'صفحه';
+        const lead = pvVal('#pf-lead');
+        const hero = '<section class="page-hero pv-hero"><div class="pv-wrap">'
+          + '<span class="eyebrow">' + esc(eyebrow) + '</span>'
+          + '<h1 style="font-size:clamp(26px,3.4vw,44px); font-weight:800; margin:10px 0 0">' + esc(title) + '</h1>'
+          + (lead ? '<p class="lead" style="margin-top:14px">' + esc(lead) + '</p>' : '')
+          + '</div></section>';
+        pvFrame.srcdoc = previewDoc({ hero, body: editor.getHtml(), after: '' });
+      };
+      let pvTimer = null;
+      const updPreviewDeb = () => { clearTimeout(pvTimer); pvTimer = setTimeout(updPreview, 500); };
+      $('#pf-preview').addEventListener('click', () => {
+        const on = pvWrap.classList.toggle('show-preview');
+        $('#pf-preview').textContent = on ? 'بستن پیش‌نمایش' : 'پیش‌نمایش زنده';
+        if (on) updPreview();
+      });
+      $('#pfv-desktop').addEventListener('click', () => pvFrame.classList.remove('is-mobile'));
+      $('#pfv-mobile').addEventListener('click', () => pvFrame.classList.add('is-mobile'));
+      $('#pf-editor').addEventListener('input', updPreviewDeb);
+      ['#pf-title', '#pf-eyebrow', '#pf-lead'].forEach(sel => {
+        const el = $(sel);
+        if (el) el.addEventListener('input', updPreviewDeb);
+      });
+
       $('#pf-slug').addEventListener('input', () => {
         const s = $('#pf-slug').value.trim();
         $('#pf-url').innerHTML = 'آدرس نهایی: <b dir="ltr">https://cdanesh.ir' + esc(s === 'terms' || s === 'privacy' ? '/' + s : '/p/' + s) + '</b>';
@@ -1325,14 +1527,16 @@
     const draw = f => {
       const items = list.filter(m => f === 'all' || (m.status || 'new') === f);
       listBox.innerHTML = items.map(m =>
-        '<div class="adm-check" data-id="' + esc(m.id) + '" style="flex-wrap:wrap">'
+        '<div class="adm-check msg-card" data-open="' + esc(m.id) + '" style="flex-wrap:wrap; cursor:pointer" tabindex="0" role="button" aria-label="مشاهدهٔ پیام از ' + esc(m.name || '') + '">'
         + '<span class="status-pill ' + (m.status === 'new' ? 'st-new' : m.status === 'replied' ? 'st-pub' : 'st-draft') + '">' + (m.status === 'new' ? 'جدید' : m.status === 'replied' ? 'پاسخ داده شد' : 'خوانده‌شده') + '</span>'
         + '<div style="flex:1; min-width:240px"><b style="font-size:13.5px">' + esc(m.name || '—') + '</b> <span dir="ltr" style="font-size:11.5px; color:var(--faint)">' + esc(m.phone || '') + (m.email ? ' · ' + esc(m.email) : '') + '</span>'
         + '<br><span style="font-size:12px; color:var(--mut)">' + (m.kind === 'request' ? 'درخواست خدمات' : 'پیام تماس') + (m.package ? ' — پکیج: ' + esc(m.package) : '') + (m.budget ? ' — بودجه: ' + esc(m.budget) : '') + ' — کد ' + esc(m.ref) + ' — ' + faDate(m.date) + '</span>'
-        + '<div class="adm-msg-body" style="margin-top:8px; border-top:1px solid var(--line); padding-top:8px">' + esc((m.subject ? 'موضوع: ' + m.subject + '\n' : '') + (m.message || '')) + '</div>'
+        + '<div class="adm-msg-body msg-clamp" style="margin-top:8px; border-top:1px solid var(--line); padding-top:8px">' + esc((m.subject ? 'موضوع: ' + m.subject + '\n' : '') + (m.message || '')) + '</div>'
+        + '<button type="button" class="msg-open-btn" data-open="' + esc(m.id) + '">مشاهدهٔ کامل پیام و پاسخ ←</button>'
         + '</div>'
         + '<div style="display:grid; gap:6px">'
         + (waLink(m) ? '<a class="adm-btn primary" href="' + esc(waLink(m)) + '" target="_blank" rel="noopener">پاسخ در واتس‌اپ</a>' : '')
+        + (m.email ? '<a class="adm-btn" href="mailto:' + esc(m.email) + '?subject=' + encodeURIComponent('پاسخ به پیام شما — کافه‌دانش ' + (m.ref || '')) + '">پاسخ ایمیلی</a>' : '')
         + '<a class="adm-btn" href="tel:' + esc(m.phone || '') + '">تماس با فرستنده</a>'
         + '<button class="adm-btn" data-read="' + esc(m.id) + '">خوانده‌شده</button>'
         + '<button class="adm-btn" data-reply="' + esc(m.id) + '">پاسخ داده شد</button>'
@@ -1340,6 +1544,55 @@
         + '</div></div>').join('')
         || '<div class="adm-empty">پیامی در این وضعیت وجود ندارد. فرم‌های سایت، پیام‌ها را همین‌جا ثبت می‌کنند.</div>';
     };
+
+    /* ─── مشاهدهٔ کامل یک پیام (مودال) ───
+       باز کردن پیامِ جدید، خودکار آن را «خوانده‌شده» ثبت می‌کند (رفتار صندوق ورودی) */
+    const openMsgDetail = (id) => {
+      const m = msgList.find(x => x.id === id);
+      if (!m) return;
+      const row = (k, v, extra) => v ? ('<div class="mrow"><b>' + k + ':</b><span' + (extra || '') + '>' + esc(v) + '</span></div>') : '';
+      const mod = openModal((m.kind === 'request' ? 'درخواست خدمات' : 'پیام تماس') + ' — ' + (m.name || ''),
+        '<div class="msg-detail-grid">'
+        + row('فرستنده', m.name) + row('موبایل', m.phone, ' dir="ltr"') + row('ایمیل', m.email, ' dir="ltr"')
+        + row('کد پیگیری', m.ref, ' dir="ltr"') + row('تاریخ', faDate(m.date))
+        + row('خدمت', m.service) + row('پکیج', m.package) + row('بودجه', m.budget)
+        + '</div>'
+        + (m.subject ? '<p style="margin:0 0 8px"><b style="font-size:13px">موضوع: ' + esc(m.subject) + '</b></p>' : '')
+        + '<div class="msg-full-text">' + esc(m.message || '') + '</div>',
+        (waLink(m) ? '<a class="adm-btn primary" href="' + esc(waLink(m)) + '" target="_blank" rel="noopener">پاسخ در واتس‌اپ</a>' : '')
+        + (m.email ? '<a class="adm-btn" href="mailto:' + esc(m.email) + '?subject=' + encodeURIComponent('پاسخ به پیام شما — کافه‌دانش ' + (m.ref || '')) + '">پاسخ ایمیلی</a>' : '')
+        + (m.phone ? '<a class="adm-btn" href="tel:' + esc(m.phone) + '">تماس صوتی</a>' : '')
+        + (m.status !== 'read' ? '<button class="adm-btn" data-mact="read">خوانده‌شده</button>' : '')
+        + (m.status !== 'replied' ? '<button class="adm-btn" data-mact="replied">پاسخ داده شد</button>' : '')
+        + '<button class="adm-btn danger" data-mact="del">حذف پیام</button>');
+      const pill = $('.status-pill', mod.root);
+      if ((m.status || 'new') === 'new') {
+        const next = msgList.map(x => x.id === m.id ? Object.assign({}, x, { status: 'read' }) : x);
+        saveMessages(next).then(ok => {
+          if (!ok) return;
+          updateMsgBadge();
+          if (pill) { pill.className = 'status-pill st-draft'; pill.textContent = 'خوانده‌شده'; }
+          const rb = $('[data-mact="read"]', mod.root);
+          if (rb) rb.remove();
+          // فهرست پشت مودال هم تازه شود تا نشان‌ها همیشه دقیق باشند
+          renderMessages();
+        });
+      }
+      mod.root.addEventListener('click', async e => {
+        const b = e.target.closest('button[data-mact]');
+        if (!b) return;
+        const act = b.dataset.mact;
+        if (act === 'del' && !confirm('این پیام برای همیشه حذف شود؟')) return;
+        b.disabled = true;
+        const next = act === 'del'
+          ? msgList.filter(x => x.id !== m.id)
+          : msgList.map(x => x.id === m.id ? Object.assign({}, x, { status: act }) : x);
+        const ok = await saveMessages(next);
+        if (ok) { mod.close(); renderMessages(); }
+        else b.disabled = false;
+      });
+    };
+
     draw('all');
     bindSetupRecheck();
 
@@ -1350,8 +1603,15 @@
       draw(b.dataset.f);
     });
     listBox.addEventListener('click', async e => {
-      const b = e.target.closest('button');
-      if (!b) return;
+      /* کلیک روی کارت یا دکمهٔ «مشاهدهٔ کامل» → مودال پیام؛
+         دکمه‌های عملیاتی (خوانده/پاسخ/حذف) همان مسیر قبلی خودشان */
+      const actionBtn = e.target.closest('button[data-read],button[data-reply],button[data-del]');
+      if (!actionBtn) {
+        const openT = e.target.closest('[data-open]');
+        if (openT && !e.target.closest('a')) { openMsgDetail(openT.dataset.open); }
+        return;
+      }
+      const b = actionBtn;
       const id = b.dataset.read || b.dataset.reply || b.dataset.del;
       if (!id) return;
       if (b.dataset.del && !confirm('این پیام حذف شود؟')) return;
@@ -1364,6 +1624,11 @@
       }).filter(Boolean);
       const ok = await saveMessages(next);
       if (ok) renderMessages(); else b.disabled = false;
+    });
+    listBox.addEventListener('keydown', e => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const t = e.target.closest('[data-open]');
+      if (t && !e.target.closest('button,a')) { e.preventDefault(); openMsgDetail(t.dataset.open); }
     });
     $('#msg-export').addEventListener('click', () => {
       const blob = new Blob([JSON.stringify(msgList, null, 2)], { type: 'application/json' });
@@ -1838,6 +2103,10 @@
 
   /* ═════════════ مسیریابی ═════════════ */
   function route() {
+    // مودال‌های باز (مشاهدهٔ پیام / اجرای کد) و کتابخانه رسانه با تغییر مسیر بسته می‌شوند
+    $$('.cd-modal-root').forEach(el => el.remove());
+    const mediaRoot = $('#cd-media-root');
+    if (mediaRoot) mediaRoot.style.display = 'none';
     const h = (location.hash || '#/dashboard').replace(/^#\//, '');
     const [mod, ...rest] = h.split('/');
     $$('.admin-side nav a').forEach(a => a.classList.toggle('active', a.dataset.nav === (mod || 'dashboard')));

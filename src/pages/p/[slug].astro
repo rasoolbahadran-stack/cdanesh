@@ -3,10 +3,13 @@
 // صفحات ساخته‌شده و ویرایش‌شده از بخش «صفحات» پنل مدیریت؛
 // prerender=false → در هر درخواست سمت سرور از دادهٔ ابری رندر می‌شود
 // (متن کامل در HTML واقعی — قابل خزش برای گوگل).
+// صفحهٔ پیش‌نویس برای بازدیدکنندهٔ عادی ۴۰۴ می‌شود، اما با نشست معتبرِ
+// مدیر (همان کوکی پنل) به‌صورت پیش‌نمایش noindex رندر می‌شود.
 export const prerender = false;
 
 import ProsePage from '../../components/ProsePage.astro';
-import { getPublicPages, pageBySlug, RESERVED_SLUGS } from '../../lib/ssr-pages.mjs';
+import { getPublicPages, getAllPages, pageBySlug, RESERVED_SLUGS } from '../../lib/ssr-pages.mjs';
+import { isAuthedAsync } from '../../../server/lib/admin-auth.mjs';
 
 const { slug } = Astro.params;
 const key = (slug || '').toLowerCase();
@@ -15,13 +18,24 @@ if (!key || RESERVED_SLUGS.has(key)) {
   return Astro.redirect('/404');
 }
 
-const pages = await getPublicPages();
-const page = pageBySlug(pages, key);
+/* نشست مدیر از کوکی پنل — شئ سازگار با getCookie هندلرهای کلاسیک */
+const nodeReq = { headers: { cookie: Astro.request.headers.get('cookie') || '' } };
+let adminOk = false;
+try { adminOk = await isAuthedAsync(nodeReq); } catch { adminOk = false; }
+
+let page = pageBySlug(await getPublicPages(), key);
+let robots = '';
+
+if (!page && adminOk) {
+  // پیش‌نویس (یا انتشار لغوشده) — فقط برای مدیر، با noindex
+  page = pageBySlug(await getAllPages(), key) || null;
+  if (page) robots = 'noindex, nofollow';
+}
 
 if (!page) {
-  // صفحهٔ عمومی نیست (پیش‌نویس) یا وجود ندارد → صفحهٔ ۴۰۴
+  // صفحهٔ عمومی نیست یا وجود ندارد → صفحهٔ ۴۰۴
   return Astro.redirect('/404');
 }
 ---
 
-<ProsePage page={page} canonical={'https://cdanesh.ir/p/' + page.slug} />
+<ProsePage page={page} canonical={'https://cdanesh.ir/p/' + page.slug} robots={robots} />

@@ -806,3 +806,20 @@ a.founder-chip:hover { border-color: var(--gold); color: var(--gold-2); transfor
 @media (max-width: 700px) {
   .fc-credit { display: block; margin: 6px 0 0; padding: 0; border: 0; }
 }
+
+/* ═══ صفحهٔ مطالعهٔ مقاله — ستون اصلی + پنل خواناتر ═══
+   ستون مقاله (متن + پرسش‌ها + مقالات مرتبط) یک بلوک واحد است تا
+   سایدبار چسبان (.article-aside) تا انتهای صفحه همراه خواننده بماند. */
+.article-main-col { min-width: 0; }
+
+/* فضای محتوای مقاله کمی روشن‌تر از زمینهٔ صفحه — خوانایی بیشتر، حفظ هویت تیره */
+.prose-panel {
+  background: rgba(255, 255, 255, .045);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: clamp(20px, 3.4vw, 40px);
+  color: #d6d4e0;
+}
+.prose-panel > p, .prose-panel > ul li, .prose-panel > ol li { color: #d6d4e0; }
+.prose-panel .author-box, .prose-panel .share-row { margin-top: 40px; }
+@media (max-width: 640px) { .prose-panel { padding: 18px 16px; border-radius: 16px; } }

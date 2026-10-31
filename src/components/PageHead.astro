@@ -18,13 +18,17 @@ const {
 /* اگر og مشخص نشده باشد: هر صفحه‌ای که canonical دارد، تگ‌های Open Graph هم می‌گیرد (مطابق نسخهٔ تأییدشده) */
 const showOg = og ?? Boolean(canonical);
 const ORG = JSON.stringify({"@context": "https://schema.org", "@type": "Organization", "name": "کافه‌دانش", "alternateName": "Cdanesh Studio", "url": "https://cdanesh.ir/", "logo": "https://cdanesh.ir/assets/img/logo.svg", "email": "info@cdanesh.ir", "telephone": "+98-916-580-6207", "address": {"@type": "PostalAddress", "streetAddress": "خیابان شهید رجایی", "addressLocality": "بوشهر", "addressCountry": "IR"}, "sameAs": ["https://github.com/rasoolbahadran-stack"], "founder": {"@type": "Person", "name": "رسول بهادران", "jobTitle": "طراح و توسعه‌دهنده وب‌سایت", "telephone": "+98-916-580-6207", "address": {"@type": "PostalAddress", "addressLocality": "بوشهر", "addressCountry": "IR"}, "url": "https://www.cdanesh.ir", "sameAs": ["https://github.com/rasoolbahadran-stack"]}});
-const SITE = JSON.stringify({"@context": "https://schema.org", "@type": "WebSite", "name": "کافه‌دانش", "url": "https://cdanesh.ir/", "inLanguage": "fa-IR"});
+/* نام سایت با واریانت‌های رایج (با نیم‌فاصله و با فاصله و لاتین) — تا گوگل
+   نام برند را یکدست «کافه‌دانش» بخواند و املای قدیمی اشتباه از نتایج حذف شود */
+const SITE = JSON.stringify({"@context": "https://schema.org", "@type": "WebSite", "name": "کافه‌دانش", "alternateName": ["کافه دانش", "Cdanesh", "Cdanesh Studio", "کافه‌دانش بوشهر"], "url": "https://cdanesh.ir/", "inLanguage": "fa-IR", "publisher": {"@type": "Organization", "name": "کافه‌دانش", "url": "https://cdanesh.ir/"}});
 ---
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{title}</title>
   {description ? <meta name="description" content={description} /> : null}
+  <meta name="application-name" content="کافه‌دانش" />
+  <meta name="apple-mobile-web-app-title" content="کافه‌دانش" />
   {robots ? <meta name="robots" content={robots} /> : null}
   <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg" />
   <link rel="apple-touch-icon" href="/assets/img/logo-180.png" />

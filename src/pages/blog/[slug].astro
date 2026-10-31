@@ -89,7 +89,9 @@ const crumbLd = {
 
 <section class="section-tight" style="padding-top:10px">
   <div class="wrap"><div class="split">
-    <article class="prose">
+    <!-- ستون مقاله: متن + پرسش‌ها + مقالات مرتبط — تا سایدبار چسبان تا انتهای صفحه بماند -->
+    <div class="article-main-col">
+    <article class="prose prose-panel">
       <Fragment set:html={renderBlocks(a.blocks)} />
       <div class="author-box">
         <img src="/assets/img/founder-rasool.webp" alt="رسول بهادران — بنیان‌گذار کافه‌دانش" width="56" height="56" loading="lazy" />
@@ -106,6 +108,30 @@ const crumbLd = {
         <span class="copy-ok" id="copy-ok" hidden>لینک کپی شد</span>
       </div>
     </article>
+
+    {a.faq && a.faq.length > 0 && (
+      <div style="margin-top:56px">
+        <div class="section-head side" style="margin-bottom:26px"><h2 class="h3">پرسش‌های متداول این مقاله</h2></div>
+        <div class="faq-list" data-article-faq>
+          {a.faq.map(it => (
+            <div class="faq-item">
+              <button class="faq-q" aria-expanded="false">{it.q}
+                <span class="fx" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>
+              </button>
+              <div class="faq-a"><div>{it.a}</div></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    <div style="margin-top:64px">
+      <div class="section-head side" style="margin-bottom:30px"><h2 class="h3">مقالات مرتبط</h2></div>
+      <div class="posts-grid" id="article-related">
+        {related.map((x, i) => <Fragment set:html={postCardHtml(x, i)} />)}
+      </div>
+    </div>
+    </div>
     <aside class="article-aside">
       {toc.length > 1 && (
         <div class="aside-card toc-card"><b>فهرست مطالب</b>
@@ -120,29 +146,6 @@ const crumbLd = {
         <a class="btn btn-gold btn-block" href="/request">درخواست مشاوره رایگان</a>
       </div>
     </aside>
-  </div>
-
-  {a.faq && a.faq.length > 0 && (
-    <div style="margin-top:64px">
-      <div class="section-head side" style="margin-bottom:26px"><h2 class="h3">پرسش‌های متداول این مقاله</h2></div>
-      <div class="faq-list" data-article-faq>
-        {a.faq.map(it => (
-          <div class="faq-item">
-            <button class="faq-q" aria-expanded="false">{it.q}
-              <span class="fx" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>
-            </button>
-            <div class="faq-a"><div>{it.a}</div></div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )}
-
-  <div style="margin-top:70px">
-    <div class="section-head side" style="margin-bottom:30px"><h2 class="h3">مقالات مرتبط</h2></div>
-    <div class="posts-grid" id="article-related">
-      {related.map((x, i) => <Fragment set:html={postCardHtml(x, i)} />)}
-    </div>
   </div>
   </div>
 </section>
