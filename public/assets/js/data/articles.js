@@ -64,10 +64,15 @@
           return d.articles;
         }
         if (r.status === 404 && d && d.error === 'EMPTY') {
-          // API هست ولی هنوز چیزی ذخیره نشده: حالت ابری با بذر دادهٔ پروژه
+          // API هست ولی هنوز چیزی در ابر ذخیره نشده.
+          // نکته: در حالت ابری، فهرست = [] (نه بانک استاتیک) تا هیچ‌وقت مقاله‌های قدیمیِ
+          // همراه پروژه به‌عنوان «فهرست واقعی» به پنل نشان داده و بعد محو نشوند؛
+          // مقاله‌های قدیمی با دکمهٔ «افزودن مقاله‌های قدیمی» یک‌بار به ابر وارد می‌شوند.
+          const prev2 = all();
+          cloudList = [];
           mode = 'cloud';
-          subs.forEach(f => { try { f(null); } catch (e) { /* noop */ } }); // فقط برای به‌روزرسانی نشان/نماها
-          return null;
+          notify(prev2, cloudList);
+          return cloudList;
         }
         lastErr = { status: r.status, message: (d && (d.message || d.error)) || ('HTTP ' + r.status) };
         if (r.status >= 500 && attempt < 2) { await new Promise(res => setTimeout(res, 900)); continue; }
@@ -217,6 +222,8 @@
 
   window.CDArticles = {
     all, published, bySlug, byCat, related, latest, CATS, renderBlocks, esc, rich,
+    // بانک استاتیک همراه پروژه (برای دکمهٔ «افزودن مقاله‌های قدیمی» پنل)
+    baseBank: () => base.slice(),
     // لایه ابری
     mode: () => mode,
     cloudList: () => cloudList,

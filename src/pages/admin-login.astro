@@ -16,13 +16,13 @@ const robots = "noindex, nofollow";
     <div class="form-card" style="padding:34px 30px">
       <h1 class="h3" style="text-align:center; margin-bottom:24px">ورود به پنل مدیریت</h1>
       <div class="form-ok" role="alert" style="background:rgba(229,118,106,.1); border-color:rgba(229,118,106,.4); color:var(--err); display:none" id="login-err"></div>
-      <div id="login-setup" style="display:none; text-align:right; border:1px solid rgba(232,194,104,.5); background:rgba(232,194,104,.08); border-radius:14px; padding:14px 16px; margin-bottom:18px">
+      <div id="login-setup" style="display:none; text-align:right; border:1px solid var(--line); background:var(--bg-2); border-radius:14px; padding:14px 16px; margin-bottom:18px">
         <b style="font-size:13.5px">انتشار واقعی هنوز فعال نشده است</b>
-        <p style="font-size:12.5px; line-height:2; color:var(--mut); margin-top:6px">برای فعال‌سازی (۵ دقیقه):<br>
-        ۱) ورسل → تب <b>Storage</b> → Create Database → نوع <b>Blob</b> → نام <b dir="ltr">cdanesh-content</b> → Connect به همین پروژه.<br>
-        ۲) تب <b>Settings → Environment Variables</b> → متغیر <b dir="ltr">ADMIN_PASSWORD</b> با یک رمز قوی (تیک Production و Preview).<br>
-        ۳) تب <b>Deployments</b> → Redeploy آخرین دیپلوی.<br>
-        سپس با نام <b dir="ltr">admin</b> و رمز ابری وارد شو. (تا آن‌ موقع ورود آزمایشی <b dir="ltr">admin / cdanesh1404</b> فقط برای همین مرورگر کار می‌کند.)</p>
+        <p style="font-size:12.5px; line-height:2; color:var(--mut); margin-top:6px">برای فعال‌سازی (حدود ۱۰ دقیقه، همهٔ مراحل رایگان):<br>
+        ۱) ورسل → تب <b>Storage</b> → Create Database → نوع <b>Blob</b> → نام <b dir="ltr">cdanesh-content</b> → Connect به همین پروژه (خانهٔ عکس‌ها).<br>
+        ۲) ورسل → تب <b>Storage</b> → Marketplace → <b>Neon</b> → پلن Free → Connect (پایگاه دادهٔ مقالات و پیام‌ها).<br>
+        ۳) تب <b>Settings → Environment Variables</b> → متغیر <b dir="ltr">ADMIN_PASSWORD</b> با یک رمز قوی (تیک Production و Preview).<br>
+        ۴) در کامپیوتر: <b dir="ltr">git push</b> و بعد <b dir="ltr">vercel --prod</b>. سپس با نام <b dir="ltr">admin</b> و رمز ابری وارد شو و از داشبورد «انتقال داده‌های قدیمی» را بزن. (تا آن‌ موقع ورود آزمایشی <b dir="ltr">admin / cdanesh1404</b> فقط برای همین مرورگر کار می‌کند.)</p>
       </div>
       <form id="login-form" novalidate>
         <div class="field" style="margin-bottom:16px">

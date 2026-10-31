@@ -142,6 +142,41 @@ export default async function handler(req, res) {
       });
     }
 
+    /* ── ورود مقاله‌های قدیمی سایت (بانک استاتیک همراه پروژه) ──
+       POST {importArticles:[…]} → فقط مقاله‌هایی که اسلاگ‌شان هنوز در سند ابری
+       نیست اضافه می‌شوند؛ مقاله‌های موجود دست‌نخورده می‌مانند (بدون بازنویسی).
+       اتمیک است و یک‌کلیک از پنل صدا زده می‌شود تا فهرست، مجله و «مقالات مرتبط»
+       همه از یک منبع واحد خوانده شوند. */
+    if (method === 'POST' && Array.isArray(body.importArticles)) {
+      const incoming = body.importArticles.filter(a => a && typeof a === 'object' && !Array.isArray(a)).slice(0, 300);
+      for (const a of incoming) {
+        const inv = validateSingleArticle(a);
+        if (inv) return json(res, 400, { ok: false, error: 'INVALID', message: inv });
+      }
+      let added = 0, skipped = 0, nextList = [];
+      try {
+        nextList = await modifyDoc(DOC_KEY, (cur) => {
+          const list = Array.isArray(cur) ? cur.slice() : [];
+          const have = new Set(list.map(x => x.slug));
+          for (const a of incoming) {
+            if (!a.slug || have.has(a.slug)) { skipped++; continue; }
+            const rec = Object.assign({ id: newId(), date: '', sort: todaySort() }, a);
+            if (!rec.id || typeof rec.id !== 'string') rec.id = newId();
+            if (!rec.date) rec.date = new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: 'numeric', day: 'numeric' }).format(new Date());
+            if (!rec.sort) rec.sort = todaySort();
+            list.push(rec);
+            have.add(a.slug);
+            added++;
+          }
+          return sorted(list);
+        }, { ms: DB_MS });
+      } catch (e) {
+        if (e && e.code === 'DUP_SLUG') return json(res, 400, { ok: false, error: 'INVALID', message: e.message });
+        return json(res, 500, { ok: false, error: dbEnabled() ? 'DB_ERROR' : 'BLOB_ERROR', message: String((e && e.message) || e) });
+      }
+      return json(res, 200, { ok: true, added, skipped, count: nextList.length, updatedAt: new Date().toISOString() });
+    }
+
     /* ── مسیر قدیم: جایگزینی کامل فهرست (حالت سازگاری — مهاجرت دمو، اصلاح گروهی) ── */
     const invalid = validateArticles(body.articles);
     if (invalid) return json(res, 400, { ok: false, error: 'INVALID', message: invalid });

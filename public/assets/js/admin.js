@@ -37,7 +37,7 @@
     if (!t) {
       t = document.createElement('div');
       t.id = 'adm-toast';
-      t.style.cssText = 'position:fixed; bottom:24px; inset-inline-start:50%; transform:translateX(50%); background:#0a0a0e; border:1px solid rgba(227,185,83,.5); color:var(--gold-2); padding:11px 22px; border-radius:999px; font-size:13.5px; z-index:300; box-shadow:0 20px 50px -20px rgba(0,0,0,.9); pointer-events:none';
+      t.style.cssText = 'position:fixed; bottom:24px; inset-inline-start:50%; transform:translateX(50%); background:#ffffff; border:1px solid var(--line-2); color:var(--txt); padding:11px 22px; border-radius:999px; font-size:13.5px; z-index:300; box-shadow:0 18px 44px -18px rgba(23,26,33,.35); pointer-events:none';
       document.body.appendChild(t);
     }
     t.textContent = msg;
@@ -566,11 +566,12 @@
       + '<div class="cd-media" role="dialog" aria-label="کتابخانه رسانه" dir="rtl">'
       + '<div class="cd-media-head"><b>کتابخانه رسانه</b>'
       + '<span class="cd-media-hint">تصاویر بزرگ خودکار به WebP فشرده می‌شوند؛ حجم بهینه = سرعت بهتر سایت</span>'
+      + '<span class="cd-media-count" id="media-count"></span>'
       + '<button type="button" class="adm-btn" id="media-close">بستن</button></div>'
       + '<div class="cd-media-drop" id="media-drop"><input type="file" id="media-file" multiple accept="image/*,application/pdf" hidden>'
       + '<p>فایل را این‌جا رها کنید یا</p><button type="button" class="btn btn-gold btn-sm" id="media-browse">انتخاب فایل از دستگاه</button>'
       + '<span class="adm-hint" id="media-status"></span></div>'
-      + '<div class="cd-media-grid" id="media-grid"><div class="adm-empty">در حال دریافت…</div></div>'
+      + '<div class="cd-media-grid" id="media-grid"><div class="adm-empty adm-loading">در حال دریافت کتابخانه…</div></div>'
       + '</div>';
   }
 
@@ -614,48 +615,66 @@
       alert('کتابخانه رسانه در فضای ابری کار می‌کند.\nابتدا در پنل، مراحل اتصال فضای ابری (بنر راهنما) را انجام دهید تا آپلود تصویر فعال شود.');
       return;
     }
-    let veil = $('#cd-media-veil-el');
-    if (!veil) {
-      const wrap = document.createElement('div');
-      wrap.id = 'cd-media-root';
-      wrap.innerHTML = mediaOverlayHtml();
-      document.body.appendChild(wrap);
-      veil = wrap;
-    }
-    const root = $('#cd-media-root');
-    root.style.display = 'block';
-    const close = () => { root.style.display = 'none'; };
-    $('#media-close', root).addEventListener('click', close);
-    $('.cd-media-veil', root).addEventListener('click', close);
+    /* هر بار پنجرهٔ تازه ساخته می‌شود — شنونده‌های تکراری و حالت‌های قدیمی حذف می‌شوند */
+    let root = $('#cd-media-root');
+    if (root) root.remove();
+    root = document.createElement('div');
+    root.id = 'cd-media-root';
+    root.innerHTML = mediaOverlayHtml();
+    document.body.appendChild(root);
+    document.body.classList.add('adm-modal-open');
+
+    const close = () => { root.remove(); document.removeEventListener('keydown', onKey); document.body.classList.remove('adm-modal-open'); };
+    const onKey = e => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+
     const drop = $('#media-drop', root);
     const fileInput = $('#media-file', root);
     const statusEl = $('#media-status', root);
     const grid = $('#media-grid', root);
 
+    const isImageItem = m => /\.(webp|jpe?g|png|gif|avif|svg)(\?|$)/i.test(m.url || '') || (m.name && /\.(webp|jpe?g|png|gif|avif|svg)$/i.test(m.name));
+    const visible = () => (mediaCache || []).filter(m => opts.filter !== 'image' || isImageItem(m));
+
     const draw = () => {
-      const items = (mediaCache || []).filter(m => !opts.filter || opts.filter === 'image' ? true : true);
+      const items = visible();
+      const cnt = $('#media-count', root);
+      if (cnt) cnt.textContent = items.length ? fa(items.length) + ' فایل' : '';
       grid.innerHTML = items.map(m => {
-        const isImg = /\.(webp|jpe?g|png|gif|avif|svg)(\?|$)/i.test(m.url) || (m.name && /\.(webp|jpe?g|png|gif|avif|svg)$/i.test(m.name));
-        return '<div class="cd-media-item" data-url="' + esc(m.url) + '" data-name="' + esc(m.name || '') + '" data-img="' + (isImg ? '1' : '0') + '">'
+        const isImg = isImageItem(m);
+        return '<div class="cd-media-item' + (opts.pick && isImg ? ' pickable' : '') + '" data-url="' + esc(m.url) + '" data-name="' + esc(m.name || '') + '" data-img="' + (isImg ? '1' : '0') + '">'
           + '<div class="cd-media-thumb">' + (isImg ? '<img src="' + esc(m.url) + '" alt="" loading="lazy">' : '<span class="cd-media-filetype">' + esc((m.name || '').split('.').pop() || 'فایل') + '</span>') + '</div>'
           + '<div class="cd-media-name" title="' + esc(m.name || '') + '">' + esc(m.name || '') + '</div>'
           + '<div class="cd-media-size">' + humanSize(m.size) + '</div>'
           + '<div class="cd-media-actions">'
-          + (opts.pick ? '<button class="adm-btn primary" data-act="pick">' + esc(opts.pick) + '</button>' : '')
+          + (opts.pick && isImg ? '<button class="adm-btn primary" data-act="pick">' + esc(opts.pick) + '</button>' : '')
           + '<button class="adm-btn" data-act="copy">کپی لینک</button>'
           + '<button class="adm-btn danger" data-act="del">حذف</button>'
           + '</div></div>';
-      }).join('') || '<div class="adm-empty">هنوز فایلی آپلود نشده است.</div>';
+      }).join('') || '<div class="adm-empty">' + (opts.filter === 'image' ? 'هنوز تصویری آپلود نشده است.' : 'هنوز فایلی آپلود نشده است.') + '</div>';
     };
 
     const load = async () => {
-      grid.innerHTML = '<div class="adm-empty">در حال دریافت…</div>';
+      grid.innerHTML = '<div class="adm-empty adm-loading"><span class="adm-spinner" aria-hidden="true"></span>در حال دریافت کتابخانه…</div>';
       try {
         const r = await fetch('api/media', { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(30000) });
         const d = await r.json().catch(() => ({}));
-        if (r.ok && d.ok) { mediaCache = d.media || []; draw(); }
-        else { grid.innerHTML = '<div class="adm-empty">دریافت فهرست ناموفق بود: ' + esc(d.message || d.error || '') + '</div>'; }
-      } catch (e) { grid.innerHTML = '<div class="adm-empty">ارتباط با سرور برقرار نشد.</div>'; }
+        if (r.ok && d.ok) { mediaCache = d.media || []; draw(); return; }
+        if (r.status === 401) {
+          close();
+          try { sessionStorage.setItem('cd_next', location.hash || '#/articles'); } catch (e) { /* noop */ }
+          CDStore.logout();
+          location.replace('/admin-login');
+          return;
+        }
+        grid.innerHTML = '<div class="adm-empty">دریافت فهرست ناموفق بود: ' + esc(d.message || d.error || ('HTTP ' + r.status))
+          + '<br><button type="button" class="adm-btn primary" id="media-retry" style="margin-top:12px">تلاش دوباره</button></div>';
+      } catch (e) {
+        grid.innerHTML = '<div class="adm-empty">ارتباط با سرور برقرار نشد.'
+          + '<br><button type="button" class="adm-btn primary" id="media-retry" style="margin-top:12px">تلاش دوباره</button></div>';
+      }
+      const rb = $('#media-retry', grid);
+      if (rb) rb.addEventListener('click', load);
     };
 
     const upload = async files => {
@@ -674,6 +693,8 @@
       statusEl.textContent = '';
     };
 
+    $('#media-close', root).addEventListener('click', close);
+    $('.cd-media-veil', root).addEventListener('click', close);
     $('#media-browse', root).addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', () => { upload(fileInput.files); fileInput.value = ''; });
     ;['dragover', 'dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
@@ -682,9 +703,16 @@
 
     grid.addEventListener('click', e => {
       const b = e.target.closest('button[data-act]');
-      if (!b) return;
-      const item = b.closest('.cd-media-item');
+      const item = e.target.closest('.cd-media-item');
+      if (!item) return;
       const url = item.dataset.url, name = item.dataset.name, isImg = item.dataset.img === '1';
+      /* کلیک روی خود تصویر = انتخاب سریع (مثل رسانهٔ وردپرس) */
+      if (!b && opts.pick && isImg && item.classList.contains('pickable')) {
+        close();
+        cb(url, name.replace(/\.[^.]+$/, '') || '');
+        return;
+      }
+      if (!b) return;
       if (b.dataset.act === 'pick') {
         if (opts.filter === 'image' && !isImg) { alert('برای تصویر شاخص فقط تصویر انتخاب کنید.'); return; }
         close();
@@ -724,11 +752,23 @@
   }
 
   /* ═════════════ نمای مقالات: فهرست ═════════════ */
-  function renderArticles() {
+  async function renderArticles() {
     swapView();
     const S = window.CDStore;
-    const list = allArticles();
     const cloud = isCloud();
+    /* رفع ریشه‌ای «مقاله‌های قدیمی یک لحظه نشان داده می‌شوند و محو می‌شوند»:
+       در نشست ابری تا رسیدن فهرست واقعی سرور، فقط اسکلت خالی نشان می‌دهیم؛
+       بانک استاتیک همراه پروژه دیگر هیچ‌وقت جای فهرست واقعی را نمی‌گیرد. */
+    if (cloud && !CDArticles.cloudList()) {
+      view.innerHTML = '<div class="adm-panel"><div class="adm-skel"></div><div class="adm-skel"></div><div class="adm-skel short"></div>'
+        + '<p class="adm-hint" style="margin-top:16px">در حال دریافت فهرست واقعی از سرور…</p></div>';
+      try { await CDArticles.loadRemote(); } catch (e) { /* noop */ }
+      if (!CDArticles.cloudList()) {
+        await sleep(900);
+        try { await CDArticles.loadRemote(); } catch (e) { /* noop */ }
+      }
+    }
+    const list = allArticles();
     // بنر انتقال مقاله‌های آزمایشی همین مرورگر به فضای ابری
     let migBox = '';
     if (cloud && S && (S.newArticles().length || Object.keys(S.articleOverrides()).length)) {
@@ -767,7 +807,21 @@
         + '<p class="adm-hint" style="margin:4px 0 0">' + items.join(' • ') + '</p></div>'
         + '<button class="btn btn-gold" id="fix-cloud-texts" type="button">اصلاح و ذخیره</button></div></div>';
     }
-    view.innerHTML = setupBannerHtml() + (migBox
+    /* ─── مقاله‌های قدیمی سایت (بانک استاتیک) که هنوز در فضای ابری نیستند ───
+       علت واقعی «ناپدیدشدن» مقاله‌های قبلی: آن‌ها فقط در فایل‌های قدیمی سایت بودند،
+       نه در فضای ابری؛ فهرست پنل و مجله از ابر می‌خواند و «مقالات مرتبط» از بانک.
+       با یک کلیک همه به پایگاه داده اضافه می‌شوند و همه‌جا یکدست می‌شوند. */
+    const bank = cloud && CDArticles.baseBank ? CDArticles.baseBank() : [];
+    const missing = bank.filter(a => a && a.slug && !list.some(x => x.slug === a.slug));
+    let importBox = '';
+    if (cloud && missing.length) {
+      importBox = '<div class="adm-panel adm-import" style="margin-bottom:14px">'
+        + '<div style="display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap">'
+        + '<div><b>' + fa(missing.length) + ' مقالهٔ قدیمی سایت در این فهرست ثبت نیست</b>'
+        + '<p class="adm-hint" style="margin:4px 0 0; max-width:720px">این مقاله‌ها فقط در فایل‌های قدیمی سایت بودند؛ برای همین در فهرست و مجله دیده نمی‌شدند ولی در «مقالات مرتبط» ظاهر می‌شدند. با یک کلیک به پایگاه داده اضافه می‌شوند و از این بعد فهرست، مجله و مقالات مرتبط همه یکدست می‌شوند — ویرایش و حذف‌شان هم از همین‌جا ممکن است. مقاله‌های موجود دست‌نخورده می‌مانند.</p></div>'
+        + '<button class="btn btn-gold" id="import-old-articles" type="button">افزودن مقاله‌های قدیمی</button></div></div>';
+    }
+    view.innerHTML = setupBannerHtml() + importBox + (migBox
       ? migBox
       : '') + (fixBox
       ? fixBox
@@ -811,6 +865,39 @@
       const ok = await cloudPut(next, 'متن‌های قدیمی اصلاح و در فضای ابری ذخیره شد');
       if (ok) renderArticles();
       else { fixBtn.disabled = false; fixBtn.textContent = 'اصلاح و ذخیره'; }
+    });
+
+    /* ورود یک‌کلیکی مقاله‌های قدیمی به پایگاه داده */
+    const importBtn = $('#import-old-articles');
+    if (importBtn) importBtn.addEventListener('click', async () => {
+      importBtn.disabled = true;
+      importBtn.textContent = 'در حال افزودن…';
+      try {
+        const r = await fetch('api/articles', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ importArticles: missing }),
+          signal: AbortSignal.timeout(60000),
+        });
+        const d = await r.json().catch(() => ({}));
+        if (r.ok && d.ok) {
+          toast(fa(d.added || 0) + ' مقالهٔ قدیمی به CMS اضافه شد');
+          try { await CDArticles.loadRemote(); } catch (e) { /* noop */ }
+          renderArticles();
+          return;
+        }
+        if (r.status === 401 || d.error === 'UNAUTH') {
+          try { sessionStorage.setItem('cd_next', location.hash || '#/articles'); } catch (e) { /* noop */ }
+          CDStore.logout();
+          location.replace('/admin-login');
+          return;
+        }
+        alert('افزودن انجام نشد: ' + (d.message || d.error || r.status));
+      } catch (e) {
+        alert('ارتباط با سرور برقرار نشد؛ دوباره تلاش کنید.');
+      }
+      importBtn.disabled = false;
+      importBtn.textContent = 'افزودن مقاله‌های قدیمی';
     });
 
     const rows = $('#art-rows');
@@ -2226,7 +2313,7 @@
       const h = Math.round((v / max) * (H - pad - 40));
       const x = pad + i * (bw + gap);
       const y = H - 30 - h;
-      return '<g><rect x="' + x + '" y="' + y + '" width="' + Math.max(4, bw) + '" height="' + Math.max(2, h) + '" rx="5" fill="' + color + '" opacity="' + (v ? '.85' : '.18') + '"></rect>'
+      return '<g><rect x="' + x + '" y="' + y + '" width="' + Math.max(4, bw) + '" height="' + Math.max(2, h) + '" rx="5" style="fill:' + color + '; opacity:' + (v ? '.85' : '.18') + '"></rect>'
         + (v ? '<text x="' + (x + bw / 2) + '" y="' + (y - 7) + '" font-size="11" fill="var(--mut)" text-anchor="middle">' + fa(v) + '</text>' : '')
         + (labels[i] ? '<text x="' + (x + bw / 2) + '" y="' + (H - 10) + '" font-size="9.5" fill="var(--faint)" text-anchor="middle">' + esc(labels[i]) + '</text>' : '')
         + '</g>';
@@ -2240,6 +2327,35 @@
       '<div style="margin-bottom:12px"><div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:5px"><span class="muted">' + esc(r[0]) + '</span><b>' + fa(r[1]) + '</b></div>'
       + '<div class="adm-meter"><i style="width:' + Math.round(r[1] / max * 100) + '%; background:' + r[2] + '"></i></div></div>'
     ).join('');
+  }
+
+  /* ═══ نمودار دایره‌ای (Donut) — SVG خالص، بدون هیچ کتابخانه ═══
+     segments: [{label, value, color}] — وسط دایره: مجموع + برچسب */
+  function donutSvg(segments, centerCap) {
+    const total = segments.reduce((s, x) => s + (x.value || 0), 0);
+    const R = 60, C = 2 * Math.PI * R;
+    let acc = 0;
+    const arcs = segments.filter(s => s.value > 0).map(s => {
+      const frac = s.value / total;
+      const dash = (frac * C).toFixed(2);
+      const off = (-acc * C).toFixed(2);
+      acc += frac;
+      return '<circle cx="90" cy="90" r="' + R + '" fill="none" style="stroke:' + s.color + '" stroke-width="23"'
+        + ' stroke-dasharray="' + dash + ' ' + (C - Number(dash)).toFixed(2) + '" stroke-dashoffset="' + off + '">'
+        + '<title>' + esc(s.label) + ': ' + fa(s.value) + '</title></circle>';
+    }).join('');
+    return '<div class="adm-donut">'
+      + '<svg viewBox="0 0 180 180" role="img" aria-label="نمودار دایره‌ای وضعیت محتوا">'
+      + '<g transform="rotate(-90 90 90)">'
+      + '<circle cx="90" cy="90" r="' + R + '" fill="none" style="stroke:var(--line)" stroke-width="23"/>'
+      + arcs
+      + '</g>'
+      + '<text x="90" y="88" text-anchor="middle" class="adm-donut-num">' + fa(total) + '</text>'
+      + '<text x="90" y="108" text-anchor="middle" class="adm-donut-cap">' + esc(centerCap || '') + '</text>'
+      + '</svg>'
+      + '<div class="adm-donut-legend">'
+      + segments.map(s => '<div class="adm-legend-row"><span class="adm-legend-dot" style="background:' + s.color + '"></span><span class="adm-legend-label">' + esc(s.label) + '</span><b>' + fa(s.value) + '</b></div>').join('')
+      + '</div></div>';
   }
 
   /* بنر راهنمای اتصال فضای ابری — وقتی Blob یا رمز تنظیم نشده باشد نمایش داده می‌شود */
@@ -2371,9 +2487,18 @@
       + kpi(icoMsg, 'پیام‌های جدید', newMsgs)
       + kpi(icoPf, 'نمونه‌کارهای فعال', CD_PORTFOLIO.length)
       + '</div>'
-      + '<div class="admin-card" style="margin-top:18px"><div style="padding:18px 20px; border-bottom:1px solid var(--line)"><b style="font-size:14.5px">پیام‌های دریافتی — ۱۴ روز اخیر</b></div><div style="padding:18px 20px">'
-      + barChartSvg(counts, labels, '#e3b953')
+      + '<div class="adm-grid2" style="margin-top:18px">'
+      + '<div class="admin-card" style="padding:0; overflow:hidden"><div style="padding:18px 20px; border-bottom:1px solid var(--line)"><b style="font-size:14.5px">پیام‌های دریافتی — ۱۴ روز اخیر</b></div><div style="padding:18px 20px">'
+      + barChartSvg(counts, labels, 'var(--gold)')
       + '</div></div>'
+      + '<div class="admin-card" style="padding:0; overflow:hidden"><div style="padding:18px 20px; border-bottom:1px solid var(--line)"><b style="font-size:14.5px">وضعیت محتوا — نمای دایره‌ای</b></div><div style="padding:18px 20px">'
+      + donutSvg([
+          { label: 'منتشرشده', value: pub, color: 'var(--ok)' },
+          { label: 'پیش‌نویس', value: drafts, color: 'var(--gold)' },
+          { label: 'زمان‌بندی‌شده', value: sched, color: 'var(--info)' },
+        ], 'کل مقالات')
+      + '</div></div>'
+      + '</div>'
       + '<div class="adm-grid2" style="margin-top:18px">'
       + '<div class="admin-card" style="padding:0; overflow:hidden"><div style="padding:18px 20px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center"><b style="font-size:14.5px">آخرین پیام‌ها</b><a href="#/messages" class="link-more" style="font-size:12.5px">همه پیام‌ها</a></div>'
       + (msgs.length
@@ -2384,11 +2509,7 @@
       + '</div>'
       + '<div class="admin-card" style="padding:0; overflow:hidden"><div style="padding:18px 20px; border-bottom:1px solid var(--line)"><b style="font-size:14.5px">مقالات به تفکیک دسته</b></div><div style="padding:20px">'
       + hBarSvg(catRows)
-      + '<div style="margin-top:18px">'
-      + [['منتشرشده', pub, 'var(--ok)'], ['پیش‌نویس', drafts, 'var(--gold)'], ['زمان‌بندی‌شده', sched, '#7f7fe0']].map(([l, n, c]) =>
-        '<div style="margin-bottom:12px"><div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:6px"><span class="muted">' + l + '</span><b>' + fa(n) + '</b></div><div class="adm-meter"><i style="width:' + (arts.length ? Math.round(n / arts.length * 100) : 0) + '%; background:' + c + '"></i></div></div>').join('')
-      + '</div>'
-      + '<a class="btn btn-ghost btn-sm btn-block" href="#/articles" style="margin-top:8px">مدیریت مقالات</a></div></div>'
+      + '<a class="btn btn-ghost btn-sm btn-block" href="#/articles" style="margin-top:12px">مدیریت مقالات</a></div></div>'
       + '</div>'
       + '<div class="adm-panel" style="margin-top:18px"><div class="adm-panel-head"><b>' + (isCloud() ? 'وضعیت سیستم و ذخیره‌سازی' : 'راهنمای سریع پنل') + '</b></div>'
       + (isCloud() ? sysCardHtml() : '<p class="adm-hint">حالت آزمایشی (بدون سرور): تغییرات فقط در همین مرورگر ذخیره می‌شوند. بنر زودهنگام بالای همین صفحه، سه گام اتصال ابری را توضیح می‌دهد.</p>')
