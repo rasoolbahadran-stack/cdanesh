@@ -2868,7 +2868,7 @@
           updPageUrl();
         }
       });
-      $("#pf-back").addEventListener("click", () => {
+      $("#pg-back").addEventListener("click", () => {
         location.hash = "#/pages";
       });
 
