@@ -238,54 +238,6 @@ export async function runSeed(): Promise<void> {
     );
   }
 
-  // Normalize only untouched seed titles for the three primary services.
-  // The slug remains unchanged, so existing URLs and saved inquiries keep working.
-  const primaryServiceUpdates = [
-    {
-      slug: 'company-website',
-      oldTitle: 'طراحی سایت شرکتی',
-      oldDescription: 'حضور حرفه‌ای برای معرفی خدمات، پروژه‌ها و تیم شرکت شما.',
-      title: 'طراحی سایت',
-      description: 'طراحی سایت شرکتی و فروشگاهی متناسب با هویت برند، مخاطب و هدف کسب‌وکار شما.',
-      seoTitle: 'طراحی سایت اختصاصی و شرکتی | کافه دانش',
-      seoDescription: 'طراحی سایت اختصاصی شرکتی و فروشگاهی با تجربه کاربری مناسب، ساختار روشن و پنل مدیریت محتوا متناسب با نیاز کسب‌وکار.',
-    },
-    {
-      slug: 'content',
-      oldTitle: 'تولید مقالات سئومحور',
-      oldDescription: 'مقالات تخصصی با تحقیق واقعی و ساختار استاندارد انتشار.',
-      title: 'تولید محتوا',
-      description: 'تولید مقالات تخصصی و محتوای صفحات سایت بر اساس نیاز مخاطب، تحقیق موضوعی و لحن برند.',
-      seoTitle: 'تولید محتوای تخصصی برای سایت | کافه دانش',
-      seoDescription: 'تولید محتوای تخصصی برای وب‌سایت شامل مقاله، محتوای صفحات خدمات و محصولات، تحقیق موضوعی و تقویم انتشار.',
-    },
-    {
-      slug: 'seo',
-      oldTitle: 'سئو تکنیکال و محتوایی',
-      oldDescription: 'زیرساخت فنی استاندارد و انتخاب هوشمندانه کلمات کلیدی.',
-      title: 'سئو',
-      description: 'بهینه‌سازی فنی و محتوایی سایت برای کمک به دیده‌شدن در جست‌وجوهای مرتبط گوگل.',
-      seoTitle: 'خدمات سئو سایت | کافه دانش',
-      seoDescription: 'خدمات سئو شامل بررسی فنی، تحقیق کلمات کلیدی، بهینه‌سازی صفحات و گزارش شفاف است؛ بدون ادعای تضمین رتبه.',
-    },
-  ];
-  for (const service of primaryServiceUpdates) {
-    await q(
-      `UPDATE services
-       SET title = $1, short_desc = $2, seo_title = $3, seo_description = $4
-       WHERE slug = $5 AND title = $6 AND short_desc = $7`,
-      [
-        service.title,
-        service.description,
-        service.seoTitle,
-        service.seoDescription,
-        service.slug,
-        service.oldTitle,
-        service.oldDescription,
-      ],
-    );
-  }
-
   /* ---------- پلن‌های تعرفه ---------- */
   const plansCount = await q1('SELECT count(*)::int AS c FROM plans');
   if (!plansCount || plansCount.c === 0) {
