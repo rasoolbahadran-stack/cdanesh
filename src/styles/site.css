@@ -750,3 +750,107 @@ html.js [data-reveal].revealed { opacity: 1; transform: none; }
   .site-footer ul a, .footer-contact li { font-size: 12px; }
   .footer-bottom { flex-direction: column; gap: 7px; padding: 14px 0; font-size: 11.5px; }
 }
+
+
+/* ===== اصلاح نهایی جزئیات موبایل و تعرفه ===== */
+.plan-card { padding-top: 68px; }
+.plan-card .hosting-badge {
+  top: 12px;
+  inset-inline-start: 50%;
+  transform: translateX(50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  max-width: calc(100% - 26px);
+  min-height: 34px;
+  padding: 6px 12px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.contact-layout { grid-template-columns: minmax(0, .94fr) minmax(0, 1.06fr); }
+.contact-aside, .contact-form-column { min-width: 0; }
+
+@media (max-width: 640px) {
+  /* نمودار دایره‌ای با اندازه واقعی در قاب موبایل قرار می‌گیرد، نه با مقیاس یک بوم ۴۲۰ پیکسلی */
+  .circles-wrap {
+    width: 100%;
+    min-width: 0;
+    min-height: 264px;
+    overflow: visible;
+    justify-content: center;
+  }
+  .circles-group {
+    flex: none;
+    width: min(100%, 340px);
+    height: 260px;
+    margin-inline: auto;
+    transform: none;
+  }
+  .circles-group .cc-magenta {
+    width: 172px;
+    height: 172px;
+    top: 0;
+    inset-inline-end: 5px;
+  }
+  .circles-group .cc-indigo {
+    width: 140px;
+    height: 140px;
+    top: 88px;
+    inset-inline-start: 0;
+  }
+  .circles-group .cc-navy {
+    width: 126px;
+    height: 126px;
+    bottom: 0;
+    inset-inline-start: 39%;
+  }
+  .circles-group .cc-small-pink {
+    width: 34px;
+    height: 34px;
+    top: 182px;
+    inset-inline-end: 12px;
+  }
+  .circles-group .cc-dot {
+    width: 16px;
+    height: 16px;
+    bottom: 3px;
+    inset-inline-start: 27%;
+  }
+  .circles-group .cc-dot-2 {
+    width: 11px;
+    height: 11px;
+    top: 72px;
+    inset-inline-start: 10%;
+  }
+  .circles-group .cc b { font-size: 23px; }
+  .circles-group .cc span { font-size: 10.5px; }
+
+  /* فوتر موبایل: گروه‌های لینک فشرده و اطلاعات تماس دو ستونه */
+  .site-footer { padding-top: 52px; }
+  .footer-grid { gap: 14px 12px; padding-bottom: 22px; }
+  .footer-brand p {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    max-width: 42ch;
+    font-size: 12px;
+    line-height: 1.8;
+  }
+  .site-footer h4 { font-size: 13px; margin-bottom: 8px; }
+  .site-footer ul { gap: 6px; }
+  .site-footer ul a, .footer-contact li { font-size: 11.5px; line-height: 1.8; }
+  .footer-contact {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px 12px !important;
+  }
+  .footer-contact li { min-width: 0; overflow-wrap: anywhere; align-items: flex-start; }
+  .footer-contact li:first-child { grid-column: 1 / -1; }
+  .footer-bottom { font-size: 11px; }
+  .plan-card { padding-top: 66px; }
+  .plan-card .hosting-badge { max-width: calc(100% - 22px); font-size: 11.5px; }
+}
