@@ -25,12 +25,19 @@ const seo = settings.seo;
 const finalOg = (ogImage || seo.ogImage).startsWith('http') ? (ogImage || seo.ogImage) : Astro.site?.origin + (ogImage || seo.ogImage);
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
 
+const preferredSiteName = settings.identity.brandEn?.trim() || 'CDANESH STUDIO';
+const localizedSiteName = settings.identity.brandFa?.trim() || 'کافه‌دانش';
+const displayTitle = title
+  .replace(/کافه[\u200c\s-]*دانش/giu, preferredSiteName)
+  .replace(/CDANESH\s+STUDIO/giu, preferredSiteName);
+
 /* Schema سازمان — روی همهٔ صفحات */
 const orgSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
-  name: 'کافه‌دانش',
-  alternateName: settings.identity.brandEn,
+  '@id': 'https://cdanesh.ir/#organization',
+  name: preferredSiteName,
+  alternateName: localizedSiteName,
   url: Astro.site?.href || '/',
   logo: (Astro.site?.origin || '') + '/img/logo.svg',
   description: seo.defaultDescription,
@@ -39,14 +46,23 @@ const orgSchema = {
   address: { '@type': 'PostalAddress', addressLocality: 'بوشهر', streetAddress: settings.contact.address, addressCountry: 'IR' },
 };
 
-const allSchema = [orgSchema, ...schema];
+const siteSchema = Astro.url.pathname === '/' ? {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  '@id': 'https://cdanesh.ir/#website',
+  name: preferredSiteName,
+  alternateName: [localizedSiteName, 'cdanesh.ir'],
+  url: 'https://cdanesh.ir/',
+} : null;
+
+const allSchema = [orgSchema, ...(siteSchema ? [siteSchema] : []), ...schema];
 ---
 <!doctype html>
 <html lang="fa" dir="rtl">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{title}</title>
+    <title>{displayTitle}</title>
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
     <meta name="theme-color" content="#ffffff" />
@@ -58,16 +74,16 @@ const allSchema = [orgSchema, ...schema];
     <link rel="preload" as="font" type="font/woff2" href="/fonts/iran-yekan-400.woff2" crossorigin />
     <link rel="preload" as="font" type="font/woff2" href="/fonts/iran-yekan-700.woff2" crossorigin />
 
-    <meta property="og:site_name" content="کافه‌دانش" />
+    <meta property="og:site_name" content={preferredSiteName} />
     <meta property="og:type" content={ogType} />
     {ogType === 'article' && ogPublishedTime ? <meta property="article:published_time" content={ogPublishedTime} /> : null}
     <meta property="og:locale" content="fa_IR" />
-    <meta property="og:title" content={title} />
+    <meta property="og:title" content={displayTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={finalOg} />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={title} />
+    <meta name="twitter:title" content={displayTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={finalOg} />
 
