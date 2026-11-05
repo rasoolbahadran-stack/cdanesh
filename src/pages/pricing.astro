@@ -28,9 +28,12 @@ const faqs = await q(`SELECT question, answer FROM faqs WHERE status='published'
     <div class="container">
       <div class="plan-grid">
         {plans.map((p, i) => {
-          const feats = Array.isArray(p.features) ? (p.features as string[]) : [];
+          const rawFeats = Array.isArray(p.features) ? (p.features as string[]) : [];
           const notes = ['هر صفحه با ساختار استاندارد سئو و ریسپانسیو کامل تحویل می‌شود.', 'برجسته‌شدن این پکیج به‌معنای ادعای برتری نیست؛ تجربه نشان داده بیشترین نیازها را پوشش می‌دهد.', 'پنل مدیریت فروشگاه همراه با آموزش کامل تحویل داده می‌شود.', 'پس از تحلیل نیازها، پروپوزال مکتوب و شفاف ارائه می‌شود.'];
-          const hostingGift = i < 2 ? '۶ ماه هاستینگ هدیه' : '۱ سال هاستینگ هدیه';
+          const hostingDuration = i < 2 ? '۶ ماه' : '۱ سال';
+          const hostingGift = `${hostingDuration} هاست هدیه`;
+          const feats = rawFeats.map((feature) => String(feature).replace(/(?:۶|٦|6)\s*ماه|(?:۱۲|١٢|12)\s*ماه|(?:۱|١|1)\s*سال|یک\s*سال/g, hostingDuration).replace(/هاستینگ/g, 'هاست'));
+          const displayFeats = feats.some((feature) => /هاست\s*هدیه/.test(feature)) ? feats : [hostingGift, ...feats];
           return (
             <div class={`plan-card ${p.highlighted ? 'highlight' : ''}`} data-reveal style={`--rd:${i * 60}ms`}>
               <span class="hosting-badge">🎁 {hostingGift}</span>
@@ -41,7 +44,7 @@ const faqs = await q(`SELECT question, answer FROM faqs WHERE status='published'
               <div class="plan-price">{p.price}</div>
               <div class="plan-note">{p.price_note}</div>
               <ul class="plan-feats">
-                {feats.map((f) => <li><i>✓</i> {f}</li>)}
+                {displayFeats.map((f) => <li><i>✓</i> {f}</li>)}
               </ul>
               <div class="plan-footnote">{notes[i] || ''}</div>
               <a href={`/consult?plan=${encodeURIComponent(String(p.title))}`} class={`btn btn-block ${p.highlighted ? 'btn-gold' : 'btn-ghost'}`}>{p.cta_text}</a>
