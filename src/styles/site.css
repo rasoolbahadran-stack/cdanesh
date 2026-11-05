@@ -628,3 +628,125 @@ html.js [data-reveal].revealed { opacity: 1; transform: none; }
   .site-header, .topbar, .site-footer, .to-top, .mobile-nav { display: none !important; }
   body { background: #fff; }
 }
+
+
+/* ===== اصلاحات جزئی و واکنش‌گرایی — Porto SEO 2 ===== */
+.sec-wave svg { height: 88px; }
+.portfolio-cta-wave { position: absolute; top: -1px; inset-inline: 0; width: 100%; height: 80px; line-height: 0; direction: ltr; pointer-events: none; }
+.portfolio-cta-wave svg { display: block; width: 100%; height: 80px; }
+
+/* آمار صفحه اصلی: گروه دایره‌ها در موبایل داخل قاب بماند */
+.circles-wrap { min-width: 0; max-width: 100%; }
+@media (max-width: 640px) {
+  .circles-wrap { width: 100%; overflow: hidden; min-height: 282px; padding-inline: 0; }
+  .circles-group { flex: 0 0 420px; transform: scale(.68); transform-origin: center center; }
+}
+
+/* نشان هدیه هاست: داخل کارت و خوانا */
+.plan-card { padding-top: 58px; overflow: visible; }
+.plan-card .hosting-badge { top: 14px; max-width: calc(100% - 28px); white-space: normal; text-align: center; justify-content: center; line-height: 1.5; padding: 6px 14px; }
+.plan-card.highlight { overflow: visible; }
+.plan-card.highlight .plan-ribbon { display: none; }
+
+/* کارت‌های نمونه‌کار Astro */
+.portfolio-page-section { background: #fff; padding: 42px 0 72px; }
+.portfolio-project-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: stretch; }
+.portfolio-project-card { min-width: 0; display: flex; flex-direction: column; overflow: hidden; background: #fff; border: 1px solid var(--line-soft); border-radius: 18px; box-shadow: var(--shadow-card); color: inherit; transition: transform .28s ease, box-shadow .28s ease, border-color .28s ease; }
+.portfolio-project-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-card-hover); border-color: rgba(226,60,142,.25); }
+.portfolio-project-cover { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: var(--gray-bg); }
+.portfolio-project-cover img { width: 100%; height: 100%; object-fit: cover; transition: transform .55s ease; }
+.portfolio-project-card:hover .portfolio-project-cover img { transform: scale(1.045); }
+.portfolio-project-chip { position: absolute; top: 13px; inset-inline-start: 13px; padding: 5px 11px; border-radius: 30px; background: rgba(255,255,255,.94); color: var(--navy); font: 700 11px/1.5 Arial, sans-serif; direction: ltr; box-shadow: 0 4px 14px rgba(25,35,60,.12); }
+.portfolio-project-open { position: absolute; bottom: 12px; inset-inline-end: 12px; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: rgba(255,255,255,.94); color: var(--pink-deep); font-size: 18px; box-shadow: 0 4px 14px rgba(25,35,60,.12); }
+.portfolio-project-info { flex: 1; display: flex; flex-direction: column; padding: 18px 20px 17px; }
+.portfolio-project-kicker { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--mut); font-size: 11.5px; }
+.portfolio-project-kicker span:first-child { color: var(--pink-deep); font-weight: 700; }
+.portfolio-project-kicker span:last-child { direction: ltr; font-family: Arial, sans-serif; letter-spacing: .3px; }
+.portfolio-project-info h3 { margin: 9px 0 7px; color: var(--navy); font-size: 17px; line-height: 1.55; }
+.portfolio-project-info p { min-height: 48px; margin: 0; color: var(--mut); font-size: 13px; line-height: 1.9; }
+.portfolio-project-bottom { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line-soft); color: var(--pink-deep); font-size: 12.5px; font-weight: 700; }
+.portfolio-project-card[hidden] { display: none !important; }
+.portfolio-image-note { margin: 22px 0 0; color: var(--mut); text-align: center; font-size: 12px; line-height: 1.8; }
+
+/* CTA نمونه‌کار: روشن و مستقل از فوتر سرمه‌ای */
+.portfolio-cta-section { position: relative; overflow: hidden; background: var(--gray-bg); padding: 112px 0 68px; }
+.portfolio-cta-card { position: relative; overflow: hidden; max-width: 900px; margin: 0 auto; padding: 42px clamp(22px, 5vw, 58px); border-radius: 22px; text-align: center; background: #fff; border: 1px solid var(--line-soft); box-shadow: var(--shadow-card); }
+.portfolio-cta-card::before { content: ''; position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, #7c5ce7 0%, #e23c8e 55%, #f3a7cf 100%); }
+.portfolio-cta-card h2 { margin: 10px 0 10px; color: var(--navy); font-size: clamp(22px, 3vw, 30px); }
+.portfolio-cta-card p { max-width: 620px; margin: 0 auto 23px; color: var(--mut); font-size: 14.5px; line-height: 2; }
+
+/* جزئیات پروژه */
+.project-detail-section { padding-top: 62px; }
+.project-detail-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 38px; align-items: center; }
+.project-detail-copy h2 { color: var(--navy); font-size: clamp(24px, 3vw, 34px); margin: 10px 0 14px; }
+.project-detail-copy > p { color: var(--mut); font-size: 15px; line-height: 2.1; }
+.project-fact-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 22px 0; }
+.project-fact { padding: 14px 16px; border: 1px solid var(--line-soft); border-radius: 13px; background: var(--gray-bg); }
+.project-fact span { display: block; color: var(--mut); font-size: 11.5px; margin-bottom: 4px; }
+.project-fact strong { color: var(--navy); font-size: 14px; }
+.project-live-button { display: inline-flex; align-items: center; gap: 10px; }
+.project-live-caption { margin: 10px 0 0 !important; color: var(--mut-2) !important; font-size: 11.5px !important; }
+.project-detail-visual { position: relative; overflow: hidden; border-radius: 20px; border: 1px solid var(--line-soft); box-shadow: var(--shadow-card); background: var(--gray-bg); }
+.project-detail-visual img { width: 100%; aspect-ratio: 16/10; object-fit: cover; }
+.project-visual-label { position: absolute; bottom: 12px; inset-inline-start: 12px; background: rgba(255,255,255,.92); color: var(--navy); border-radius: 30px; padding: 5px 11px; font-size: 10.5px; }
+
+/* صفحه تماس: کارت‌های ارتباطی مرتب و فرم هم‌تراز */
+.contact-layout { display: grid; grid-template-columns: .94fr 1.06fr; gap: 26px; align-items: start; }
+.contact-aside, .contact-form-shell { background: #fff; border: 1px solid var(--line-soft); border-radius: 20px; box-shadow: var(--shadow-card); }
+.contact-aside { padding: 27px; }
+.contact-aside-intro h2 { margin: 9px 0 9px; color: var(--navy); font-size: 21px; line-height: 1.7; }
+.contact-aside-intro p, .contact-form-heading p { color: var(--mut); font-size: 13.5px; line-height: 1.9; margin: 0 0 20px; }
+.contact-methods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+.contact-method { display: flex; align-items: flex-start; gap: 10px; min-width: 0; padding: 13px 12px; border: 1px solid var(--line-soft); border-radius: 13px; background: #fff; }
+.contact-method-icon { width: 38px; height: 38px; flex: 0 0 38px; display: grid; place-items: center; border-radius: 11px; background: rgba(226,60,142,.09); color: var(--pink-deep); font-size: 18px; }
+.contact-method-copy { min-width: 0; }
+.contact-method-label { display: block; color: var(--mut); font-size: 11.5px; margin: 0 0 4px; }
+.contact-method-copy a, .contact-method-copy p { display: block; overflow-wrap: anywhere; color: var(--navy); font-size: 12.5px; font-weight: 700; line-height: 1.75; margin: 0; }
+.contact-method-copy a:hover { color: var(--pink-deep); }
+.contact-consult-note { margin-top: 15px; padding: 15px 16px; border-radius: 13px; background: var(--gray-bg); }
+.contact-consult-note strong { color: var(--navy); font-size: 13px; }
+.contact-consult-note p { margin: 5px 0 9px; color: var(--mut); font-size: 12px; line-height: 1.8; }
+.contact-consult-note a { color: var(--pink-deep); font-size: 12.5px; font-weight: 700; }
+.contact-consult-note a span { margin-inline-start: 5px; }
+.contact-form-column { min-width: 0; }
+.contact-form-heading { margin: 0 0 13px; }
+.contact-form-heading h2 { margin: 8px 0 7px; color: var(--navy); font-size: 22px; }
+.contact-form-heading p { margin-bottom: 0; }
+.contact-page-copy { margin-bottom: 16px; padding: 15px 18px; border-radius: 13px; background: var(--gray-bg); font-size: 13px; }
+.contact-form-shell { padding: 24px; }
+.contact-form-shell .form-panel { padding: 0; box-shadow: none; border-radius: 0; }
+.contact-form-shell .form-grid { gap: 13px; }
+.contact-form-shell .form-field input, .contact-form-shell .form-field select, .contact-form-shell .form-field textarea { border-radius: 11px; }
+
+/* خوانایی کارت مقالات و متن مقاله بدون تغییر محتوای تحریریه */
+.post-body h3 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; min-height: 3.35em; }
+.post-body p { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.prose-fa { line-height: 2.05; }
+
+/* فوتر موبایل: چیدمان فشرده‌تر */
+@media (max-width: 900px) {
+  .portfolio-project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .project-detail-layout { grid-template-columns: 1fr; }
+  .project-detail-visual { max-width: 760px; margin-inline: auto; width: 100%; }
+  .contact-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .portfolio-project-grid { grid-template-columns: 1fr; gap: 17px; }
+  .portfolio-project-info { padding: 15px 16px 14px; }
+  .portfolio-project-info p { min-height: 0; }
+  .portfolio-cta-section { padding: 92px 0 44px; }
+  .portfolio-cta-card { padding: 32px 20px; border-radius: 17px; }
+  .project-fact-grid { gap: 9px; }
+  .contact-aside { padding: 20px 17px; }
+  .contact-methods { grid-template-columns: 1fr; }
+  .contact-form-shell { padding: 19px 16px; }
+  .contact-page-copy { padding: 12px 14px; }
+  .site-footer { padding-top: 60px; }
+  .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 14px; padding-bottom: 28px; }
+  .footer-grid > div:first-child, .footer-grid > div:last-child { grid-column: 1 / -1; }
+  .footer-brand p { max-width: none; margin: 9px 0 0; font-size: 12.5px; line-height: 1.9; }
+  .site-footer h4 { font-size: 13.5px; margin-bottom: 10px; }
+  .site-footer ul { gap: 7px; }
+  .site-footer ul a, .footer-contact li { font-size: 12px; }
+  .footer-bottom { flex-direction: column; gap: 7px; padding: 14px 0; font-size: 11.5px; }
+}
