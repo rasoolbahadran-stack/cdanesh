@@ -14,7 +14,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   } catch (e) {
     console.error('[cdanesh] boot failed:', e);
     return new Response(
-      `<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><title>خطای دیتابیس</title><body style="font-family:Tahoma;padding:40px;text-align:center"><h1>اتصال دیتابیس برقرار نشد</h1><p>لطفاً تنظیمات DATABASE_URL یا وضعیت سرویس را بررسی کنید.</p><code style="display:block;white-space:pre-wrap;text-align:right">${String((e as Error)?.message || e)}</code></body></html>`,
+      `<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>سرویس موقتاً در دسترس نیست</title><body style="font-family:Tahoma;padding:40px;text-align:center"><h1>سرویس موقتاً در دسترس نیست</h1><p>در برقراری ارتباط با سرویس مشکلی پیش آمده است. لطفاً چند دقیقه دیگر دوباره تلاش کنید.</p></body></html>`,
       { status: 503, headers: { 'content-type': 'text/html; charset=utf-8' } },
     );
   }
