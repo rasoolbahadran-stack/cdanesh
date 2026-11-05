@@ -14,7 +14,7 @@ const settings = await getSiteSettings();
 const hp = settings.homepage;
 
 const services = await q<Row>(`SELECT slug, title, short_desc, image FROM services WHERE status='published' ORDER BY sort_order`);
-const projects = await q<Row>(`SELECT slug, title, summary, cover_image, tags, category FROM projects WHERE status='published'${excluded} ORDER BY sort_order LIMIT 3`);
+const projects = await q<Row>(`SELECT slug, title, summary, cover_image, tags, category FROM projects WHERE status='published'AND slug NOT IN ('cdanesh-galaxy-source', 'cdanesh-galaxe', 'smart-gadget-store', 'mahpoosh-store', 'simba-beauty-store', 'karino-job-portal-astro', 'novinroshd-agency', 'smarto-astro', 'shoes-store', 'maison-mehr-astro', 'bazarino-astro') ORDER BY sort_order LIMIT 3`);
 const plans = await q<Row>(`SELECT * FROM plans WHERE status='published' ORDER BY sort_order`);
 const posts = await q<Row>(
   `SELECT p.slug, p.title, p.excerpt, p.cover_image, p.reading_time, p.published_at, c.name AS category
