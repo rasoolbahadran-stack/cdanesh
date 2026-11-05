@@ -24,7 +24,7 @@ const service = await q<ServiceRow>(
 
 if (!service) return Astro.redirect('/404', 302);
 
-const others = await q<ServiceRow>('SELECT slug, title, short_desc FROM services WHERE status = $1 AND slug != $2 ORDER BY sort_order LIMIT 3', ['published', service.slug]);
+const others = await q<ServiceRow>(`SELECT slug, title, short_desc FROM services WHERE status = $1 AND slug IN ('company-website', 'content', 'seo') AND slug != $2 ORDER BY CASE slug WHEN 'company-website' THEN 1 WHEN 'content' THEN 2 WHEN 'seo' THEN 3 END LIMIT 2`, ['published', service.slug]);
 const features = Array.isArray(service.features) ? (service.features as string[]) : [];
 
 const schema = [
@@ -34,7 +34,7 @@ const schema = [
     name: service.title,
     description: service.short_desc,
     image: siteUrl(service.image),
-    provider: { '@type': 'Organization', name: 'کافه‌دانش', url: siteUrl('/') },
+    provider: { '@type': 'Organization', name: 'کافه دانش', url: siteUrl('/') },
     areaServed: 'ایران',
     url: siteUrl(`/services/${service.slug}`),
   },
