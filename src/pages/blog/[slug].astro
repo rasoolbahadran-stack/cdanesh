@@ -37,7 +37,7 @@ const related = await q(
 );
 
 const articleTags = Array.isArray(post.tags) ? post.tags.map(String).filter(Boolean) : [];
-const articleText = String(post.content || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\\s+/g, ' ').trim();
+const articleText = String(post.content || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
 const articleWordCount = articleText ? articleText.split(' ').filter(Boolean).length : 0;
 
 const schema = [
