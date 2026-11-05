@@ -484,3 +484,14 @@ html.js [data-reveal].revealed { opacity: 1; transform: none; }
   .site-header, .topbar, .site-footer, .to-top, .mobile-nav { display: none !important; }
   body { background: #fff; }
 }
+
+
+/* پیش‌نمایش زنده نمونه‌کارها — اسکرول آرام فقط هنگام هاور */
+.pf-live-card { isolation: isolate; }
+.pf-live-frame { position: relative; width: 100%; aspect-ratio: 16 / 9.6; overflow: hidden; background: #f4f0e8; }
+.pf-live-frame iframe { position: absolute; top: 0; right: 0; width: 300%; height: 300%; border: 0; background: #fff; transform: scale(.333333); transform-origin: top right; pointer-events: none; }
+.pf-live-card:hover .pf-live-frame iframe { animation: pf-live-scroll 22s ease-in-out forwards; }
+@keyframes pf-live-scroll { from { transform: translateY(0) scale(.333333); } to { transform: translateY(-66.666%) scale(.333333); } }
+.pf-live-cta { display: inline-flex; align-items: center; width: fit-content; margin-top: 2px; padding: 6px 13px; border: 1px solid rgba(242,212,136,.65); border-radius: 30px; color: var(--gold-2); font-size: 12px; font-weight: 700; background: rgba(10,7,2,.35); }
+.pf-live-card:hover .pf-live-cta { background: var(--grad-gold); color: var(--gold-ink); }
+@media (prefers-reduced-motion: reduce) { .pf-live-card:hover .pf-live-frame iframe { animation: none; } }
