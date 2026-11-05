@@ -31,11 +31,23 @@ const contactMethods = [
   />
   <section class="sec contact-section">
     <div class="container contact-layout">
-      <aside class="contact-aside" data-reveal="right">
+      <div class="contact-form-column" data-reveal="right">
+        <div class="contact-form-heading">
+          <span class="section-label">ارسال پیام</span>
+          <h2>درخواست خود را ثبت کنید</h2>
+          <p>فیلدهای ستاره‌دار را تکمیل کنید تا بتوانیم برای پیگیری درخواست با شما تماس بگیریم.</p>
+        </div>
+        <div class="contact-form-shell">
+          <ContactForm type="contact" />
+        </div>
+        {page.content ? <div class="prose-fa contact-page-copy" set:html={String(page.content)} /> : null}
+      </div>
+
+      <aside class="contact-aside" data-reveal="left">
         <div class="contact-aside-intro">
           <span class="section-label pink">در ارتباط باشیم</span>
-          <h2>برای شروع گفتگو، از راه مناسب خودتان استفاده کنید.</h2>
-          <p>برای پرسش درباره خدمات، پیگیری درخواست یا هماهنگی جلسه، راه‌های ارتباطی زیر در دسترس هستند.</p>
+          <h2>راه‌های ارتباط با کافه‌دانش</h2>
+          <p>برای پرسش درباره خدمات، پیگیری درخواست یا هماهنگی جلسه، از راه‌های ارتباطی زیر استفاده کنید.</p>
         </div>
         <div class="contact-methods">
           {contactMethods.map((item) => (
@@ -52,22 +64,10 @@ const contactMethods = [
         </div>
         <div class="contact-consult-note">
           <strong>برای برآورد هزینه و زمان پروژه</strong>
-          <p>فرم درخواست مشاوره اطلاعات لازم برای بررسی اولیه پروژه را دریافت می‌کند.</p>
+          <p>از فرم درخواست مشاوره استفاده کنید تا نیازهای پروژه را دقیق‌تر بررسی کنیم.</p>
           <a href="/consult">رفتن به فرم مشاوره <span aria-hidden="true">←</span></a>
         </div>
       </aside>
-
-      <div class="contact-form-column" data-reveal="left">
-        <div class="contact-form-heading">
-          <span class="section-label">ارسال پیام</span>
-          <h2>پیام خود را برای ما بنویسید</h2>
-          <p>پیام شما پس از ثبت در سایت بررسی می‌شود و برای پاسخ‌گویی با شما تماس می‌گیریم.</p>
-        </div>
-        {page.content ? <div class="prose-fa contact-page-copy" set:html={String(page.content)} /> : null}
-        <div class="contact-form-shell">
-          <ContactForm type="contact" />
-        </div>
-      </div>
     </div>
   </section>
 </BaseLayout>

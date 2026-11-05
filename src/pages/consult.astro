@@ -17,9 +17,13 @@ const defaultPlan = plan || service;
 >
   <PageHero title={String(page.title)} sub={String(page.excerpt)} crumbs={[{ label: 'درخواست مشاوره', href: '' }]} />
   <section class="sec">
-    <div class="container" style="display:grid;grid-template-columns:1fr 1.3fr;gap:36px;align-items:start" class="consult-grid">
-      <div data-reveal="right">
-        <div class="form-panel" style="background:var(--ink);color:var(--txt-dark);border:none">
+    <div class="container consult-layout">
+      <div class="consult-form-column" data-reveal="right">
+        <ContactForm type="consult" defaultPlan={defaultPlan} compact={false} />
+        {page.content ? <div class="prose-fa consult-copy" set:html={String(page.content)} /> : null}
+      </div>
+      <aside class="consult-info-column" data-reveal="left">
+        <div class="form-panel consult-info-panel" style="background:var(--ink);color:var(--txt-dark);border:none">
           <h3 style="font-size:17px;color:var(--gold-2)">در جلسه مشاوره چه اتفاقی می‌افتد؟</h3>
           <ul style="list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:12px">
             <li style="display:flex;gap:10px"><span style="color:var(--gold);font-weight:800">✓</span><span style="font-size:13.5px;color:var(--mut-dark)">گوش می‌دهیم: کسب‌وکار، مخاطب و وضعیت فعلی شما.</span></li>
@@ -29,14 +33,7 @@ const defaultPlan = plan || service;
           </ul>
           <blockquote style="background:rgba(227,185,83,.1);border:none;border-inline-start:3px solid var(--gold);border-radius:12px;padding:14px 18px;margin-top:18px;font-size:13px;color:var(--gold-2)">مشاوره یعنی شنیدن و پیشنهاد؛ نه فروش فوری پکیج.</blockquote>
         </div>
-      </div>
-      <div>
-        <div class="prose-fa" style="margin-bottom:22px" set:html={String(page.content)} />
-        <ContactForm type="consult" defaultPlan={plan} compact={false} />
-      </div>
+      </aside>
     </div>
   </section>
 </BaseLayout>
-<style>
-  @media (max-width: 900px) { .consult-grid { grid-template-columns: 1fr !important; } }
-</style>
