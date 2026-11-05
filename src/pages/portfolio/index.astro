@@ -3,7 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
 import { q } from '../../lib/db';
 
-const projects = await q(`SELECT slug, title, category, summary, cover_image, tags, note, url FROM projects WHERE status='published'${excluded} ORDER BY sort_order`);
+const projects = await q(`SELECT slug, title, category, summary, cover_image, tags, note, url FROM projects WHERE status='published'AND slug NOT IN ('cdanesh-galaxy-source', 'cdanesh-galaxe', 'smart-gadget-store', 'mahpoosh-store', 'simba-beauty-store', 'karino-job-portal-astro', 'novinroshd-agency', 'smarto-astro', 'shoes-store', 'maison-mehr-astro', 'bazarino-astro') ORDER BY sort_order`);
 const cats = [...new Set(projects.map((p) => String(p.category)))];
 ---
 <BaseLayout
