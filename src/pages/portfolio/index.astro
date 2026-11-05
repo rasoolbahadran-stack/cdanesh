@@ -3,7 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
 import { q } from '../../lib/db';
 
-const projects = await q(`SELECT slug, title, category, summary, cover_image, tags, note FROM projects WHERE status='published' ORDER BY sort_order`);
+const projects = await q(`SELECT slug, title, category, summary, cover_image, tags, note, url FROM projects WHERE status='published' ORDER BY sort_order`);
 const cats = [...new Set(projects.map((p) => String(p.category)))];
 ---
 <BaseLayout
@@ -13,7 +13,7 @@ const cats = [...new Set(projects.map((p) => String(p.category)))];
 >
   <PageHero
     title="نمونه‌کارها"
-    sub="نمونه‌های زیر مفهومی و ساخته خود ما هستند (پروژه‌های واقعی به‌محض آماده‌شدن و با اجازه صاحبان‌شان منتشر می‌شوند) — کیفیت اجرا را همین‌جا ببینید."
+    sub="از فروشگاه اینترنتی تا وب‌سایت شرکتی و سامانه‌های تخصصی؛ نمونه‌های منتشرشده را به‌صورت زنده بررسی کنید."
     crumbs={[{ label: 'نمونه‌کارها', href: '' }]}
   />
   <section class="sec">
@@ -26,18 +26,19 @@ const cats = [...new Set(projects.map((p) => String(p.category)))];
         {projects.map((p, i) => {
           const tags = Array.isArray(p.tags) ? (p.tags as string[]) : [];
           return (
-            <a href={`/portfolio/${p.slug}`} class="pf-card pf-filterable" data-cat={String(p.category)} data-reveal style={`--rd:${(i % 3) * 70}ms`}>
-              <img src={String(p.cover_image)} alt={`نمونه‌کار ${p.title}`} width="1344" height="768" loading="lazy" />
+            <a href={p.url ? String(p.url) : `/portfolio/${p.slug}`} target={p.url ? '_blank' : undefined} rel={p.url ? 'noopener noreferrer' : undefined} class="pf-card pf-filterable pf-live-card" data-cat={String(p.category)} data-reveal style={`--rd:${(i % 3) * 70}ms`}>
+              {p.url ? <div class="pf-live-frame"><iframe src={String(p.url)} title={`پیش‌نمایش زنده ${p.title}`} loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div> : <img src={String(p.cover_image)} alt={`نمونه‌کار ${p.title}`} width="1344" height="768" loading="lazy" />}
               <div class="pf-overlay">
                 <div class="pf-tags">{tags.map((t) => <span>{t}</span>)}</div>
                 <h3>{p.title}</h3>
                 <p>{p.summary}</p>
+                {p.url ? <span class="pf-live-cta">مشاهده وب‌سایت ↗</span> : null}
               </div>
             </a>
           );
         })}
       </div>
-      <div class="pf-note" style="margin-top:30px">ℹ️ نمونه‌های مفهومی برای نمایش سبک و کیفیت اجرای کافه‌دانش هستند؛ در پروژه شما همه‌چیز بر اساس برند، محصول و نیاز واقعی‌تان ساخته می‌شود.</div>
+      <div class="pf-note" style="margin-top:30px">ℹ️ پیش‌نمایش زنده داخل کارت‌ها برای بررسی سریع است. برای مشاهده کامل هر پروژه، روی کارت کلیک کنید.</div>
     </div>
   </section>
   <section class="sec sec-dark" style="padding-block:64px">
