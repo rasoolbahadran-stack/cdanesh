@@ -18,6 +18,7 @@ interface PostRow {
   seo_title: string;
   seo_description: string;
   category_id: number | null;
+  tags: unknown;
 }
 
 const { slug } = Astro.params;
@@ -35,6 +36,10 @@ const related = await q(
   post.category_id ? [post.slug, post.category_id] : [post.slug],
 );
 
+const articleTags = Array.isArray(post.tags) ? post.tags.map(String).filter(Boolean) : [];
+const articleText = String(post.content || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\\s+/g, ' ').trim();
+const articleWordCount = articleText ? articleText.split(' ').filter(Boolean).length : 0;
+
 const schema = [
   {
     '@context': 'https://schema.org',
@@ -42,6 +47,10 @@ const schema = [
     headline: post.title,
     description: post.excerpt,
     image: siteUrl(post.cover_image),
+    articleSection: category?.name || 'مقالات تخصصی',
+    keywords: articleTags.join('، '),
+    wordCount: articleWordCount,
+    isAccessibleForFree: true,
     datePublished: post.published_at,
     dateModified: post.published_at,
     author: { '@type': 'Organization', name: 'کافه‌دانش', url: siteUrl('/') },
@@ -64,6 +73,8 @@ const schema = [
   title={post.seo_title || post.title}
   description={post.seo_description || post.excerpt}
   ogImage={post.cover_image}
+  ogType="article"
+  ogPublishedTime={post.published_at}
   activePath="/blog"
   schema={schema}
 >

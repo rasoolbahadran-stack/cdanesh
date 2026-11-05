@@ -243,12 +243,15 @@ const projectHighlights = ASTRO_PROJECTS.slice(0, 4);
       <div class="sec-head center" data-reveal>
         <span class="section-label">جدول تعرفه‌ها</span>
         <h2>قیمت شفاف و ثابت؛ بدون هزینهٔ پنهان</h2>
-        <p>دامنهٔ کار هر پکیج دقیقاً مشخص است: تعداد صفحات، زمان تحویل و مدت پشتیبانی رایگان. دو پلن اول با ۶ ماه هاستینگ هدیه و دو پلن بعدی با یک سال هاستینگ هدیه ارائه می‌شوند.</p>
+        <p>دامنهٔ کار هر پکیج دقیقاً مشخص است: تعداد صفحات، زمان تحویل و مدت پشتیبانی رایگان. دو پلن اول با ۶ ماه هاست هدیه و دو پلن بعدی با یک سال هاست هدیه ارائه می‌شوند.</p>
       </div>
       <div class="plan-grid">
         {plans.map((p, i) => {
-          const feats = Array.isArray(p.features) ? (p.features as string[]) : [];
-          const hostingGift = i < 2 ? '۶ ماه هاستینگ هدیه' : '۱ سال هاستینگ هدیه';
+          const rawFeats = Array.isArray(p.features) ? (p.features as string[]) : [];
+const hostingDuration = i < 2 ? '۶ ماه' : '۱ سال';
+const hostingGift = `${hostingDuration} هاست هدیه`;
+const feats = rawFeats.map((feature) => String(feature).replace(/(?:۶|٦|6)\s*ماه|(?:۱۲|١٢|12)\s*ماه|(?:۱|١|1)\s*سال|یک\s*سال/g, hostingDuration).replace(/هاستینگ/g, 'هاست'));
+const displayFeats = feats.some((feature) => /هاست\s*هدیه/.test(feature)) ? feats : [hostingGift, ...feats];
           return (
             <div class={`plan-card ${p.highlighted ? 'highlight' : ''}`} data-reveal style={`--rd:${i * 70}ms`}>
               <span class="hosting-badge">🎁 {hostingGift}</span>
@@ -258,7 +261,7 @@ const projectHighlights = ASTRO_PROJECTS.slice(0, 4);
               <div class="plan-price">{p.price}</div>
               <div class="plan-note">{p.price_note}</div>
               <ul class="plan-feats">
-                {feats.map((f) => <li><i>✓</i> {f}</li>)}
+                {displayFeats.map((f) => <li><i>✓</i> {f}</li>)}
               </ul>
               <a href={`/consult?plan=${encodeURIComponent(String(p.title))}`} class={`btn btn-block ${p.highlighted ? 'btn-ghost-light' : 'btn-ghost'}`}>اکنون بخرید</a>
             </div>
