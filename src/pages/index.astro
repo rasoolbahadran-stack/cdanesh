@@ -15,7 +15,7 @@ interface Row {
 
 const settings = await getSiteSettings();
 
-const services = await q<Row>(`SELECT slug, title, short_desc FROM services WHERE status='published' ORDER BY sort_order LIMIT 6`);
+const services = await q<Row>(`SELECT slug, title, short_desc FROM services WHERE status='published' AND slug IN ('company-website', 'content', 'seo') ORDER BY CASE slug WHEN 'company-website' THEN 1 WHEN 'content' THEN 2 WHEN 'seo' THEN 3 END`);
 const plans = await q<Row>(`SELECT * FROM plans WHERE status='published' ORDER BY sort_order`);
 const posts = await q<Row>(
   `SELECT p.slug, p.title, p.excerpt, p.cover_image, p.reading_time, p.published_at, c.name AS category
@@ -55,14 +55,14 @@ const projectHighlights = ASTRO_PROJECTS.slice(0, 4);
     <span class="hero-circle c-dot-3" aria-hidden="true"></span>
     <div class="container hero-grid">
       <div class="hero-txt">
-        <h1 class="anim-up">طراحی سایت و سئو؛ موتور رشد کسب‌وکار شما</h1>
-        <p class="hero-sub anim-up d-2">حضور آنلاین حرفه‌ای با طراحی اختصاصی، سئوی اصولی و محتوای هدفمند — دقیقاً همان لحظه‌ای که مشتری در گوگل به دنبال خدمات شماست، شما را می‌بیند.</p>
+        <h1 class="anim-up">طراحی سایت و تولید محتوا؛ پایهٔ حضور حرفه‌ای کسب‌وکار شما</h1>
+        <p class="hero-sub anim-up d-2">تمرکز ما بر طراحی سایت متناسب با کسب‌وکار شما و تولید محتوای تخصصی است؛ سئو نیز به‌عنوان مسیر مکمل، به دیده‌شدن بهتر سایت در گوگل کمک می‌کند.</p>
         <div class="hero-actions anim-up d-3">
           <a href="/consult" class="btn btn-gold btn-lg">شروع کنید</a>
         </div>
       </div>
       <div class="hero-visual anim-up d-1">
-        <img src="/img/svc-seo.webp" alt="تصویرسازی باکیفیت بهینه‌سازی موتور جستجو و رشد وب‌سایت" width="1152" height="768" fetchpriority="high" decoding="async" />
+        <img src="/img/svc-company.webp" alt="طراحی سایت اختصاصی و تجربه کاربری متناسب با کسب‌وکار" width="1152" height="768" fetchpriority="high" decoding="async" />
       </div>
     </div>
     {/* موج سفید — انتقال هیرو به بخش بعد */}
@@ -76,22 +76,22 @@ const projectHighlights = ASTRO_PROJECTS.slice(0, 4);
     <div class="container hero-cards" style="margin-top:-58px">
       <div class="hero-cards-grid">
         <div class="fbox-card" data-reveal>
-          <div class="fbox-ico"><img src="/img/porto/icons/target.svg" alt="" width="74" height="74" loading="lazy" /></div>
-          <h3>بهینه‌سازی موتور جستجو</h3>
-          <p>با سئوی تکنیکال و محتوایی، سایت شما دقیقاً زمانی دیده می‌شود که مشتری به دنبال خدمات شماست؛ رشد پایدار، نه ترفند موقت.</p>
-          <a href="/services/seo" class="fbox-more">بیشتر بخوانید +</a>
-        </div>
-        <div class="fbox-card" data-reveal style="--rd:90ms">
           <div class="fbox-ico"><img src="/img/porto/icons/search.svg" alt="" width="74" height="74" loading="lazy" /></div>
-          <h3>طراحی سایت اختصاصی</h3>
-          <p>سایتی متناسب با هویت برند شما؛ سریع، ریسپانسیو و مهندسی‌شده برای تبدیل بازدیدکننده به مشتری واقعی.</p>
+          <h3>طراحی سایت</h3>
+          <p>طراحی سایت شرکتی و فروشگاهی با ساختار روشن، نمایش حرفه‌ای برند و مسیر ساده برای تبدیل بازدیدکننده به مشتری.</p>
           <a href="/services/company-website" class="fbox-more">بیشتر بخوانید +</a>
         </div>
-        <div class="fbox-card" data-reveal style="--rd:180ms">
+        <div class="fbox-card" data-reveal style="--rd:90ms">
           <div class="fbox-ico"><img src="/img/porto/icons/teaching.svg" alt="" width="74" height="74" loading="lazy" /></div>
-          <h3>محتوا و هوش مصنوعی</h3>
-          <p>محتوای سئومحور که سؤال مشتری را پاسخ می‌دهد و ابزارهای هوشمندی که کارهای تکراری تیم شما را خودکار می‌کنند.</p>
+          <h3>تولید محتوا</h3>
+          <p>تولید مقاله و محتوای صفحات سایت بر اساس نیاز مخاطب، تحقیق موضوعی و لحن اختصاصی کسب‌وکار شما.</p>
           <a href="/services/content" class="fbox-more">بیشتر بخوانید +</a>
+        </div>
+        <div class="fbox-card" data-reveal style="--rd:180ms">
+          <div class="fbox-ico"><img src="/img/porto/icons/target.svg" alt="" width="74" height="74" loading="lazy" /></div>
+          <h3>سئو</h3>
+          <p>بهینه‌سازی فنی و محتوایی برای کمک به دیده‌شدن سایت در جست‌وجوهای مرتبط؛ در کنار طراحی و تولید محتوا.</p>
+          <a href="/services/seo" class="fbox-more">بیشتر بخوانید +</a>
         </div>
       </div>
     </div>
@@ -103,8 +103,8 @@ const projectHighlights = ASTRO_PROJECTS.slice(0, 4);
       <div class="txt-side" data-reveal>
         <span class="section-label pink">راحت‌ترین راه حضور آنلاین</span>
         <h2>پیشرو باشید؛ مشتریان بیشتری جذب کنید و برند قوی‌تری بسازید</h2>
-        <p>به‌جای هماهنگ‌کردن چند پیمانکار جدا، کل زنجیرهٔ دیجیتال شما — از طراحی و سئو تا محتوا و اتوماسیون — توسط یک تیم و با یک زبان مشترک پیش برده می‌شود؛ بدون گلوگاه، بدون سرزنش متقابل و با نقشهٔ راه شفاف.</p>
-        <p>کافه دانش (Cafe Danesh) یک استودیو دیجیتال در بوشهر است که برای کسب‌وکارهای ایرانی سایت می‌سازد، محتوا تولید می‌کند و ابزارهای هوشمند ارائه می‌دهد. هر پروژه با تحلیل نیازها شروع می‌شود، با تحویل مرحله‌ای جلو می‌رود و پس از تحویل هم تنها نیستید.</p>
+        <p>به‌جای پراکنده‌کردن کار بین چند مجری، طراحی سایت و تولید محتوای کسب‌وکار شما با یک نقشهٔ راه هماهنگ پیش می‌رود؛ سئو نیز هرجا لازم باشد، این مسیر را برای دیده‌شدن بهتر در گوگل تکمیل می‌کند.</p>
+        <p>کافه دانش (Cafe Danesh) بر سه خدمت مشخص تمرکز دارد: طراحی سایت، تولید محتوا و سئو. دو حوزهٔ طراحی و محتوا در اولویت اصلی ما قرار دارند و سئو نیز متناسب با نیاز هر پروژه ارائه می‌شود.</p>
         <div style="margin-top:22px">
           <a href="/services" class="btn btn-gold">خدمات ما</a>
         </div>
@@ -135,8 +135,8 @@ const projectHighlights = ASTRO_PROJECTS.slice(0, 4);
     <div class="container">
       <div class="sec-head center" data-reveal>
         <span class="section-label">خدمات ما</span>
-        <h2>هر خدمت، یک متخصص رشد کنار شما</h2>
-        <p>از طراحی اختصاصی تا سئو، محتوا و هوش مصنوعی — هر خدمت صفحهٔ اختصاصی و محتوای کامل خودش را دارد و می‌تواند مستقل سفارش داده شود.</p>
+        <h2>سه حوزهٔ تخصصی؛ با تمرکز بر طراحی سایت و تولید محتوا</h2>
+        <p>طراحی سایت و تولید محتوا دو محور اصلی همکاری با کافه دانش هستند؛ خدمات سئو نیز به‌عنوان گزینهٔ سوم و مکمل در دسترس شماست.</p>
       </div>
       <div class="grid-3 svc-stagger">
         {services.map((s, i) => (
@@ -158,8 +158,8 @@ const projectHighlights = ASTRO_PROJECTS.slice(0, 4);
   <section class="cta-full sec-rel">
     <div class="container">
       <div class="cta-center" data-reveal>
-        <h2>مشاورهٔ رایگان سئو و طراحی سایت خود را همین حالا دریافت کنید</h2>
-        <p>وضعیت فعلی سایت‌تان را بررسی می‌کنیم و نقشهٔ راه شفافی برای رشد در گوگل پیشنهاد می‌دهیم — بدون تعهد.</p>
+        <h2>برای طراحی سایت یا تولید محتوای کسب‌وکارتان مشاوره بگیرید</h2>
+        <p>نیازتان به طراحی سایت یا تولید محتوا را بررسی می‌کنیم و اگر برای پروژه لازم باشد، سئو را هم به‌عنوان مسیر مکمل پیشنهاد می‌دهیم.</p>
         <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
           <a href={`tel:+989165806207`} class="btn btn-tertiary btn-lg">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="#fff" style="flex:none" aria-hidden="true"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.3 0 .7-.2 1l-2.3 2.2z"/></svg>
@@ -200,7 +200,7 @@ const projectHighlights = ASTRO_PROJECTS.slice(0, 4);
         <div class="circles-wrap" data-reveal="left">
           <div class="circles-group">
             <div class="cc cc-magenta"><b>۲۲</b><span>مقالهٔ تخصصی</span></div>
-            <div class="cc cc-indigo"><b>۸</b><span>خدمت تخصصی</span></div>
+            <div class="cc cc-indigo"><b>۳</b><span>حوزه اصلی خدمات</span></div>
             <div class="cc cc-navy"><b>۶</b><span>گام شفاف همکاری</span></div>
             <span class="cc cc-small-pink" aria-hidden="true"></span>
             <span class="cc cc-dot" aria-hidden="true"></span>
@@ -281,7 +281,7 @@ const displayFeats = feats.some((feature) => /هاست\s*هدیه/.test(feature)
         <div class="sec-head center" data-reveal>
           <span class="section-label">مجلهٔ کافه دانش</span>
           <h2>مطالب اخیر بلاگ</h2>
-          <p>هر هفته یک مطلب کاربردی دربارهٔ طراحی سایت، سئو، محتوا و هوش مصنوعی — به زبان ساده و قابل اجرا.</p>
+          <p>مطالب کاربردی دربارهٔ طراحی سایت و تولید محتوا؛ همراه با راهنماهای سئو برای تکمیل مسیر رشد کسب‌وکار.</p>
         </div>
         <div class="grid-3">
           {posts.map((p, i) => (
