@@ -3,12 +3,11 @@
    ---------------------------------------------------------------------------
    دو درایور با یک رابط یکسان:
    • اگر DATABASE_URL تنظیم شده باشد → Postgres واقعی (Neon / Vercel Postgres)
-     — همان قراردادی که پروژهٔ فعلی روی Vercel دارد.
-   • در غیر این صورت → PGlite (پستگرس امبدد) فقط برای پیش‌نمایش محلی.
-   مایگریشن‌ها idempotent هستند و در اولین اجرا خودکار اعمال می‌شوند.
-   هرگز داده‌های موجود بازنویسی یا حذف نمی‌شوند.
+   • در غیر این صورت → PGlite فقط برای پیش‌نمایش محلی
+   مایگریشن‌ها به‌صورت تراکنشی و با قفل دیتابیس اجرا می‌شوند تا دو نمونهٔ
+   هم‌زمان Vercel نتوانند یک مایگریشن را دوبار ثبت کنند.
    ========================================================================== */
-import { env, hasEnv } from './env';
+import { env } from './env';
 
 type Row = Record<string, unknown>;
 
@@ -16,6 +15,18 @@ interface DbDriver {
   kind: 'postgres' | 'pglite';
   sql(text: string, params?: unknown[]): Promise<Row[]>;
   exec(text: string): Promise<void>;
+  migrate(migrations: string[]): Promise<void>;
+}
+
+const MIGRATIONS_TABLE = `CREATE TABLE IF NOT EXISTS _migrations (
+  name text PRIMARY KEY,
+  applied_at timestamptz NOT NULL DEFAULT now()
+)`;
+
+/* نام‌های m__1 و m__2 از نسخهٔ قبلی حفظ می‌شوند تا مایگریشن‌های ثبت‌شده
+   در Neon دوباره اجرا نشوند. */
+function migrationName(index: number): string {
+  return `m${String(index + 1).padStart(3, '_')}`;
 }
 
 const g = globalThis as unknown as {
@@ -24,26 +35,68 @@ const g = globalThis as unknown as {
 };
 
 async function createDriver(): Promise<DbDriver> {
-  /* ─── حالت تولید: Postgres واقعی با DATABASE_URL ───
-     فقط URL معتبرِ postgresql:// یا postgres:// پذیرفته می‌شود؛
-     مقادیر ناسازگار محیط (مثل file:) به حالت پیش‌نمایش محلی می‌روند. */
+  /* ─── حالت تولید: Postgres واقعی با DATABASE_URL ─── */
   const dbUrl = env('DATABASE_URL') || '';
   const isPgUrl = /^postgres(ql)?:\/\//i.test(dbUrl);
+
   if (dbUrl && isPgUrl) {
     const { Pool } = await import('pg');
     const pool = new Pool({
-      connectionString: env('DATABASE_URL'),
+      connectionString: dbUrl,
       ssl: { rejectUnauthorized: false },
       max: 5,
     });
+
     return {
       kind: 'postgres',
+
       async sql(text, params = []) {
-        const r = await pool.query(text, params as never[]);
-        return r.rows as Row[];
+        const result = await pool.query(text, params as never[]);
+        return result.rows as Row[];
       },
+
       async exec(text) {
         await pool.query(text);
+      },
+
+      async migrate(migrations) {
+        /* advisory transaction lock: فقط یک نمونهٔ سرور در هر لحظه
+           مایگریشن را اجرا می‌کند؛ قفل با COMMIT/ROLLBACK آزاد می‌شود. */
+        const client = await pool.connect();
+        try {
+          await client.query('BEGIN');
+          await client.query(
+            "SELECT pg_advisory_xact_lock(hashtext('cdanesh:schema-migrations'), 1)"
+          );
+          await client.query(MIGRATIONS_TABLE);
+
+          const appliedRows = await client.query('SELECT name FROM _migrations');
+          const applied = new Set(
+            (appliedRows.rows as { name: string }[]).map((row) => row.name),
+          );
+
+          for (let i = 0; i < migrations.length; i++) {
+            const name = migrationName(i);
+            if (applied.has(name)) continue;
+
+            await client.query(migrations[i]);
+            await client.query(
+              'INSERT INTO _migrations (name) VALUES ($1) ON CONFLICT (name) DO NOTHING',
+              [name],
+            );
+          }
+
+          await client.query('COMMIT');
+        } catch (error) {
+          try {
+            await client.query('ROLLBACK');
+          } catch {
+            /* خطای اصلی حفظ شود */
+          }
+          throw error;
+        } finally {
+          client.release();
+        }
       },
     };
   }
@@ -51,23 +104,58 @@ async function createDriver(): Promise<DbDriver> {
   /* ─── حالت پیش‌نمایش: PGlite امبدد ─── */
   const { PGlite } = await import('@electric-sql/pglite');
   const lite = new PGlite('./.pgdata');
+
   return {
     kind: 'pglite',
+
     async sql(text, params = []) {
-      const r = await lite.query(text, params as never[]);
-      return r.rows as Row[];
+      const result = await lite.query(text, params as never[]);
+      return result.rows as Row[];
     },
+
     async exec(text) {
       await lite.exec(text);
+    },
+
+    async migrate(migrations) {
+      await lite.exec('BEGIN');
+      try {
+        await lite.exec(MIGRATIONS_TABLE);
+
+        const appliedRows = await lite.query('SELECT name FROM _migrations');
+        const applied = new Set(
+          (appliedRows.rows as { name: string }[]).map((row) => row.name),
+        );
+
+        for (let i = 0; i < migrations.length; i++) {
+          const name = migrationName(i);
+          if (applied.has(name)) continue;
+
+          await lite.exec(migrations[i]);
+          await lite.query(
+            'INSERT INTO _migrations (name) VALUES ($1) ON CONFLICT (name) DO NOTHING',
+            [name],
+          );
+        }
+
+        await lite.exec('COMMIT');
+      } catch (error) {
+        try {
+          await lite.exec('ROLLBACK');
+        } catch {
+          /* خطای اصلی حفظ شود */
+        }
+        throw error;
+      }
     },
   };
 }
 
 export function db(): Promise<DbDriver> {
   if (!g.__cd_db_ready) {
-    g.__cd_db_ready = createDriver().then((d) => {
-      g.__cd_db = d;
-      return d;
+    g.__cd_db_ready = createDriver().then((driver) => {
+      g.__cd_db = driver;
+      return driver;
     });
   }
   return g.__cd_db_ready;
@@ -75,8 +163,8 @@ export function db(): Promise<DbDriver> {
 
 /* ---------- کوئری‌های کمکی ---------- */
 export async function q<T = Row>(text: string, params: unknown[] = []): Promise<T[]> {
-  const d = await db();
-  return (await d.sql(text, params)) as T[];
+  const driver = await db();
+  return (await driver.sql(text, params)) as T[];
 }
 
 export async function q1<T = Row>(text: string, params: unknown[] = []): Promise<T | null> {
@@ -84,24 +172,12 @@ export async function q1<T = Row>(text: string, params: unknown[] = []): Promise
   return rows[0] ?? null;
 }
 
-/* ---------- مایگریشن (idempotent) ---------- */
+/* ---------- مایگریشن اتمیک و مقاوم به اجرای هم‌زمان ---------- */
 const MIGRATIONS: string[] = [];
 
 export async function migrate(): Promise<void> {
-  const d = await db();
-  await d.exec(`CREATE TABLE IF NOT EXISTS _migrations (
-    name text PRIMARY KEY,
-    applied_at timestamptz NOT NULL DEFAULT now()
-  )`);
-  const applied = new Set(
-    (await q<{ name: string }>('SELECT name FROM _migrations')).map((r) => r.name),
-  );
-  for (let i = 0; i < MIGRATIONS.length; i++) {
-    const name = `m${String(i + 1).padStart(3, '_')}`;
-    if (applied.has(name)) continue;
-    await d.exec(MIGRATIONS[i]);
-    await d.sql('INSERT INTO _migrations (name) VALUES ($1)', [name]);
-  }
+  const driver = await db();
+  await driver.migrate(MIGRATIONS);
 }
 
 export function registerMigration(sqlText: string): void {
