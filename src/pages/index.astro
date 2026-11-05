@@ -6,6 +6,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { q } from '../lib/db';
 import { getSiteSettings } from '../lib/seed';
 import { faNum } from '../lib/persian';
+import { ASTRO_PROJECTS } from '../lib/portfolio-projects';
 
 interface Row {
   id: number;
@@ -37,7 +38,7 @@ const faqSchema = {
 
 /* آیکون‌های دموی Porto برای جعبه‌های خدمات */
 const svcIcons = ['/img/porto/icons/icon-1.png', '/img/porto/icons/icon-2.png', '/img/porto/icons/icon-3.png', '/img/porto/icons/icon-4.png', '/img/porto/icons/icon-5.png', '/img/porto/icons/icon-6.png'];
-const clientNames = ['فروشگاه رُزا', 'هلدینگ آرمان', 'دستیار نِگار', 'پروژهٔ شما'];
+const projectHighlights = ASTRO_PROJECTS.slice(0, 4);
 ---
 <BaseLayout
   title={settings.seo.defaultTitle}
@@ -61,12 +62,12 @@ const clientNames = ['فروشگاه رُزا', 'هلدینگ آرمان', 'دس
         </div>
       </div>
       <div class="hero-visual anim-up d-1">
-        <img src="/img/porto/concept-1.png" alt="تصویرسازی سه‌بعدی از طراحی سایت و بهینه‌سازی سئو در استودیو دیجیتال کافه‌دانش" width="760" height="600" fetchpriority="high" />
+        <img src="/img/svc-seo.webp" alt="تصویرسازی باکیفیت بهینه‌سازی موتور جستجو و رشد وب‌سایت" width="1152" height="768" fetchpriority="high" decoding="async" />
       </div>
     </div>
     {/* موج سفید — انتقال هیرو به بخش بعد */}
     <div class="sec-wave" aria-hidden="true">
-      <svg viewBox="0 0 1440 76" preserveAspectRatio="none"><path fill="#ffffff" d="M0,76 L1440,76 L1440,40 C1200,8 960,58 720,36 C480,12 240,62 0,44 Z" /></svg>
+      <svg viewBox="0 0 1440 76" preserveAspectRatio="none"><path fill="#ffffff" d="M0,76 L1440,76 L1440,34 C1300,12 1190,14 1060,34 C900,60 820,52 720,38 C560,14 470,18 320,38 C180,58 90,42 0,28 Z" /></svg>
     </div>
   </section>
 
@@ -109,7 +110,7 @@ const clientNames = ['فروشگاه رُزا', 'هلدینگ آرمان', 'دس
         </div>
       </div>
       <div class="img-side" data-reveal="left">
-        <img src="/img/porto/concept-2.png" alt="تصویرسازی تحلیل داده و رشد آنلاین کسب‌وکار" width="720" height="560" loading="lazy" />
+        <img src="/img/about-studio.webp" alt="تصویرسازی تیم طراحی و توسعه وب در استودیوی دیجیتال" width="1152" height="768" loading="lazy" decoding="async" />
       </div>
     </div>
   </section>
@@ -117,15 +118,15 @@ const clientNames = ['فروشگاه رُزا', 'هلدینگ آرمان', 'دس
   {/* ─── ۴. نوار اعتماد مشتریان (سبک دمو) ─── */}
   <section class="clients-band sec-rel">
     <div class="container">
-      <p class="clients-label">اعتماد کسب‌وکارهایی که با ما رشد کردند</p>
+      <p class="clients-label">پروژه‌های اجراشده با فریم‌ورک Astro</p>
       <div class="clients-row" data-reveal>
-        {clientNames.map((n) => (
-          <span class="cl-logo">{n}<small>CDANESH CLIENT</small></span>
+        {projectHighlights.map((project) => (
+          <a class="cl-logo" href={`/portfolio/${project.slug}`}>{project.title}<small>BUILT WITH ASTRO</small></a>
         ))}
       </div>
     </div>
     <div class="sec-wave" aria-hidden="true">
-      <svg viewBox="0 0 1440 76" preserveAspectRatio="none"><path fill="#ffffff" d="M0,76 L1440,76 L1440,40 C1200,8 960,58 720,36 C480,12 240,62 0,44 Z" /></svg>
+      <svg viewBox="0 0 1440 76" preserveAspectRatio="none"><path fill="#ffffff" d="M0,76 L1440,76 L1440,34 C1300,12 1190,14 1060,34 C900,60 820,52 720,38 C560,14 470,18 320,38 C180,58 90,42 0,28 Z" /></svg>
     </div>
   </section>
 
@@ -169,7 +170,7 @@ const clientNames = ['فروشگاه رُزا', 'هلدینگ آرمان', 'دس
       </div>
     </div>
     <div class="sec-wave" aria-hidden="true">
-      <svg viewBox="0 0 1440 76" preserveAspectRatio="none"><path fill="#ffffff" d="M0,76 L1440,76 L1440,40 C1200,8 960,58 720,36 C480,12 240,62 0,44 Z" /></svg>
+      <svg viewBox="0 0 1440 76" preserveAspectRatio="none"><path fill="#ffffff" d="M0,76 L1440,76 L1440,34 C1300,12 1190,14 1060,34 C900,60 820,52 720,38 C560,14 470,18 320,38 C180,58 90,42 0,28 Z" /></svg>
     </div>
   </section>
 
@@ -198,7 +199,7 @@ const clientNames = ['فروشگاه رُزا', 'هلدینگ آرمان', 'دس
         </div>
         <div class="circles-wrap" data-reveal="left">
           <div class="circles-group">
-            <div class="cc cc-magenta"><b>۵۰+</b><span>مقالهٔ تخصصی</span></div>
+            <div class="cc cc-magenta"><b>۲۲</b><span>مقالهٔ تخصصی</span></div>
             <div class="cc cc-indigo"><b>۸</b><span>خدمت تخصصی</span></div>
             <div class="cc cc-navy"><b>۶</b><span>گام شفاف همکاری</span></div>
             <span class="cc cc-small-pink" aria-hidden="true"></span>
@@ -247,7 +248,7 @@ const clientNames = ['فروشگاه رُزا', 'هلدینگ آرمان', 'دس
       <div class="plan-grid">
         {plans.map((p, i) => {
           const feats = Array.isArray(p.features) ? (p.features as string[]) : [];
-          const hostingGift = i < 2 ? '۶ ماه هاستینگ هدیه' : '۱۲ ماه هاستینگ هدیه';
+          const hostingGift = i < 2 ? '۶ ماه هاستینگ هدیه' : '۱ سال هاستینگ هدیه';
           return (
             <div class={`plan-card ${p.highlighted ? 'highlight' : ''}`} data-reveal style={`--rd:${i * 70}ms`}>
               <span class="hosting-badge">🎁 {hostingGift}</span>
@@ -266,7 +267,7 @@ const clientNames = ['فروشگاه رُزا', 'هلدینگ آرمان', 'دس
       </div>
     </div>
     <div class="sec-wave" aria-hidden="true">
-      <svg viewBox="0 0 1440 76" preserveAspectRatio="none"><path fill="#ffffff" d="M0,76 L1440,76 L1440,40 C1200,8 960,58 720,36 C480,12 240,62 0,44 Z" /></svg>
+      <svg viewBox="0 0 1440 76" preserveAspectRatio="none"><path fill="#ffffff" d="M0,76 L1440,76 L1440,34 C1300,12 1190,14 1060,34 C900,60 820,52 720,38 C560,14 470,18 320,38 C180,58 90,42 0,28 Z" /></svg>
     </div>
   </section>
 
