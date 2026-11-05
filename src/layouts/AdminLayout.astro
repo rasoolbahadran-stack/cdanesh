@@ -94,8 +94,23 @@ const user = Astro.locals.admin;
         const { api, toast, confirmDlg } = window.CDA;
         document.getElementById('btn-logout')?.addEventListener('click', () => {
           confirmDlg('از پنل مدیریت خارج می‌شوید؟', async () => {
-            await api('/api/auth/logout', 'POST');
-            window.location.href = '/admin/login';
+            const button = document.getElementById('btn-logout') as HTMLButtonElement | null;
+            if (button) { button.disabled = true; button.style.opacity = '.6'; }
+            try {
+              const response = await fetch('/api/auth/logout', {
+                method: 'POST',
+                credentials: 'same-origin',
+                cache: 'no-store',
+                headers: { 'content-type': 'application/json' },
+                body: '{}',
+              });
+              const result = await response.json().catch(() => ({ ok: false }));
+              if (!response.ok || !result.ok) throw new Error('خروج از پنل انجام نشد؛ دوباره تلاش کنید.');
+              window.location.replace('/admin/login?logged_out=1');
+            } catch (error) {
+              if (button) { button.disabled = false; button.style.opacity = ''; }
+              toast(error instanceof Error ? error.message : 'خطا در خروج از پنل', 'err');
+            }
           });
         });
         const bell = document.getElementById('notif-bell');
