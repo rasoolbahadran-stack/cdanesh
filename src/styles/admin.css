@@ -87,13 +87,12 @@ body.admin-body img { max-width: 100%; display: block; }
 .side-open-m:hover { border-color: var(--a-gold-3); background: var(--a-gold-soft); }
 /* پردهٔ پشت منو — خارج از جریان گرید در دسکتاپ */
 .side-scrim { display: none; }
-@media (max-width: 1080px) {
+@media (max-width: 640px) {
   .side-open-m { display: inline-flex; }
   .side-scrim { display: block; position: fixed; inset: 0; background: rgba(20, 12, 2, .5); backdrop-filter: blur(3px); z-index: 310; opacity: 0; pointer-events: none; transition: opacity .25s; }
   body.side-open .side-scrim { opacity: 1; pointer-events: auto; }
   .admin-layout, .admin-layout.side-collapsed { grid-template-columns: 1fr; }
   .admin-side { position: fixed; inset-block: 0; inset-inline-start: 0; width: 252px; z-index: 320; transform: translateX(100%); transition: transform .3s; }
-  html[dir="rtl"] .admin-side { transform: translateX(-100%); }
   body.side-open .admin-side { transform: translateX(0) !important; }
 }
 
@@ -281,7 +280,7 @@ body.admin-body img { max-width: 100%; display: block; }
   grid-row: 1;
   min-width: 0;
 }
-@media (max-width: 1080px) {
+@media (max-width: 640px) {
   .admin-layout,
   .admin-layout.side-collapsed {
     grid-template-columns: minmax(0, 1fr);
@@ -291,4 +290,16 @@ body.admin-body img { max-width: 100%; display: block; }
     grid-column: 1;
     grid-row: auto;
   }
+}
+
+/* تثبیت ستون کناری در سمت راست؛ فقط موبایل واقعی منو را کشویی می‌کند */
+.admin-layout { width: 100%; min-height: 100vh; direction: rtl; grid-template-columns: 252px minmax(0, 1fr); }
+.admin-layout.side-collapsed { grid-template-columns: 76px minmax(0, 1fr); }
+.admin-layout > .admin-side { grid-column: 1; grid-row: 1; width: auto; min-width: 0; }
+.admin-layout > .admin-main { grid-column: 2; grid-row: 1; min-width: 0; }
+@media (max-width: 640px) {
+  .admin-layout, .admin-layout.side-collapsed { grid-template-columns: minmax(0,1fr); }
+  .admin-layout > .admin-side { grid-column: 1; grid-row: auto; }
+  .admin-layout > .admin-main { grid-column: 1; grid-row: auto; }
+  .admin-side { width: 252px; inset-inline-start: 0; transform: translateX(100%); }
 }
