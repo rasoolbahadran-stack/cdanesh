@@ -15,7 +15,23 @@ interface Row {
 
 const settings = await getSiteSettings();
 
-const services = await q<Row>(`SELECT slug, title, short_desc FROM services WHERE status='published' AND slug IN ('company-website', 'content', 'seo') ORDER BY CASE slug WHEN 'company-website' THEN 1 WHEN 'content' THEN 2 WHEN 'seo' THEN 3 END`);
+const services = [
+  {
+    slug: 'company-website',
+    title: 'طراحی سایت',
+    short_desc: 'طراحی سایت شرکتی و فروشگاهی متناسب با هویت برند، مخاطب و هدف کسب‌وکار شما.',
+  },
+  {
+    slug: 'content',
+    title: 'تولید محتوا',
+    short_desc: 'تولید مقالات تخصصی و محتوای صفحات سایت بر اساس نیاز مخاطب، تحقیق موضوعی و لحن برند.',
+  },
+  {
+    slug: 'seo',
+    title: 'سئو',
+    short_desc: 'بهینه‌سازی فنی و محتوایی سایت برای کمک به دیده‌شدن در جست‌وجوهای مرتبط گوگل.',
+  },
+];
 const plans = await q<Row>(`SELECT * FROM plans WHERE status='published' ORDER BY sort_order`);
 const posts = await q<Row>(
   `SELECT p.slug, p.title, p.excerpt, p.cover_image, p.reading_time, p.published_at, c.name AS category
