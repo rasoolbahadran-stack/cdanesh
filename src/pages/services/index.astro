@@ -3,11 +3,20 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
 import { q } from '../../lib/db';
 
-const services = await q(`SELECT slug, title, short_desc, icon, features, image FROM services WHERE status='published' ORDER BY sort_order`);
+const services = await q(`SELECT slug, title, short_desc, icon, features, image
+  FROM services
+  WHERE status = 'published'
+    AND slug IN ('company-website', 'content', 'seo')
+  ORDER BY CASE slug
+    WHEN 'company-website' THEN 1
+    WHEN 'content' THEN 2
+    WHEN 'seo' THEN 3
+    ELSE 4
+  END`);
 ---
 <BaseLayout
-  title="همه خدمات کافه‌دانش | طراحی سایت، سئو، محتوا و هوش مصنوعی"
-  description="مرور کامل خدمات استودیو دیجیتال کافه‌دانش: طراحی سایت شرکتی و فروشگاهی، UI/UX، سئو تکنیکال، تولید محتوا، سرعت، پشتیبانی و هوش مصنوعی."
+  title="خدمات کافه دانش | طراحی سایت، تولید محتوا و سئو"
+  description="کافه دانش با تمرکز بر طراحی سایت اختصاصی و تولید محتوای تخصصی فعالیت می‌کند؛ خدمات سئو نیز به‌عنوان گزینه‌ای مکمل برای رشد و دیده‌شدن بهتر سایت ارائه می‌شود."
   activePath="/services"
   schema={[{
     '@context': 'https://schema.org',
@@ -19,17 +28,17 @@ const services = await q(`SELECT slug, title, short_desc, icon, features, image 
   }]}
 >
   <PageHero
-    title="خدمات کافه‌دانش"
-    sub="هشت خدمت تخصصی در یک تیم واحد؛ هر خدمت صفحه اختصاصی و محتوای کامل خودش را دارد و می‌توانید هر کدام را مستقل سفارش دهید یا ترکیبی سفارش بدهید."
+    title="سه حوزهٔ اصلی خدمات کافه دانش"
+    sub="تمرکز اصلی ما طراحی سایت و تولید محتواست؛ سئو نیز در صورت نیاز، به‌عنوان مسیر مکمل به پروژه اضافه می‌شود."
     crumbs={[{ label: 'خدمات', href: '' }]}
   />
   <section class="sec">
     <div class="container">
-      <div class="grid-4">
+      <div class="grid-3">
         {services.map((s, i) => {
           const feats = Array.isArray(s.features) ? (s.features as string[]) : [];
           return (
-            <a href={`/services/${s.slug}`} class="svc-card" data-reveal style={`--rd:${(i % 4) * 60}ms`}>
+            <a href={`/services/${s.slug}`} class="svc-card" data-reveal style={`--rd:${i * 90}ms`}>
               <div class="svc-thumb">
                 <img src={String(s.image)} alt={`خدمت ${s.title}`} width="1152" height="864" loading="lazy" />
               </div>
@@ -52,11 +61,11 @@ const services = await q(`SELECT slug, title, short_desc, icon, features, image 
       <div class="cta-band" data-reveal="zoom">
         <div class="cta-inner">
           <div>
-            <h2>کدام خدمت به درد کسب‌وکار شما می‌خورد؟</h2>
-            <p>در جلسه رایگان، وضعیت شما را بررسی می‌کنیم و صادقانه می‌گوییم کدام خدمت واقعاً ارزش سرمایه‌گذاری دارد.</p>
+            <h2>برای طراحی سایت یا تولید محتوا برنامه دارید؟</h2>
+            <p>نیاز و بودجهٔ پروژه را بررسی می‌کنیم؛ در صورت نیاز، خدمات سئو را هم به‌عنوان گزینهٔ مکمل پیشنهاد می‌دهیم.</p>
           </div>
           <div class="cta-actions">
-            <a href="/consult" class="btn btn-gold btn-lg">درخواست مشاوره رایگان</a>
+            <a href="/consult" class="btn btn-gold btn-lg">درخواست مشاوره</a>
             <a href="/pricing" class="btn btn-ghost-light">دیدن تعرفه‌ها</a>
           </div>
         </div>
