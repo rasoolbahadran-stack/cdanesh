@@ -30,7 +30,7 @@ const faqs = await q(`SELECT question, answer FROM faqs WHERE status='published'
         {plans.map((p, i) => {
           const feats = Array.isArray(p.features) ? (p.features as string[]) : [];
           const notes = ['هر صفحه با ساختار استاندارد سئو و ریسپانسیو کامل تحویل می‌شود.', 'برجسته‌شدن این پکیج به‌معنای ادعای برتری نیست؛ تجربه نشان داده بیشترین نیازها را پوشش می‌دهد.', 'پنل مدیریت فروشگاه همراه با آموزش کامل تحویل داده می‌شود.', 'پس از تحلیل نیازها، پروپوزال مکتوب و شفاف ارائه می‌شود.'];
-          const hostingGift = i < 2 ? '۶ ماه هاستینگ هدیه' : '۱۲ ماه هاستینگ هدیه';
+          const hostingGift = i < 2 ? '۶ ماه هاستینگ هدیه' : '۱ سال هاستینگ هدیه';
           return (
             <div class={`plan-card ${p.highlighted ? 'highlight' : ''}`} data-reveal style={`--rd:${i * 60}ms`}>
               <span class="hosting-badge">🎁 {hostingGift}</span>
