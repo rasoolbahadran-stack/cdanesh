@@ -25,11 +25,12 @@ const seo = settings.seo;
 const finalOg = (ogImage || seo.ogImage).startsWith('http') ? (ogImage || seo.ogImage) : Astro.site?.origin + (ogImage || seo.ogImage);
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
 
-const preferredSiteName = settings.identity.brandEn?.trim() || 'CDANESH STUDIO';
-const localizedSiteName = settings.identity.brandFa?.trim() || 'کافه‌دانش';
+const preferredSiteName = settings.identity.brandFa?.trim() || 'کافه دانش';
+const latinSiteName = settings.identity.brandEn?.trim() || 'Cafe Danesh';
 const displayTitle = title
   .replace(/کافه[\u200c\s-]*دانش/giu, preferredSiteName)
-  .replace(/CDANESH\s+STUDIO/giu, preferredSiteName);
+  .replace(/CDANESH\s+STUDIO/giu, preferredSiteName)
+  .replace(/Cafe\s+Danesh/giu, preferredSiteName);
 
 /* Schema سازمان — روی همهٔ صفحات */
 const orgSchema = {
@@ -37,7 +38,7 @@ const orgSchema = {
   '@type': 'Organization',
   '@id': 'https://cdanesh.ir/#organization',
   name: preferredSiteName,
-  alternateName: localizedSiteName,
+  alternateName: latinSiteName,
   url: Astro.site?.href || '/',
   logo: (Astro.site?.origin || '') + '/img/logo.svg',
   description: seo.defaultDescription,
@@ -51,7 +52,7 @@ const siteSchema = Astro.url.pathname === '/' ? {
   '@type': 'WebSite',
   '@id': 'https://cdanesh.ir/#website',
   name: preferredSiteName,
-  alternateName: [localizedSiteName, 'cdanesh.ir'],
+  alternateName: [latinSiteName, 'cdanesh.ir'],
   url: 'https://cdanesh.ir/',
 } : null;
 
