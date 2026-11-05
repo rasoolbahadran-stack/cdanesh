@@ -3,72 +3,54 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
 import { q } from '../../lib/db';
 
-const projects = await q(`SELECT slug, title, category, summary, cover_image, tags, note, url FROM projects WHERE status='published' ORDER BY sort_order`);
+const projects = await q(`SELECT slug, title, category, summary, cover_image, tags, note, url FROM projects WHERE status='published'${excluded} ORDER BY sort_order`);
 const cats = [...new Set(projects.map((p) => String(p.category)))];
 ---
 <BaseLayout
   title="نمونه‌کارهای کافه‌دانش | فروشگاه، سایت شرکتی و هوش مصنوعی"
-  description="نمونه‌کارهای استودیو دیجیتال کافه‌دانش: فروشگاه اینترنتی، وب‌سایت شرکتی و صفحه فرود هوش مصنوعی؛ نمونه‌های مفهومی ساخته‌شده توسط تیم."
+  description="نمونه‌کارهای واقعی و تأییدشده طراحی سایت و توسعه وب توسط کافه‌دانش."
   activePath="/portfolio"
 >
   <PageHero
     title="نمونه‌کارها"
-    sub="از فروشگاه اینترنتی تا وب‌سایت شرکتی و سامانه‌های تخصصی؛ نمونه‌های منتشرشده را به‌صورت زنده بررسی کنید."
+    sub="پروژه‌های اجراشده و تأییدشده کافه‌دانش."
     crumbs={[{ label: 'نمونه‌کارها', href: '' }]}
   />
   <section class="sec">
     <div class="container">
-      <div class="pf-filter" data-reveal>
-        <button class="active" data-filter="all">همه</button>
-        {cats.map((c) => <button data-filter={c}>{c}</button>)}
-      </div>
-      <div class="grid-3">
-        {projects.map((p, i) => {
-          const tags = Array.isArray(p.tags) ? (p.tags as string[]) : [];
-          return (
-            <a href={p.url ? String(p.url) : `/portfolio/${p.slug}`} target={p.url ? '_blank' : undefined} rel={p.url ? 'noopener noreferrer' : undefined} class="pf-card pf-filterable pf-live-card" data-cat={String(p.category)} data-reveal style={`--rd:${(i % 3) * 70}ms`}>
-              {p.url ? <div class="pf-live-frame"><iframe src={String(p.url)} title={`پیش‌نمایش زنده ${p.title}`} loading="lazy" tabindex="-1" aria-hidden="true"></iframe></div> : <img src={String(p.cover_image)} alt={`نمونه‌کار ${p.title}`} width="1344" height="768" loading="lazy" />}
-              <div class="pf-overlay">
-                <div class="pf-tags">{tags.map((t) => <span>{t}</span>)}</div>
-                <h3>{p.title}</h3>
-                <p>{p.summary}</p>
-                {p.url ? <span class="pf-live-cta">مشاهده وب‌سایت ↗</span> : null}
-              </div>
-            </a>
-          );
-        })}
-      </div>
-      <div class="pf-note" style="margin-top:30px">ℹ️ پیش‌نمایش زنده داخل کارت‌ها برای بررسی سریع است. برای مشاهده کامل هر پروژه، روی کارت کلیک کنید.</div>
-    </div>
-  </section>
-  <script>
-    const setupPortfolioPreviews = () => {
-      document.querySelectorAll<HTMLElement>('.pf-live-frame').forEach((frame) => {
-        const iframe = frame.querySelector('iframe');
-        if (!iframe) return;
-        const scale = frame.clientWidth / 1280;
-        const renderedHeight = 3200 * scale;
-        const overflow = Math.max(0, renderedHeight - frame.clientHeight);
-        iframe.style.setProperty('--pf-scale', String(scale));
-        iframe.style.setProperty('--pf-overflow', `${overflow}px`);
-      });
-    };
-    setupPortfolioPreviews();
-    window.addEventListener('resize', setupPortfolioPreviews, { passive: true });
-  </script>
-  <section class="sec sec-dark" style="padding-block:64px">
-    <div class="container">
-      <div class="cta-band" data-reveal="zoom">
-        <div class="cta-inner">
-          <div>
-            <h2>پروژه شما هم می‌تواند اینجا باشد</h2>
-            <p>از یک جلسه رایگان شروع کنید؛ نیازها را می‌شنویم، برآورد شفاف می‌دهیم و مرحله‌به‌مرحله با تأیید شما جلو می‌رویم.</p>
+      {projects.length ? (
+        <>
+          <div class="pf-filter" data-reveal>
+            <button class="active" data-filter="all">همه</button>
+            {cats.map((c) => <button data-filter={c}>{c}</button>)}
           </div>
-          <div class="cta-actions">
-            <a href="/consult" class="btn btn-gold btn-lg">شروع پروژه شما</a>
+          <div class="portfolio-grid">
+            {projects.map((p, i) => {
+              const tags = Array.isArray(p.tags) ? (p.tags as string[]) : [];
+              return (
+                <a href={p.url ? String(p.url) : `/portfolio/${p.slug}`} target={p.url ? '_blank' : undefined} rel={p.url ? 'noopener noreferrer' : undefined} class="portfolio-card pf-filterable" data-cat={String(p.category)} data-reveal style={`--rd:${(i % 3) * 70}ms`}>
+                  <div class="portfolio-card-media">
+                    <img src={String(p.cover_image)} alt={`تصویر پروژه ${p.title}`} loading="lazy" />
+                    <span class="portfolio-card-arrow">↗</span>
+                  </div>
+                  <div class="portfolio-card-body">
+                    <span class="portfolio-card-category">{p.category}</span>
+                    <h2>{p.title}</h2>
+                    <p>{p.summary}</p>
+                    <div class="pf-tags">{tags.map((t) => <span>{t}</span>)}</div>
+                  </div>
+                </a>
+              );
+            })}
           </div>
+        </>
+      ) : (
+        <div class="portfolio-empty">
+          <span class="portfolio-empty-mark">✦</span>
+          <h2>نمونه‌کارهای تأییدشده</h2>
+          <p>در حال حاضر پروژه‌ای برای نمایش عمومی تأیید نشده است.</p>
         </div>
-      </div>
+      )}
     </div>
   </section>
 </BaseLayout>

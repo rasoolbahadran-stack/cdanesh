@@ -14,7 +14,7 @@ const settings = await getSiteSettings();
 const hp = settings.homepage;
 
 const services = await q<Row>(`SELECT slug, title, short_desc, image FROM services WHERE status='published' ORDER BY sort_order`);
-const projects = await q<Row>(`SELECT slug, title, summary, cover_image, tags, category FROM projects WHERE status='published' ORDER BY sort_order LIMIT 3`);
+const projects = await q<Row>(`SELECT slug, title, summary, cover_image, tags, category FROM projects WHERE status='published'${excluded} ORDER BY sort_order LIMIT 3`);
 const plans = await q<Row>(`SELECT * FROM plans WHERE status='published' ORDER BY sort_order`);
 const posts = await q<Row>(
   `SELECT p.slug, p.title, p.excerpt, p.cover_image, p.reading_time, p.published_at, c.name AS category
@@ -236,34 +236,35 @@ const faNums = (s: string) => faNum(s);
     </div>
   </section>
 
-  {/* ─── ۶. نمونه‌کارهای منتخب ─── */}
-  <section class="sec sec-paper">
-    <div class="container">
-      <div class="sec-head" data-reveal>
-        <span class="section-label">نمونه‌کارها</span>
-        <h2>کیفیت اجرا را همین‌جا ببینید</h2>
-        <p>نمونه‌های زیر مفهومی و ساخته خود ما هستند؛ پروژه‌های واقعی به‌محض آماده‌شدن و با اجازه صاحبان‌شان منتشر می‌شوند.</p>
+  {/* ─── نمونه‌کارهای تأییدشده ─── */}
+  {projects.length > 0 ? (
+    <section class="sec sec-paper">
+      <div class="container">
+        <div class="sec-head" data-reveal>
+          <span class="section-label">نمونه‌کارها</span>
+          <h2>پروژه‌های اجراشده</h2>
+        </div>
+        <div class="grid-3">
+          {projects.map((p, i) => {
+            const tags = Array.isArray(p.tags) ? (p.tags as string[]) : [];
+            return (
+              <a href={p.url ? String(p.url) : `/portfolio/${p.slug}`} class="pf-card" target={p.url ? '_blank' : undefined} rel={p.url ? 'noopener noreferrer' : undefined} data-reveal style={`--rd:${i * 80}ms`}>
+                <img src={String(p.cover_image)} alt={`نمونه‌کار ${p.title}`} width="1344" height="768" loading="lazy" />
+                <div class="pf-overlay">
+                  <div class="pf-tags">{tags.map((t) => <span>{t}</span>)}</div>
+                  <h3>{p.title}</h3>
+                  <p>{p.summary}</p>
+                </div>
+              </a>
+            );
+          })}
+        </div>
+        <div style="text-align:center;margin-top:34px" data-reveal>
+          <a href="/portfolio" class="btn btn-primary">مشاهده نمونه‌کارها</a>
+        </div>
       </div>
-      <div class="grid-3">
-        {projects.map((p, i) => {
-          const tags = Array.isArray(p.tags) ? (p.tags as string[]) : [];
-          return (
-            <a href={`/portfolio/${p.slug}`} class="pf-card" data-reveal style={`--rd:${i * 80}ms`}>
-              <img src={String(p.cover_image)} alt={`نمونه‌کار ${p.title}`} width="1344" height="768" loading="lazy" />
-              <div class="pf-overlay">
-                <div class="pf-tags">{tags.map((t) => <span>{t}</span>)}</div>
-                <h3>{p.title}</h3>
-                <p>{p.summary}</p>
-              </div>
-            </a>
-          );
-        })}
-      </div>
-      <div style="text-align:center;margin-top:34px" data-reveal>
-        <a href="/portfolio" class="btn btn-ghost">مشاهده همه نمونه‌کارها</a>
-      </div>
-    </div>
-  </section>
+    </section>
+  ) : null}
 
   {/* ─── ۷. مراحل اجرای پروژه ─── */}
   <section class="sec sec-cream">
