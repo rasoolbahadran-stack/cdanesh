@@ -1,0 +1,58 @@
+---
+/* فرم عمومی تماس / مشاوره — ذخیره واقعی در دیتابیس با پیام موفقیت فقط پس از تأیید سرور */
+interface Props {
+  type: 'contact' | 'consult';
+  defaultPlan?: string;
+  compact?: boolean;
+}
+const { type, defaultPlan = '', compact = false } = Astro.props;
+---
+<form
+  class={`form-panel ${compact ? 'compact' : ''}`}
+  data-public-form
+  data-action={type === 'consult' ? '/api/consult' : '/api/contact'}
+  data-reveal
+>
+  <div class="form-grid">
+    <div class="form-field">
+      <label for={`f-name-${type}`}>نام و نام خانوادگی <span class="req">*</span></label>
+      <input id={`f-name-${type}`} name="name" type="text" required placeholder="مثلاً رضا محمدی" autocomplete="name" />
+    </div>
+    <div class="form-field">
+      <label for={`f-phone-${type}`}>شماره موبایل <span class="req">*</span></label>
+      <input id={`f-phone-${type}`} name="phone" type="tel" required placeholder="۰۹۱۲۳۴۵۶۷۸۹" autocomplete="tel" />
+    </div>
+    <div class="form-field">
+      <label for={`f-email-${type}`}>ایمیل (اختیاری)</label>
+      <input id={`f-email-${type}`} name="email" type="email" placeholder="you@example.com" autocomplete="email" />
+    </div>
+    <div class="form-field">
+      <label for={`f-company-${type}`}>نام کسب‌وکار / شرکت (اختیاری)</label>
+      <input id={`f-company-${type}`} name="company" type="text" placeholder="نام برند شما" autocomplete="organization" />
+    </div>
+    {type === 'consult' ? (
+      <div class="form-field full">
+        <label for={`f-plan-${type}`}>نوع پروژه</label>
+        <select id={`f-plan-${type}`} name="plan_title">
+          <option value="" selected={!defaultPlan}>هنوز مطمئن نیستم — راهنمایی می‌خواهم</option>
+          <option value="سایت معرفی (پکیج استارتر)" selected={defaultPlan === 'استارتر'}>سایت معرفی (پکیج استارتر)</option>
+          <option value="سایت شرکتی (پکیج حرفه‌ای)" selected={defaultPlan === 'حرفه‌ای'}>سایت شرکتی (پکیج حرفه‌ای)</option>
+          <option value="فروشگاه اینترنتی (پکیج فروشگاهی)" selected={defaultPlan === 'فروشگاهی'}>فروشگاه اینترنتی (پکیج فروشگاهی)</option>
+          <option value="پروژه اختصاصی" selected={defaultPlan === 'اختصاصی'}>پروژه اختصاصی</option>
+          <option value="سئو و تولید محتوا">سئو و تولید محتوا</option>
+          <option value="هوش مصنوعی و اتوماسیون">هوش مصنوعی و اتوماسیون</option>
+          <option value="پشتیبانی و نگهداری">پشتیبانی و نگهداری</option>
+        </select>
+      </div>
+    ) : null}
+    <div class="form-field full">
+      <label for={`f-msg-${type}`}>متن پیام <span class="req">*</span></label>
+      <textarea id={`f-msg-${type}`} name="message" required placeholder={type === 'consult' ? 'کمی درباره کسب‌وکارتان و انتظارتان از پروژه بنویسید؛ اگر سایت فعلی دارید، آدرسش را هم بنویسید.' : 'سؤال یا پیام خود را بنویسید…'}></textarea>
+    </div>
+  </div>
+  <div class="form-msg" style="display:none;margin-top:14px"></div>
+  <div style="margin-top:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+    <button type="submit" class="btn btn-gold">ارسال درخواست</button>
+    <span style="font-size:12.5px;color:var(--mut-light)">اطلاعات شما فقط برای پاسخ‌گویی استفاده می‌شود — <a href="/privacy" style="color:var(--gold-3)">حریم خصوصی</a></span>
+  </div>
+</form>

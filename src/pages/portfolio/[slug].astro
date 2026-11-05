@@ -1,0 +1,89 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import { q } from '../../lib/db';
+import { siteUrl } from '../../lib/seo';
+
+interface ProjectRow {
+  title: string;
+  slug: string;
+  category: string;
+  summary: string;
+  content: string;
+  cover_image: string;
+  tags: unknown;
+  note: string;
+  seo_title: string;
+  seo_description: string;
+}
+
+const { slug } = Astro.params;
+const project = await q<ProjectRow>('SELECT * FROM projects WHERE slug = $1 AND status = $2', [String(slug), 'published']).then((r) => r[0] ?? null);
+if (!project) return Astro.redirect('/404', 302);
+
+const others = await q<ProjectRow>('SELECT slug, title, summary, cover_image, category FROM projects WHERE status = $1 AND slug != $2 ORDER BY sort_order LIMIT 2', ['published', project.slug]);
+const tags = Array.isArray(project.tags) ? (project.tags as string[]) : [];
+
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork',
+    name: project.title,
+    description: project.summary,
+    image: siteUrl(project.cover_image),
+    creator: { '@type': 'Organization', name: 'کافه‌دانش', url: siteUrl('/') },
+    keywords: tags.join('، '),
+    url: siteUrl(`/portfolio/${project.slug}`),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'خانه', item: '/' },
+      { '@type': 'ListItem', position: 2, name: 'نمونه‌کارها', item: '/portfolio' },
+      { '@type': 'ListItem', position: 3, name: project.title, item: siteUrl(`/portfolio/${project.slug}`) },
+    ],
+  },
+];
+---
+<BaseLayout
+  title={project.seo_title || project.title}
+  description={project.seo_description || project.summary}
+  ogImage={project.cover_image}
+  activePath="/portfolio"
+  schema={schema}
+>
+  <PageHero
+    title={project.title}
+    sub={project.summary}
+    crumbs={[{ label: 'نمونه‌کارها', href: '/portfolio' }, { label: project.title, href: '' }]}
+    meta={tags.map((t) => `#${t}`)}
+  />
+  <section class="sec">
+    <div class="container" style="max-width:1000px">
+      <img src={project.cover_image} alt={`تصویر پروژه ${project.title}`} width="1344" height="768" style="border-radius:26px;box-shadow:var(--shadow-card);margin-bottom:34px" data-reveal="zoom" />
+      {project.note ? <div class="pf-note" data-reveal>ℹ️ {project.note}</div> : null}
+      <div class="prose-fa" data-reveal set:html={project.content} />
+    </div>
+  </section>
+  <section class="sec sec-cream" style="padding-top:56px">
+    <div class="container">
+      <div class="sec-head" data-reveal>
+        <span class="section-label">نمونه‌کارهای مرتبط</span>
+        <h2>کارهای دیگر ما</h2>
+      </div>
+      <div class="grid-2">
+        {others.map((p, i) => (
+          <a href={`/portfolio/${p.slug}`} class="pf-card" data-reveal style={`--rd:${i * 70}ms`}>
+            <img src={String(p.cover_image)} alt={`نمونه‌کار ${p.title}`} width="1344" height="768" loading="lazy" />
+            <div class="pf-overlay">
+              <div class="pf-tags"><span>{p.category}</span></div>
+              <h3>{p.title}</h3>
+              <p>{p.summary}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

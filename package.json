@@ -1,17 +1,28 @@
 {
-  "name": "cdanesh-astro",
-  "type": "module",
-  "version": "1.0.0",
+  "name": "cdanesh-studio",
+  "version": "2.0.0",
   "private": true,
+  "type": "module",
+  "description": "کافه‌دانش (CDANESH STUDIO) — وب‌سایت و پنل مدیریت با Astro SSR + Postgres",
   "scripts": {
-    "dev": "astro dev",
+    "dev": "astro dev --port 3000 --host 2>&1 | tee dev.log",
+    "dev:nextport": "astro dev --host 2>&1 | tee dev.log",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "start": "node ./dist/server/entry.mjs",
+    "check": "astro check",
+    "db:studio": "echo 'PGlite local — use /admin panel'"
   },
   "dependencies": {
-    "@astrojs/vercel": "^9.0.5",
-    "@vercel/blob": "^2.8.2",
-    "astro": "^5.13.0",
-    "pg": "^8.23.1"
+    "@astrojs/node": "^9.2.2",
+    "@astrojs/vercel": "^8.2.0",
+    "@electric-sql/pglite": "^0.3.5",
+    "@vercel/blob": "^2.0.0",
+    "astro": "^5.14.0",
+    "pg": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.15.0",
+    "typescript": "^5.8.0"
   }
 }

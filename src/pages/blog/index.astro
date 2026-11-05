@@ -1,0 +1,90 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import { q } from '../../lib/db';
+import { faNum, faDate } from '../../lib/persian';
+import { siteUrl } from '../../lib/seo';
+
+const page = Math.max(1, parseInt(Astro.url.searchParams.get('page') || '1', 10) || 1);
+const PER = 9;
+const catSlug = Astro.url.searchParams.get('cat') || '';
+
+const cats = await q(`SELECT slug, name FROM categories ORDER BY sort_order`);
+const cat = catSlug ? await q(`SELECT id, name FROM categories WHERE slug = $1`, [catSlug]).then((r) => r[0] ?? null) : null;
+
+const totalRow = await q<{ c: number }>(
+  'SELECT count(*)::int AS c FROM posts p WHERE p.status=$1' + (cat ? ' AND p.category_id=$2' : ''),
+  cat ? ['published', cat.id] : ['published'],
+);
+const total = totalRow[0]?.c ?? 0;
+const pages = Math.max(1, Math.ceil(total / PER));
+const posts = await q(
+  `SELECT p.slug, p.title, p.excerpt, p.cover_image, p.reading_time, p.published_at, c.name AS category
+   FROM posts p LEFT JOIN categories c ON c.id = p.category_id
+   WHERE p.status='published' ${cat ? 'AND p.category_id=$1' : ''}
+   ORDER BY p.published_at DESC LIMIT ${PER} OFFSET ${PER * (page - 1)}`,
+  cat ? [cat.id] : [],
+);
+const qs = (n: number) => {
+  const params = new URLSearchParams();
+  if (catSlug) params.set('cat', catSlug);
+  if (n > 1) params.set('page', String(n));
+  const s = params.toString();
+  return '/blog' + (s ? `?${s}` : '');
+};
+---
+<BaseLayout
+  title={cat ? `مقالات ${cat.name} | مجله کافه‌دانش` : page > 1 ? `مجله کافه‌دانش — صفحه ${faNum(page)}` : 'مجله کافه‌دانش | مقالات تخصصی طراحی سایت، سئو و هوش مصنوعی'}
+  description="هر هفته یک مطلب کاربردی درباره طراحی سایت، سئو، محتوا و هوش مصنوعی — به زبان ساده و متناسب با بازار ایران."
+  activePath="/blog"
+  schema={[{
+    '@context': 'https://schema.org',
+    '@type': 'Blog',
+    name: 'مجله کافه‌دانش',
+    url: siteUrl('/blog'),
+    publisher: { '@type': 'Organization', name: 'کافه‌دانش' },
+  }]}
+>
+  <PageHero
+    title={cat ? `مقالات «${cat.name}»` : 'مجله کافه‌دانش'}
+    sub="خواندنی‌های تخصصی دیجیتال؛ هر هفته یک مطلب کاربردی درباره طراحی سایت، سئو، محتوا و هوش مصنوعی — به زبان ساده."
+    crumbs={[{ label: 'مجله', href: '' }]}
+  />
+  <section class="sec">
+    <div class="container">
+      <div class="pf-filter" data-reveal>
+        <a href="/blog" class="btn btn-sm ${!cat ? 'btn-gold' : 'btn-ghost'}">همه</a>
+        {cats.map((c) => (
+          <a href={`/blog?cat=${c.slug}`} class={`btn btn-sm ${cat?.slug === c.slug ? 'btn-gold' : 'btn-ghost'}`}>{c.name}</a>
+        ))}
+      </div>
+      {posts.length ? (
+        <div class="grid-3">
+          {posts.map((p, i) => (
+            <a href={`/blog/${p.slug}`} class="post-card" data-reveal style={`--rd:${(i % 3) * 60}ms`}>
+              <div class="post-thumb"><img src={String(p.cover_image)} alt={String(p.title)} width="1344" height="768" loading="lazy" /></div>
+              <div class="post-body">
+                <div class="post-meta">
+                  <span class="cat">{p.category || 'مقالات'}</span>
+                  <span>{faDate(String(p.published_at))}</span>
+                  <span>{faNum(String(p.reading_time))} دقیقه مطالعه</span>
+                </div>
+                <h3>{p.title}</h3>
+                <p>{p.excerpt}</p>
+              </div>
+            </a>
+          ))}
+        </div>
+      ) : (
+        <div class="form-panel" style="text-align:center">هنوز مقاله‌ای در این دسته منتشر نشده است. <a href="/blog" style="color:var(--gold-3);font-weight:700">مشاهده همه مقالات</a></div>
+      )}
+      {pages > 1 ? (
+        <nav style="display:flex;gap:8px;justify-content:center;margin-top:40px" aria-label="صفحه‌بندی">
+          {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
+            <a href={qs(n)} class={`btn btn-sm ${n === page ? 'btn-gold' : 'btn-ghost'}`} aria-current={n === page ? 'page' : undefined}>{faNum(n)}</a>
+          ))}
+        </nav>
+      ) : null}
+    </div>
+  </section>
+</BaseLayout>

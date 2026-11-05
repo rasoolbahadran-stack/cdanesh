@@ -1,0 +1,30 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import EntityAdmin from '../../components/admin/EntityAdmin.astro';
+
+const config = {
+  entity: 'testimonials',
+  title: 'نظرات مشتریان',
+  help: 'فقط نظر واقعی مشتریان را ثبت کنید؛ بخش نظرات تا وقتی موردی منتشر نشده باشد در سایت نمایش داده نمی‌شود.',
+  columns: [
+    { key: 'name', label: 'نام' },
+    { key: 'role', label: 'سمت' },
+    { key: 'company', label: 'شرکت' },
+    { key: 'rating', label: 'امتیاز', type: 'num' },
+    { key: 'status', label: 'وضعیت', type: 'badge' },
+  ],
+  fields: [
+    { key: 'name', label: 'نام مشتری', type: 'text', required: true },
+    { key: 'role', label: 'سمت / عنوان', type: 'text' },
+    { key: 'company', label: 'شرکت / کسب‌وکار', type: 'text' },
+    { key: 'content', label: 'متن نظر', type: 'textarea', required: true, full: true },
+    { key: 'rating', label: 'امتیاز (۱ تا ۵)', type: 'number' },
+    { key: 'avatar', label: 'تصویر', type: 'image' },
+    { key: 'sort_order', label: 'ترتیب', type: 'number' },
+    { key: 'status', label: 'وضعیت', type: 'select', options: ['published', 'draft'], labels: ['منتشرشده', 'پیش‌نویس'] },
+  ],
+};
+---
+<AdminLayout title="نظرات مشتریان" crumb="بخش‌های سایت › نظرات مشتریان">
+  <EntityAdmin config={config} />
+</AdminLayout>

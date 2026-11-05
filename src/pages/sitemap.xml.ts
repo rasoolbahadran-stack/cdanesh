@@ -1,62 +1,30 @@
-/* ═══ نقشهٔ سایت پویا — /sitemap.xml ═══
-   SSR: همهٔ صفحات ثابت + مقالات همراه پروژه + مقالات منتشرشدهٔ ابری
-   (هر مقاله‌ای که از پنل مدیریت منتشر شود، خودکار به نقشهٔ سایت اضافه می‌شود.) */
-export const prerender = false;
+/* نقشه سایت داینامیک — همیشه همگام با دیتابیس */
+import { q } from '../lib/db';
+import { siteUrl } from '../lib/seo';
 
-import type { APIRoute } from 'astro';
-import { getPublicArticles } from '../lib/ssr-articles.mjs';
-import { getPublicPages } from '../lib/ssr-pages.mjs';
+export async function GET() {
+  const [posts, pages, services, projects] = await Promise.all([
+    q<{ slug: string; published_at: string }>(`SELECT slug, published_at FROM posts WHERE status='published'`),
+    q<{ slug: string }>(`SELECT slug FROM pages WHERE status='published'`),
+    q<{ slug: string }>(`SELECT slug FROM services WHERE status='published'`),
+    q<{ slug: string }>(`SELECT slug FROM projects WHERE status='published'`),
+  ]);
 
-const STATIC_PATHS = [
-  '', '/services', '/web-design', '/e-commerce', '/uiux', '/seo',
-  '/content-production', '/speed-optimization', '/ai-solutions', '/support',
-  '/portfolio', '/portfolio-arman', '/portfolio-mehr', '/portfolio-negar',
-  '/portfolio-rosa', '/portfolio-goldast', '/portfolio-daneshvar',
-  '/blog', '/faq', '/about', '/contact', '/request', '/privacy', '/terms',
-];
+  const staticPages = ['', '/services', '/portfolio', '/pricing', '/about', '/contact', '/consult', '/faq', '/blog', '/privacy', '/terms'];
 
-const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  const entries: string[] = [];
+  const add = (path: string, lastmod?: string) => {
+    entries.push(`<url><loc>${siteUrl(path)}</loc>${lastmod ? `<lastmod>${new Date(lastmod).toISOString().slice(0, 10)}</lastmod>` : ''}<changefreq>weekly</changefreq><priority>${path === '' ? '1.0' : '0.8'}</priority></url>`);
+  };
 
-export const GET: APIRoute = async () => {
-  const today = new Date().toISOString().slice(0, 10);
-  let articles = [];
-  try { articles = await getPublicArticles(); } catch { articles = []; }
-  let pages = [];
-  try { pages = (await getPublicPages()).filter(p => p.slug !== 'terms' && p.slug !== 'privacy'); } catch { pages = []; }
+  staticPages.forEach((p) => add(p));
+  posts.forEach((p) => add(`/blog/${p.slug}`, p.published_at));
+  pages.forEach((p) => add(`/${p.slug}`));
+  services.forEach((p) => add(`/services/${p.slug}`));
+  projects.forEach((p) => add(`/portfolio/${p.slug}`));
 
-  const urls = STATIC_PATHS.map(p => ({
-    loc: 'https://cdanesh.ir' + p,
-    lastmod: today,
-    cf: p === '' || p === '/blog' ? 'daily' : 'weekly',
-  }));
-
-  for (const pg of pages) {
-    urls.push({
-      loc: 'https://cdanesh.ir/p/' + encodeURIComponent(pg.slug || ''),
-      lastmod: today,
-      cf: 'monthly',
-    });
-  }
-
-  for (const a of articles) {
-    urls.push({
-      loc: 'https://cdanesh.ir/blog/' + encodeURIComponent(a.slug || ''),
-      lastmod: today,
-      cf: 'monthly',
-    });
-  }
-
-  const xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
-    + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-    + urls.map(u =>
-      `  <url><loc>${esc(u.loc)}</loc><lastmod>${u.lastmod}</lastmod><changefreq>${u.cf}</changefreq></url>`
-    ).join('\n')
-    + '\n</urlset>';
-
+  const xml = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${entries.join('')}</urlset>`;
   return new Response(xml, {
-    headers: {
-      'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, max-age=0, s-maxage=3600',
-    },
+    headers: { 'content-type': 'application/xml; charset=utf-8', 'cache-control': 'public, max-age=3600' },
   });
-};
+}

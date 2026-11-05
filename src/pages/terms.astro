@@ -1,17 +1,20 @@
 ---
-// ═══ شرایط استفاده — محتوا از صفحات ابری پنل (با دادهٔ پایهٔ پروژه) ═══
-// prerender=false → ویرایش این صفحه در پنل (بخش «صفحات») بلافاصله منتشر می‌شود.
-export const prerender = false;
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import { q } from '../lib/db';
 
-import ProsePage from '../components/ProsePage.astro';
-import { getPublicPages, pageBySlug } from '../lib/ssr-pages.mjs';
-
-const pages = await getPublicPages();
-const page = pageBySlug(pages, 'terms');
-
-if (!page) {
-  return Astro.redirect('/404');
-}
+const page = await q(`SELECT * FROM pages WHERE system_key='terms' AND status='published'`).then((r) => r[0] ?? null);
+if (!page) return Astro.redirect('/404', 302);
 ---
-
-<ProsePage page={page} canonical="https://cdanesh.ir/terms" />
+<BaseLayout
+  title={String(page.seo_title) || String(page.title)}
+  description={String(page.seo_description) || String(page.excerpt)}
+  activePath="/terms"
+>
+  <PageHero title={String(page.title)} sub={String(page.excerpt)} crumbs={[{ label: 'شرایط استفاده', href: '' }]} />
+  <section class="sec">
+    <div class="wrap-narrow">
+      <div class="prose-fa" data-reveal set:html={String(page.content)} />
+    </div>
+  </section>
+</BaseLayout>

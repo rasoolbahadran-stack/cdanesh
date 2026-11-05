@@ -1,0 +1,24 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import EntityAdmin from '../../components/admin/EntityAdmin.astro';
+
+const config = {
+  entity: 'faqs',
+  title: 'سؤالات متداول',
+  help: 'سؤالات در صفحهٔ FAQ، صفحهٔ اصلی و تعرفه‌ها نمایش داده می‌شوند و اسکیمای FAQPage گوگل هم دارند.',
+  columns: [
+    { key: 'question', label: 'سؤال', type: 'short' },
+    { key: 'status', label: 'وضعیت', type: 'badge' },
+    { key: 'sort_order', label: 'ترتیب', type: 'num' },
+  ],
+  fields: [
+    { key: 'question', label: 'سؤال', type: 'text', required: true },
+    { key: 'answer', label: 'پاسخ', type: 'textarea', required: true, full: true },
+    { key: 'sort_order', label: 'ترتیب', type: 'number' },
+    { key: 'status', label: 'وضعیت', type: 'select', options: ['published', 'draft'], labels: ['منتشرشده', 'پیش‌نویس'] },
+  ],
+};
+---
+<AdminLayout title="سؤالات متداول" crumb="بخش‌های سایت › سؤالات متداول">
+  <EntityAdmin config={config} />
+</AdminLayout>

@@ -1,0 +1,70 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import { q } from '../lib/db';
+
+const plans = await q(`SELECT * FROM plans WHERE status='published' ORDER BY sort_order`);
+const faqs = await q(`SELECT question, answer FROM faqs WHERE status='published' ORDER BY sort_order`);
+---
+<BaseLayout
+  title="تعرفه‌های طراحی سایت و پکیج‌ها | کافه‌دانش"
+  description="قیمت شفاف و ثابت پکیج‌های کافه‌دانش: استارتر ۱۵ میلیون، حرفه‌ای ۱۹ میلیون، فروشگاهی ۴۰ میلیون و پروژه‌های اختصاصی از ۷۰ میلیون تومان."
+  activePath="/pricing"
+  schema={[{
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'خانه', item: '/' },
+      { '@type': 'ListItem', position: 2, name: 'تعرفه‌ها', item: '/pricing' },
+    ],
+  }]}
+>
+  <PageHero
+    title="پکیج‌های طراحی سایت"
+    sub="قیمت شفاف و ثابت؛ بدون هزینه پنهان. دامنهٔ کار هر پکیج دقیقاً مشخص است: تعداد صفحات، زمان تحویل و مدت پشتیبانی رایگان."
+    crumbs={[{ label: 'تعرفه‌ها', href: '' }]}
+  />
+  <section class="sec">
+    <div class="container">
+      <div class="plan-grid">
+        {plans.map((p, i) => {
+          const feats = Array.isArray(p.features) ? (p.features as string[]) : [];
+          const notes = ['هر صفحه با ساختار استاندارد سئو و ریسپانسیو کامل تحویل می‌شود.', 'برجسته‌شدن این پکیج به‌معنای ادعای برتری نیست؛ تجربه نشان داده بیشترین نیازها را پوشش می‌دهد.', 'پنل مدیریت فروشگاه همراه با آموزش کامل تحویل داده می‌شود.', 'پس از تحلیل نیازها، پروپوزال مکتوب و شفاف ارائه می‌شود.'];
+          return (
+            <div class={`plan-card ${p.highlighted ? 'highlight' : ''}`} data-reveal style={`--rd:${i * 60}ms`}>
+              {p.highlighted ? <span class="plan-badge">پیشنهاد ما</span> : p.badge ? <span class="plan-badge" style="background:var(--ink);color:var(--gold-2)">{p.badge}</span> : null}
+              <h3>{p.title}</h3>
+              <div class="plan-desc">{p.description}</div>
+              <div class="plan-price">{p.price}</div>
+              <div class="plan-note">{p.price_note}</div>
+              <ul class="plan-feats">
+                {feats.map((f) => <li><i>✓</i> {f}</li>)}
+              </ul>
+              <div class="plan-footnote">{notes[i] || ''}</div>
+              <a href={`/consult?plan=${encodeURIComponent(String(p.title))}`} class={`btn btn-block ${p.highlighted ? 'btn-gold' : 'btn-ghost'}`}>{p.cta_text}</a>
+            </div>
+          );
+        })}
+      </div>
+      <div class="pf-note" style="margin-top:32px">
+        💡 هزینه پروژه‌های اختصاصی پس از جلسهٔ نیازسنجی رایگان و تعیین محدودهٔ کار (تعداد صفحات، قابلیت‌های فنی و حجم محتوا) قیمت‌گذاری می‌شود.
+      </div>
+    </div>
+  </section>
+  <section class="sec sec-cream" style="padding-top:56px">
+    <div class="container">
+      <div class="sec-head center" data-reveal>
+        <span class="section-label">پرسش‌های رایج درباره قیمت</span>
+        <h2>قبل از انتخاب پکیج بخوانید</h2>
+      </div>
+      <div class="faq-list">
+        {faqs.slice(0, 4).map((f) => (
+          <details class="faq-item" data-reveal>
+            <summary><span class="fq-ico">+</span> {f.question}</summary>
+            <div class="fq-body">{f.answer}</div>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

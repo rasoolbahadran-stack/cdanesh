@@ -1,0 +1,32 @@
+---
+/* هیروی صفحات داخلی: بردکرامب + عنوان + توضیح */
+interface Props {
+  title: string;
+  sub?: string;
+  crumbs?: { label: string; href: string }[];
+  meta?: string[];
+}
+const { title, sub, crumbs = [], meta = [] } = Astro.props;
+---
+<section class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="مسیر صفحه">
+      <a href="/">خانه</a>
+      {crumbs.map((c) => (
+        <span style="display:contents">
+          <span class="bc-sep">›</span>
+          {c.href ? <a href={c.href}>{c.label}</a> : <span>{c.label}</span>}
+        </span>
+      ))}
+      <span class="bc-sep">›</span>
+      <span aria-current="page">{title}</span>
+    </nav>
+    <h1 class="anim-up">{title}</h1>
+    {sub ? <p class="ph-sub">{sub}</p> : null}
+    {meta.length ? (
+      <div class="page-meta-row">
+        {meta.map((m) => <span>{m}</span>)}
+      </div>
+    ) : null}
+  </div>
+</section>

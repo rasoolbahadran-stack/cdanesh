@@ -1,0 +1,86 @@
+---
+/* چیدمان پایهٔ عمومی — سئوی کامل: متا، OG، Twitter، Canonical، Schema.org */
+import '../styles/site.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { getSiteSettings } from '../lib/seed';
+
+export interface SeoProps {
+  title: string;
+  description: string;
+  ogImage?: string;
+  noIndex?: boolean;
+  schema?: Record<string, unknown>[];
+}
+
+interface Props extends SeoProps {
+  activePath?: string;
+}
+
+const { title, description, ogImage, noIndex, schema = [], activePath = '' } = Astro.props;
+const settings = await getSiteSettings();
+const seo = settings.seo;
+const finalOg = (ogImage || seo.ogImage).startsWith('http') ? (ogImage || seo.ogImage) : Astro.site?.origin + (ogImage || seo.ogImage);
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
+
+/* Schema سازمان — روی همهٔ صفحات */
+const orgSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'کافه‌دانش',
+  alternateName: settings.identity.brandEn,
+  url: Astro.site?.href || '/',
+  logo: (Astro.site?.origin || '') + '/img/logo.svg',
+  description: seo.defaultDescription,
+  email: settings.contact.email,
+  telephone: '+98' + settings.contact.phone.slice(1),
+  address: { '@type': 'PostalAddress', addressLocality: 'بوشهر', streetAddress: settings.contact.address, addressCountry: 'IR' },
+};
+
+const allSchema = [orgSchema, ...schema];
+---
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="theme-color" content="#171208" />
+    {noIndex ? <meta name="robots" content="noindex, nofollow" /> : null}
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/img/logo.svg" />
+    <link rel="apple-touch-icon" href="/img/logo-180.png" />
+
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/Vazirmatn-Regular.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/Vazirmatn-ExtraBold.woff2" crossorigin />
+
+    <meta property="og:site_name" content="کافه‌دانش" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fa_IR" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={finalOg} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={finalOg} />
+
+    {allSchema.map((s) => <script type="application/ld+json" set:html={JSON.stringify(s)} />)}
+    <script is:inline>document.documentElement.classList.add('js');</script>
+  </head>
+  <body>
+    <a href="#main" class="sr-only">پرش به محتوای اصلی</a>
+    <Header settings={settings} activePath={activePath} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer settings={settings} />
+    <button class="to-top" aria-label="بازگشت به بالا">↑</button>
+    <script>
+      import '../scripts/site';
+    </script>
+  </body>
+</html>

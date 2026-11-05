@@ -1,0 +1,24 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import EntityAdmin from '../../components/admin/EntityAdmin.astro';
+
+const config = {
+  entity: 'categories',
+  title: 'دسته‌بندی‌ها',
+  help: 'دسته‌بندی مقالات مجله؛ حذف دسته، مقالات را بدون دسته می‌کند ولی خودشان حذف نمی‌شوند.',
+  columns: [
+    { key: 'name', label: 'نام دسته' },
+    { key: 'slug', label: 'اسلاگ' },
+    { key: 'sort_order', label: 'ترتیب', type: 'num' },
+  ],
+  fields: [
+    { key: 'name', label: 'نام دسته', type: 'text', required: true },
+    { key: 'slug', label: 'اسلاگ', type: 'text', hint: 'انگلیسی و بدون فاصله' },
+    { key: 'description', label: 'توضیح', type: 'textarea', full: true },
+    { key: 'sort_order', label: 'ترتیب', type: 'number' },
+  ],
+};
+---
+<AdminLayout title="دسته‌بندی‌ها" crumb="مدیریت محتوا › دسته‌بندی‌ها">
+  <EntityAdmin config={config} />
+</AdminLayout>

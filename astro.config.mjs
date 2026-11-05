@@ -1,24 +1,25 @@
+// ==========================================================================
+ // کافه‌دانش (CDANESH STUDIO) — پیکربندی Astro
+ // آداپتور: روی Vercel → @astrojs/vercel (SSR) | محلی/سندباکس → Node standalone
+ // ==========================================================================
 import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
 import vercel from '@astrojs/vercel';
 
-// https://astro.build/config
-// format: 'directory' → هر صفحه در پوشهٔ خودش (blog/index.html) ساخته می‌شود؛
-// نتیجه: آدرس‌ها بدون پسوند .html — مثلاً cdanesh.ir/blog
-// adapter + output:'static' → همهٔ صفحات استاتیک prerender می‌شوند؛
-// فقط صفحاتی که در ابتدای‌شان prerender=false دارند (مجله، مقاله، نقشهٔ سایت)
-// سمت سرور رندر می‌شوند تا مقالات منتشرشدهٔ ابری همیشه و برای گوگل هم دیده شوند.
+const isVercel = !!process.env.VERCEL || process.env.DEPLOY_TARGET === 'vercel';
+
 export default defineConfig({
   site: 'https://cdanesh.ir',
-  output: 'static',
-  /* maxDuration: 60 → سقف زمان اجرای هر تابع سروری ۶۰ ثانیه؛
-     بدون این، پیش‌فرض پلن رایگان ۱۰ ثانیه است و ذخیرهٔ بزرگ پنل
-     (شروع سرد تابع + چند رفت‌وبرگشت به Blob) گاهی همان‌جا 504 می‌شود. */
-  adapter: vercel({ maxDuration: 60 }),
-  build: { format: 'directory' },
-  trailingSlash: 'ignore',
-  /* checkOrigin باید خاموش باشد: روی ورسل، بازسازی Origin از هدرهای x-forwarded
-     با Origin واقعی مرورگر نمی‌خواند و همهٔ آپلودهای multipart (کتابخانه رسانه)
-     را با خطای 403 «Cross-site POST form submissions are forbidden» می‌بندد.
-     امنیت APIها با کوکی امضاشدهٔ HMAC + محدودیت نرخ خودمان تامین می‌شود. */
-  security: { checkOrigin: false },
+  output: 'server',
+  trailingSlash: 'never',
+  adapter: isVercel ? vercel() : node({ mode: 'standalone' }),
+  server: {
+    port: 3000,
+    host: true,
+  },
+  devToolbar: { enabled: false },
+  compressHTML: true,
+  vite: {
+    optimizeDeps: { exclude: ['@electric-sql/pglite'] },
+  },
 });

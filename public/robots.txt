@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /admin
-Disallow: /admin-login
+Disallow: /api/
+Disallow: /admin/
 
 Sitemap: https://cdanesh.ir/sitemap.xml

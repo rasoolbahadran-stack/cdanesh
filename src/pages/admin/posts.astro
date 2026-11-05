@@ -1,0 +1,39 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import EntityAdmin from '../../components/admin/EntityAdmin.astro';
+import { q } from '../../lib/db';
+
+const newMessages = 0;
+const cats = await q<{ id: number; name: string }>('SELECT id, name FROM categories ORDER BY sort_order');
+const config = {
+  entity: 'posts',
+  title: 'مقالات',
+  help: 'مقالات مجله کافه‌دانش. هر مقاله با پیش‌نویس شروع می‌شود و بعد از انتشار در سایت و فید مجله ظاهر می‌شود؛ ذخیره‌سازی واقعی در دیتابیس انجام می‌شود.',
+  columns: [
+    { key: 'cover_image', label: 'تصویر', type: 'thumb' },
+    { key: 'title', label: 'عنوان' },
+    { key: 'slug', label: 'اسلاگ' },
+    { key: 'status', label: 'وضعیت', type: 'badge' },
+    { key: 'published_at', label: 'تاریخ انتشار', type: 'date' },
+  ],
+  fields: [
+    { key: 'title', label: 'عنوان مقاله', type: 'text', required: true, placeholder: 'مثلاً سئو تکنیکال چیست؟' },
+    { key: 'slug', label: 'اسلاگ اختصاصی', type: 'text', hint: 'خالی بگذارید تا از عنوان ساخته شود' },
+    { key: 'excerpt', label: 'چکیده مقاله', type: 'textarea', full: true, hint: 'در کارت مقاله و توضیحات متا استفاده می‌شود' },
+    { key: 'content', label: 'بدنه مقاله', type: 'editor', hint: 'ساختار H2 و H3، فهرست‌ها، نقل‌قول و دکمهٔ CTA را از نوار ابزار اضافه کنید' },
+    { key: 'cover_image', label: 'تصویر شاخص', type: 'image' },
+    { key: 'category_id', label: 'دسته‌بندی', type: 'select-dyn' },
+    { key: 'tags', label: 'برچسب‌ها', type: 'lines', hint: 'هر برچسب در یک خط' },
+    { key: 'author', label: 'نویسنده', type: 'text' },
+    { key: 'status', label: 'وضعیت', type: 'select', options: ['published', 'draft'], labels: ['منتشرشده', 'پیش‌نویس'] },
+    { key: 'featured', label: 'مقاله شاخص', type: 'checkbox', hint: 'اولویت نمایش' },
+    { key: 'reading_time', label: 'مدت مطالعه (دقیقه)', type: 'number' },
+    { key: 'published_at', label: 'تاریخ انتشار', type: 'datetime' },
+    { key: 'seo_title', label: 'عنوان سئو', type: 'text' },
+    { key: 'seo_description', label: 'توضیح سئو', type: 'textarea' },
+  ],
+};
+---
+<AdminLayout title="مدیریت مقالات" crumb="مدیریت محتوا › مجله" newMessages={newMessages}>
+  <EntityAdmin config={config} dynOptions={{ category_id: cats.map((c) => ({ value: String(c.id), label: c.name })) }} />
+</AdminLayout>

@@ -1,0 +1,33 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import EntityAdmin from '../../components/admin/EntityAdmin.astro';
+
+const config = {
+  entity: 'services',
+  title: 'خدمات',
+  help: 'هشت خدمت اصلی سایت. هر خدمت صفحه اختصاصی دارد (/services/اسلاگ) و در صفحهٔ اصلی، مگامنو و فوتر استفاده می‌شود.',
+  columns: [
+    { key: 'image', label: 'تصویر', type: 'thumb' },
+    { key: 'title', label: 'عنوان' },
+    { key: 'slug', label: 'اسلاگ' },
+    { key: 'status', label: 'وضعیت', type: 'badge' },
+    { key: 'sort_order', label: 'ترتیب', type: 'num' },
+  ],
+  fields: [
+    { key: 'title', label: 'عنوان خدمت', type: 'text', required: true },
+    { key: 'slug', label: 'اسلاگ', type: 'text' },
+    { key: 'icon', label: 'آیکون', type: 'text', hint: 'نام آیکون: building, cart, gauge, layout, search, pen, shield, spark' },
+    { key: 'short_desc', label: 'توضیح کوتاه', type: 'textarea', full: true },
+    { key: 'features', label: 'امکانات خدمت', type: 'lines', hint: 'هر مورد در یک خط' },
+    { key: 'content', label: 'محتوای صفحه خدمت', type: 'editor' },
+    { key: 'image', label: 'تصویر خدمت', type: 'image' },
+    { key: 'status', label: 'وضعیت', type: 'select', options: ['published', 'draft'], labels: ['منتشرشده', 'پیش‌نویس'] },
+    { key: 'sort_order', label: 'ترتیب', type: 'number' },
+    { key: 'seo_title', label: 'عنوان سئو', type: 'text' },
+    { key: 'seo_description', label: 'توضیح سئو', type: 'textarea' },
+  ],
+};
+---
+<AdminLayout title="مدیریت خدمات" crumb="بخش‌های سایت › خدمات">
+  <EntityAdmin config={config} />
+</AdminLayout>

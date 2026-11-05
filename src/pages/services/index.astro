@@ -1,0 +1,66 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import { q } from '../../lib/db';
+
+const services = await q(`SELECT slug, title, short_desc, icon, features, image FROM services WHERE status='published' ORDER BY sort_order`);
+---
+<BaseLayout
+  title="همه خدمات کافه‌دانش | طراحی سایت، سئو، محتوا و هوش مصنوعی"
+  description="مرور کامل خدمات استودیو دیجیتال کافه‌دانش: طراحی سایت شرکتی و فروشگاهی، UI/UX، سئو تکنیکال، تولید محتوا، سرعت، پشتیبانی و هوش مصنوعی."
+  activePath="/services"
+  schema={[{
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'خانه', item: '/' },
+      { '@type': 'ListItem', position: 2, name: 'خدمات', item: '/services' },
+    ],
+  }]}
+>
+  <PageHero
+    title="خدمات کافه‌دانش"
+    sub="هشت خدمت تخصصی در یک تیم واحد؛ هر خدمت صفحه اختصاصی و محتوای کامل خودش را دارد و می‌توانید هر کدام را مستقل سفارش دهید یا ترکیبی سفارش بدهید."
+    crumbs={[{ label: 'خدمات', href: '' }]}
+  />
+  <section class="sec">
+    <div class="container">
+      <div class="grid-4">
+        {services.map((s, i) => {
+          const feats = Array.isArray(s.features) ? (s.features as string[]) : [];
+          return (
+            <a href={`/services/${s.slug}`} class="svc-card" data-reveal style={`--rd:${(i % 4) * 60}ms`}>
+              <div class="svc-thumb">
+                <img src={String(s.image)} alt={`خدمت ${s.title}`} width="1152" height="864" loading="lazy" />
+              </div>
+              <div class="svc-body">
+                <h3>{s.title}</h3>
+                <p>{s.short_desc}</p>
+                <div style="font-size:12.5px;color:var(--mut-light);display:flex;flex-direction:column;gap:4px">
+                  {feats.slice(0, 3).map((f) => <span>✓ {f}</span>)}
+                </div>
+                <span class="svc-link">جزئیات خدمت <i>←</i></span>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+  <section class="sec sec-dark" style="padding-block:64px">
+    <div class="container">
+      <div class="cta-band" data-reveal="zoom">
+        <div class="cta-inner">
+          <div>
+            <h2>کدام خدمت به درد کسب‌وکار شما می‌خورد؟</h2>
+            <p>در جلسه رایگان، وضعیت شما را بررسی می‌کنیم و صادقانه می‌گوییم کدام خدمت واقعاً ارزش سرمایه‌گذاری دارد.</p>
+          </div>
+          <div class="cta-actions">
+            <a href="/consult" class="btn btn-gold btn-lg">درخواست مشاوره رایگان</a>
+            <a href="/pricing" class="btn btn-ghost-light">دیدن تعرفه‌ها</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

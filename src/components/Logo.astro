@@ -1,0 +1,14 @@
+---
+/* لوگوی کافه‌دانش — مارک گرادیانی طلایی با متن دوزبانه */
+interface Props {
+  size?: 'md' | 'sm';
+}
+const { size = 'md' } = Astro.props;
+---
+<a href="/" class="logo" aria-label="کافه‌دانش — صفحه اصلی">
+  <span class="logo-mark" style={size === 'sm' ? 'width:36px;height:36px;font-size:16px' : ''}>ک</span>
+  <span>
+    <b>کافه‌دانش</b>
+    <small>CDANESH STUDIO</small>
+  </span>
+</a>

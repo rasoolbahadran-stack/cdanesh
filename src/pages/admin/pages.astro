@@ -1,0 +1,33 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import EntityAdmin from '../../components/admin/EntityAdmin.astro';
+
+const newMessages = 0;
+
+const config = {
+  entity: 'pages',
+  title: 'صفحات',
+  help: 'صفحات ثابت سایت را از این‌جا مدیریت کنید. صفحات سیستمی (درباره ما، تماس، مشاوره، حریم خصوصی، شرایط استفاده) را حذف نکنید؛ چون در منو و فوتر لینک شده‌اند.',
+  columns: [
+    { key: 'featured_image', label: 'تصویر', type: 'thumb' },
+    { key: 'title', label: 'عنوان' },
+    { key: 'slug', label: 'اسلاگ' },
+    { key: 'status', label: 'وضعیت', type: 'badge' },
+    { key: 'updated_at', label: 'آخرین ویرایش', type: 'date' },
+  ],
+  fields: [
+    { key: 'title', label: 'عنوان صفحه', type: 'text', required: true, placeholder: 'مثلاً درباره ما' },
+    { key: 'slug', label: 'آدرس صفحه (اسلاگ)', type: 'text', hint: 'خالی بگذارید تا از عنوان ساخته شود؛ مثلاً about' },
+    { key: 'excerpt', label: 'توضیح کوتاه', type: 'textarea', full: true, hint: 'زیر عنوان صفحه نمایش داده می‌شود' },
+    { key: 'content', label: 'محتوای صفحه', type: 'editor' },
+    { key: 'featured_image', label: 'تصویر شاخص', type: 'image' },
+    { key: 'status', label: 'وضعیت انتشار', type: 'select', options: ['published', 'draft'], labels: ['منتشرشده', 'پیش‌نویس'] },
+    { key: 'sort_order', label: 'ترتیب نمایش', type: 'number' },
+    { key: 'seo_title', label: 'عنوان سئو (Meta Title)', type: 'text', hint: 'حداکثر ۶۰ کاراکتر' },
+    { key: 'seo_description', label: 'توضیح سئو (Meta Description)', type: 'textarea', hint: '۱۴۰ تا ۱۶۰ کاراکتر' },
+  ],
+};
+---
+<AdminLayout title="مدیریت صفحات" crumb="مدیریت محتوا › صفحات" newMessages={newMessages}>
+  <EntityAdmin config={config} />
+</AdminLayout>

@@ -1,0 +1,80 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="رسانه‌ها" crumb="مدیریت محتوا › کتابخانه تصاویر">
+  <div class="info-strip">
+    <span>ℹ️</span>
+    <span>تصاویر روی <b>پایگاه ذخیره‌سازی پایدار</b> نگهداری می‌شوند (در تولید: Vercel Blob) و آدرسشان هرگز تغییر نمی‌کند.</span>
+  </div>
+  <div class="panel">
+    <div class="panel-head">
+      <h2>🖼 کتابخانه رسانه</h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="file" id="media-file" accept="image/webp,image/png,image/jpeg,image/gif,image/svg+xml" style="display:none" />
+        <button class="btn btn-gold btn-sm" id="media-upload" type="button">＋ بارگذاری تصویر</button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="media-grid" id="media-grid"></div>
+      <div id="media-empty" class="empty-state"><div class="big">🖼</div>هنوز تصویری بارگذاری نشده است</div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const { api, toast, confirmDlg } = window.CDA;
+      const grid = document.getElementById('media-grid');
+      const empty = document.getElementById('media-empty');
+      const fileInput = document.getElementById('media-file');
+
+      async function load() {
+        const j = await api('/api/admin/media');
+        grid.innerHTML = '';
+        const items = Array.isArray(j.data) ? j.data : [];
+        empty.style.display = items.length ? 'none' : 'block';
+        items.forEach((m) => {
+          const el = document.createElement('div');
+          el.className = 'media-item';
+          el.innerHTML = `
+            <img src="${m.url}" alt="${m.alt || m.filename}" loading="lazy" />
+            <div class="mi-name">${m.filename}</div>
+            <button class="mi-del" title="حذف">🗑</button>
+            <button class="btn btn-ghost btn-sm" data-copy title="کپی آدرس" style="margin:6px;position:absolute;inset-inline-end:6px;top:6px">📋</button>`;
+          el.querySelector('[data-copy]').addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await navigator.clipboard.writeText(m.url);
+            toast('آدرس تصویر کپی شد');
+          });
+          el.querySelector('.mi-del').addEventListener('click', (e) => {
+            e.stopPropagation();
+            confirmDlg('این تصویر برای همیشه حذف شود؟', async () => {
+              const r = await api(`/api/admin/media?id=${m.id}`, 'DELETE');
+              if (r.ok) { toast(r.message || 'حذف شد'); load(); } else toast(r.message || 'حذف ناموفق بود', 'err');
+            });
+          });
+          el.addEventListener('click', () => {
+            window.open(m.url, '_blank');
+          });
+          grid.appendChild(el);
+        });
+      }
+
+      document.getElementById('media-upload').addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', async () => {
+        if (!fileInput.files?.length) return;
+        const fd = new FormData();
+        fd.append('file', fileInput.files[0]);
+        toast('در حال بارگذاری…');
+        try {
+          const res = await fetch('/api/admin/media', { method: 'POST', body: fd });
+          const j = await res.json();
+          if (j.ok) { toast(j.message || 'تصویر بارگذاری شد'); load(); }
+          else toast(j.message || 'بارگذاری ناموفق بود', 'err');
+        } catch { toast('خطای شبکه', 'err'); }
+        fileInput.value = '';
+      });
+
+      load();
+    });
+  </script>
+</AdminLayout>

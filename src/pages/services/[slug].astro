@@ -1,0 +1,105 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import { q } from '../../lib/db';
+import { siteUrl } from '../../lib/seo';
+
+interface ServiceRow {
+  id: number;
+  title: string;
+  slug: string;
+  short_desc: string;
+  content: string;
+  features: unknown;
+  image: string;
+  seo_title: string;
+  seo_description: string;
+}
+
+const { slug } = Astro.params;
+const service = await q<ServiceRow>(
+  'SELECT id, title, slug, short_desc, content, features, image, seo_title, seo_description FROM services WHERE slug = $1 AND status = $2',
+  [String(slug), 'published'],
+).then((r) => r[0] ?? null);
+
+if (!service) return Astro.redirect('/404', 302);
+
+const others = await q<ServiceRow>('SELECT slug, title, short_desc FROM services WHERE status = $1 AND slug != $2 ORDER BY sort_order LIMIT 3', ['published', service.slug]);
+const features = Array.isArray(service.features) ? (service.features as string[]) : [];
+
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: service.title,
+    description: service.short_desc,
+    image: siteUrl(service.image),
+    provider: { '@type': 'Organization', name: 'کافه‌دانش', url: siteUrl('/') },
+    areaServed: 'ایران',
+    url: siteUrl(`/services/${service.slug}`),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'خانه', item: '/' },
+      { '@type': 'ListItem', position: 2, name: 'خدمات', item: '/services' },
+      { '@type': 'ListItem', position: 3, name: service.title, item: siteUrl(`/services/${service.slug}`) },
+    ],
+  },
+];
+---
+<BaseLayout
+  title={service.seo_title || service.title}
+  description={service.seo_description || service.short_desc}
+  activePath="/services"
+  schema={schema}
+>
+  <PageHero
+    title={service.title}
+    sub={service.short_desc}
+    crumbs={[{ label: 'خدمات', href: '/services' }, { label: service.title, href: '' }]}
+  />
+  <section class="sec">
+    <div class="container">
+      <div style="display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:start" class="svc-detail-grid">
+        <div class="prose-fa" data-reveal set:html={service.content} />
+        <aside data-reveal="left" style="position:sticky;top:110px">
+          <div class="form-panel" style="padding:24px">
+            <h3 style="font-size:16.5px">امکانات این خدمت</h3>
+            <ul class="plan-feats" style="margin-bottom:18px">
+              {features.map((f) => <li><i>✓</i> {f}</li>)}
+            </ul>
+            <a href={`/consult?service=${encodeURIComponent(service.title)}`} class="btn btn-gold btn-block">درخواست این خدمت</a>
+            <a href="/pricing" class="btn btn-ghost btn-block" style="margin-top:10px">مشاهده تعرفه‌ها</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+  <section class="sec sec-cream" style="padding-top:56px">
+    <div class="container">
+      <div class="sec-head" data-reveal>
+        <span class="section-label">خدمات مرتبط</span>
+        <h2>ممکن است به این‌ها هم نیاز داشته باشید</h2>
+      </div>
+      <div class="grid-3">
+        {others.map((s, i) => (
+          <a href={`/services/${s.slug}`} class="svc-card" data-reveal style={`--rd:${i * 70}ms`}>
+            <div class="svc-body">
+              <h3>{s.title}</h3>
+              <p>{s.short_desc}</p>
+              <span class="svc-link">جزئیات خدمت <i>←</i></span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+<style>
+  @media (max-width: 900px) {
+    .svc-detail-grid { grid-template-columns: 1fr !important; }
+    .svc-detail-grid aside { position: static !important; }
+  }
+</style>

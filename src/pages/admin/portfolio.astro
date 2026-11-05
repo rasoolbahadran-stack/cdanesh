@@ -1,0 +1,35 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import EntityAdmin from '../../components/admin/EntityAdmin.astro';
+
+const config = {
+  entity: 'projects',
+  title: 'نمونه‌کارها',
+  help: 'پروژه‌های نمایشی سایت. برچسب‌ها به‌شکل فیلتر در صفحهٔ نمونه‌کارها ظاهر می‌شوند.',
+  columns: [
+    { key: 'cover_image', label: 'تصویر', type: 'thumb' },
+    { key: 'title', label: 'عنوان' },
+    { key: 'category', label: 'دسته' },
+    { key: 'status', label: 'وضعیت', type: 'badge' },
+    { key: 'sort_order', label: 'ترتیب', type: 'num' },
+  ],
+  fields: [
+    { key: 'title', label: 'عنوان پروژه', type: 'text', required: true },
+    { key: 'slug', label: 'اسلاگ', type: 'text' },
+    { key: 'category', label: 'دستهٔ نمایش', type: 'text', hint: 'مثلاً فروشگاهی، شرکتی، هوش مصنوعی' },
+    { key: 'summary', label: 'توضیح کوتاه', type: 'textarea', full: true },
+    { key: 'content', label: 'شرح پروژه', type: 'editor' },
+    { key: 'cover_image', label: 'تصویر کاور', type: 'image' },
+    { key: 'tags', label: 'برچسب‌ها', type: 'lines', hint: 'هر برچسب در یک خط' },
+    { key: 'url', label: 'لینک پروژه (در صورت وجود)', type: 'text' },
+    { key: 'note', label: 'یادداشت شفافیت', type: 'text', hint: 'مثلاً: نمونه مفهومی ساختهٔ خود ما' },
+    { key: 'status', label: 'وضعیت', type: 'select', options: ['published', 'draft'], labels: ['منتشرشده', 'پیش‌نویس'] },
+    { key: 'sort_order', label: 'ترتیب', type: 'number' },
+    { key: 'seo_title', label: 'عنوان سئو', type: 'text' },
+    { key: 'seo_description', label: 'توضیح سئو', type: 'textarea' },
+  ],
+};
+---
+<AdminLayout title="نمونه‌کارها" crumb="بخش‌های سایت › نمونه‌کارها">
+  <EntityAdmin config={config} />
+</AdminLayout>

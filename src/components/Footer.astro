@@ -1,54 +1,52 @@
-<!-- فوتر سایت — کامپوننت مشترک (Astro) -->
-<footer class="footer">
-  <div class="wrap">
+---
+/* فوتر کامل استاندارد: برند + سه ستون لینک + راه‌های ارتباطی + نوار پایین */
+import Logo from './Logo.astro';
+import type { SiteSettings } from '../lib/seed/settings-data';
+
+interface Props {
+  settings: SiteSettings;
+}
+const { settings } = Astro.props;
+const f = settings.footer;
+const c = settings.contact;
+---
+<footer class="site-footer">
+  <div class="container">
     <div class="footer-grid">
       <div class="footer-brand">
-        <a class="brand" href="/"><span class="brand-mark" aria-hidden="true"><img src="/assets/img/logo.svg" alt="" loading="eager"></span><span class="brand-name">کافه‌دانش<small>CDANESH STUDIO</small></span></a>
-        <p>استودیو دیجیتال کافه‌دانش؛ طراحی سایت، سئو و راهکارهای هوشمند برای رشد واقعی کسب‌وکار شما.</p>
-        <a class="btn btn-gold" href="/request">درخواست مشاوره رایگان</a>
+        <Logo />
+        <p>{f.aboutText}</p>
+        <a href="/consult" class="btn btn-gold btn-sm">درخواست مشاوره رایگان</a>
       </div>
-      <div class="footer-col">
-        <b>خدمات</b>
+      <div>
+        <h4>خدمات</h4>
         <ul>
-          <li><a href="/web-design">طراحی سایت</a></li>
-          <li><a href="/seo">سئو و بهینه‌سازی</a></li>
-          <li><a href="/content-production">تولید محتوا</a></li>
-          <li><a href="/ai-solutions">هوش مصنوعی و اتوماسیون</a></li>
+          {f.colServices.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
         </ul>
       </div>
-      <div class="footer-col">
-        <b>دسترسی سریع</b>
+      <div>
+        <h4>دسترسی سریع</h4>
         <ul>
-          <li><a href="/portfolio">نمونه‌کارها</a></li>
-          <li><a href="/blog">مجله مقالات</a></li>
-          <li><a href="/#pricing">تعرفه‌ها</a></li>
-          <li><a href="/faq">سؤالات متداول</a></li>
-          <li><a href="/about">درباره ما</a></li>
-          <li><a href="/contact">تماس با ما</a></li>
-          <li><a href="/request">ثبت درخواست خدمات</a></li>
+          {f.colQuick.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
         </ul>
       </div>
-      <div class="footer-col">
-        <b>راه‌های ارتباطی</b>
-        <ul>
-          <li><a href="/contact">فرم تماس و اطلاعات تماس</a></li>
-          <li><a href="/request">درخواست مشاوره رایگان</a></li>
-          <li><a href="mailto:info@cdanesh.ir" dir="ltr">info@cdanesh.ir</a></li>
-          <li><a href="tel:+989165806207" dir="ltr">۰۹۱۶ ۵۸۰ ۶۲۰۷</a></li>
-          <li><a href="https://github.com/rasoolbahadran-stack" target="_blank" rel="noopener" dir="ltr">GitHub</a></li>
+      <div>
+        <h4>راه‌های ارتباطی</h4>
+        <ul class="footer-contact">
+          <li><i>📍</i> {c.address}</li>
+          <li><i>✉️</i> <a href={`mailto:${c.email}`}>{c.email}</a></li>
+          <li><i>📞</i> <a href={`tel:+98${c.phone.slice(1)}`}>{c.phoneDisplay}</a></li>
+          <li><i>🕘</i> {c.hours}</li>
+          {c.github ? <li><i>💻</i> <a href={c.github} target="_blank" rel="noopener">GitHub</a></li> : null}
         </ul>
       </div>
     </div>
-    <div class="footer-contact">
-      <div class="fc-links">
-        <a href="/privacy">حریم خصوصی</a>
-        <a href="/terms">شرایط استفاده</a>
-      </div>
-      <a href="mailto:info@cdanesh.ir" dir="ltr">info@cdanesh.ir</a>
-      <a href="tel:+989165806207" dir="ltr">۰۹۱۶ ۵۸۰ ۶۲۰۷</a>
-      <span>بوشهر، خیابان شهید رجایی</span>
+    <div class="footer-bottom">
+      <span>{f.copyright}</span>
+      <span>
+        <a href="/privacy">حریم خصوصی</a> · <a href="/terms">شرایط استفاده</a>
+        {settings.identity.designer ? <span style="margin-inline-start:10px">طراحی و اجرا: <a href="/" style="margin-inline:2px">{settings.identity.designer}</a></span> : null}
+      </span>
     </div>
-    <div class="footer-copy">© <span class="js-year">۱۴۰۵</span> کافه‌دانش — تمامی حقوق محفوظ است.<span class="fc-credit">طراحی و اجرا: <a href="https://github.com/rasoolbahadran-stack" target="_blank" rel="noopener" dir="ltr">Rasool Bahadoran</a></span></div>
   </div>
-  <div class="footer-mark" aria-hidden="true">کافه‌دانش</div>
 </footer>

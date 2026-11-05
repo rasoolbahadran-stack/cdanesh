@@ -1,101 +1,21 @@
 ---
-import SiteLayout from '../layouts/SiteLayout.astro';
-const title = "درباره کافه‌دانش | کافه‌دانش";
-const description = "آشنایی با استودیو دیجیتال کافه‌دانش: نگاه، تخصص‌ها و شیوه کار ما در پروژه‌های دیجیتال.";
-const canonical = "https://cdanesh.ir/about";
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import { q } from '../lib/db';
+
+const page = await q(`SELECT * FROM pages WHERE system_key='about' AND status='published'`).then((r) => r[0] ?? null);
+if (!page) return Astro.redirect('/404', 302);
 ---
-
-<SiteLayout title={title} description={description} canonical={canonical}>
-<!-- ═══ هیرو درباره ما ═══ -->
-<section class="page-hero">
-  <div class="wrap">
-    <nav class="breadcrumb" aria-label="مسیر صفحه">
-      <a href="/">خانه</a>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
-      <span>درباره ما</span>
-    </nav>
-    <span class="eyebrow">درباره کافه‌دانش</span>
-    <h1 class="h1">تیم کوچک با <span class="gold">استانداردهای بزرگ</span></h1>
-    <p class="lead">کافه‌دانش یک استودیوی دیجیتال است که روی سه چیز تمرکز دارد: طراحی مهندسی‌شده، محتوای واقعی و شفافیت با مشتری.</p>
-  </div>
-</section>
-
-<section class="section-tight">
-  <div class="wrap">
-    <div class="split">
-      <div class="prose">
-        <h2>داستان ما</h2>
-        <p>کافه‌دانش از یک مشاهده ساده شروع شد: بیشتر کسب‌وکارها بین «طراح سایت»، «کارشناس سئو» و «نویسنده محتوا» سرگردان‌اند؛ هرکدام بخشی از کار را می‌کنند، هیچ‌کس کل مسیر را پاسخگو نیست و نتیجه، سایت‌هایی است که ظاهر دارند اما نتیجه نمی‌سازند.</p>
-        <p>ما تصمیم گرفتیم کل زنجیره را زیر یک سقف بیاوریم: از طراحی سایت اختصاصی و UI/UX تا سئوی تکنیکال، تولید محتوای تخصصی و ابزارهای هوش مصنوعی کاربردی. وقتی همه این‌ها را یک تیم و با یک زبان مشترک انجام می‌دهد، نتیجه منسجم‌تر و هزینه ارتباطی شما کمتر است.</p>
-        <h2>نگاه ما به کار</h2>
-        <ul class="check-list">
-          <li><strong>شفافیت قبل از تبلیغ:</strong> چیزی که انجام نمی‌دهیم را هم صادقانه می‌گوییم؛ مثل تضمین رتبه اول گوگل.</li>
-          <li><strong>مهندسی به‌جای ظاهرسازی:</strong> هر تصمیم طراحی باید یک دلیل کاربردی داشته باشد.</li>
-          <li><strong>تحویل مرحله‌ای:</strong> پیشرفت پروژه قابل دیدن است، نه پنهان پشت «به‌زودی آماده می‌شود».</li>
-          <li><strong>ابزار، نه شعار:</strong> هوش مصنوعی را جایی به کار می‌بریم که واقعاً کار را سریع‌تر کند — با بازبینی انسانی.</li>
-        </ul>
-        <h2>چه کارهایی می‌کنیم</h2>
-        <p>طراحی سایت حرفه‌ای و اختصاصی، سایت شرکتی/خدماتی/فروشگاهی، برنامه‌نویسی و توسعه وب، طراحی UI/UX، سئو تکنیکال و محتوایی، تولید مقالات تخصصی، استراتژی و تقویم محتوایی، ساخت دستیارهای هوشمند و ابزارهای AI، خودکارسازی فرایندها و پشتیبانی و توسعه مداوم. فهرست کامل با جزئیات در <a href="/#services" style="color:var(--gold)">صفحه خدمات</a> آمده است.</p>
-        <h2>چه کارهایی نمی‌کنیم</h2>
-        <p>قالب آماده را با اسم شما نمی‌فروشیم، رتبه گوگل تضمین نمی‌کنیم، محتوای بدون تحقیق تحویل نمی‌دهیم و قابلیتی را که نداریم، «داریم» جلوه نمی‌دهیم. این فهرست کوتاه، دلیل اعتماد بلندمدت مشتریان به یک تیم است.</p>
-      </div>
-      <aside>
-        <div class="aside-card">
-          <b>در یک نگاه</b>
-          <div class="plan-list">
-            <div class="plan-row"><span><b>۸</b><span>خدمت تخصصی</span></span></div>
-            <div class="plan-row"><span><b>۴</b><span>حوزه تخصصی: طراحی، سئو، محتوا، هوش مصنوعی</span></span></div>
-            <div class="plan-row"><span><b>۸</b><span>ابزار هوشمند محتوا</span></span></div>
-            <div class="plan-row"><span><b>۶</b><span>مرحله فرایند شفاف</span></span></div>
-          </div>
-        </div>
-        <div class="aside-card" style="background:linear-gradient(150deg,rgba(227,185,83,.14),rgba(227,185,83,.04)); border-color:rgba(227,185,83,.35)">
-          <b>گفت‌وگو کنیم؟</b>
-          <p class="muted" style="font-size:13.5px; margin-bottom:14px">جلسه اول مشاوره رایگان است — ایده‌تان را می‌شنویم و مسیر را با هم می‌چینیم.</p>
-          <a class="btn btn-gold btn-block" href="/request">درخواست مشاوره</a>
-        </div>
-      </aside>
+<BaseLayout
+  title={String(page.seo_title) || String(page.title)}
+  description={String(page.seo_description) || String(page.excerpt)}
+  activePath="/about"
+>
+  <PageHero title={String(page.title)} sub={String(page.excerpt)} crumbs={[{ label: 'درباره ما', href: '' }]} />
+  <section class="sec">
+    <div class="container" style="max-width:980px">
+      <img src="/img/about-studio.webp" alt="استودیو دیجیتال کافه‌دانش" width="1152" height="864" style="border-radius:26px;box-shadow:var(--shadow-card);margin-bottom:36px" data-reveal="zoom" fetchpriority="high" />
+      <div class="prose-fa" data-reveal set:html={String(page.content)} />
     </div>
-  </div>
-</section>
-
-<!-- ═══ بنیان‌گذار ═══ -->
-<section class="section-tight" id="founder">
-  <div class="wrap">
-    <div class="founder-card reveal">
-      <div class="founder-head">
-        <img class="founder-avatar founder-photo" src="/assets/img/founder-rasool.webp" alt="رسول بهادران — بنیان‌گذار و طراح کافه‌دانش" width="112" height="112" loading="lazy" />
-        <div class="founder-id">
-          <span class="eyebrow">بنیان‌گذار استودیو کافه‌دانش</span>
-          <h2>رسول بهادران</h2>
-          <p class="founder-role">طراح و توسعه‌دهنده وب‌سایت | Web Designer</p>
-        </div>
-      </div>
-      <p class="founder-bio">طراحی و پیاده‌سازی وب‌سایت‌های مدرن، حرفه‌ای و کاربرپسند با تمرکز بر رابط کاربری (UI)، تجربه کاربری (UX)، سئو و عملکرد بهینه.</p>
-      <div class="founder-meta">
-        <a class="founder-chip" href="tel:+989165806207"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3A19.5 19.5 0 0 1 5.2 13 19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.4 2.1L8 10a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.7 2Z"/></svg><span dir="ltr">۰۹۱۶ ۵۸۰ ۶۲۰۷</span></a>
-        <a class="founder-chip" href="https://www.cdanesh.ir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg><span dir="ltr">www.cdanesh.ir</span></a>
-        <a class="founder-chip" href="https://github.com/rasoolbahadran-stack" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg><span dir="ltr">GitHub — rasoolbahadran-stack</span></a>
-        <span class="founder-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg><span>بوشهر، خیابان شهید رجایی</span></span>
-      </div>
-      <p class="founder-credit">طراحی و اجرای این وب‌سایت: <b dir="ltr">Rasool Bahadoran</b></p>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ CTA ═══ -->
-<section class="section-tight">
-  <div class="wrap">
-    <div class="cta-banner reveal">
-      <div>
-        <h2>پروژه بعدی ما، پروژه شماست؟</h2>
-        <p>از یک گفت‌وگوی هدفمند برای شناخت نیازها و تعیین مسیر همکاری شروع کنیم.</p>
-      </div>
-      <div class="cta-actions">
-        <a class="btn btn-dark btn-lg" href="/request">شروع گفت‌وگو</a>
-        <a class="btn btn-ghost btn-lg" href="/portfolio" style="border-color:rgba(34,25,3,.3); color:#171208">نمونه‌کارها</a>
-      </div>
-    </div>
-  </div>
-</section>
-</SiteLayout>
+  </section>
+</BaseLayout>

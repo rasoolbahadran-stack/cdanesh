@@ -1,0 +1,339 @@
+---
+/* کامپوننت عمومی مدیریت موجودیت‌ها: فهرست + فرم مودال + CRUD کامل با ذخیره واقعی */
+interface FieldDef {
+  key: string;
+  label: string;
+  type: 'text' | 'textarea' | 'number' | 'select' | 'select-dyn' | 'checkbox' | 'image' | 'lines' | 'editor' | 'datetime';
+  required?: boolean;
+  hint?: string;
+  placeholder?: string;
+  full?: boolean;
+  options?: string[];
+  labels?: string[];
+}
+interface ColDef {
+  key: string;
+  label: string;
+  type?: 'text' | 'badge' | 'thumb' | 'date' | 'num' | 'short';
+}
+interface Props {
+  config: {
+    entity: string;
+    title: string;
+    help?: string;
+    columns: ColDef[];
+    fields: FieldDef[];
+  };
+  dynOptions?: Record<string, { value: string; label: string }[]>;
+}
+const { config, dynOptions = {} } = Astro.props;
+const fullConfig = { ...config, dynOptions };
+---
+<div class="info-strip" style="margin-bottom:4px">
+  <span>ℹ️</span>
+  <span>{config.help || `همهٔ تغییرات این بخش مستقیم در دیتابیس ذخیره می‌شود و بلافاصله روی سایت اعمال خواهد شد.`}</span>
+</div>
+<div class="panel">
+  <div class="panel-head">
+    <h2>{config.title}</h2>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="search" id="ent-search" placeholder="جست‌وجو…" style="border:1.5px solid var(--a-line);border-radius:10px;padding:7px 14px;font-family:inherit;font-size:12.5px" />
+      <button class="btn btn-gold btn-sm" id="ent-add" type="button">＋ افزودن {config.title}</button>
+    </div>
+  </div>
+  <div class="table-scroll">
+    <table class="admin-table" id="ent-table">
+      <thead>
+        <tr>
+          {config.columns.map((c) => <th>{c.label}</th>)}
+          <th style="width:150px">عملیات</th>
+        </tr>
+      </thead>
+      <tbody><tr><td colspan="9" class="empty-state"><div class="big">⏳</div>در حال بارگذاری…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-scrim" id="ent-modal">
+  <div class="modal" style="width:min(900px,100%)">
+    <div class="modal-head">
+      <h3 id="ent-modal-title">ویرایش</h3>
+      <button class="btn btn-ghost btn-sm" data-close type="button">بستن ✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="ent-form">
+        <div class="form-grid" id="ent-fields"></div>
+        <div class="form-msg" style="display:none;margin-top:14px"></div>
+        <div class="form-actions" style="margin-top:18px">
+          <button type="submit" class="btn btn-gold" id="ent-save">ذخیره در دیتابیس</button>
+          <button type="button" class="btn btn-ghost" data-close>انصراف</button>
+          <span id="ent-save-status" style="font-size:12px;color:var(--a-muted)"></span>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script define:vars={{ fullConfig }}>
+  document.addEventListener('DOMContentLoaded', () => {
+    const { api, toast, confirmDlg, openMediaPicker, initEditor, linesToArray, arrayToLines, faNum } = window.CDA;
+    const cfg = fullConfig;
+    let items = [];
+    let editingId = null;
+    let editor = null;
+    let autoTimer = null;
+    let dirty = false;
+
+    const table = document.getElementById('ent-table');
+    const tbody = table.querySelector('tbody');
+    const modal = document.getElementById('ent-modal');
+    const form = document.getElementById('ent-form');
+    const fieldsWrap = document.getElementById('ent-fields');
+    const msgBox = form.querySelector('.form-msg');
+    const saveStatus = document.getElementById('ent-save-status');
+    const searchInput = document.getElementById('ent-search');
+
+    /* ---------- بارگذاری فهرست ---------- */
+    async function load() {
+      const j = await api(`/api/admin/${cfg.entity}?limit=200`);
+      if (!j.ok) { toast(j.message || 'بارگذاری ناموفق بود', 'err'); return; }
+      items = Array.isArray(j.data) ? j.data : [];
+      render(items);
+    }
+
+    function badgeClass(v) {
+      if (v === 'published') return 'badge-pub';
+      if (v === 'draft') return 'badge-draft';
+      if (v === 'new') return 'badge-new';
+      if (v === 'archived') return 'badge-arch';
+      return 'badge-gold';
+    }
+    const badgeLabel = { published: 'منتشرشده', draft: 'پیش‌نویس', new: 'جدید', read: 'خوانده‌شده', replied: 'پاسخ‌داده', archived: 'بایگانی' };
+
+    function render(list) {
+      tbody.innerHTML = '';
+      if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="9" class="empty-state"><div class="big">🗂</div>هیچ موردی ثبت نشده است؛ با دکمهٔ «افزودن» اولین مورد را بسازید.</td></tr>`;
+        return;
+      }
+      list.forEach((item) => {
+        const tr = document.createElement('tr');
+        cfg.columns.forEach((c) => {
+          const td = document.createElement('td');
+          const v = item[c.key];
+          if (c.type === 'badge') {
+            td.innerHTML = `<span class="badge ${badgeClass(v)}">${badgeLabel[v] || v || '—'}</span>`;
+          } else if (c.type === 'thumb') {
+            td.innerHTML = v ? `<img class="thumb-sm" src="${v}" alt="" loading="lazy" />` : '<span style="color:var(--a-muted)">—</span>';
+          } else if (c.type === 'short') {
+            td.textContent = v ? String(v).slice(0, 60) + (String(v).length > 60 ? '…' : '') : '—';
+          } else if (c.type === 'date') {
+            try {
+              td.textContent = v ? new Intl.DateTimeFormat('fa-IR-u-ca-persian', { dateStyle: 'medium' }).format(new Date(v)) : '—';
+            } catch { td.textContent = '—'; }
+          } else if (c.type === 'num') {
+            td.textContent = faNum(v ?? 0);
+          } else {
+            td.textContent = v ?? '—';
+          }
+          tr.appendChild(td);
+        });
+        const act = document.createElement('td');
+        act.innerHTML = `
+          <div style="display:flex;gap:5px">
+            <button class="btn btn-ghost btn-icon" data-edit title="ویرایش">✏️</button>
+            <button class="btn btn-ghost btn-icon" data-view title="نمایش در سایت">👁</button>
+            <button class="btn btn-danger btn-icon" data-del title="حذف">🗑</button>
+          </div>`;
+        act.querySelector('[data-edit]').addEventListener('click', () => openEditor(item));
+        act.querySelector('[data-view]').addEventListener('click', () => openPreview(item));
+        act.querySelector('[data-del]').addEventListener('click', () => {
+          confirmDlg('«' + (item.title || item.name || item.question || item.id) + '» برای همیشه حذف شود؟', async () => {
+            const r = await api(`/api/admin/${cfg.entity}/${item.id}`, 'DELETE');
+            if (r.ok) { toast(r.message || 'حذف شد'); load(); } else toast(r.message || 'حذف ناموفق بود', 'err');
+          });
+        });
+        tr.appendChild(act);
+        tbody.appendChild(tr);
+      });
+    }
+
+    function previewUrl(item) {
+      if (cfg.entity === 'pages') return '/page/' + item.slug;
+      if (cfg.entity === 'posts') return '/blog/' + item.slug;
+      if (cfg.entity === 'services') return '/services/' + item.slug;
+      if (cfg.entity === 'projects') return '/portfolio/' + item.slug;
+      return '/admin';
+    }
+    function openPreview(item) {
+      if ((item.status || '') === 'draft') {
+        toast('این مورد پیش‌نویس است؛ بعد از انتشار در سایت نمایش داده می‌شود', 'err');
+        return;
+      }
+      window.open(previewUrl(item), '_blank');
+    }
+
+    /* ---------- ساخت فرم از پیکربندی ---------- */
+    function fieldHtml(f, value) {
+      const full = f.full ? 'full' : '';
+      const req = f.required ? '<span class="req">*</span>' : '';
+      switch (f.type) {
+        case 'textarea':
+          return `<div class="form-field ${full}"><label>${f.label} ${req}</label><textarea name="${f.key}" data-ft="${f.type}" placeholder="${f.placeholder || ''}">${value ?? ''}</textarea>${f.hint ? `<span class="hint">${f.hint}</span>` : ''}</div>`;
+        case 'lines':
+          return `<div class="form-field ${full}"><label>${f.label} ${req}</label><textarea name="${f.key}" data-ft="${f.type}" placeholder="${f.placeholder || 'هر مورد در یک خط'}">${arrayToLines(value)}</textarea>${f.hint ? `<span class="hint">${f.hint}</span>` : ''}</div>`;
+        case 'select': {
+          const opts = (f.options || []).map((o, i) => `<option value="${o}" ${String(value ?? '') === o ? 'selected' : ''}>${(f.labels || [])[i] || o}</option>`).join('');
+          return `<div class="form-field ${full}"><label>${f.label} ${req}</label><select name="${f.key}" data-ft="${f.type}">${opts}</select>${f.hint ? `<span class="hint">${f.hint}</span>` : ''}</div>`;
+        }
+        case 'select-dyn': {
+          const opts = (cfg.dynOptions[f.key] || []).map((o) => `<option value="${o.value}" ${String(value ?? '') === String(o.value) ? 'selected' : ''}>${o.label}</option>`).join('');
+          return `<div class="form-field ${full}"><label>${f.label} ${req}</label><select name="${f.key}" data-ft="${f.type}">${opts}</select>${f.hint ? `<span class="hint">${f.hint}</span>` : ''}</div>`;
+        }
+        case 'checkbox':
+          return `<div class="form-field ${full}"><label>${f.label}</label><label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" name="${f.key}" data-ft="${f.type}" ${value ? 'checked' : ''} style="width:18px;height:18px" /> فعال</label>${f.hint ? `<span class="hint">${f.hint}</span>` : ''}</div>`;
+        case 'image':
+          return `<div class="form-field ${full}"><label>${f.label} ${req}</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input name="${f.key}" data-ft="${f.type}" value="${value ?? ''}" placeholder="/uploads/… یا آدرس کامل" style="direction:ltr;text-align:left" />
+              <button type="button" class="btn btn-ghost btn-sm" data-pick="${f.key}">انتخاب 🖼</button>
+            </div>
+            <img data-preview="${f.key}" src="${value ?? ''}" alt="" style="max-width:220px;border-radius:10px;margin-top:6px;display:${value ? 'block' : 'none'};border:1px solid var(--a-line)" />${f.hint ? `<span class="hint">${f.hint}</span>` : ''}</div>`;
+        case 'number':
+          return `<div class="form-field"><label>${f.label} ${req}</label><input name="${f.key}" data-ft="${f.type}" type="number" value="${value ?? 0}" />${f.hint ? `<span class="hint">${f.hint}</span>` : ''}</div>`;
+        case 'datetime': {
+          let iso = '';
+          if (value) { const d = new Date(value); if (!isNaN(d)) { d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); iso = d.toISOString().slice(0, 16); } }
+          return `<div class="form-field"><label>${f.label} ${req}</label><input name="${f.key}" data-ft="${f.type}" type="datetime-local" value="${iso}" />${f.hint ? `<span class="hint">${f.hint}</span>` : ''}</div>`;
+        }
+        default:
+          return `<div class="form-field ${full}"><label>${f.label} ${req}</label><input name="${f.key}" data-ft="${f.type}" value="${value ?? ''}" placeholder="${f.placeholder || ''}" />${f.hint ? `<span class="hint">${f.hint}</span>` : ''}</div>`;
+      }
+    }
+
+    function buildForm(item) {
+      fieldsWrap.innerHTML = cfg.fields.map((f) => fieldHtml(f, item ? item[f.key] : undefined)).join('');
+      /* فیلد ویرایشگر انتهای فرم — خارج از گرید */
+      const edField = cfg.fields.find((f) => f.type === 'editor');
+      if (edField) {
+        const wrap = document.createElement('div');
+        wrap.className = 'form-field full';
+        wrap.innerHTML = `<label>${edField.label} <span class="req">*</span></label><div id="ent-editor"></div><span class="hint">${edField.hint || 'ویرایشگر فارسی RTL؛ تغییرات با ذخیره‌سازی خودکار محفوظ می‌شود'}</span>`;
+        fieldsWrap.appendChild(wrap);
+        editor = initEditor('ent-editor', item ? (item[edField.key] || '') : '');
+        editor.onChange(() => { dirty = true; markDirty(); });
+      }
+      /* پیش‌نمایش تصویر */
+      fieldsWrap.querySelectorAll('[data-pick]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const key = btn.dataset.pick;
+          openMediaPicker((url) => {
+            const input = fieldsWrap.querySelector(`[name="${key}"]`);
+            input.value = url;
+            const img = fieldsWrap.querySelector(`[data-preview="${key}"]`);
+            if (img) { img.src = url; img.style.display = 'block'; }
+            dirty = true;
+          });
+        });
+      });
+      fieldsWrap.querySelectorAll('input, textarea, select').forEach((el) => {
+        el.addEventListener('input', () => { dirty = true; markDirty(); });
+        el.addEventListener('change', () => { dirty = true; markDirty(); });
+      });
+    }
+
+    function markDirty() {
+      saveStatus.textContent = '● تغییرات ذخیره‌نشده';
+      saveStatus.style.color = 'var(--a-amber)';
+      if (autoTimer) clearTimeout(autoTimer);
+      if (editingId) {
+        autoTimer = setTimeout(() => doSave(true), 15000);
+      }
+    }
+
+    /* ---------- جمع‌آوری مقادیر ---------- */
+    function collect() {
+      const out = {};
+      form.querySelectorAll('[data-ft]').forEach((el) => {
+        const f = cfg.fields.find((x) => x.key === el.name);
+        if (!f) return;
+        const ft = el.dataset.ft;
+        if (ft === 'checkbox') out[f.key] = el.checked;
+        else if (ft === 'number') out[f.key] = Number(el.value || 0);
+        else if (ft === 'lines') out[f.key] = linesToArray(el.value);
+        else if (ft === 'editor') { /* از ویرایشگر گرفته می‌شود */ }
+        else if (ft === 'select-dyn') out[f.key] = el.value ? Number(el.value) : null;
+        else if (ft === 'datetime') out[f.key] = el.value ? new Date(el.value).toISOString() : null;
+        else out[f.key] = el.value;
+      });
+      const edField = cfg.fields.find((x) => x.type === 'editor');
+      if (edField && editor) out[edField.key] = editor.getHtml();
+      return out;
+    }
+
+    /* ---------- ذخیره ---------- */
+    async function doSave(auto = false) {
+      const data = collect();
+      const missing = cfg.fields.find((f) => f.required && (!data[f.key] || (typeof data[f.key] === 'string' && data[f.key].trim().length < 2)));
+      if (missing && !(auto && missing.type === 'editor')) {
+        msgBox.style.cssText = 'display:block;background:var(--a-red-soft);color:var(--a-red);border-radius:10px;padding:10px 14px';
+        msgBox.textContent = `«${missing.label}» الزامی است`;
+        return false;
+      }
+      if (auto && editingId && dirty === false) return true;
+
+      saveStatus.textContent = auto ? '⏳ ذخیره خودکار…' : '⏳ در حال ذخیره…';
+      saveStatus.style.color = 'var(--a-muted)';
+      const r = editingId
+        ? await api(`/api/admin/${cfg.entity}/${editingId}`, 'PUT', data)
+        : await api(`/api/admin/${cfg.entity}`, 'POST', data);
+      if (r.ok) {
+        dirty = false;
+        saveStatus.textContent = '✓ ذخیره شد در دیتابیس — ' + new Intl.DateTimeFormat('fa-IR', { hour: '2-digit', minute: '2-digit' }).format(new Date());
+        saveStatus.style.color = 'var(--a-green)';
+        toast(r.message || 'ذخیره شد');
+        if (!editingId && r.data && r.data.id) {
+          editingId = r.data.id;
+          document.getElementById('ent-modal-title').textContent = 'ویرایش ' + cfg.title;
+        }
+        load();
+        return true;
+      }
+      saveStatus.textContent = '✕ ذخیره نشد';
+      saveStatus.style.color = 'var(--a-red)';
+      msgBox.style.cssText = 'display:block;background:var(--a-red-soft);color:var(--a-red);border-radius:10px;padding:10px 14px';
+      msgBox.textContent = r.message || 'ذخیره ناموفق بود';
+      toast(r.message || 'ذخیره ناموفق بود', 'err');
+      return false;
+    }
+
+    /* ---------- رویدادها ---------- */
+    document.getElementById('ent-add').addEventListener('click', () => {
+      editingId = null;
+      document.getElementById('ent-modal-title').textContent = 'افزودن ' + cfg.title;
+      buildForm(null);
+      msgBox.style.display = 'none';
+      saveStatus.textContent = '';
+      modal.classList.add('open');
+    });
+    function openEditor(item) {
+      editingId = item.id;
+      document.getElementById('ent-modal-title').textContent = 'ویرایش: ' + (item.title || item.name || item.question || '#' + item.id);
+      buildForm(item);
+      msgBox.style.display = 'none';
+      saveStatus.textContent = '';
+      dirty = false;
+      modal.classList.add('open');
+    }
+    modal.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => modal.classList.remove('open')));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
+    form.addEventListener('submit', async (e) => { e.preventDefault(); await doSave(false); });
+
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.trim().toLowerCase();
+      render(items.filter((i) => JSON.stringify(Object.values(i)).toLowerCase().includes(q)));
+    });
+
+    load();
+  });
+</script>

@@ -1,21 +1,26 @@
-# build output
-dist/
-# generated types
-.astro/
-
-# dependencies
+# deps / build
 node_modules/
+dist/
+.astro/
+.pgdata/
 
-# logs
-npm-debug.log*
-
-# environment variables
+# محیطی
 .env
-.env.production
+.env.*
+!.env.example
 
-# macOS
+# لاگ‌ها
+dev.log
+server.log
+*.log
+
+# آپلود محلی رسانه
+public/uploads/*
+!public/uploads/.gitkeep
+
+# سیستم
 .DS_Store
-
-# vercel build output (should never be committed)
-.vercel/
-.env.local
+tool-results/
+workspace/
+agent-ctx/
+.zscripts/

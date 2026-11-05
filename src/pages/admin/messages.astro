@@ -1,0 +1,78 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { q } from '../../lib/db';
+import { faNum } from '../../lib/persian';
+
+const messages = await q(`SELECT * FROM messages ORDER BY created_at DESC LIMIT 200`);
+const newCount = messages.filter((m) => m.status === 'new').length;
+const typeLabel = { contact: 'پیام تماس', consult: 'درخواست مشاوره', plan: 'درخواست پکیج' };
+---
+<AdminLayout title="پیام‌ها و درخواست‌های مشاوره" crumb="ارتباط › صندوق ورودی" newMessages={newCount}>
+  <div class="info-strip">
+    <span>ℹ️</span>
+    <span>پیام‌های فرم‌های تماس و مشاورهٔ سایت این‌جا جمع می‌شوند و <b>دائمی</b> هستند؛ تا خواندن یا بایگانی کنید.</span>
+  </div>
+  <div class="panel">
+    <div class="panel-head">
+      <h2>📥 صندوق ورودی ({faNum(messages.length)} پیام — {faNum(newCount)} جدید)</h2>
+    </div>
+    <div class="table-scroll">
+      <table class="admin-table" id="msg-table" style="min-width:760px">
+        <thead>
+          <tr><th>فرستنده</th><th>نوع</th><th>متن پیام</th><th>تاریخ</th><th>وضعیت</th><th style="width:210px">عملیات</th></tr>
+        </thead>
+        <tbody>
+          {messages.length === 0 ? (
+            <tr><td colspan="6" class="empty-state"><div class="big">📭</div>هنوز پیامی دریافت نشده است</td></tr>
+          ) : (
+            messages.map((m) => (
+              <tr data-id={m.id}>
+                <td class="row-title">
+                  <b>{m.name}</b>
+                  <small>{m.phone}</small>
+                  {m.email ? <small>{m.email}</small> : null}
+                  {m.company ? <small>{m.company}</small> : null}
+                </td>
+                <td><span class="badge badge-gold">{typeLabel[m.type] || m.type}</span>{m.plan_title ? <div style="font-size:11px;color:var(--a-muted);margin-top:4px">{m.plan_title}</div> : null}</td>
+                <td style="max-width:280px;font-size:12.5px">{m.message}</td>
+                <td style="font-size:11.5px;white-space:nowrap">{new Intl.DateTimeFormat('fa-IR-u-ca-persian', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(String(m.created_at)))}</td>
+                <td><span class={`msg-status badge ${m.status === 'new' ? 'badge-new' : m.status === 'read' ? 'badge-gold' : m.status === 'replied' ? 'badge-pub' : 'badge-arch'}`}>{m.status === 'new' ? 'جدید' : m.status === 'read' ? 'خوانده‌شده' : m.status === 'replied' ? 'پاسخ‌داده' : 'بایگانی'}</span></td>
+                <td>
+                  <div style="display:flex;gap:5px;flex-wrap:wrap">
+                    <button class="btn btn-ghost btn-sm" data-status="read" title="علامت‌گذاری خوانده‌شده">👁</button>
+                    <button class="btn btn-ghost btn-sm" data-status="replied" title="علامت‌گذاری پاسخ‌داده">✓</button>
+                    <button class="btn btn-ghost btn-sm" data-status="archived" title="بایگانی">📦</button>
+                    <button class="btn btn-danger btn-sm" data-del title="حذف">🗑</button>
+                  </div>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const { api, toast, confirmDlg } = window.CDA;
+      document.querySelectorAll('#msg-table tr[data-id]').forEach((tr) => {
+        const id = tr.dataset.id;
+        tr.querySelectorAll('[data-status]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const r = await api(`/api/admin/messages/${id}`, 'PATCH', { status: btn.dataset.status });
+            if (r.ok) { toast(r.message || 'ثبت شد'); window.location.reload(); }
+            else toast(r.message || 'عملیات ناموفق بود', 'err');
+          });
+        });
+        tr.querySelector('[data-del]').addEventListener('click', () => {
+          confirmDlg('این پیام برای همیشه حذف شود؟', async () => {
+            const r = await api(`/api/admin/messages/${id}`, 'DELETE');
+            if (r.ok) { toast(r.message || 'حذف شد'); window.location.reload(); }
+            else toast(r.message || 'حذف ناموفق بود', 'err');
+          });
+        });
+      });
+    });
+  </script>
+</AdminLayout>
