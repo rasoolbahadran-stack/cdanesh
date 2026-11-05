@@ -310,7 +310,7 @@ window.CDA = { api, toast, confirmDlg, openMediaPicker, initEditor, linesToArray
     const scrim = document.querySelector('.side-scrim');
     if (!layout) return;
     const saved = localStorage.getItem('cd_side') || 'open';
-    if (saved === 'collapsed' && window.innerWidth > 1080) layout.classList.add('side-collapsed');
+    if (saved === 'collapsed' && window.innerWidth > 640) layout.classList.add('side-collapsed');
     toggle?.addEventListener('click', () => {
       const collapsed = layout.classList.toggle('side-collapsed');
       localStorage.setItem('cd_side', collapsed ? 'collapsed' : 'open');
