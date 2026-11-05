@@ -21,7 +21,6 @@ const { slug } = Astro.params;
 const project = await q<ProjectRow>("SELECT * FROM projects WHERE slug = $1 AND status = $2 AND slug NOT IN ('cdanesh-galaxy-source', 'cdanesh-galaxe', 'smart-gadget-store', 'mahpoosh-store', 'simba-beauty-store', 'karino-job-portal-astro', 'novinroshd-agency', 'smarto-astro', 'shoes-store', 'maison-mehr-astro', 'bazarino-astro')", [String(slug), 'published']).then((r) => r[0] ?? null);
 if (!project) return Astro.redirect('/404', 302);
 
-const others = await q<ProjectRow>('SELECT slug, title, summary, cover_image, category FROM projects WHERE status = $1 AND slug != $2 AND slug NOT IN (${demoSlugs.map(s=>`'${s}'`).join(, ['published', project.slug]);
 const others = await q<ProjectRow>("SELECT slug, title, summary, cover_image, category FROM projects WHERE status = $1 AND slug != $2 AND slug NOT IN ('cdanesh-galaxy-source', 'cdanesh-galaxe', 'smart-gadget-store', 'mahpoosh-store', 'simba-beauty-store', 'karino-job-portal-astro', 'novinroshd-agency', 'smarto-astro', 'shoes-store', 'maison-mehr-astro', 'bazarino-astro') ORDER BY sort_order LIMIT 2", ['published', project.slug]);
 
 const schema = [
