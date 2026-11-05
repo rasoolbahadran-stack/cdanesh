@@ -118,7 +118,7 @@ export async function runSeed(): Promise<void> {
           const record = value as Record<string, unknown>;
           return `{${Object.keys(record).sort().map((key) => `${JSON.stringify(key)}:${stableJson(record[key])}`).join(',')}}`;
         }
-        return JSON.stringify(value);
+        return JSON.stringify(value) ?? 'undefined';
       };
       const replaceArrayExact = (sectionName: string, key: string, oldValue: unknown[], newValue: unknown[]) => {
         const section = nextSettings[sectionName] as Record<string, unknown>;
