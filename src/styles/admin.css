@@ -262,3 +262,33 @@ body.admin-body img { max-width: 100%; display: block; }
   .stats-row { grid-template-columns: 1fr; }
   .stats-row { gap: 10px; }
 }
+
+
+/* ---------- تثبیت جایگاه سایدبار در سمت راست در چیدمان RTL ---------- */
+.admin-layout {
+  direction: rtl;
+  grid-template-columns: 252px minmax(0, 1fr);
+}
+.admin-layout.side-collapsed {
+  grid-template-columns: 76px minmax(0, 1fr);
+}
+.admin-layout > .admin-side {
+  grid-column: 1;
+  grid-row: 1;
+}
+.admin-layout > .admin-main {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+}
+@media (max-width: 1080px) {
+  .admin-layout,
+  .admin-layout.side-collapsed {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .admin-layout > .admin-side,
+  .admin-layout > .admin-main {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}
