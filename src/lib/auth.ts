@@ -8,13 +8,21 @@
      فرانت‌اند جایگزین احراز هویت سرور نیست.
    ========================================================================== */
 import crypto from 'node:crypto';
-import { envOr } from './env';
-
 const COOKIE_NAME = 'cd_admin';
 const SESSION_MS = 1000 * 60 * 60 * 12; // ۱۲ ساعت
 
+function configuredPasswordHash(): string {
+  const hash = process.env.ADMIN_PASSWORD_HASH || '';
+  if (hash) return hash;
+
+  /* سازگاری با تنظیم قبلی Vercel: اگر هش تعریف نشده، رمز خامِ ذخیره‌شده
+     به‌صورت امن در زمان اجرا به SHA-256 تبدیل می‌شود؛ مقدار آن هرگز لاگ نمی‌شود. */
+  const legacyPassword = process.env.ADMIN_PASSWORD || '';
+  return legacyPassword ? sha256(legacyPassword) : '';
+}
+
 function secret(): string {
-  return process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD_HASH || 'cdanesh-dev-secret';
+  return process.env.ADMIN_SESSION_SECRET || configuredPasswordHash() || 'cdanesh-dev-secret';
 }
 
 export function sha256(s: string): string {
@@ -64,7 +72,7 @@ export interface LoginResult {
 }
 
 export function login(username: string, password: string, secureRequest: boolean): LoginResult {
-  const envHash = process.env.ADMIN_PASSWORD_HASH || '';
+  const envHash = configuredPasswordHash();
   const u = String(username || '');
   const p = String(password || '');
 
