@@ -96,7 +96,7 @@ export async function runSeed(): Promise<void> {
     if (parsedSettings && typeof parsedSettings === 'object' && !Array.isArray(parsedSettings)) {
       const stored = parsedSettings as Record<string, unknown>;
       const nextSettings: Record<string, unknown> = { ...stored };
-      for (const sectionName of ['identity', 'seo', 'footer']) {
+      for (const sectionName of ['identity', 'seo', 'footer', 'menu', 'homepage']) {
         const section = stored[sectionName];
         nextSettings[sectionName] =
           section && typeof section === 'object' && !Array.isArray(section)
@@ -108,6 +108,21 @@ export async function runSeed(): Promise<void> {
       const replaceExact = (sectionName: string, key: string, oldValue: string, newValue: string) => {
         const section = nextSettings[sectionName] as Record<string, unknown>;
         if (section[key] === oldValue) {
+          section[key] = newValue;
+          changed = true;
+        }
+      };
+      const stableJson = (value: unknown): string => {
+        if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
+        if (value && typeof value === 'object') {
+          const record = value as Record<string, unknown>;
+          return `{${Object.keys(record).sort().map((key) => `${JSON.stringify(key)}:${stableJson(record[key])}`).join(',')}}`;
+        }
+        return JSON.stringify(value);
+      };
+      const replaceArrayExact = (sectionName: string, key: string, oldValue: unknown[], newValue: unknown[]) => {
+        const section = nextSettings[sectionName] as Record<string, unknown>;
+        if (stableJson(section[key]) === stableJson(oldValue)) {
           section[key] = newValue;
           changed = true;
         }
@@ -129,6 +144,62 @@ export async function runSeed(): Promise<void> {
       replaceExact('footer', 'aboutText', 'استودیو دیجیتال کافه‌دانش؛ طراحی سایت، سئو و راهکارهای هوشمند برای رشد واقعی کسب‌وکار شما.', SETTINGS_SEED.footer.aboutText);
       replaceExact('footer', 'copyright', '© ۱۴۰۵ CDANESH STUDIO — تمامی حقوق محفوظ است.', SETTINGS_SEED.footer.copyright);
       replaceExact('footer', 'copyright', '© ۱۴۰۵ کافه‌دانش — تمامی حقوق محفوظ است.', SETTINGS_SEED.footer.copyright);
+
+      // تغییر ساختار خدمات فقط در صورتی اعمال می‌شود که تنظیمات هنوز همان پیش‌فرض قدیمی باشند.
+      // سفارشی‌سازی‌هایی که مدیر قبلاً در پنل ذخیره کرده، بدون تغییر باقی می‌مانند.
+      const legacyMegaGroups = [
+        {
+          title: 'طراحی و توسعه وب',
+          items: [
+            { label: 'طراحی سایت اختصاصی', href: '/services/company-website', desc: 'سایت سفارشی متناسب با برند و اهداف شما' },
+            { label: 'فروشگاه اینترنتی', href: '/services/ecommerce', desc: 'تجربه خرید روان با درگاه پرداخت امن' },
+            { label: 'طراحی UI/UX', href: '/services/ui-ux', desc: 'تجربه کاربری مهندسی‌شده و تمیز' },
+          ],
+        },
+        {
+          title: 'سئو و تولید محتوا',
+          items: [
+            { label: 'سئو تکنیکال و محتوایی', href: '/services/seo', desc: 'زیرساخت فنی استاندارد و رشد ارگانیک' },
+            { label: 'مقالات تخصصی و سئوشده', href: '/services/content', desc: 'محتوای ساختاریافته با تحقیق واقعی' },
+            { label: 'بهینه‌سازی سرعت', href: '/services/speed-optimization', desc: 'Core Web Vitals و تجربه سریع کاربر' },
+          ],
+        },
+        {
+          title: 'هوش مصنوعی و پشتیبانی',
+          items: [
+            { label: 'دستیارهای هوشمند', href: '/services/ai-automation', desc: 'چت‌بات و دستیار اختصاصی کسب‌وکار شما' },
+            { label: 'پشتیبانی و نگهداری سایت', href: '/services/support', desc: 'امنیت، به‌روزرسانی و همراهی مداوم' },
+            { label: 'همه خدمات', href: '/services', desc: 'مرور کامل سرویس‌های کافه دانش' },
+          ],
+        },
+      ];
+      const legacyFooterServices = [
+        { label: 'همه خدمات', href: '/services' },
+        { label: 'طراحی سایت', href: '/services/company-website' },
+        { label: 'فروشگاه اینترنتی', href: '/services/ecommerce' },
+        { label: 'سئو و بهینه‌سازی', href: '/services/seo' },
+        { label: 'تولید محتوا', href: '/services/content' },
+        { label: 'هوش مصنوعی و اتوماسیون', href: '/services/ai-automation' },
+      ];
+      const legacyHomepageCapabilities = [
+        { no: '۰۱', title: 'طراحی سایت اختصاصی', text: 'سایت شما از صفر برای برند و اهداف خودتان طراحی می‌شود؛ نه یک قالب آماده با اسم شما. نتیجه: تمایز واقعی در بازار.' },
+        { no: '۰۲', title: 'سئو تکنیکال و محتوایی', text: 'از سرعت و ساختار فنی تا انتخاب کلمه کلیدی و معماری محتوا.' },
+        { no: '۰۳', title: 'تولید محتوای تخصصی', text: 'مقالات ساختاریافته با تحقیق واقعی؛ محتوایی که هم کاربر را پاسخ می‌دهد و هم موتور جست‌وجو را.' },
+        { no: '۰۴', title: 'استراتژی و تقویم محتوایی', text: 'نقشه راه انتشار منظم؛ تا وبلاگ شما از «نوشته‌های پراکنده» به یک دارایی تبدیل شود.' },
+        { no: '۰۵', title: 'عملکرد و تجربه کاربری', text: 'سرعت، دسترس‌پذیری و روانی تعامل؛ سنجه‌هایی که هم کاربر حس می‌کند و هم گوگل اندازه می‌گیرد.' },
+        { no: '۰۶', title: 'هوش مصنوعی و اتوماسیون', text: 'دستیارهای هوشمند، ابزارهای تولید محتوا و خودکارسازی کارهای تکراری؛ با اتصال امن سمت سرور و بازبینی انسانی.' },
+        { no: '۰۷', title: 'پشتیبانی و توسعه مداوم', text: 'سایت پس از انتشار «تمام‌شده» نیست؛ نگهداری امنیتی، به‌روزرسانی و توسعه قابلیت‌های جدید ادامه مسیر.' },
+      ];
+      replaceArrayExact('menu', 'megaGroups', legacyMegaGroups, SETTINGS_SEED.menu.megaGroups);
+      replaceArrayExact('footer', 'colServices', legacyFooterServices, SETTINGS_SEED.footer.colServices);
+      replaceArrayExact('homepage', 'capabilities', legacyHomepageCapabilities, SETTINGS_SEED.homepage.capabilities);
+      replaceExact('identity', 'tagline', 'کافه دانش؛ طراحی سایت، سئو و راهکارهای هوشمند برای رشد کسب‌وکارها.', SETTINGS_SEED.identity.tagline);
+      replaceExact('seo', 'defaultTitle', 'طراحی سایت اختصاصی و سئو در بوشهر | کافه دانش', SETTINGS_SEED.seo.defaultTitle);
+      replaceExact('seo', 'defaultDescription', 'کافه دانش (Cafe Danesh): طراحی سایت اختصاصی، سئو تکنیکال و محتوایی، تولید مقالات تخصصی و راهکارهای هوش مصنوعی — همه در یک تیم.', SETTINGS_SEED.seo.defaultDescription);
+      replaceExact('footer', 'aboutText', 'کافه دانش (Cafe Danesh)؛ طراحی سایت، سئو و راهکارهای هوشمند برای رشد واقعی کسب‌وکار شما.', SETTINGS_SEED.footer.aboutText);
+      replaceExact('homepage', 'introTitle', 'سایت، محتوا و هوش مصنوعی؛ سه موتور رشد کسب‌وکار شما', SETTINGS_SEED.homepage.introTitle);
+      replaceExact('homepage', 'introText', 'سایتی که برند شما را معرفی می‌کند، محتوایی که مخاطب را می‌آورد و ابزارهایی که کارهای تکراری را حذف می‌کنند — همه را یک تیم، با یک نقشه راه و تحویل مرحله‌به‌مرحله انجام می‌دهد.', SETTINGS_SEED.homepage.introText);
+      replaceExact('homepage', 'ctaText', 'جلسه اول مشاوره رایگان است: اهداف‌تان را می‌شنویم، نیازها را مشخص می‌کنیم و مسیر پیشنهادی را برای شروع همکاری با هم می‌چینیم.', SETTINGS_SEED.homepage.ctaText);
 
 
       if (changed) {
