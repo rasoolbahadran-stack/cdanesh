@@ -13,8 +13,12 @@
   const preloader = document.getElementById('preloader');
   if (preloader) {
     const hide = () => preloader.classList.add('is-done');
-    window.addEventListener('load', () => setTimeout(hide, 250));
-    setTimeout(hide, 2200); // محدودیت اطمینان
+    // محتوای صفحه را به بارگذاری تصاویر و منابع دیررس وابسته نکن.
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', hide, { once: true });
+    } else {
+      hide();
+    }
   }
 
   /* ---------- هدر چسبان ---------- */
