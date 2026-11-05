@@ -82,6 +82,51 @@ export async function runSeed(): Promise<void> {
   const settingsRow = await q1('SELECT value FROM settings WHERE key = $1', [SETTINGS_KEY]);
   if (!settingsRow) {
     await q('INSERT INTO settings (key, value) VALUES ($1, $2)', [SETTINGS_KEY, JSON.stringify(SETTINGS_SEED)]);
+  } else {
+    // Safe one-time brand migration: update only untouched legacy seed values.
+    let parsedSettings: unknown = settingsRow.value;
+    if (typeof parsedSettings === 'string') {
+      try {
+        parsedSettings = JSON.parse(parsedSettings);
+      } catch {
+        parsedSettings = null;
+      }
+    }
+
+    if (parsedSettings && typeof parsedSettings === 'object' && !Array.isArray(parsedSettings)) {
+      const stored = parsedSettings as Record<string, unknown>;
+      const nextSettings: Record<string, unknown> = { ...stored };
+      for (const sectionName of ['identity', 'seo', 'footer']) {
+        const section = stored[sectionName];
+        nextSettings[sectionName] =
+          section && typeof section === 'object' && !Array.isArray(section)
+            ? { ...(section as Record<string, unknown>) }
+            : {};
+      }
+
+      let changed = false;
+      const replaceExact = (sectionName: string, key: string, oldValue: string, newValue: string) => {
+        const section = nextSettings[sectionName] as Record<string, unknown>;
+        if (section[key] === oldValue) {
+          section[key] = newValue;
+          changed = true;
+        }
+      };
+
+      replaceExact('identity', 'tagline', 'استودیو دیجیتال کافه‌دانش', SETTINGS_SEED.identity.tagline);
+      replaceExact('seo', 'defaultTitle', 'طراحی سایت اختصاصی و سئو در بوشهر | کافه‌دانش', SETTINGS_SEED.seo.defaultTitle);
+      replaceExact('seo', 'titlePattern', '%s | کافه‌دانش', SETTINGS_SEED.seo.titlePattern);
+      replaceExact('seo', 'defaultDescription', 'استودیو دیجیتال کافه‌دانش: طراحی سایت اختصاصی، سئو تکنیکال و محتوایی، تولید مقالات تخصصی و راهکارهای هوش مصنوعی — همه در یک تیم.', SETTINGS_SEED.seo.defaultDescription);
+      replaceExact('footer', 'aboutText', 'استودیو دیجیتال کافه‌دانش؛ طراحی سایت، سئو و راهکارهای هوشمند برای رشد واقعی کسب‌وکار شما.', SETTINGS_SEED.footer.aboutText);
+      replaceExact('footer', 'copyright', '© ۱۴۰۵ کافه‌دانش — تمامی حقوق محفوظ است.', SETTINGS_SEED.footer.copyright);
+
+      if (changed) {
+        await q(
+          'UPDATE settings SET value = $1::jsonb, updated_at = now() WHERE key = $2',
+          [JSON.stringify(nextSettings), SETTINGS_KEY],
+        );
+      }
+    }
   }
 
   /* ---------- کاربر ادمین (پروفایل) ---------- */
