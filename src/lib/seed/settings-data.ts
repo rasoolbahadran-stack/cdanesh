@@ -58,7 +58,7 @@ export const SETTINGS_SEED: SiteSettings = {
   identity: {
     brandFa: 'کافه‌دانش',
     brandEn: 'CDANESH STUDIO',
-    tagline: 'استودیو دیجیتال کافه‌دانش',
+    tagline: 'استودیو دیجیتال CDANESH STUDIO',
     logoImage: '/img/logo.svg',
     designer: 'Rasool Bahadoran',
   },
@@ -72,16 +72,17 @@ export const SETTINGS_SEED: SiteSettings = {
     mapEmbed: '',
   },
   seo: {
-    defaultTitle: 'طراحی سایت اختصاصی و سئو در بوشهر | کافه‌دانش',
-    titlePattern: '%s | کافه‌دانش',
+    defaultTitle: 'طراحی سایت اختصاصی و سئو در بوشهر | CDANESH STUDIO',
+    titlePattern: '%s | CDANESH STUDIO',
     defaultDescription:
-      'استودیو دیجیتال کافه‌دانش: طراحی سایت اختصاصی، سئو تکنیکال و محتوایی، تولید مقالات تخصصی و راهکارهای هوش مصنوعی — همه در یک تیم.',
+      'CDANESH STUDIO (کافه‌دانش): طراحی سایت اختصاصی، سئو تکنیکال و محتوایی، تولید مقالات تخصصی و راهکارهای هوش مصنوعی — همه در یک تیم.',
     ogImage: '/img/og-default.webp',
     keywords: [
       'طراحی سایت بوشهر',
       'طراحی سایت اختصاصی',
       'سئو بوشهر',
       'طراحی فروشگاه اینترنتی',
+      'CDANESH STUDIO',
       'کافه‌دانش',
       'طراحی سایت شرکتی',
     ],
@@ -125,7 +126,7 @@ export const SETTINGS_SEED: SiteSettings = {
   },
   footer: {
     aboutText:
-      'استودیو دیجیتال کافه‌دانش؛ طراحی سایت، سئو و راهکارهای هوشمند برای رشد واقعی کسب‌وکار شما.',
+      'CDANESH STUDIO (کافه‌دانش)؛ طراحی سایت، سئو و راهکارهای هوشمند برای رشد واقعی کسب‌وکار شما.',
     colServices: [
       { label: 'همه خدمات', href: '/services' },
       { label: 'طراحی سایت', href: '/services/company-website' },
@@ -149,7 +150,7 @@ export const SETTINGS_SEED: SiteSettings = {
       { label: 'info@cdanesh.ir', href: 'mailto:info@cdanesh.ir' },
       { label: '۰۹۱۶ ۵۸۰ ۶۲۰۷', href: 'tel:+989165806207' },
     ],
-    copyright: '© ۱۴۰۵ کافه‌دانش — تمامی حقوق محفوظ است.',
+    copyright: '© ۱۴۰۵ CDANESH STUDIO — تمامی حقوق محفوظ است.',
   },
   homepage: {
     introTitle: 'سایت، محتوا و هوش مصنوعی؛ سه موتور رشد کسب‌وکار شما',
@@ -208,4 +209,4 @@ export const SETTINGS_SEED: SiteSettings = {
 };
 
 export const SETTINGS_KEY = 'site';
-export const SEED_VERSION = 1;
+export const SEED_VERSION = 2;
