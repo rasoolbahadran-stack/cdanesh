@@ -12,6 +12,7 @@ export interface ProjectSeed {
   tags: string[];
   url?: string;
   note: string;
+  url?: string;
   sort_order: number;
   seo_title: string;
   seo_description: string;
