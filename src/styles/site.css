@@ -625,8 +625,9 @@ h1, h2, h3, h4, h5, h6 {
 .topbar {
   position: relative;
   z-index: 1001;
-  background: rgba(6, 10, 44, 0.35);
-  backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.10);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(6px);
   font-size: 13.5px;
   color: rgba(255, 255, 255, 0.85);
@@ -704,9 +705,15 @@ h1, h2, h3, h4, h5, h6 {
 .header.is-sticky {
   position: fixed;
   top: 0;
-  background: #fff;
-  box-shadow: 0 6px 24px rgba(1, 15, 49, 0.09);
-  animation: headerDrop 0.4s var(--ease);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 8px 28px rgba(1, 15, 49, 0.10);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  animation: headerDrop 0.35s var(--ease);
+}
+
+.header.is-sticky .header__wrap {
+  min-height: 72px;
 }
 
 @keyframes headerDrop {
@@ -1059,19 +1066,24 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .header.is-sticky {
-    background: rgba(74, 20, 154, 0.94);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    box-shadow: 0 6px 24px rgba(20, 5, 50, 0.25);
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 8px 28px rgba(1, 15, 49, 0.10);
   }
 
   .header.is-sticky .header__link,
   .header.is-sticky .header__signin {
-    color: #fff;
+    color: var(--navy);
   }
 
   .header.is-sticky .header__link:hover {
-    color: #ffd7e8;
+    color: var(--pink);
+  }
+
+  .header.is-sticky .header__burger {
+    background: var(--lavender);
+    color: var(--navy);
   }
 
   .topbar {
@@ -3813,9 +3825,34 @@ details.faq-item .fq-body {
    ═══════════════════════════════════════════════════════════ */
 .contact-grid {
   display: grid;
-  grid-template-columns: 0.9fr 1.1fr;
-  gap: 30px;
-  align-items: start;
+  grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr);
+  gap: clamp(22px, 3vw, 36px);
+  align-items: stretch;
+}
+
+.contact-grid > * {
+  min-width: 0;
+}
+
+.contact-grid > aside {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.contact-grid > aside .contact-side {
+  margin-bottom: 0;
+}
+
+.contact-grid .form-card,
+.contact-grid .form-grid .field {
+  min-width: 0;
+}
+
+.contact-grid .field input,
+.contact-grid .field select,
+.contact-grid .field textarea {
+  text-align: start;
 }
 
 @media (max-width: 1023px) {
