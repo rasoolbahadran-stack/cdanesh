@@ -193,12 +193,19 @@ export async function runSeed(): Promise<void> {
       replaceArrayExact('menu', 'megaGroups', legacyMegaGroups, SETTINGS_SEED.menu.megaGroups);
       replaceArrayExact('footer', 'colServices', legacyFooterServices, SETTINGS_SEED.footer.colServices);
       replaceArrayExact('homepage', 'capabilities', legacyHomepageCapabilities, SETTINGS_SEED.homepage.capabilities);
+      const legacyHomepageStats = [
+        { value: '۸', label: 'خدمت تخصصی در یک تیم واحد' },
+        { value: '۷', label: 'توانمندی اصلی تیم' },
+        { value: '۶', label: 'مرحلهٔ شروع همکاری' },
+      ];
+      replaceArrayExact('homepage', 'stats', legacyHomepageStats, SETTINGS_SEED.homepage.stats);
       replaceExact('identity', 'tagline', 'کافه دانش؛ طراحی سایت، سئو و راهکارهای هوشمند برای رشد کسب‌وکارها.', SETTINGS_SEED.identity.tagline);
       replaceExact('seo', 'defaultTitle', 'طراحی سایت اختصاصی و سئو در بوشهر | کافه دانش', SETTINGS_SEED.seo.defaultTitle);
       replaceExact('seo', 'defaultDescription', 'کافه دانش (Cafe Danesh): طراحی سایت اختصاصی، سئو تکنیکال و محتوایی، تولید مقالات تخصصی و راهکارهای هوش مصنوعی — همه در یک تیم.', SETTINGS_SEED.seo.defaultDescription);
       replaceExact('footer', 'aboutText', 'کافه دانش (Cafe Danesh)؛ طراحی سایت، سئو و راهکارهای هوشمند برای رشد واقعی کسب‌وکار شما.', SETTINGS_SEED.footer.aboutText);
       replaceExact('homepage', 'introTitle', 'سایت، محتوا و هوش مصنوعی؛ سه موتور رشد کسب‌وکار شما', SETTINGS_SEED.homepage.introTitle);
       replaceExact('homepage', 'introText', 'سایتی که برند شما را معرفی می‌کند، محتوایی که مخاطب را می‌آورد و ابزارهایی که کارهای تکراری را حذف می‌کنند — همه را یک تیم، با یک نقشه راه و تحویل مرحله‌به‌مرحله انجام می‌دهد.', SETTINGS_SEED.homepage.introText);
+      replaceExact('homepage', 'ctaTitle', 'برای شروع دیجیتال کسب‌وکارتان آماده‌اید؟', SETTINGS_SEED.homepage.ctaTitle);
       replaceExact('homepage', 'ctaText', 'جلسه اول مشاوره رایگان است: اهداف‌تان را می‌شنویم، نیازها را مشخص می‌کنیم و مسیر پیشنهادی را برای شروع همکاری با هم می‌چینیم.', SETTINGS_SEED.homepage.ctaText);
 
 
