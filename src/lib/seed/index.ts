@@ -130,12 +130,6 @@ export async function runSeed(): Promise<void> {
       replaceExact('footer', 'copyright', '© ۱۴۰۵ CDANESH STUDIO — تمامی حقوق محفوظ است.', SETTINGS_SEED.footer.copyright);
       replaceExact('footer', 'copyright', '© ۱۴۰۵ کافه‌دانش — تمامی حقوق محفوظ است.', SETTINGS_SEED.footer.copyright);
 
-      replaceExact('identity', 'tagline', 'استودیو دیجیتال کافه‌دانش', SETTINGS_SEED.identity.tagline);
-      replaceExact('seo', 'defaultTitle', 'طراحی سایت اختصاصی و سئو در بوشهر | کافه‌دانش', SETTINGS_SEED.seo.defaultTitle);
-      replaceExact('seo', 'titlePattern', '%s | کافه‌دانش', SETTINGS_SEED.seo.titlePattern);
-      replaceExact('seo', 'defaultDescription', 'استودیو دیجیتال کافه‌دانش: طراحی سایت اختصاصی، سئو تکنیکال و محتوایی، تولید مقالات تخصصی و راهکارهای هوش مصنوعی — همه در یک تیم.', SETTINGS_SEED.seo.defaultDescription);
-      replaceExact('footer', 'aboutText', 'استودیو دیجیتال کافه‌دانش؛ طراحی سایت، سئو و راهکارهای هوشمند برای رشد واقعی کسب‌وکار شما.', SETTINGS_SEED.footer.aboutText);
-      replaceExact('footer', 'copyright', '© ۱۴۰۵ کافه‌دانش — تمامی حقوق محفوظ است.', SETTINGS_SEED.footer.copyright);
 
       if (changed) {
         await q(
