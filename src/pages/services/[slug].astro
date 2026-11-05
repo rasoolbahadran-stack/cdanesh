@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
+import Icon from '../../components/Icon.astro';
 import { q } from '../../lib/db';
 import { siteUrl } from '../../lib/seo';
 
@@ -14,17 +15,39 @@ interface ServiceRow {
   image: string;
   seo_title: string;
   seo_description: string;
+  canonical_url?: string;
+  og_title?: string;
+  og_description?: string;
+  og_image?: string;
+  noindex?: boolean;
 }
 
 const { slug } = Astro.params;
+
+/* بیلد استاتیک: prerender همهٔ خدمات منتشرشده | بیلد سرور: SSR */
+export const prerender = !!process.env.STATIC_BUILD;
+export async function getStaticPaths() {
+  const rows = await q<{ slug: string }>(`SELECT slug FROM services WHERE status='published'`);
+  return rows.map((r) => ({ params: { slug: String(r.slug) } }));
+}
+
 const service = await q<ServiceRow>(
-  'SELECT id, title, slug, short_desc, content, features, image, seo_title, seo_description FROM services WHERE slug = $1 AND status = $2',
+  'SELECT id, title, slug, short_desc, content, features, image, seo_title, seo_description, canonical_url, og_title, og_description, og_image, noindex FROM services WHERE slug = $1 AND status = $2',
   [String(slug), 'published'],
 ).then((r) => r[0] ?? null);
 
 if (!service) return Astro.redirect('/404', 302);
 
-const others = await q<ServiceRow>(`SELECT slug, title, short_desc FROM services WHERE status = $1 AND slug IN ('company-website', 'content', 'seo') AND slug != $2 ORDER BY CASE slug WHEN 'company-website' THEN 1 WHEN 'content' THEN 2 WHEN 'seo' THEN 3 END LIMIT 2`, ['published', service.slug]);
+/* سؤالات متداول اختصاصی این خدمت از پنل مدیریت */
+const serviceFaqs = await q<{ question: string; answer: string }>(
+  `SELECT question, answer FROM faqs WHERE service_slug = $1 AND status = 'published' ORDER BY sort_order`,
+  [service.slug],
+);
+
+const others = await q<ServiceRow>(
+  `SELECT slug, title, short_desc FROM services WHERE status = $1 AND slug IN ('company-website', 'content', 'seo') AND slug != $2 ORDER BY CASE slug WHEN 'company-website' THEN 1 WHEN 'content' THEN 2 WHEN 'seo' THEN 3 END LIMIT 2`,
+  ['published', service.slug],
+);
 const features = Array.isArray(service.features) ? (service.features as string[]) : [];
 
 const schema = [
@@ -36,8 +59,19 @@ const schema = [
     image: siteUrl(service.image),
     provider: { '@type': 'Organization', name: 'کافه دانش', url: siteUrl('/') },
     areaServed: 'ایران',
-    url: siteUrl(`/services/${service.slug}`),
+    url: service.canonical_url ? String(service.canonical_url) : siteUrl(`/services/${service.slug}`),
   },
+  ...(serviceFaqs.length
+    ? [{
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: serviceFaqs.map((f) => ({
+          '@type': 'Question',
+          name: f.question,
+          acceptedAnswer: { '@type': 'Answer', text: f.answer },
+        })),
+      }]
+    : []),
   {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -60,46 +94,99 @@ const schema = [
     sub={service.short_desc}
     crumbs={[{ label: 'خدمات', href: '/services' }, { label: service.title, href: '' }]}
   />
-  <section class="sec">
+
+  <section class="section pad-half">
     <div class="container">
-      <div style="display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:start" class="svc-detail-grid">
-        <div class="prose-fa" data-reveal set:html={service.content} />
-        <aside data-reveal="left" style="position:sticky;top:110px">
-          <div class="form-panel" style="padding:24px">
-            <h3 style="font-size:16.5px">امکانات این خدمت</h3>
-            <ul class="plan-feats" style="margin-bottom:18px">
-              {features.map((f) => <li><i>✓</i> {f}</li>)}
-            </ul>
-            <a href={`/consult?service=${encodeURIComponent(service.title)}`} class="btn btn-gold btn-block">درخواست این خدمت</a>
-            <a href="/pricing" class="btn btn-ghost btn-block" style="margin-top:10px">مشاهده تعرفه‌ها</a>
-          </div>
-        </aside>
+      <div class="detail-head-img" data-reveal="zoom">
+        <img
+          src={service.image}
+          alt={`تصویر خدمت ${service.title} — کافه دانش`}
+          width="1152"
+          height="768"
+          fetchpriority="high"
+          decoding="async"
+        />
       </div>
     </div>
   </section>
-  <section class="sec sec-cream" style="padding-top:56px">
-    <div class="container">
-      <div class="sec-head" data-reveal>
-        <span class="section-label">خدمات مرتبط</span>
-        <h2>ممکن است به این‌ها هم نیاز داشته باشید</h2>
+
+  <section class="section pad-half">
+    <div class="container contact-grid">
+      <div class="prose-fa" data-reveal="right" set:html={service.content} />
+
+      <aside data-reveal="left">
+        <div class="aside-card" style="position:sticky;top:110px">
+          <h3>
+            <span style="display:inline-grid;place-items:center;color:#0c9d74;vertical-align:-4px">
+              <Icon name="check" size={19} stroke={2.4} />
+            </span>
+            امکانات این خدمت
+          </h3>
+          <ul class="duo-points mt-1 mb-2">
+            {features.map((f) => (
+              <li>
+                <Icon name="check" size={19} stroke={2.4} />
+                <span>{f}</span>
+              </li>
+            ))}
+          </ul>
+          <a href={`/consult?service=${encodeURIComponent(service.title)}`} class="btn btn--full">
+            <Icon name="send" size={16} stroke={2} />
+            درخواست این خدمت
+          </a>
+          <a href="/pricing" class="btn btn--ghost btn--full mt-1">مشاهده تعرفه‌ها</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  {serviceFaqs.length > 0 && (
+    <section class="section pad-half bg-lavender">
+      <div class="container" style="max-width:860px">
+        <div class="section-head section-head--center" data-reveal="up">
+          <span class="sub-title">
+            <Icon name="doc" size={20} stroke={2} class="sub-ico" />
+            سؤالات متداول
+          </span>
+          <h2 class="sec-title" style="font-size:clamp(22px,3vw,32px)">پرسش‌های پرتکرار دربارهٔ {service.title}</h2>
+        </div>
+        <div data-reveal="up">
+          {serviceFaqs.map((f) => (
+            <div class="faq-item">
+              <button class="faq-q" aria-expanded="false">{f.question}
+                <span class="fx" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>
+              </button>
+              <div class="faq-a"><div>{f.answer}</div></div>
+            </div>
+          ))}
+        </div>
       </div>
-      <div class="grid-3">
-        {others.map((s, i) => (
-          <a href={`/services/${s.slug}`} class="svc-card" data-reveal style={`--rd:${i * 70}ms`}>
-            <div class="svc-body">
+    </section>
+  )}
+
+  <section class="section pad-half bg-lavender">
+    <div class="container">
+      <div class="section-head section-head--center" data-reveal="up">
+        <span class="sub-title">
+          <Icon name="layers" size={20} stroke={2} class="sub-ico" />
+          خدمات مرتبط
+        </span>
+        <h2 class="sec-title" style="font-size:clamp(22px,3vw,32px)">ممکن است به این‌ها هم نیاز داشته باشید</h2>
+      </div>
+      <div class="grid-3" style="grid-template-columns:repeat(2,1fr);max-width:840px;margin-inline:auto">
+        {
+          others.map((s, i) => (
+            <a href={`/services/${s.slug}`} class="svc-card" data-reveal="up" data-delay={String(i * 90)}>
               <h3>{s.title}</h3>
               <p>{s.short_desc}</p>
-              <span class="svc-link">جزئیات خدمت <i>←</i></span>
-            </div>
-          </a>
-        ))}
+              <span class="svc-card__more">
+                جزئیات خدمت
+                <Icon name="arrow-left" size={17} stroke={2.2} />
+              </span>
+            </a>
+          ))
+        }
       </div>
     </div>
   </section>
 </BaseLayout>
-<style>
-  @media (max-width: 900px) {
-    .svc-detail-grid { grid-template-columns: 1fr !important; }
-    .svc-detail-grid aside { position: static !important; }
-  }
-</style>

@@ -1,5 +1,7 @@
 ---
 /* فرم عمومی تماس و مشاوره — یک ساختار یکسان برای همه درخواست‌ها */
+import Icon from './Icon.astro';
+
 interface Props {
   type: 'contact' | 'consult';
   defaultPlan?: string;
@@ -34,29 +36,32 @@ const projectOptions = [
 ];
 ---
 <form
-  class={`form-panel public-request-form ${compact ? 'compact' : ''}`}
+  class="form-card"
   data-public-form
   data-action={type === 'consult' ? '/api/consult' : '/api/contact'}
   data-reveal
 >
   <div class="form-grid">
-    <div class="form-field">
-      <label for={`f-name-${type}`}>نام و نام خانوادگی <span class="req">*</span></label>
+    <div class="field">
+      <label for={`f-name-${type}`}>نام و نام خانوادگی <i>*</i></label>
       <input id={`f-name-${type}`} name="name" type="text" required placeholder="نام و نام خانوادگی شما" autocomplete="name" />
+      <span class="err">نام را کامل بنویسید</span>
     </div>
-    <div class="form-field">
-      <label for={`f-phone-${type}`}>شماره موبایل <span class="req">*</span></label>
+    <div class="field">
+      <label for={`f-phone-${type}`}>شماره موبایل <i>*</i></label>
       <input id={`f-phone-${type}`} name="phone" type="tel" required placeholder="۰۹۱۲۳۴۵۶۷۸۹" autocomplete="tel" inputmode="tel" />
+      <span class="err">شماره موبایل معتبر نیست</span>
     </div>
-    <div class="form-field">
+    <div class="field">
       <label for={`f-email-${type}`}>ایمیل (اختیاری)</label>
       <input id={`f-email-${type}`} name="email" type="email" placeholder="you@example.com" autocomplete="email" dir="ltr" />
+      <span class="err">ایمیل معتبر نیست</span>
     </div>
-    <div class="form-field">
+    <div class="field">
       <label for={`f-company-${type}`}>نام کسب‌وکار / شرکت (اختیاری)</label>
       <input id={`f-company-${type}`} name="company" type="text" placeholder="نام برند یا شرکت شما" autocomplete="organization" />
     </div>
-    <div class="form-field full">
+    <div class="field field--full">
       <label for={`f-project-${type}`}>نوع پروژه</label>
       <select id={`f-project-${type}`} name="plan_title">
         <option value="" selected={!defaultPlan}>انتخاب نوع پروژه (اختیاری)</option>
@@ -68,8 +73,8 @@ const projectOptions = [
         ))}
       </select>
     </div>
-    <div class="form-field full">
-      <label for={`f-msg-${type}`}>متن پیام <span class="req">*</span></label>
+    <div class="field field--full">
+      <label for={`f-msg-${type}`}>متن پیام <i>*</i></label>
       <textarea
         id={`f-msg-${type}`}
         name="message"
@@ -77,11 +82,20 @@ const projectOptions = [
         minlength="10"
         placeholder={type === 'consult' ? 'کمی درباره کسب‌وکار، نیاز و انتظارتان از پروژه بنویسید. اگر سایت فعلی دارید، آدرس آن را هم درج کنید.' : 'سؤال یا پیام خود را با جزئیات بنویسید…'}
       ></textarea>
+      <span class="err">متن پیام حداقل ۱۰ کاراکتر باشد</span>
     </div>
   </div>
-  <div class="form-msg" role="status" aria-live="polite" style="display:none;margin-top:14px"></div>
-  <div class="form-actions">
-    <button type="submit" class="btn btn-gold">ارسال درخواست</button>
-    <p class="form-privacy">اطلاعات شما فقط برای پاسخ‌گویی استفاده می‌شود — <a href="/privacy">حریم خصوصی</a></p>
+
+  <div data-form-status class="form-status" role="status" aria-live="polite" style="margin-top:18px"></div>
+
+  <div class="mt-2" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+    <button type="submit" class="btn">
+      <Icon name="send" size={17} stroke={2} />
+      ارسال درخواست
+    </button>
+    <p class="form-note">
+      <Icon name="shield" size={15} stroke={2} />
+      اطلاعات شما فقط برای پاسخ‌گویی استفاده می‌شود — <a href="/privacy" style="color:var(--purple);font-weight:600">حریم خصوصی</a>
+    </p>
   </div>
 </form>

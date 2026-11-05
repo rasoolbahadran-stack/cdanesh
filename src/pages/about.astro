@@ -1,21 +1,145 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
-import { q } from '../lib/db';
+import Icon from '../components/Icon.astro';
+import { q, q1 } from '../lib/db';
+import { getSiteSettings } from '../lib/seed';
+import { faNum } from '../lib/persian';
 
 const page = await q(`SELECT * FROM pages WHERE system_key='about' AND status='published'`).then((r) => r[0] ?? null);
 if (!page) return Astro.redirect('/404', 302);
+const settings = await getSiteSettings();
+const hp = settings.homepage;
+const postsCountRow = await q1<{ c: number }>(`SELECT count(*)::int AS c FROM posts WHERE status='published'`);
+const postsCount = postsCountRow ? postsCountRow.c : 0;
+const servicesCount = hp.stats[0]?.value || '۳';
 ---
 <BaseLayout
   title={String(page.seo_title) || String(page.title)}
   description={String(page.seo_description) || String(page.excerpt)}
   activePath="/about"
 >
-  <PageHero title={String(page.title)} sub={String(page.excerpt)} crumbs={[{ label: 'درباره ما', href: '' }]} />
-  <section class="sec">
-    <div class="container" style="max-width:980px">
-      <img src="/img/about-studio.webp" alt="استودیو دیجیتال کافه‌دانش" width="1152" height="864" style="border-radius:26px;box-shadow:var(--shadow-card);margin-bottom:36px" data-reveal="zoom" fetchpriority="high" />
-      <div class="prose-fa" data-reveal set:html={String(page.content)} />
+  <PageHero title="درباره کافه دانش" sub={String(page.excerpt)} crumbs={[{ label: 'درباره ما', href: '' }]} />
+
+  {/* تصویر استودیو */}
+  <section class="section pad-half">
+    <div class="container">
+      <div class="detail-head-img" data-reveal="zoom">
+        <img
+          src="/img/about-studio.webp"
+          alt="استودیوی دیجیتال کافه دانش — طراحی سایت و تولید محتوا"
+          width="1152"
+          height="768"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </div>
+    </div>
+  </section>
+
+  {/* متن درباره ما */}
+  <section class="section pad-half">
+    <div class="container">
+      <div class="article-body">
+        <div class="prose-fa" data-reveal="up" set:html={String(page.content)} />
+      </div>
+    </div>
+  </section>
+
+  {/* آمار */}
+  <section class="section pad-half">
+    <div class="container">
+      <div class="stats-band" data-reveal="up">
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-item__ico svc-card__ico--purple">
+              <Icon name="layers" size={25} stroke={1.9} />
+            </span>
+            <div class="stat-item__val" data-counter={servicesCount.replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))}>۰</div>
+            <div class="stat-item__label">حوزهٔ اصلی خدمات</div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-item__ico svc-card__ico--pink">
+              <Icon name="chart" size={25} stroke={1.9} />
+            </span>
+            <div class="stat-item__val" data-counter={String(postsCount)}>۰</div>
+            <div class="stat-item__label">مقالهٔ تخصصی منتشرشده</div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-item__ico svc-card__ico--sky">
+              <Icon name="clock" size={25} stroke={1.9} />
+            </span>
+            <div class="stat-item__val" data-counter="6">۰</div>
+            <div class="stat-item__label">مرحلهٔ شفاف همکاری</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* مزیت‌ها */}
+  <section class="section pad-half bg-lavender">
+    <div class="container">
+      <div class="section-head section-head--center" data-reveal="up">
+        <span class="sub-title">
+          <Icon name="star" size={20} stroke={2} class="sub-ico" />
+          چرا کافه دانش؟
+        </span>
+        <h2 class="sec-title">{hp.advantagesTitle}</h2>
+      </div>
+      <div class="grid-3">
+        {
+          hp.advantages.map((a, i) => (
+            <article class="adv-card" data-reveal="up" data-delay={String((i % 3) * 100)}>
+              <div class={`adv-card__ico svc-card__ico--${['purple', 'pink', 'sky', 'mint', 'purple'][i % 5]}`}>
+                <Icon name={['target', 'users', 'bolt', 'layers', 'sparkle'][i % 5]} size={26} stroke={1.8} />
+              </div>
+              <h3>{a.title}</h3>
+              <p>{a.text}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  {/* مراحل همکاری */}
+  <section class="section pad-half">
+    <div class="container">
+      <div class="section-head section-head--center" data-reveal="up">
+        <span class="sub-title">
+          <Icon name="chart" size={20} stroke={2} class="sub-ico" />
+          روند همکاری
+        </span>
+        <h2 class="sec-title">{hp.stepsTitle}</h2>
+      </div>
+      <div class="steps">
+        {
+          hp.steps.map((s, i) => (
+            <article class="step-card" data-reveal="up" data-delay={String((i % 3) * 100)}>
+              <span class="step-card__no">{faNum(i + 1)}</span>
+              <h3>{s.title}</h3>
+              <p>{s.text}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  {/* CTA */}
+  <section class="section pad-half">
+    <div class="container">
+      <div class="cta-band" data-reveal="zoom">
+        <span class="cta-band__deco cta-band__deco--1" aria-hidden="true"></span>
+        <span class="cta-band__deco cta-band__deco--2" aria-hidden="true"></span>
+        <h2>{hp.ctaTitle}</h2>
+        <p>{hp.ctaText}</p>
+        <div class="cta-band__btns">
+          <a href="/consult" class="btn btn--white btn--lg">درخواست مشاوره رایگان</a>
+          <a href="/portfolio" class="btn btn--ghost-light btn--lg">مشاهده نمونه‌کارها</a>
+        </div>
+      </div>
     </div>
   </section>
 </BaseLayout>

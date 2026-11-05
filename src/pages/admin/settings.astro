@@ -13,6 +13,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     <button data-tab="menu">منوها</button>
     <button data-tab="footer">فوتر</button>
     <button data-tab="homepage">محتوای صفحهٔ اصلی</button>
+    <button data-tab="security">🔒 امنیت</button>
   </div>
 
   <form id="st-form">
@@ -25,6 +26,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         <div class="form-field full"><label>شعار (tagline)</label><input name="identity.tagline" /></div>
         <div class="form-field"><label>نام طراح / مجری</label><input name="identity.designer" /></div>
         <div class="form-field"><label>مسیر لوگو</label><input name="identity.logoImage" style="direction:ltr;text-align:left" /></div>
+        <div class="form-field"><label>مسیر فاوآیکون</label><input name="identity.favicon" style="direction:ltr;text-align:left" placeholder="/img/logo-180.png" /></div>
       </div></div>
     </div>
 
@@ -33,7 +35,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       <div class="panel-head"><h2>اطلاعات تماس</h2></div>
       <div class="panel-body"><div class="form-grid">
         <div class="form-field"><label>ایمیل</label><input name="contact.email" style="direction:ltr;text-align:left" /></div>
-        <div class="form-field"><label>تلفن (شماره واقعی)</label><input name="contact.phone" style="direction:ltr;text-align:left" hint="" /></div>
+        <div class="form-field"><label>تلفن (شماره واقعی)</label><input name="contact.phone" style="direction:ltr;text-align:left" /></div>
         <div class="form-field"><label>نمایش تلفن (فارسی)</label><input name="contact.phoneDisplay" /></div>
         <div class="form-field"><label>ساعات کاری</label><input name="contact.hours" /></div>
         <div class="form-field full"><label>نشانی</label><input name="contact.address" /></div>
@@ -100,52 +102,77 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     </div>
   </form>
 
+  {/* ─── امنیت: تغییر رمز مدیر (خارج از فرم تنظیمات) ─── */}
+  <div class="panel settings-pane" data-pane="security">
+    <div class="panel-head"><h2>🔒 امنیت و دسترسی</h2></div>
+    <div class="panel-body" style="display:grid;gap:16px">
+      <div class="info-strip" style="margin:0">
+        <span>🛡</span>
+        <span>ورود با کوکی امن HttpOnly + محدودسازی تلاش ناموفق فعال است. رمز فعلی با متغیر محیطی <code>ADMIN_PASSWORD_HASH</code> یا رمز تغییر‌یافتهٔ دیتابیس کنترل می‌شود. پس از تغییر رمز، همهٔ مسیرهای مدیریتی و API همچنان در سمت سرور کنترل می‌شوند.</span>
+      </div>
+      <form id="pw-form" style="display:grid;gap:14px;max-width:460px">
+        <div class="form-field"><label>رمز فعلی</label><input type="password" name="current" autocomplete="current-password" /></div>
+        <div class="form-field"><label>رمز جدید (حداقل ۸ کاراکتر)</label><input type="password" name="next" autocomplete="new-password" /></div>
+        <div class="form-field"><label>تکرار رمز جدید</label><input type="password" name="next2" autocomplete="new-password" /></div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <button type="submit" class="btn btn-gold">تغییر رمز مدیر</button>
+          <span id="pw-status" style="font-size:12px;color:var(--a-muted)"></span>
+        </div>
+      </form>
+      <div style="font-size:12.5px;color:var(--a-muted);line-height:2">
+        <b>وضعیت سیستم:</b> اتصال دیتابیس و ذخیره‌سازی تصاویر در داشبورد قابل بررسی است. هیچ رمز یا توکنی در این صفحه نمایش داده نمی‌شود.
+      </div>
+    </div>
+  </div>
+
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const { api, toast } = window.CDA;
-      let data = null;
+      type Rec = Record<string, any>;
+      let data: Rec | null = null;
 
       /* تب‌ها */
-      document.querySelectorAll('#st-tabs button').forEach((b) => {
+      document.querySelectorAll<HTMLButtonElement>('#st-tabs button').forEach((b) => {
         b.addEventListener('click', () => {
-          document.querySelectorAll('#st-tabs button').forEach((x) => x.classList.remove('active'));
+          document.querySelectorAll<HTMLButtonElement>('#st-tabs button').forEach((x) => x.classList.remove('active'));
           b.classList.add('active');
-          document.querySelectorAll('.settings-pane').forEach((p) => p.classList.toggle('active', p.dataset.pane === b.dataset.tab));
+          document.querySelectorAll<HTMLElement>('.settings-pane').forEach((p) => p.classList.toggle('active', p.dataset.pane === b.dataset.tab));
         });
       });
 
       /* helpers */
-      const pairsToLines = (arr) => (arr || []).map((p) => `${p.title || p.value || p.label || ''} | ${p.text || p.href || p.desc || ''}`).join('\n');
-      const pairsToMega = (groups) => (groups || []).map((g) => {
-        const items = g.items.map((it) => `${it.label} | ${it.href} | ${it.desc}`).join('\n');
+      const pairsToLines = (arr: any[] | null | undefined) => (arr || []).map((p: any) => `${p.title || p.value || p.label || ''} | ${p.text || p.href || p.desc || ''}`).join('\n');
+      const pairsToMega = (groups: any[] | null | undefined) => (groups || []).map((g: any) => {
+        const items = (g.items || []).map((it: any) => `${it.label} | ${it.href} | ${it.desc}`).join('\n');
         return `${g.title}\n${items}`;
       }).join('\n###\n');
 
       function fill() {
-        const form = document.getElementById('st-form');
-        form.querySelectorAll('input, textarea').forEach((el) => {
+        const form = document.getElementById('st-form') as HTMLFormElement;
+        form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input, textarea').forEach((el) => {
           const path = el.name.split('.');
-          let v = data;
+          let v: any = data;
           for (const p of path) v = v?.[p];
-          if (el.dataset.lines !== undefined && Array.isArray(v)) el.value = v.map((x) => (typeof x === 'string' ? `${x.title || ''} | ${x.text || ''}` : `${x.label} | ${x.href}`)).join('\n');
+          if (el.dataset.lines !== undefined && Array.isArray(v)) el.value = v.map((x: any) => (typeof x === 'string' ? x : `${x.title || ''} | ${x.text || x.href || ''}`)).join('\n');
+          else if (el.name === 'footer.aboutText') el.value = v || '';
           else if (el.name === 'seo.keywords' && Array.isArray(v)) el.value = v.join('\n');
-          else if (el.name === 'menu.main' && Array.isArray(v)) el.value = v.map((x) => `${x.label} | ${x.href}`).join('\n');
+          else if (el.name === 'menu.main' && Array.isArray(v)) el.value = v.map((x: any) => `${x.label} | ${x.href}`).join('\n');
           else if (el.name === 'menu.cta') el.value = `${v?.label || ''} | ${v?.href || ''}`;
           else if (el.name === 'menu.megaGroups') el.value = pairsToMega(v);
           else if (el.dataset.pair !== undefined && v && !Array.isArray(v)) el.value = `${v.label || ''} | ${v.href || ''}`;
           else if (el.dataset.pairLines !== undefined && Array.isArray(v)) el.value = pairsToLines(v);
-          else if (el.name === 'footer.aboutText') el.value = v || '';
           else el.value = v ?? '';
         });
       }
 
-      function collect() {
-        const out = JSON.parse(JSON.stringify(data));
-        document.getElementById('st-form').querySelectorAll('input, textarea').forEach((el) => {
+      function collect(): Rec {
+        const out: Rec = JSON.parse(JSON.stringify(data || {}));
+        const form = document.getElementById('st-form') as HTMLFormElement;
+        form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input, textarea').forEach((el) => {
           const path = el.name.split('.');
           const val = el.value.trim();
           const lines = val.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
-          let v;
+          let v: any;
           if (el.name === 'seo.keywords') v = lines;
           else if (el.name === 'menu.main') v = lines.map((l) => { const [label, href] = l.split('|').map((s) => s.trim()); return { label, href: href || '#' }; });
           else if (el.name === 'menu.cta') { const [label, href] = val.split('|').map((s) => s.trim()); v = { label, href: href || '/consult' }; }
@@ -161,10 +188,13 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           } else if (el.name === 'footer.colServices' || el.name === 'footer.colQuick' || el.name === 'footer.colContact') {
             v = lines.map((l) => { const [label, href] = l.split('|').map((s) => s.trim()); return { label, href: href || '#' }; });
           } else {
-            v = el.dataset.lines !== undefined ? val : val;
+            v = val;
           }
           let target = out;
-          for (let i = 0; i < path.length - 1; i++) target = target[path[i]];
+          for (let i = 0; i < path.length - 1; i++) {
+            if (typeof target[path[i]] !== 'object' || target[path[i]] === null) target[path[i]] = {};
+            target = target[path[i]];
+          }
           target[path[path.length - 1]] = v;
         });
         return out;
@@ -173,17 +203,43 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       (async () => {
         const j = await api('/api/admin/settings');
         if (!j.ok) { toast(j.message || 'بارگذاری تنظیمات ناموفق بود', 'err'); return; }
-        data = j.data;
+        data = (j.data as Rec) || {};
         fill();
       })();
 
-      document.getElementById('st-form').addEventListener('submit', async (e) => {
+      document.getElementById('st-form')!.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const status = document.getElementById('st-status');
+        const status = document.getElementById('st-status')!;
         status.textContent = '⏳ در حال ذخیره…';
         const r = await api('/api/admin/settings', 'PUT', collect());
-        if (r.ok) { data = r.data; status.textContent = '✓ ذخیره شد در دیتابیس'; status.style.color = 'var(--a-green)'; toast(r.message || 'تنظیمات ذخیره شد'); }
+        if (r.ok) { data = (r.data as Rec) || data; status.textContent = '✓ ذخیره شد در دیتابیس'; status.style.color = 'var(--a-green)'; toast(r.message || 'تنظیمات ذخیره شد'); }
         else { status.textContent = '✕ ذخیره نشد'; status.style.color = 'var(--a-red)'; toast(r.message || 'ذخیره ناموفق بود', 'err'); }
+      });
+
+      /* تغییر رمز مدیر */
+      document.getElementById('pw-form')!.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const f = e.target as HTMLFormElement;
+        const status = document.getElementById('pw-status')!;
+        const body = {
+          current: (f.querySelector('[name=current]') as HTMLInputElement).value,
+          next: (f.querySelector('[name=next]') as HTMLInputElement).value,
+          next2: (f.querySelector('[name=next2]') as HTMLInputElement).value,
+        };
+        if (body.next.length < 8) { toast('رمز جدید باید حداقل ۸ کاراکتر باشد', 'err'); return; }
+        if (body.next !== body.next2) { toast('تکرار رمز جدید مطابقت ندارد', 'err'); return; }
+        status.textContent = '⏳ در حال تغییر…';
+        const r = await api('/api/admin/password', 'POST', body);
+        if (r.ok) {
+          status.textContent = '✓ رمز تغییر کرد';
+          status.style.color = 'var(--a-green)';
+          toast(r.message || 'رمز مدیر تغییر کرد');
+          f.reset();
+        } else {
+          status.textContent = '✕ ' + (r.message || 'تغییر ناموفق بود');
+          status.style.color = 'var(--a-red)';
+          toast(r.message || 'تغییر رمز ناموفق بود', 'err');
+        }
       });
     });
   </script>

@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
 import ContactForm from '../components/ContactForm.astro';
+import Icon from '../components/Icon.astro';
 import { q } from '../lib/db';
 import { getSiteSettings } from '../lib/seed';
 
@@ -11,13 +12,6 @@ const settings = await getSiteSettings();
 const c = settings.contact;
 const phoneDigits = String(c.phone).replace(/\D/g, '');
 const phoneHref = phoneDigits.startsWith('0') ? `+98${phoneDigits.slice(1)}` : phoneDigits;
-
-const contactMethods = [
-  { label: 'تماس تلفنی', value: c.phoneDisplay, href: `tel:${phoneHref}`, icon: '☎', direction: 'ltr' },
-  { label: 'ایمیل', value: c.email, href: `mailto:${c.email}`, icon: '✉', direction: 'ltr' },
-  { label: 'نشانی دفتر', value: c.address, href: '', icon: '⌖', direction: 'rtl' },
-  { label: 'ساعات پاسخ‌گویی', value: c.hours, href: '', icon: '◷', direction: 'rtl' },
-];
 ---
 <BaseLayout
   title={String(page.seo_title) || String(page.title)}
@@ -25,47 +19,57 @@ const contactMethods = [
   activePath="/contact"
 >
   <PageHero
-    title={String(page.title)}
+    title="تماس با ما"
     sub={String(page.excerpt)}
     crumbs={[{ label: 'تماس با ما', href: '' }]}
   />
-  <section class="sec contact-section">
-    <div class="container contact-layout">
-      <div class="contact-form-column" data-reveal="right">
-        <div class="contact-form-heading">
-          <span class="section-label">ارسال پیام</span>
-          <h2>درخواست خود را ثبت کنید</h2>
-          <p>فیلدهای ستاره‌دار را تکمیل کنید تا بتوانیم برای پیگیری درخواست با شما تماس بگیریم.</p>
-        </div>
-        <div class="contact-form-shell">
-          <ContactForm type="contact" />
-        </div>
-        {page.content ? <div class="prose-fa contact-page-copy" set:html={String(page.content)} /> : null}
+
+  <section class="section">
+    <div class="container contact-grid">
+      {/* ستون فرم */}
+      <div data-reveal="right">
+        <span class="sub-title">
+          <Icon name="send" size={20} stroke={2} class="sub-ico" />
+          ارسال پیام
+        </span>
+        <h2 class="sec-title" style="font-size:clamp(23px,3vw,32px)">درخواست خود را ثبت کنید</h2>
+        <p class="sec-text mb-2">فیلدهای ستاره‌دار را تکمیل کنید تا بتوانیم برای پیگیری درخواست با شما تماس بگیریم.</p>
+        <ContactForm type="contact" />
+        {page.content ? <div class="prose-fa mt-3" data-reveal="up" set:html={String(page.content)} /> : null}
       </div>
 
-      <aside class="contact-aside" data-reveal="left">
-        <div class="contact-aside-intro">
-          <span class="section-label pink">در ارتباط باشیم</span>
-          <h2>راه‌های ارتباط با کافه‌دانش</h2>
+      {/* ستون اطلاعات تماس */}
+      <aside data-reveal="left">
+        <div class="contact-side mb-2">
+          <h2>راه‌های ارتباط با کافه دانش</h2>
           <p>برای پرسش درباره خدمات، پیگیری درخواست یا هماهنگی جلسه، از راه‌های ارتباطی زیر استفاده کنید.</p>
+          <ul class="contact-side__list">
+            <li>
+              <Icon name="phone" size={20} stroke={1.9} />
+              <a href={`tel:${phoneHref}`} dir="ltr">{c.phoneDisplay}</a>
+            </li>
+            <li>
+              <Icon name="mail" size={20} stroke={1.9} />
+              <a href={`mailto:${c.email}`} dir="ltr">{c.email}</a>
+            </li>
+            <li>
+              <Icon name="pin" size={20} stroke={1.9} />
+              <span>{c.address}</span>
+            </li>
+            <li>
+              <Icon name="clock" size={20} stroke={1.9} />
+              <span>{c.hours}</span>
+            </li>
+          </ul>
         </div>
-        <div class="contact-methods">
-          {contactMethods.map((item) => (
-            <div class="contact-method">
-              <span class="contact-method-icon" aria-hidden="true">{item.icon}</span>
-              <div class="contact-method-copy">
-                <span class="contact-method-label">{item.label}</span>
-                {item.href
-                  ? <a href={item.href} dir={item.direction}>{item.value}</a>
-                  : <p dir={item.direction}>{item.value}</p>}
-              </div>
-            </div>
-          ))}
-        </div>
-        <div class="contact-consult-note">
-          <strong>برای برآورد هزینه و زمان پروژه</strong>
+
+        <div class="service-cta" style="text-align:start">
+          <h2 style="font-size:19px">برای برآورد هزینه و زمان پروژه</h2>
           <p>از فرم درخواست مشاوره استفاده کنید تا نیازهای پروژه را دقیق‌تر بررسی کنیم.</p>
-          <a href="/consult">رفتن به فرم مشاوره <span aria-hidden="true">←</span></a>
+          <a href="/consult" class="btn btn--sm">
+            رفتن به فرم مشاوره
+            <Icon name="arrow-left" size={16} stroke={2.2} />
+          </a>
         </div>
       </aside>
     </div>

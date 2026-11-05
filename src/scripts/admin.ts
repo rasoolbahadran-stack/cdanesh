@@ -237,7 +237,7 @@ export function initEditor(containerId: string, initialHtml = ''): { getHtml: ()
         return;
       } else if (t.cmd) {
         area.focus();
-        document.execCommand(t.cmd[0], false, t.val || null);
+        document.execCommand(t.cmd[0], false, t.val ?? undefined);
       }
       markDirty();
     });

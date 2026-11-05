@@ -1,5 +1,6 @@
 ---
-/* چیدمان پایهٔ عمومی — سئوی کامل: متا، OG، Twitter، Canonical، Schema.org */
+/* چیدمان پایهٔ عمومی کافه دانش — سئوی کامل + پوستهٔ جدید
+   متا، OG، Twitter، Canonical، Schema.org + پری‌لودر + هدر/فوتر */
 import '../styles/site.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
@@ -72,8 +73,8 @@ const allSchema = [orgSchema, ...(siteSchema ? [siteSchema] : []), ...schema];
     <link rel="icon" type="image/svg+xml" href="/img/logo.svg" />
     <link rel="apple-touch-icon" href="/img/logo-180.png" />
 
-    <link rel="preload" as="font" type="font/woff2" href="/fonts/iran-yekan-400.woff2" crossorigin />
-    <link rel="preload" as="font" type="font/woff2" href="/fonts/iran-yekan-700.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/Vazirmatn-Regular.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/Vazirmatn-Bold.woff2" crossorigin />
 
     <meta property="og:site_name" content={preferredSiteName} />
     <meta property="og:type" content={ogType} />
@@ -92,13 +93,27 @@ const allSchema = [orgSchema, ...(siteSchema ? [siteSchema] : []), ...schema];
     <script is:inline>document.documentElement.classList.add('js');</script>
   </head>
   <body>
-    <a href="#main" class="sr-only">پرش به محتوای اصلی</a>
+    <div class="preloader" id="preloader" aria-hidden="true">
+      <div class="preloader__bars"><span></span><span></span><span></span><span></span></div>
+    </div>
+
+    <a href="#main" class="skip-link">پرش به محتوای اصلی</a>
     <Header settings={settings} activePath={activePath} />
     <main id="main">
       <slot />
     </main>
     <Footer settings={settings} />
-    <button class="to-top" aria-label="بازگشت به بالا">↑</button>
+
+    <button class="back-top" id="backTop" aria-label="بازگشت به بالای صفحه">
+      <svg class="ring" width="52" height="52" viewBox="0 0 52 52" aria-hidden="true">
+        <circle class="ring-bg" cx="26" cy="26" r="24"></circle>
+        <circle class="ring-fg" cx="26" cy="26" r="24" data-progress></circle>
+      </svg>
+      <svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 19V5m0 0-6 6m6-6 6 6"></path>
+      </svg>
+    </button>
+
     <script>
       import '../scripts/site';
     </script>

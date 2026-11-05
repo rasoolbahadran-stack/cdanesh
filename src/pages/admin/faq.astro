@@ -14,6 +14,7 @@ const config = {
   fields: [
     { key: 'question', label: 'سؤال', type: 'text', required: true },
     { key: 'answer', label: 'پاسخ', type: 'textarea', required: true, full: true },
+    { key: 'service_slug', label: 'خدمت مرتبط (اختیاری)', type: 'text', hint: 'اسلاگ خدمت مثل company-website یا content یا seo — برای نمایش FAQ در صفحهٔ همان خدمت' },
     { key: 'sort_order', label: 'ترتیب', type: 'number' },
     { key: 'status', label: 'وضعیت', type: 'select', options: ['published', 'draft'], labels: ['منتشرشده', 'پیش‌نویس'] },
   ],

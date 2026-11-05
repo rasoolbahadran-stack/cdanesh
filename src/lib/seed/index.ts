@@ -8,6 +8,7 @@ import { SETTINGS_SEED, SETTINGS_KEY, SEED_VERSION } from './settings-data';
 import { SERVICES_SEED } from './services-data';
 import { PLANS_SEED } from './plans-data';
 import { PROJECTS_SEED, FAQS_SEED } from './portfolio-data';
+import { ASTRO_PROJECTS } from '../portfolio-projects';
 import { PAGES_SEED } from './pages-data';
 import articlesA from './articles-a.json';
 import articlesB from './articles-b.json';
@@ -257,7 +258,22 @@ export async function runSeed(): Promise<void> {
     }
   }
 
-  /* ---------- نمونه‌کارها ---------- */
+  /* ---------- نمونه‌کارها ----------
+     اگر جدول خالی باشد، پروژه‌های واقعی منتشرشدهٔ کافه‌دانش (حساب Vercel)
+     به دیتابیس منتقل می‌شوند تا از پنل مدیریت هم قابل ویرایش/انتشار باشند. */
+  const projectsCount = await q1('SELECT count(*)::int AS c FROM projects');
+  if (!projectsCount || projectsCount.c === 0) {
+    for (let i = 0; i < ASTRO_PROJECTS.length; i++) {
+      const p = ASTRO_PROJECTS[i];
+      const contentHtml = `<p>${p.description}</p><p>فناوری اصلی این پروژه ${p.tags.join(' و ')} است؛ برای بررسی ظاهر و ساختار واقعی صفحات، نسخهٔ آنلاین پروژه را مشاهده کنید.</p>`;
+      await q(
+        `INSERT INTO projects (title, slug, category, summary, content, cover_image, tags, url, note, sort_order, status, seo_title, seo_description)
+         VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10,'published',$11,$12)
+         ON CONFLICT (slug) DO NOTHING`,
+        [p.title, p.slug, p.category, p.summary, contentHtml, p.coverImage, JSON.stringify(p.tags), p.url, 'نسخهٔ آنلاین در حساب Vercel کافه‌دانش منتشر شده است.', i, p.seoTitle, p.seoDescription],
+      );
+    }
+  }
   for (const p of PROJECTS_SEED) {
     await q(
       `INSERT INTO projects (title, slug, category, summary, content, cover_image, tags, note, sort_order, status, seo_title, seo_description)

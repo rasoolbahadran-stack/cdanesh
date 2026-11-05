@@ -1,5 +1,7 @@
 ---
-/* هیروی صفحات داخلی: بردکرامب + عنوان + توضیح */
+/* هیروی صفحات داخلی: گرادیان برند + بردکرامب + عنوان + توضیح */
+import Icon from './Icon.astro';
+
 interface Props {
   title: string;
   sub?: string;
@@ -8,25 +10,34 @@ interface Props {
 }
 const { title, sub, crumbs = [], meta = [] } = Astro.props;
 ---
+
 <section class="page-hero">
+  <span class="page-hero__glow page-hero__glow--1" aria-hidden="true"></span>
+  <span class="page-hero__glow page-hero__glow--2" aria-hidden="true"></span>
   <div class="container">
-    <nav class="breadcrumb" aria-label="مسیر صفحه">
+    <nav class="breadcrumb" aria-label="مسیر صفحه" data-reveal="down">
       <a href="/">خانه</a>
-      {crumbs.map((c) => (
-        <span style="display:contents">
-          <span class="bc-sep">›</span>
-          {c.href ? <a href={c.href}>{c.label}</a> : <span>{c.label}</span>}
-        </span>
-      ))}
-      <span class="bc-sep">›</span>
+      {
+        crumbs.map((c: { label: string; href: string }) => (
+          <>
+            <Icon name="chevron-left" size={13} stroke={2.2} />
+            {c.href ? <a href={c.href}>{c.label}</a> : <span>{c.label}</span>}
+          </>
+        ))
+      }
+      <Icon name="chevron-left" size={13} stroke={2.2} />
       <span aria-current="page">{title}</span>
     </nav>
-    <h1 class="anim-up">{title}</h1>
-    {sub ? <p class="ph-sub">{sub}</p> : null}
-    {meta.length ? (
-      <div class="page-meta-row">
-        {meta.map((m) => <span>{m}</span>)}
-      </div>
-    ) : null}
+    <h1 data-reveal="up">{title}</h1>
+    {sub ? <p class="page-hero__sub" data-reveal="up" data-delay="110">{sub}</p> : null}
+    {
+      meta.length ? (
+        <div class="page-hero__meta" data-reveal="up" data-delay="200">
+          {meta.map((m: string) => (
+            <span set:html={m} />
+          ))}
+        </div>
+      ) : null
+    }
   </div>
 </section>

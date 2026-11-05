@@ -1,12 +1,15 @@
 ---
-/* صفحهٔ اصلی کافه دانش — کپی وفادار از ساختار دموی Porto SEO 2
-   ترتیب بخش‌ها: هیرو → ۳ کارت ویژگی → معرفی + تصویر → نوار مشتریان → خدمات
-   → CTA سرمه‌ای → مهارت‌ها و آمار → نظرات → تعرفه‌ها → بلاگ → سؤالات متداول */
+/* صفحهٔ اصلی کافه دانش — بازطراحی با زبان طراحی ساسمیکس
+   هیرو گرادیانی → آمار → اعتماد → خدمات اصلی → معرفی → مزیت‌ها → مراحل
+   → خدمات مکمل → نمونه‌کارها → تعرفه‌ها → نظرات → سؤالات متداول → CTA → مجله */
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { q } from '../lib/db';
+import Icon from '../components/Icon.astro';
+import DashboardMockup from '../components/DashboardMockup.astro';
+import { q, q1 } from '../lib/db';
 import { getSiteSettings } from '../lib/seed';
-import { faNum } from '../lib/persian';
+import { SERVICES_SEED } from '../lib/seed/services-data';
 import { ASTRO_PROJECTS } from '../lib/portfolio-projects';
+import { faNum } from '../lib/persian';
 
 interface Row {
   id: number;
@@ -14,24 +17,44 @@ interface Row {
 }
 
 const settings = await getSiteSettings();
+const hp = settings.homepage;
+const c = settings.contact;
 
 const services = [
   {
     slug: 'company-website',
     title: 'طراحی سایت',
     short_desc: 'طراحی سایت شرکتی و فروشگاهی متناسب با هویت برند، مخاطب و هدف کسب‌وکار شما.',
+    ico: 'layout',
+    tone: 'purple',
   },
   {
     slug: 'content',
     title: 'تولید محتوا',
     short_desc: 'تولید مقالات تخصصی و محتوای صفحات سایت بر اساس نیاز مخاطب، تحقیق موضوعی و لحن برند.',
+    ico: 'pen',
+    tone: 'pink',
   },
   {
     slug: 'seo',
     title: 'سئو',
     short_desc: 'بهینه‌سازی فنی و محتوایی سایت برای کمک به دیده‌شدن در جست‌وجوهای مرتبط گوگل.',
+    ico: 'search',
+    tone: 'sky',
   },
 ];
+
+/* خدمات مکمل — پنج خدمت دیگر از بین ۸ خدمت واقعی */
+const extraServices = SERVICES_SEED.filter((s) =>
+  ['ecommerce', 'ui-ux', 'speed-optimization', 'support', 'ai-automation'].includes(s.slug),
+).map((s, i) => ({
+  slug: s.slug,
+  title: s.title,
+  short_desc: s.short_desc,
+  ico: ['cart', 'target', 'gauge', 'shield', 'sparkle'][i],
+  tone: ['pink', 'sky', 'mint', 'purple', 'pink'][i],
+}));
+
 const plans = await q<Row>(`SELECT * FROM plans WHERE status='published' ORDER BY sort_order`);
 const posts = await q<Row>(
   `SELECT p.slug, p.title, p.excerpt, p.cover_image, p.reading_time, p.published_at, c.name AS category
@@ -40,8 +63,9 @@ const posts = await q<Row>(
 );
 const faqs = await q<Row>(`SELECT question, answer FROM faqs WHERE status='published' ORDER BY sort_order LIMIT 6`);
 const testimonials = await q<Row>(`SELECT * FROM testimonials WHERE status='published' ORDER BY sort_order`);
+const postsCountRow = await q1<{ c: number }>(`SELECT count(*)::int AS c FROM posts WHERE status='published'`);
+const postsCount = postsCountRow ? postsCountRow.c : 0;
 
-/* اسکیما FAQ برای صفحهٔ اصلی */
 const faqSchema = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
@@ -52,9 +76,21 @@ const faqSchema = {
   })),
 };
 
-/* آیکون‌های دموی Porto برای جعبه‌های خدمات */
-const svcIcons = ['/img/porto/icons/icon-1.png', '/img/porto/icons/icon-2.png', '/img/porto/icons/icon-3.png', '/img/porto/icons/icon-4.png', '/img/porto/icons/icon-5.png', '/img/porto/icons/icon-6.png'];
-const projectHighlights = ASTRO_PROJECTS.slice(0, 4);
+/* اعتماد: پروژه‌های واقعی منتشرشده با Astro */
+const trustProjects = ASTRO_PROJECTS.slice(0, 8);
+const portfolioSlides = ASTRO_PROJECTS.slice(0, 6);
+
+const advIcons = ['target', 'users', 'bolt', 'layers', 'sparkle', 'send'];
+const advTones = ['purple', 'pink', 'sky', 'mint', 'purple', 'pink'];
+
+/* تاریخ خوانا برای کارت‌های مجله */
+const faDate = (d: unknown) => {
+  try {
+    return new Intl.DateTimeFormat('fa-IR-u-ca-persian', { dateStyle: 'long' }).format(new Date(String(d)));
+  } catch {
+    return '';
+  }
+};
 ---
 <BaseLayout
   title={settings.seo.defaultTitle}
@@ -62,285 +98,571 @@ const projectHighlights = ASTRO_PROJECTS.slice(0, 4);
   activePath="/"
   schema={[faqSchema]}
 >
-  {/* ─── ۱. هیرو — دقیقاً سبک دموی Porto SEO 2 ─── */}
-  <section class="hero sec-rel">
-    <span class="hero-circle c-indigo" aria-hidden="true"></span>
-    <span class="hero-circle c-pink" aria-hidden="true"></span>
-    <span class="hero-circle c-dot-1" aria-hidden="true"></span>
-    <span class="hero-circle c-dot-2" aria-hidden="true"></span>
-    <span class="hero-circle c-dot-3" aria-hidden="true"></span>
-    <div class="container hero-grid">
-      <div class="hero-txt">
-        <h1 class="anim-up">طراحی سایت و تولید محتوا؛ پایهٔ حضور حرفه‌ای کسب‌وکار شما</h1>
-        <p class="hero-sub anim-up d-2">تمرکز ما بر طراحی سایت متناسب با کسب‌وکار شما و تولید محتوای تخصصی است؛ سئو نیز به‌عنوان مسیر مکمل، به دیده‌شدن بهتر سایت در گوگل کمک می‌کند.</p>
-        <div class="hero-actions anim-up d-3">
-          <a href="/consult" class="btn btn-gold btn-lg">شروع کنید</a>
-        </div>
-      </div>
-      <div class="hero-visual anim-up d-1">
-        <img src="/img/svc-company.webp" alt="طراحی سایت اختصاصی و تجربه کاربری متناسب با کسب‌وکار" width="1152" height="768" fetchpriority="high" decoding="async" />
-      </div>
+  {/* ─── ۱. هیرو گرادیانی ─── */}
+  <section class="hero" id="top" aria-label="معرفی کافه دانش">
+    <div class="hero__bg" aria-hidden="true">
+      <span class="hero__glow hero__glow--1"></span>
+      <span class="hero__glow hero__glow--2"></span>
+      <svg class="hero__wave" viewBox="0 0 1440 210" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 210V96C240 28 480 8 720 44s480 118 720 78v88H0Z" fill="#ffffff" opacity="1"></path>
+      </svg>
     </div>
-    {/* موج سفید — انتقال هیرو به بخش بعد */}
-    <div class="sec-wave" aria-hidden="true">
-      <svg viewBox="0 0 1440 76" preserveAspectRatio="none"><path fill="#ffffff" d="M0,76 L1440,76 L1440,34 C1300,12 1190,14 1060,34 C900,60 820,52 720,38 C560,14 470,18 320,38 C180,58 90,42 0,28 Z" /></svg>
-    </div>
-  </section>
 
-  {/* ─── ۲. سه کارت ویژگی — هم‌پوشان با هیرو (سبک دمو) ─── */}
-  <section class="sec sec-paper" style="padding-top:0">
-    <div class="container hero-cards" style="margin-top:-58px">
-      <div class="hero-cards-grid">
-        <div class="fbox-card" data-reveal>
-          <div class="fbox-ico"><img src="/img/porto/icons/search.svg" alt="" width="74" height="74" loading="lazy" /></div>
-          <h3>طراحی سایت</h3>
-          <p>طراحی سایت شرکتی و فروشگاهی با ساختار روشن، نمایش حرفه‌ای برند و مسیر ساده برای تبدیل بازدیدکننده به مشتری.</p>
-          <a href="/services/company-website" class="fbox-more">بیشتر بخوانید +</a>
-        </div>
-        <div class="fbox-card" data-reveal style="--rd:90ms">
-          <div class="fbox-ico"><img src="/img/porto/icons/teaching.svg" alt="" width="74" height="74" loading="lazy" /></div>
-          <h3>تولید محتوا</h3>
-          <p>تولید مقاله و محتوای صفحات سایت بر اساس نیاز مخاطب، تحقیق موضوعی و لحن اختصاصی کسب‌وکار شما.</p>
-          <a href="/services/content" class="fbox-more">بیشتر بخوانید +</a>
-        </div>
-        <div class="fbox-card" data-reveal style="--rd:180ms">
-          <div class="fbox-ico"><img src="/img/porto/icons/target.svg" alt="" width="74" height="74" loading="lazy" /></div>
-          <h3>سئو</h3>
-          <p>بهینه‌سازی فنی و محتوایی برای کمک به دیده‌شدن سایت در جست‌وجوهای مرتبط؛ در کنار طراحی و تولید محتوا.</p>
-          <a href="/services/seo" class="fbox-more">بیشتر بخوانید +</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  {/* ─── ۳. معرفی + تصویرسازی دوم (سبک دمو) ─── */}
-  <section class="sec sec-paper" style="padding-top:40px">
-    <div class="container intro-split">
-      <div class="txt-side" data-reveal>
-        <span class="section-label pink">راحت‌ترین راه حضور آنلاین</span>
-        <h2>پیشرو باشید؛ مشتریان بیشتری جذب کنید و برند قوی‌تری بسازید</h2>
-        <p>به‌جای پراکنده‌کردن کار بین چند مجری، طراحی سایت و تولید محتوای کسب‌وکار شما با یک نقشهٔ راه هماهنگ پیش می‌رود؛ سئو نیز هرجا لازم باشد، این مسیر را برای دیده‌شدن بهتر در گوگل تکمیل می‌کند.</p>
-        <p>کافه دانش (Cafe Danesh) بر سه خدمت مشخص تمرکز دارد: طراحی سایت، تولید محتوا و سئو. دو حوزهٔ طراحی و محتوا در اولویت اصلی ما قرار دارند و سئو نیز متناسب با نیاز هر پروژه ارائه می‌شود.</p>
-        <div style="margin-top:22px">
-          <a href="/services" class="btn btn-gold">خدمات ما</a>
-        </div>
-      </div>
-      <div class="img-side" data-reveal="left">
-        <img src="/img/about-studio.webp" alt="تصویرسازی تیم طراحی و توسعه وب در استودیوی دیجیتال" width="1152" height="768" loading="lazy" decoding="async" />
-      </div>
-    </div>
-  </section>
-
-  {/* ─── ۴. نوار اعتماد مشتریان (سبک دمو) ─── */}
-  <section class="clients-band sec-rel">
-    <div class="container">
-      <p class="clients-label">پروژه‌های اجراشده با فریم‌ورک Astro</p>
-      <div class="clients-row" data-reveal>
-        {projectHighlights.map((project) => (
-          <a class="cl-logo" href={`/portfolio/${project.slug}`}>{project.title}<small>BUILT WITH ASTRO</small></a>
-        ))}
-      </div>
-    </div>
-    <div class="sec-wave" aria-hidden="true">
-      <svg viewBox="0 0 1440 76" preserveAspectRatio="none"><path fill="#ffffff" d="M0,76 L1440,76 L1440,34 C1300,12 1190,14 1060,34 C900,60 820,52 720,38 C560,14 470,18 320,38 C180,58 90,42 0,28 Z" /></svg>
-    </div>
-  </section>
-
-  {/* ─── ۵. خدمات ما — جعبه‌های آیکون‌دار دموی Porto ─── */}
-  <section class="sec sec-paper" style="padding-top:48px">
-    <div class="container">
-      <div class="sec-head center" data-reveal>
-        <span class="section-label">خدمات ما</span>
-        <h2>سه حوزهٔ تخصصی؛ با تمرکز بر طراحی سایت و تولید محتوا</h2>
-        <p>طراحی سایت و تولید محتوا دو محور اصلی همکاری با کافه دانش هستند؛ خدمات سئو نیز به‌عنوان گزینهٔ سوم و مکمل در دسترس شماست.</p>
-      </div>
-      <div class="grid-3 svc-stagger">
-        {services.map((s, i) => (
-          <div class="svc-box" data-reveal style={`--rd:${(i % 3) * 80}ms`}>
-            <div class="svc-ico"><img src={svcIcons[i % svcIcons.length]} alt="" width="78" height="78" loading="lazy" /></div>
-            <h3>{s.title}</h3>
-            <p>{s.short_desc}</p>
-            <a href={`/services/${s.slug}`} class="fbox-more">بیشتر بخوانید +</a>
+    <div class="container hero__inner">
+      <div class="hero__grid">
+        <div class="hero__content">
+          <h1 class="hero__title" data-reveal="up">
+            طراحی سایت و تولید محتوا؛ <span class="hero__mark">دو مسیر اصلی</span> رشد کسب‌وکار شما
+          </h1>
+          <p class="hero__text" data-reveal="up" data-delay="120">
+            با طراحی سایت حرفه‌ای و تولید محتوای هدفمند، حضور آنلاین کسب‌وکارتان را می‌سازیم و توسعه می‌دهیم؛
+            سئو نیز در صورت نیاز، دیده‌شدن شما در گوگل را تکمیل می‌کند.
+          </p>
+          <div class="hero__btns" data-reveal="up" data-delay="240">
+            <a href="/consult" class="btn btn--lg">درخواست مشاوره رایگان</a>
+            <a href="/portfolio" class="btn btn--ghost btn--lg">
+              مشاهده نمونه‌کارها
+              <Icon name="arrow-left" size={20} stroke={2.2} class="hero__btn-ico" />
+            </a>
           </div>
-        ))}
-      </div>
-      <div style="text-align:center;margin-top:44px" data-reveal>
-        <a href="/contact" class="btn btn-ghost btn-lg">ارتباط با ما</a>
-      </div>
-    </div>
-  </section>
-
-  {/* ─── ۶. CTA سرمه‌ای — سبک دمو ─── */}
-  <section class="cta-full sec-rel">
-    <div class="container">
-      <div class="cta-center" data-reveal>
-        <h2>برای طراحی سایت یا تولید محتوای کسب‌وکارتان مشاوره بگیرید</h2>
-        <p>نیازتان به طراحی سایت یا تولید محتوا را بررسی می‌کنیم و اگر برای پروژه لازم باشد، سئو را هم به‌عنوان مسیر مکمل پیشنهاد می‌دهیم.</p>
-        <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
-          <a href={`tel:+989165806207`} class="btn btn-tertiary btn-lg">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="#fff" style="flex:none" aria-hidden="true"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.3 0 .7-.2 1l-2.3 2.2z"/></svg>
-            <span dir="ltr">۰۹۱۶ ۵۸۰ ۶۲۰۷</span>
-          </a>
-          <a href="/consult" class="btn btn-ghost-light btn-lg">درخواست مشاوره</a>
+          <ul class="hero__points" data-reveal="up" data-delay="340">
+            <li><Icon name="check" size={15} stroke={2.8} /> جلسه اول مشاوره رایگان</li>
+            <li><Icon name="check" size={15} stroke={2.8} /> مالکیت کامل کد با شما</li>
+            <li><Icon name="check" size={15} stroke={2.8} /> تحویل مرحله‌به‌مرحله</li>
+          </ul>
         </div>
-      </div>
-    </div>
-    <div class="sec-wave" aria-hidden="true">
-      <svg viewBox="0 0 1440 76" preserveAspectRatio="none"><path fill="#ffffff" d="M0,76 L1440,76 L1440,34 C1300,12 1190,14 1060,34 C900,60 820,52 720,38 C560,14 470,18 320,38 C180,58 90,42 0,28 Z" /></svg>
-    </div>
-  </section>
 
-  {/* ─── ۷. مهارت‌ها و آمار — نوارهای پیشرفت + دایره‌های رنگی دمو ─── */}
-  <section class="sec sec-paper" style="padding-top:48px">
-    <div class="container">
-      <div class="intro-split">
-        <div class="txt-side" data-reveal>
-          <span class="section-label pink">راه سادهٔ رشد آنلاین</span>
-          <h2>تجربه‌ای که در نتیجه دیده می‌شود</h2>
-          <p>ما فقط کد نمی‌زنیم؛ زیرساخت رشد می‌سازیم. هر پروژه با استانداردهای فنی گوگل، معماری محتوایی درست و تجربهٔ کاربری مهندسی‌شده تحویل داده می‌شود تا نتیجه در سرچ‌کنسول و فروش قابل اندازه‌گیری باشد.</p>
-          <div style="margin-top:26px">
-            <div class="progress">
-              <div class="pb-label"><span>سئوی تکنیکال و محتوایی</span><b>۹۵٪</b></div>
-              <div class="pb-bar" style="--w:95%"></div>
-            </div>
-            <div class="progress">
-              <div class="pb-label"><span>سرعت و تجربهٔ کاربری</span><b>۹۲٪</b></div>
-              <div class="pb-bar" style="--w:92%"></div>
-            </div>
-            <div class="progress">
-              <div class="pb-label"><span>رضایت مشتریان</span><b>۹۸٪</b></div>
-              <div class="pb-bar" style="--w:98%"></div>
-            </div>
+        <div class="hero__media" data-reveal="zoom" data-delay="200">
+          <span class="hero__blob" aria-hidden="true"></span>
+          <span class="hero__ring" aria-hidden="true"></span>
+          <span class="hero__dot hero__dot--a" aria-hidden="true"></span>
+          <span class="hero__dot hero__dot--b" aria-hidden="true"></span>
+
+          <div class="hero__dash">
+            <DashboardMockup />
+          </div>
+
+          <div class="hero__float hero__float--stat">
+            <span class="hero__float-ico">
+              <Icon name="doc" size={26} stroke={1.9} />
+            </span>
+            <span class="hero__float-text">
+              <small>مقالهٔ تخصصی منتشرشده در مجله</small>
+              <strong>{faNum(postsCount)} مقاله</strong>
+            </span>
+          </div>
+
+          <div class="hero__float hero__float--rate">
+            <span class="hero__float-ico hero__float-ico--pink">
+              <Icon name="rocket" size={22} stroke={1.9} />
+            </span>
+            <span class="hero__float-text">
+              <strong>۳ محور تخصصی</strong>
+              <small>طراحی، محتوا و سئو</small>
+            </span>
           </div>
         </div>
-        <div class="circles-wrap" data-reveal="left">
-          <div class="circles-group">
-            <div class="cc cc-magenta"><b>۲۲</b><span>مقالهٔ تخصصی</span></div>
-            <div class="cc cc-indigo"><b>۳</b><span>حوزه اصلی خدمات</span></div>
-            <div class="cc cc-navy"><b>۶</b><span>گام شفاف همکاری</span></div>
-            <span class="cc cc-small-pink" aria-hidden="true"></span>
-            <span class="cc cc-dot" aria-hidden="true"></span>
-            <span class="cc cc-dot-2" aria-hidden="true"></span>
+      </div>
+
+      {/* نوار اعتماد — پروژه‌های واقعی Astro */}
+      <div class="hero__brands" data-reveal="up" data-delay="150">
+        <p class="hero__brands-title" id="trust-label">
+          نمونه‌ای از پروژه‌های واقعی توسعه‌یافته با <strong>فریم‌ورک Astro</strong>
+        </p>
+        <div class="marquee" role="list" aria-labelledby="trust-label">
+          <div class="marquee__track">
+            {
+              [0, 1].map(() =>
+                trustProjects.map((p) => (
+                  <a class="marquee__item" role="listitem" href={`/portfolio/${p.slug}`}>
+                    <Icon name="sparkle" size={15} stroke={2} />
+                    {p.title}
+                  </a>
+                ))
+              )
+            }
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  {/* ─── ۸. نظرات مشتریان (سبک دمو) ─── */}
-  {testimonials.length ? (
-    <section class="sec sec-paper" style="padding-top:20px">
-      <div class="container">
-        <div class="sec-head center" data-reveal>
-          <span class="section-label">نظرات مشتریان</span>
-          <h2>آنچه مشتریان ما می‌گویند را بررسی کنید</h2>
-        </div>
-        <div class="grid-3">
-          {testimonials.map((t, i) => (
-            <div class="tst-card" data-reveal style={`--rd:${i * 80}ms`}>
-              <blockquote>
-                <p>«{t.content}»</p>
-              </blockquote>
-              <div class="tst-stars" aria-label={`امتیاز ${t.rating} از ۵`}>{'★'.repeat(Number(t.rating))}</div>
-              <div class="tst-author">
-                <span class="tst-ava">{String(t.name).trim().charAt(0)}</span>
-                <p><b>{t.name}</b><span>{t.role} {t.company ? `در ${t.company}` : ''}</span></p>
+  {/* ─── ۲. نوار آمار ─── */}
+  <section class="section" aria-label="آمار کافه دانش">
+    <div class="container">
+      <div class="stats-band" data-reveal="up">
+        <div class="stats-grid">
+          {
+            hp.stats.map((s, i) => (
+              <div class="stat-item">
+                <span class={`stat-item__ico svc-card__ico--${['purple', 'pink', 'sky'][i % 3]}`}>
+                  <Icon name={['layers', 'target', 'chart'][i] ?? 'layers'} size={25} stroke={1.9} />
+                </span>
+                <div class="stat-item__val" data-counter={s.value.replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))}>۰</div>
+                <div class="stat-item__label">{s.label}</div>
               </div>
-            </div>
-          ))}
+            ))
+          }
+          <div class="stat-item">
+            <span class="stat-item__ico svc-card__ico--mint">
+              <Icon name="doc" size={25} stroke={1.9} />
+            </span>
+            <div class="stat-item__val" data-counter={String(postsCount)}>۰</div>
+            <div class="stat-item__label">مقالهٔ تخصصی منتشرشده</div>
+          </div>
         </div>
       </div>
-    </section>
-  ) : null}
+    </div>
+  </section>
 
-  {/* ─── ۹. تعرفه‌ها — کارت‌های Porto با هدیهٔ هاستینگ ─── */}
-  <section class="sec sec-cream sec-rel" id="pricing">
+  {/* ─── ۳. خدمات اصلی (سه محور) ─── */}
+  <section class="section" id="services">
     <div class="container">
-      <div class="sec-head center" data-reveal>
-        <span class="section-label">جدول تعرفه‌ها</span>
-        <h2>قیمت شفاف و ثابت؛ بدون هزینهٔ پنهان</h2>
-        <p>دامنهٔ کار هر پکیج دقیقاً مشخص است: تعداد صفحات، زمان تحویل و مدت پشتیبانی رایگان. دو پلن اول با ۶ ماه هاست هدیه و دو پلن بعدی با یک سال هاست هدیه ارائه می‌شوند.</p>
+      <div class="section-head section-head--center" data-reveal="up">
+        <span class="sub-title">
+          <Icon name="sparkle" size={20} stroke={2} class="sub-ico" />
+          خدمات ما
+        </span>
+        <h2 class="sec-title">سه حوزهٔ تخصصی؛ با تمرکز بر طراحی سایت و تولید محتوا</h2>
+        <p class="sec-text">
+          طراحی سایت و تولید محتوا دو محور اصلی همکاری با کافه دانش هستند؛ خدمات سئو نیز به‌عنوان محور سوم و مکمل در کنار آن‌ها ارائه می‌شود.
+        </p>
+      </div>
+      <div class="grid-3">
+        {
+          services.map((s, i) => (
+            <article class="svc-card" data-reveal="up" data-delay={String(i * 110)}>
+              <div class={`svc-card__ico svc-card__ico--${s.tone}`}>
+                <Icon name={s.ico} size={32} stroke={1.8} />
+              </div>
+              <h3>{s.title}</h3>
+              <p>{s.short_desc}</p>
+              <a href={`/services/${s.slug}`} class="svc-card__more">
+                جزئیات خدمت
+                <Icon name="arrow-left" size={17} stroke={2.2} />
+              </a>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  {/* ─── ۴. معرفی + تصویر استودیو ─── */}
+  <section class="section bg-lavender">
+    <div class="container">
+      <div class="split">
+        <div data-reveal="right">
+          <span class="sub-title">
+            <Icon name="rocket" size={20} stroke={2} class="sub-ico" />
+            راحت‌ترین راه حضور آنلاین
+          </span>
+          <h2 class="sec-title">پیشرو باشید؛ مشتریان بیشتری جذب کنید و برند قوی‌تری بسازید</h2>
+          <p class="sec-text">
+            به‌جای پراکنده‌کردن کار بین چند مجری، طراحی سایت و تولید محتوای کسب‌وکار شما با یک نقشهٔ راه هماهنگ پیش می‌رود؛
+            سئو نیز هرجا لازم باشد، این مسیر را برای دیده‌شدن بهتر در گوگل تکمیل می‌کند.
+          </p>
+          <ul class="split__list">
+            <li>
+              <Icon name="check" size={20} stroke={2.4} />
+              <span><b>نیازسنجی قبل از طراحی:</b> کسب‌وکار، مخاطب و هدف شما تعیین‌کنندهٔ ساختار صفحات است.</span>
+            </li>
+            <li>
+              <Icon name="check" size={20} stroke={2.4} />
+              <span><b>بازبینی مرحله‌ای:</b> ساختار و ظاهر را قبل از کدنویسی تأیید می‌کنید.</span>
+            </li>
+            <li>
+              <Icon name="check" size={20} stroke={2.4} />
+              <span><b>تحویل کامل:</b> پنل مدیریت، آموزش و مالکیت کامل کد با شما می‌ماند.</span>
+            </li>
+          </ul>
+          <div class="mt-2">
+            <a href="/about" class="btn">بیشتر درباره کافه دانش</a>
+          </div>
+        </div>
+        <div class="split__media" data-reveal="left">
+          <img
+            src="/img/about-studio.webp"
+            alt="تصویرسازی استودیوی دیجیتال کافه دانش — طراحی سایت و تولید محتوا"
+            width="1152"
+            height="768"
+            loading="lazy"
+            decoding="async"
+          />
+          <div class="split__badge">
+            <span class="split__badge-ico">
+              <Icon name="check" size={22} stroke={2.4} />
+            </span>
+            <span>
+              <strong>طراحی + محتوا + سئو</strong>
+              <small>یک تیم، یک نقشهٔ راه</small>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* ─── ۵. مزیت‌ها ─── */}
+  <section class="section">
+    <div class="container">
+      <div class="section-head section-head--center" data-reveal="up">
+        <span class="sub-title">
+          <Icon name="star" size={20} stroke={2} class="sub-ico" />
+          چرا کافه دانش؟
+        </span>
+        <h2 class="sec-title">پنج دلیل که نتیجه کار را متمایز می‌کند</h2>
+      </div>
+      <div class="grid-3">
+        {
+          hp.advantages.map((a, i) => (
+            <article class="adv-card" data-reveal="up" data-delay={String((i % 3) * 100)}>
+              <div class={`adv-card__ico svc-card__ico--${advTones[i]}`}>
+                <Icon name={advIcons[i]} size={26} stroke={1.8} />
+              </div>
+              <h3>{a.title}</h3>
+              <p>{a.text}</p>
+            </article>
+          ))
+        }
+        <article class="adv-card" data-reveal="up" data-delay="200" style="background:var(--grad-hero);border-color:transparent">
+          <div class="adv-card__ico" style="background:rgba(255,255,255,.16);color:#ffd7e8">
+            <Icon name="send" size={26} stroke={1.8} />
+          </div>
+          <h3 style="color:#fff">شروع همکاری</h3>
+          <p style="color:rgba(255,255,255,.85)">جلسه اول مشاوره رایگان است؛ نیازتان را می‌شنویم و مسیر پیشنهادی را شفاف می‌چینیم.</p>
+          <a href="/consult" class="svc-card__more" style="color:#ffd7e8">
+            درخواست مشاوره
+            <Icon name="arrow-left" size={17} stroke={2.2} />
+          </a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  {/* ─── ۶. مراحل همکاری ─── */}
+  <section class="section bg-lavender" id="process">
+    <div class="container">
+      <div class="section-head section-head--center" data-reveal="up">
+        <span class="sub-title">
+          <Icon name="chart" size={20} stroke={2} class="sub-ico" />
+          روند همکاری
+        </span>
+        <h2 class="sec-title">شش مرحلهٔ شفاف، از درخواست تا تحویل</h2>
+      </div>
+      <div class="steps">
+        {
+          hp.steps.map((s, i) => (
+            <article class="step-card" data-reveal="up" data-delay={String((i % 3) * 100)}>
+              <span class="step-card__no">{faNum(i + 1)}</span>
+              <h3>{s.title}</h3>
+              <p>{s.text}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  {/* ─── ۷. خدمات مکمل ─── */}
+  <section class="section">
+    <div class="container">
+      <div class="section-head section-head--center" data-reveal="up">
+        <span class="sub-title">
+          <Icon name="layers" size={20} stroke={2} class="sub-ico" />
+          خدمات تکمیلی
+        </span>
+        <h2 class="sec-title">هر آنچه یک سایت حرفه‌ای لازم دارد</h2>
+        <p class="sec-text">از فروشگاه اینترنتی و تجربه کاربری تا سرعت، پشتیبانی و ابزارهای هوشمند؛ همه زیر یک سقف.</p>
+      </div>
+      <div class="grid-3">
+        {
+          extraServices.map((s, i) => (
+            <article class="svc-mini" data-reveal="up" data-delay={String((i % 3) * 90)}>
+              <div class={`svc-mini__ico svc-card__ico--${s.tone}`}>
+                <Icon name={s.ico} size={24} stroke={1.9} />
+              </div>
+              <h3>{s.title}</h3>
+              <p>{s.short_desc}</p>
+              <a href={`/services/${s.slug}`} class="svc-mini__link">مشاهده جزئیات ›</a>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  {/* ─── ۸. نمونه‌کارها — اسلایدر ─── */}
+  <section class="section bg-lavender" id="portfolio">
+    <div class="container">
+      <div class="section-head section-head--center" data-reveal="up">
+        <span class="sub-title">
+          <Icon name="globe" size={20} stroke={2} class="sub-ico" />
+          نمونه‌کارها
+        </span>
+        <h2 class="sec-title">پروژه‌های واقعی، منتشرشده و قابل بازدید</h2>
+        <p class="sec-text">فهرستی از وب‌سایت‌هایی که با Astro توسعه داده شده‌اند و نسخهٔ آنلاین آن‌ها در دسترس است.</p>
+      </div>
+
+      <div data-slider data-reveal="up">
+        <div class="slider">
+          <div class="slider__viewport" data-slider-viewport>
+            <div class="slider__track" data-slider-track>
+              {
+                portfolioSlides.map((p) => (
+                  <article class="pf-card">
+                    <div class="pf-card__thumb">
+                      <img src={p.coverImage} alt={p.coverAlt} width="640" height="400" loading="lazy" decoding="async" />
+                      <span class="pf-card__cat">{p.category}</span>
+                    </div>
+                    <div class="pf-card__body">
+                      <h3><a href={`/portfolio/${p.slug}`}>{p.title}</a></h3>
+                      <p>{p.summary}</p>
+                      <div class="pf-card__foot">
+                        <div class="pf-card__tags">
+                          {p.tags.slice(0, 2).map((t) => <span>{t}</span>)}
+                        </div>
+                        <a href={`/portfolio/${p.slug}`} class="pf-card__visit">
+                          جزئیات پروژه
+                          <Icon name="arrow-left" size={15} stroke={2.2} />
+                        </a>
+                      </div>
+                    </div>
+                  </article>
+                ))
+              }
+            </div>
+          </div>
+          <div class="slider__nav">
+            <button class="slider__btn" type="button" data-slider-prev aria-label="پروژه قبلی">
+              <Icon name="chevron-right" size={20} stroke={2.2} />
+            </button>
+            <div class="slider__dots" data-slider-dots></div>
+            <button class="slider__btn" type="button" data-slider-next aria-label="پروژه بعدی">
+              <Icon name="chevron-left" size={20} stroke={2.2} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="center mt-3" data-reveal="up">
+        <a href="/portfolio" class="btn btn--ghost">مشاهدهٔ همهٔ نمونه‌کارها</a>
+      </div>
+    </div>
+  </section>
+
+  {/* ─── ۹. تعرفه‌ها ─── */}
+  <section class="section" id="pricing">
+    <div class="container">
+      <div class="section-head section-head--center" data-reveal="up">
+        <span class="sub-title">
+          <Icon name="wallet" size={20} stroke={2} class="sub-ico" />
+          تعرفه‌ها
+        </span>
+        <h2 class="sec-title">قیمت شفاف و ثابت؛ بدون هزینهٔ پنهان</h2>
+        <p class="sec-text">
+          دامنهٔ کار هر پکیج دقیقاً مشخص است: تعداد صفحات، زمان تحویل و مدت پشتیبانی رایگان. پلن‌های استارتر و حرفه‌ای با ۶ ماه هاست هدیه و پلن‌های فروشگاهی و اختصاصی با یک سال هاست هدیه ارائه می‌شوند.
+        </p>
       </div>
       <div class="plan-grid">
-        {plans.map((p, i) => {
-          const rawFeats = Array.isArray(p.features) ? (p.features as string[]) : [];
-const hostingDuration = i < 2 ? '۶ ماه' : '۱ سال';
-const hostingGift = `${hostingDuration} هاست هدیه`;
-const feats = rawFeats.map((feature) => String(feature).replace(/(?:۶|٦|6)\s*ماه|(?:۱۲|١٢|12)\s*ماه|(?:۱|١|1)\s*سال|یک\s*سال/g, hostingDuration).replace(/هاستینگ/g, 'هاست'));
-const displayFeats = feats.some((feature) => /هاست\s*هدیه/.test(feature)) ? feats : [hostingGift, ...feats];
-          return (
-            <div class={`plan-card ${p.highlighted ? 'highlight' : ''}`} data-reveal style={`--rd:${i * 70}ms`}>
-              <span class="hosting-badge">🎁 {hostingGift}</span>
-              {p.highlighted ? <span class="plan-ribbon">محبوب</span> : null}
-              <h3>{p.title}</h3>
-              <div class="plan-desc">{p.description}</div>
-              <div class="plan-price">{p.price}</div>
-              <div class="plan-note">{p.price_note}</div>
-              <ul class="plan-feats">
-                {displayFeats.map((f) => <li><i>✓</i> {f}</li>)}
-              </ul>
-              <a href={`/consult?plan=${encodeURIComponent(String(p.title))}`} class={`btn btn-block ${p.highlighted ? 'btn-ghost-light' : 'btn-ghost'}`}>اکنون بخرید</a>
-            </div>
-          );
-        })}
+        {
+          plans.map((p, i) => {
+            const rawFeats = Array.isArray(p.features) ? (p.features as string[]) : [];
+            const hostingDuration = i < 2 ? '۶ ماه' : '۱ سال';
+            const hostingGift = `${hostingDuration} هاست هدیه`;
+            const feats = rawFeats.map((feature) =>
+              String(feature)
+                .replace(/(?:۶|٦|6)\s*ماه|(?:۱۲|١٢|12)\s*ماه|(?:۱|١|1)\s*سال|یک\s*سال/g, hostingDuration)
+                .replace(/هاستینگ/g, 'هاست'),
+            );
+            const displayFeats = feats.some((feature) => /هاست\s*هدیه/.test(feature)) ? feats : [hostingGift, ...feats];
+            const hl = Boolean(p.highlighted);
+            return (
+              <article class:list={['plan-card', { 'plan-card--hl': hl }]} data-reveal="up" data-delay={String(i * 90)}>
+                {hl ? <span class="plan-ribbon">پیشنهاد ما</span> : null}
+                <span class="plan-card__badge">{String(p.badge)}</span>
+                <h3>{String(p.title)}</h3>
+                <div class="plan-card__desc">{String(p.description)}</div>
+                <div class="plan-card__price">{String(p.price)}</div>
+                <div class="plan-card__note">{String(p.price_note)}</div>
+                <ul class="plan-card__feats">
+                  {displayFeats.map((f) => (
+                    <li>
+                      <Icon name="check" size={17} stroke={2.4} />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <a
+                  href={`/consult?plan=${encodeURIComponent(String(p.title))}`}
+                  class:list={['btn', 'btn--full', hl ? 'btn--white' : 'btn--ghost']}
+                >
+                  درخواست این پکیج
+                </a>
+              </article>
+            );
+          })
+        }
       </div>
-    </div>
-    <div class="sec-wave" aria-hidden="true">
-      <svg viewBox="0 0 1440 76" preserveAspectRatio="none"><path fill="#ffffff" d="M0,76 L1440,76 L1440,34 C1300,12 1190,14 1060,34 C900,60 820,52 720,38 C560,14 470,18 320,38 C180,58 90,42 0,28 Z" /></svg>
+      <div class="center mt-3" data-reveal="up">
+        <a href="/pricing" class="btn btn--ghost">جزئیات کامل تعرفه‌ها</a>
+      </div>
     </div>
   </section>
 
-  {/* ─── ۱۰. مطالب اخیر بلاگ (سبک دمو) ─── */}
-  {posts.length ? (
-    <section class="sec sec-paper">
-      <div class="container">
-        <div class="sec-head center" data-reveal>
-          <span class="section-label">مجلهٔ کافه دانش</span>
-          <h2>مطالب اخیر بلاگ</h2>
-          <p>مطالب کاربردی دربارهٔ طراحی سایت و تولید محتوا؛ همراه با راهنماهای سئو برای تکمیل مسیر رشد کسب‌وکار.</p>
-        </div>
-        <div class="grid-3">
-          {posts.map((p, i) => (
-            <a href={`/blog/${p.slug}`} class="post-card" data-reveal style={`--rd:${i * 70}ms`}>
-              <div class="post-thumb"><img src={String(p.cover_image)} alt={String(p.title)} width="1344" height="768" loading="lazy" /></div>
-              <div class="post-body">
-                <div class="post-meta">
-                  <span class="cat">{p.category || 'مقالات'}</span>
-                  <span class="pm-sep"></span>
-                  <span>{faNum(String(p.reading_time))} دقیقه مطالعه</span>
+  {/* ─── ۱۰. نظرات مشتریان (فقط در صورت وجود نظر واقعی) ─── */}
+  {
+    testimonials.length ? (
+      <section class="section bg-peach">
+        <div class="container">
+          <div class="section-head section-head--center" data-reveal="up">
+            <span class="sub-title">
+              <Icon name="quote" size={20} stroke={2} class="sub-ico" />
+              نظرات مشتریان
+            </span>
+            <h2 class="sec-title">آنچه مشتریان ما می‌گویند</h2>
+          </div>
+          <div data-slider data-reveal="up">
+            <div class="slider">
+              <div class="slider__viewport" data-slider-viewport>
+                <div class="slider__track" data-slider-track>
+                  {testimonials.map((t) => (
+                    <article class="tst-card">
+                      <span class="tst-card__quote-ico">
+                        <Icon name="quote" size={22} stroke={1.8} />
+                      </span>
+                      <blockquote>
+                        <p>«{String(t.content)}»</p>
+                      </blockquote>
+                      <div class="tst-card__stars" aria-label={`امتیاز ${String(t.rating)} از ۵`}>
+                        {'★'.repeat(Math.min(5, Number(t.rating) || 5))}
+                      </div>
+                      <div class="tst-card__author">
+                        <span class="tst-card__ava">{String(t.name).trim().charAt(0)}</span>
+                        <span>
+                          <b>{String(t.name)}</b>
+                          <span>
+                            {String(t.role)}
+                            {t.company ? ` در ${String(t.company)}` : ''}
+                          </span>
+                        </span>
+                      </div>
+                    </article>
+                  ))}
                 </div>
-                <h3>{p.title}</h3>
-                <p>{p.excerpt}</p>
-                <span class="fbox-more">بیشتر بخوانید +</span>
               </div>
-            </a>
-          ))}
+              <div class="slider__nav">
+                <button class="slider__btn" type="button" data-slider-prev aria-label="نظر قبلی">
+                  <Icon name="chevron-right" size={20} stroke={2.2} />
+                </button>
+                <div class="slider__dots" data-slider-dots></div>
+                <button class="slider__btn" type="button" data-slider-next aria-label="نظر بعدی">
+                  <Icon name="chevron-left" size={20} stroke={2.2} />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div style="text-align:center;margin-top:40px" data-reveal>
-          <a href="/blog" class="btn btn-gold">مشاهدهٔ بلاگ</a>
-        </div>
-      </div>
-    </section>
-  ) : null}
+      </section>
+    ) : null
+  }
 
   {/* ─── ۱۱. سؤالات متداول ─── */}
-  <section class="sec sec-cream">
+  <section class="section" id="faq">
     <div class="container">
-      <div class="sec-head center" data-reveal>
-        <span class="section-label">سؤالات متداول</span>
-        <h2>قبل از شروع پروژه بهتر است بدانید</h2>
+      <div class="section-head section-head--center" data-reveal="up">
+        <span class="sub-title">
+          <Icon name="info" size={20} stroke={2} class="sub-ico" />
+          سؤالات متداول
+        </span>
+        <h2 class="sec-title">قبل از شروع پروژه بهتر است بدانید</h2>
       </div>
-      <div class="faq-list">
-        {faqs.map((f) => (
-          <details class="faq-item" data-reveal>
-            <summary><span class="fq-ico">+</span> {f.question}</summary>
-            <div class="fq-body">{f.answer}</div>
-          </details>
-        ))}
+      <div class="faq-wrap" data-reveal="up">
+        {
+          faqs.map((f, i) => (
+            <div class:list={["faq-item", { "is-open": i === 0 }]} data-accordion-item>
+              <button class="faq-item__btn" type="button" data-accordion-btn aria-expanded={i === 0 ? 'true' : 'false'}>
+                {String(f.question)}
+                <span class="faq-item__sign">
+                  <Icon name="plus" size={15} stroke={2.6} />
+                </span>
+              </button>
+              <div class="faq-item__panel" data-accordion-panel aria-hidden={i === 0 ? 'false' : 'true'}>
+                <div class="faq-item__panel-inner">{String(f.answer)}</div>
+              </div>
+            </div>
+          ))
+        }
       </div>
-      <div style="text-align:center;margin-top:28px" data-reveal>
-        <a href="/faq" class="btn btn-ghost">مشاهدهٔ همهٔ سؤالات متداول</a>
+      <div class="faq-cta" data-reveal="up">
+        <a href="/faq" class="btn btn--ghost">مشاهدهٔ همهٔ سؤالات متداول</a>
       </div>
     </div>
   </section>
+
+  {/* ─── ۱۲. نوار CTA ─── */}
+  <section class="section">
+    <div class="container">
+      <div class="cta-band" data-reveal="zoom">
+        <span class="cta-band__deco cta-band__deco--1" aria-hidden="true"></span>
+        <span class="cta-band__deco cta-band__deco--2" aria-hidden="true"></span>
+        <span class="cta-band__deco cta-band__deco--3" aria-hidden="true"></span>
+        <h2>{hp.ctaTitle}</h2>
+        <p>{hp.ctaText}</p>
+        <div class="cta-band__btns">
+          <a href="/consult" class="btn btn--white btn--lg">درخواست مشاوره رایگان</a>
+          <a href={`tel:+98${c.phone.slice(1)}`} class="btn btn--ghost-light btn--lg">
+            <Icon name="phone" size={18} stroke={2} />
+            <span dir="ltr">{c.phoneDisplay}</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* ─── ۱۳. مجله ─── */}
+  {
+    posts.length ? (
+      <section class="section bg-lavender">
+        <div class="container">
+          <div class="section-head section-head--center" data-reveal="up">
+            <span class="sub-title">
+              <Icon name="doc" size={20} stroke={2} class="sub-ico" />
+              مجلهٔ کافه دانش
+            </span>
+            <h2 class="sec-title">مطالب اخیر بلاگ</h2>
+            <p class="sec-text">مطالب کاربردی دربارهٔ طراحی سایت و تولید محتوا؛ همراه با راهنماهای سئو برای تکمیل مسیر رشد.</p>
+          </div>
+          <div class="grid-3">
+            {posts.map((p, i) => (
+              <article class="post-card" data-reveal="up" data-delay={String(i * 100)}>
+                <div class="post-card__thumb">
+                  <img src={String(p.cover_image)} alt={String(p.title)} width="672" height="394" loading="lazy" decoding="async" />
+                  <span class="post-card__cat">{String(p.category || 'مقالات')}</span>
+                </div>
+                <div class="post-card__body">
+                  <div class="post-card__meta">
+                    <Icon name="calendar" size={13} stroke={2} />
+                    <span>{faDate(p.published_at)}</span>
+                    <span>·</span>
+                    <Icon name="clock" size={13} stroke={2} />
+                    <span>{faNum(Number(p.reading_time))} دقیقه مطالعه</span>
+                  </div>
+                  <h3><a href={`/blog/${p.slug}`}>{String(p.title)}</a></h3>
+                  <p>{String(p.excerpt)}</p>
+                  <span class="post-card__more">
+                    ادامهٔ مطلب
+                    <Icon name="arrow-left" size={15} stroke={2.2} />
+                  </span>
+                </div>
+              </article>
+            ))}
+          </div>
+          <div class="center mt-3" data-reveal="up">
+            <a href="/blog" class="btn">مشاهدهٔ همهٔ مقالات</a>
+          </div>
+        </div>
+      </section>
+    ) : null
+  }
 </BaseLayout>

@@ -1,11 +1,15 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
+import Icon from '../../components/Icon.astro';
 import { q } from '../../lib/db';
 import { faNum, faDate } from '../../lib/persian';
 
+/* حالت استاتیک: همهٔ مقالات یک‌جا رندر می‌شوند و فیلتر دسته‌بندی سمت مرورگر انجام می‌شود */
+const IS_STATIC = !!process.env.STATIC_BUILD;
+
 const page = Math.max(1, parseInt(Astro.url.searchParams.get('page') || '1', 10) || 1);
-const PER = 9;
+const PER = IS_STATIC ? 999 : 9;
 const catSlug = Astro.url.searchParams.get('cat') || '';
 const searchQ = (Astro.url.searchParams.get('q') || '').trim().slice(0, 60);
 
@@ -26,7 +30,7 @@ const totalRow = await q<{ c: number }>(
 const total = totalRow[0]?.c ?? 0;
 const pages = Math.max(1, Math.ceil(total / PER));
 const posts = await q(
-  `SELECT p.slug, p.title, p.excerpt, p.cover_image, p.reading_time, p.published_at, c.name AS category
+  `SELECT p.slug, p.title, p.excerpt, p.cover_image, p.reading_time, p.published_at, c.name AS category, c.slug AS cat_slug
    FROM posts p LEFT JOIN categories c ON c.id = p.category_id
    WHERE ${whereSql}
    ORDER BY p.published_at DESC LIMIT ${PER} OFFSET ${PER * (page - 1)}`,
@@ -42,57 +46,116 @@ const qs = (n: number) => {
 };
 ---
 <BaseLayout
-  title={cat ? `مقالات ${cat.name} | مجله کافه‌دانش` : page > 1 ? `مجله کافه‌دانش — صفحه ${faNum(page)}` : 'مجله کافه‌دانش | مقالات تخصصی طراحی سایت، سئو و هوش مصنوعی'}
+  title={cat ? `مقالات ${cat.name} | مجله کافه دانش` : page > 1 ? `مجله کافه دانش — صفحه ${faNum(page)}` : 'مجله کافه دانش | مقالات تخصصی طراحی سایت، سئو و هوش مصنوعی'}
   description="هر هفته یک مطلب کاربردی درباره طراحی سایت، سئو، محتوا و هوش مصنوعی — به زبان ساده و متناسب با بازار ایران."
   activePath="/blog"
   schema={[{
     '@context': 'https://schema.org',
     '@type': 'Blog',
-    name: 'مجله کافه‌دانش',
+    name: 'مجله کافه دانش',
     url: 'https://cdanesh.ir/blog',
-    publisher: { '@type': 'Organization', name: 'کافه‌دانش' },
+    publisher: { '@type': 'Organization', name: 'کافه دانش' },
   }]}
 >
   <PageHero
-    title={searchQ ? `نتایج جستجو برای «${searchQ}»` : cat ? `مقالات «${cat.name}»` : 'مجله کافه‌دانش'}
-    sub={searchQ ? `${faNum(String(total))} مقاله پیدا شد` : 'خواندنی‌های تخصصی دیجیتال؛ هر هفته یک مطلب کاربردی درباره طراحی سایت، سئو، محتوا و هوش مصنوعی — به زبان ساده.'}
+    title={searchQ ? `نتایج جستجو برای «${searchQ}»` : cat ? `مقالات «${cat.name}»` : 'مجله کافه دانش'}
+    sub={searchQ ? `${faNum(String(total))} مقاله پیدا شد` : 'خواندنی‌های تخصصی دیجیتال؛ هر هفته یک مطلب کاربردی دربارهٔ طراحی سایت، سئو، محتوا و هوش مصنوعی — به زبان ساده.'}
     crumbs={[{ label: 'مجله', href: '' }]}
   />
-  <section class="sec">
+
+  <section class="section pad-half">
     <div class="container">
-      <div class="pf-filter" data-reveal>
-        <a href="/blog" class={`btn btn-sm ${!cat && !searchQ ? 'btn-gold' : 'btn-ghost'}`}>همه</a>
-        {cats.map((c) => (
-          <a href={`/blog?cat=${c.slug}`} class={`btn btn-sm ${cat?.slug === c.slug ? 'btn-gold' : 'btn-ghost'}`}>{c.name}</a>
-        ))}
-      </div>
-      {posts.length ? (
-        <div class="grid-3">
-          {posts.map((p, i) => (
-            <a href={`/blog/${p.slug}`} class="post-card" data-reveal style={`--rd:${(i % 3) * 60}ms`}>
-              <div class="post-thumb"><img src={String(p.cover_image)} alt={String(p.title)} width="1344" height="768" loading="lazy" /></div>
-              <div class="post-body">
-                <div class="post-meta">
-                  <span class="cat">{p.category || 'مقالات'}</span>
-                  <span>{faDate(String(p.published_at))}</span>
-                  <span>{faNum(String(p.reading_time))} دقیقه مطالعه</span>
-                </div>
-                <h3>{p.title}</h3>
-                <p>{p.excerpt}</p>
-              </div>
-            </a>
-          ))}
+      {/* فیلتر دسته‌بندی + جستجو */}
+      <div class="blog-toolbar" data-reveal="up">
+        <div class="blog-cats" role="group" aria-label="فیلتر دسته‌بندی مقالات">
+          {IS_STATIC ? <button type="button" class="is-active" data-cat-filter="all">همه</button> : <a href="/blog" class:list={[{ 'is-active': !cat && !searchQ }]}>همه</a>}
+          {
+            cats.map((c) => {
+              const isActive = c.slug === catSlug;
+              if (IS_STATIC) {
+                return <button type="button" class:list={[{ 'is-active': isActive }]} data-cat-filter={String(c.slug)}>{String(c.name)}</button>;
+              }
+              return <a href={`/blog?cat=${c.slug}`} class:list={[{ 'is-active': isActive }]}>{String(c.name)}</a>;
+            })
+          }
         </div>
-      ) : (
-        <div class="form-panel" style="text-align:center">هنوز مقاله‌ای با این فیلتر منتشر نشده است. <a href="/blog" style="color:var(--pink-deep);font-weight:700">مشاهدهٔ همهٔ مقالات</a></div>
-      )}
-      {pages > 1 ? (
-        <nav style="display:flex;gap:8px;justify-content:center;margin-top:40px" aria-label="صفحه‌بندی">
-          {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
-            <a href={qs(n)} class={`btn btn-sm ${n === page ? 'btn-gold' : 'btn-ghost'}`} aria-current={n === page ? 'page' : undefined}>{faNum(n)}</a>
-          ))}
-        </nav>
-      ) : null}
+        {
+          IS_STATIC ? null : (
+            <form class="blog-search" action="/blog" method="get" role="search">
+              {catSlug ? <input type="hidden" name="cat" value={catSlug} /> : null}
+              <input type="search" name="q" value={searchQ} placeholder="جستجو در مقالات…" aria-label="جستجو در مقالات" />
+              <button type="submit" aria-label="جستجو">
+                <Icon name="search" size={16} stroke={2.2} />
+              </button>
+            </form>
+          )
+        }
+      </div>
+
+      {
+        posts.length ? (
+          <div class="grid-3" id="blogGrid">
+            {posts.map((p, i) => (
+              <article class="post-card" data-blog-item data-cat={String(p.cat_slug || '')} data-reveal="up" data-delay={String((i % 3) * 70)}>
+                <div class="post-card__thumb">
+                  <img src={String(p.cover_image)} alt={String(p.title)} width="672" height="384" loading="lazy" decoding="async" />
+                  <span class="post-card__cat">{String(p.category || 'مقالات')}</span>
+                </div>
+                <div class="post-card__body">
+                  <div class="post-card__meta">
+                    <Icon name="calendar" size={13} stroke={2} />
+                    <span>{faDate(String(p.published_at))}</span>
+                    <span>·</span>
+                    <Icon name="clock" size={13} stroke={2} />
+                    <span>{faNum(Number(p.reading_time))} دقیقه مطالعه</span>
+                  </div>
+                  <h3><a href={`/blog/${p.slug}`}>{String(p.title)}</a></h3>
+                  <p>{String(p.excerpt)}</p>
+                  <a href={`/blog/${p.slug}`} class="post-card__more">
+                    ادامهٔ مطلب
+                    <Icon name="arrow-left" size={15} stroke={2.2} />
+                  </a>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div class="form-card center">
+            هنوز مقاله‌ای با این فیلتر منتشر نشده است.
+            <a href="/blog" style="color:var(--pink);font-weight:700">مشاهدهٔ همهٔ مقالات</a>
+          </div>
+        )
+      }
+
+      {
+        pages > 1 ? (
+          <nav class="pagination" aria-label="صفحه‌بندی مقالات">
+            {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
+              <a href={qs(n)} class:list={[{ 'is-current': n === page }]} aria-current={n === page ? 'page' : undefined}>
+                {faNum(n)}
+              </a>
+            ))}
+          </nav>
+        ) : null
+      }
     </div>
   </section>
+
+  {
+    IS_STATIC ? (
+      <script>
+        // فیلتر سمت مرورگر — مخصوص نسخهٔ استاتیک (بدون تغییر URL)
+        document.querySelectorAll<HTMLButtonElement>('[data-cat-filter]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll<HTMLButtonElement>('[data-cat-filter]').forEach((b) => b.classList.remove('is-active'));
+            btn.classList.add('is-active');
+            const f = btn.dataset.catFilter || 'all';
+            document.querySelectorAll<HTMLElement>('[data-blog-item]').forEach((card) => {
+              card.style.display = f === 'all' || card.dataset.cat === f ? '' : 'none';
+            });
+          });
+        });
+      </script>
+    ) : null
+  }
 </BaseLayout>

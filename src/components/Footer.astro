@@ -1,56 +1,106 @@
 ---
-/* فوتر دقیقاً سبک Porto SEO 2: موج بالایی + ۴ ستون (درباره ما / لینک‌های مفید / خدمات ما / تماس با ما) + آیکون‌های گرد سفید */
+/* فوتر کافه دانش — سرمه‌ای تیره با هاله‌های گرادیانی + امضای طراح */
 import Logo from './Logo.astro';
+import Icon from './Icon.astro';
 import type { SiteSettings } from '../lib/seed/settings-data';
 
 interface Props {
   settings: SiteSettings;
-  waveColor?: 'cream' | 'paper';
 }
 const { settings } = Astro.props;
 const f = settings.footer;
 const c = settings.contact;
+const phoneHref = 'tel:+98' + String(c.phone).replace(/\D/g, '').slice(1);
+const github = c.github || 'https://github.com/rasoolbahadran-stack';
 ---
-<footer class="site-footer">
-  <div class="footer-wave" aria-hidden="true">
-    <svg viewBox="0 0 1440 78" preserveAspectRatio="none"><path d="M0,0 L1440,0 L1440,32 C1200,64 960,20 720,42 C480,64 240,12 0,36 Z" fill="#eff1f3" /></svg>
-  </div>
-  <div class="container">
-    <div class="footer-grid">
-      <div class="footer-brand">
-        <Logo />
-        <p>{f.aboutText}</p>
 
-      </div>
-      <div>
-        <h4>لینک‌های مفید</h4>
-        <ul>
-          {f.colQuick.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <!-- معرفی برند -->
+      <div class="footer__about">
+        <Logo variant="light" class="footer__logo" />
+        <p class="footer__desc">{f.aboutText}</p>
+        <ul class="footer__social" aria-label="راه‌های ارتباطی سریع">
+          <li>
+            <a href={`mailto:${c.email}`} aria-label="ایمیل کافه دانش">
+              <Icon name="mail" size={17} stroke={1.9} />
+            </a>
+          </li>
+          <li>
+            <a href={phoneHref} aria-label="تماس تلفنی">
+              <Icon name="phone" size={17} stroke={1.9} />
+            </a>
+          </li>
+          <li>
+            <a href={github} target="_blank" rel="noopener" aria-label="گیت‌هاب کافه دانش">
+              <Icon name="github" size={17} stroke={1.7} />
+            </a>
+          </li>
+          <li>
+            <a href="/consult" aria-label="درخواست مشاوره">
+              <Icon name="send" size={17} stroke={1.9} />
+            </a>
+          </li>
         </ul>
       </div>
-      <div>
-        <h4>خدمات ما</h4>
-        <ul>
-          {f.colServices.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+
+      <!-- خدمات -->
+      <nav class="footer__widget" aria-label="خدمات ما">
+        <h4 class="footer__title">خدمات ما</h4>
+        <ul class="footer__links">
+          {f.colServices.map((l: { label: string; href: string }) => (
+            <li><a href={l.href}>{l.label}</a></li>
+          ))}
+          <li><a href="/services">همهٔ خدمات</a></li>
         </ul>
-      </div>
-      <div>
-        <h4>تماس با ما</h4>
-        <ul class="footer-contact">
-          <li><i>📍</i> {c.address}</li>
-          <li><i>📞</i> <a href={`tel:+98${c.phone.slice(1)}`}>{c.phoneDisplay}</a></li>
-          <li><i>✉️</i> <a href={`mailto:${c.email}`}>{c.email}</a></li>
-          <li><i>🕘</i> {c.hours}</li>
-          {c.github ? <li><i>💻</i> <a href={c.github} target="_blank" rel="noopener">GitHub</a></li> : null}
+      </nav>
+
+      <!-- دسترسی سریع -->
+      <nav class="footer__widget" aria-label="لینک‌های مفید">
+        <h4 class="footer__title">دسترسی سریع</h4>
+        <ul class="footer__links">
+          {f.colQuick.map((l: { label: string; href: string }) => (
+            <li><a href={l.href}>{l.label}</a></li>
+          ))}
         </ul>
+      </nav>
+
+      <!-- راه‌های ارتباطی -->
+      <div class="footer__widget">
+        <h4 class="footer__title">راه‌های ارتباطی</h4>
+        <ul class="footer__contact">
+          <li>
+            <Icon name="phone" size={17} stroke={1.9} />
+            <a href={phoneHref} dir="ltr">{c.phoneDisplay}</a>
+          </li>
+          <li>
+            <Icon name="mail" size={17} stroke={1.9} />
+            <a href={`mailto:${c.email}`} dir="ltr">{c.email}</a>
+          </li>
+          <li>
+            <Icon name="pin" size={17} stroke={1.9} />
+            <span>{c.address}</span>
+          </li>
+        </ul>
+        <div class="footer__hours">
+          <Icon name="clock" size={15} stroke={1.9} />
+          <span>{c.hours}</span>
+        </div>
       </div>
     </div>
-    <div class="footer-bottom">
-      <span>{f.copyright}</span>
-      <span>
-        <a href="/privacy">حریم خصوصی</a> · <a href="/terms">شرایط استفاده</a>
-        {settings.identity.designer ? <span style="margin-inline-start:10px">طراحی و اجرا: <a href="/" style="margin-inline:2px">{settings.identity.designer}</a></span> : null}
-      </span>
+  </div>
+
+  <!-- کپی‌رایت + امضای طراح -->
+  <div class="footer__copy">
+    <div class="container footer__copy-row">
+      <p class="footer__copyright">{f.copyright}</p>
+      <p class="footer__designer">
+        طراحی و توسعه وب‌سایت توسط
+        <a href="https://www.cdanesh.ir/" target="_blank" rel="noopener">رسول بهادران | طراح سایت</a>
+        <span class="footer__sep" aria-hidden="true">|</span>
+        <a href="https://www.cdanesh.ir/" target="_blank" rel="noopener">کافه دانش</a>
+      </p>
     </div>
   </div>
 </footer>

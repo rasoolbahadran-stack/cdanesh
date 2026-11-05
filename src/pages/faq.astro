@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
 import { q } from '../lib/db';
 
 const faqs = await q(`SELECT question, answer FROM faqs WHERE status='published' ORDER BY sort_order`);
@@ -16,8 +17,8 @@ const faqSchema = {
 };
 ---
 <BaseLayout
-  title="سؤالات متداول | کافه‌دانش"
-  description="پاسخ سؤالات رایج درباره طراحی سایت، هزینه، زمان تحویل، سئو، هوش مصنوعی و مالکیت کد در کافه‌دانش."
+  title="سؤالات متداول | کافه دانش"
+  description="پاسخ سؤالات رایج درباره طراحی سایت، هزینه، زمان تحویل، سئو، هوش مصنوعی و مالکیت کد در کافه دانش."
   activePath="/faq"
   schema={[faqSchema]}
 >
@@ -26,30 +27,39 @@ const faqSchema = {
     sub="هرچیزی که قبل از شروع پروژه بهتر است بدانید — شفاف و بدون ابهام."
     crumbs={[{ label: 'سؤالات متداول', href: '' }]}
   />
-  <section class="sec">
+
+  <section class="section pad-half">
     <div class="container">
-      <div class="faq-list">
-        {faqs.map((f, i) => (
-          <details class="faq-item" data-reveal style={`--rd:${(i % 4) * 40}ms`}>
-            <summary><span class="fq-ico">+</span> {f.question}</summary>
-            <div class="fq-body">{f.answer}</div>
-          </details>
-        ))}
+      <div class="faq-wrap">
+        {
+          faqs.map((f, i) => (
+            <div class:list={["faq-item", { "is-open": i === 0 }]} data-accordion-item data-reveal="up" data-delay={String((i % 4) * 50)}>
+              <button class="faq-item__btn" type="button" data-accordion-btn aria-expanded={i === 0 ? 'true' : 'false'}>
+                {String(f.question)}
+                <span class="faq-item__sign">
+                  <Icon name="plus" size={15} stroke={2.6} />
+                </span>
+              </button>
+              <div class="faq-item__panel" data-accordion-panel aria-hidden={i === 0 ? 'false' : 'true'}>
+                <div class="faq-item__panel-inner">{String(f.answer)}</div>
+              </div>
+            </div>
+          ))
+        }
       </div>
     </div>
   </section>
-  <section class="sec sec-dark" style="padding-block:64px">
+
+  <section class="section pad-half bg-lavender">
     <div class="container">
       <div class="cta-band" data-reveal="zoom">
-        <div class="cta-inner">
-          <div>
-            <h2>سؤال دیگری دارید؟</h2>
-            <p>از طریق فرم مشاوره بپرسید؛ در ساعات کاری همان روز پاسخ می‌دهیم.</p>
-          </div>
-          <div class="cta-actions">
-            <a href="/consult" class="btn btn-gold btn-lg">درخواست مشاوره رایگان</a>
-            <a href="/contact" class="btn btn-ghost-light">تماس با ما</a>
-          </div>
+        <span class="cta-band__deco cta-band__deco--1" aria-hidden="true"></span>
+        <span class="cta-band__deco cta-band__deco--2" aria-hidden="true"></span>
+        <h2>سؤال دیگری دارید؟</h2>
+        <p>از طریق فرم مشاوره بپرسید؛ در ساعات کاری پاسخ می‌دهیم.</p>
+        <div class="cta-band__btns">
+          <a href="/consult" class="btn btn--white btn--lg">درخواست مشاوره رایگان</a>
+          <a href="/contact" class="btn btn--ghost-light">تماس با ما</a>
         </div>
       </div>
     </div>

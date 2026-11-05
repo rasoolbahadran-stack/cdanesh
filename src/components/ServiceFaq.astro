@@ -9,7 +9,9 @@ interface Props {
   class?: string;
 }
 const { pageKey, class: className } = Astro.props;
-const items = (faqPages[pageKey] || []).filter(x => x.on !== false);
+interface FaqItem { q: string; a: string; on?: boolean }
+const faqTable = faqPages as unknown as Record<string, FaqItem[]>;
+const items = (faqTable[pageKey] || []).filter((x: FaqItem) => x.on !== false);
 ---
 {items.length > 0 && (
   <div class={className} data-page-faq={pageKey}>

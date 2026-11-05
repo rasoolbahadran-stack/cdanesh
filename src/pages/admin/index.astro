@@ -1,34 +1,54 @@
 ---
-/* داشبورد مدیریت — آمار کلی، فعالیت‌های اخیر، پیام‌های جدید، دسترسی سریع */
+/* داشبورد مدیریت — آمار کلی، وضعیت سیستم، فعالیت‌های اخیر، پیام‌های جدید، دسترسی سریع */
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { q } from '../../lib/db';
 import { relativeTimeFa, faNum } from '../../lib/persian';
+import { db } from '../../lib/db';
+import { storageKind } from '../../lib/storage';
+import { publishDueScheduled } from '../../lib/crud';
+
+/* انتشار خودکار مقالات زمان‌بندی‌شده‌ای که زمانشان رسیده */
+const publishedNow = await publishDueScheduled();
 
 const count = async (sql: string, params: unknown[] = []) => {
   const r = await q<{ c: number }>(sql, params);
   return r[0]?.c ?? 0;
 };
 
-const [pagesTotal, postsTotal, postsPublished, postsDraft, servicesTotal, projectsTotal, mediaTotal, msgsNew, msgsTotal, faqTotal] = await Promise.all([
+const [pagesTotal, postsTotal, postsPublished, postsDraft, postsScheduled, servicesTotal, servicesPublished, projectsTotal, projectsPublished, mediaTotal, msgsNew, msgsTotal, faqTotal, plansTotal, testimonialsTotal] = await Promise.all([
   count(`SELECT count(*)::int AS c FROM pages`),
   count(`SELECT count(*)::int AS c FROM posts`),
   count(`SELECT count(*)::int AS c FROM posts WHERE status='published'`),
   count(`SELECT count(*)::int AS c FROM posts WHERE status='draft'`),
+  count(`SELECT count(*)::int AS c FROM posts WHERE status='scheduled'`),
   count(`SELECT count(*)::int AS c FROM services`),
+  count(`SELECT count(*)::int AS c FROM services WHERE status='published'`),
   count(`SELECT count(*)::int AS c FROM projects`),
+  count(`SELECT count(*)::int AS c FROM projects WHERE status='published'`),
   count(`SELECT count(*)::int AS c FROM media`),
   count(`SELECT count(*)::int AS c FROM messages WHERE status='new'`),
   count(`SELECT count(*)::int AS c FROM messages`),
   count(`SELECT count(*)::int AS c FROM faqs`),
+  count(`SELECT count(*)::int AS c FROM plans`),
+  count(`SELECT count(*)::int AS c FROM testimonials`),
 ]);
 
+const dbInfo = await db();
+const storage = storageKind();
 const recentMessages = await q(`SELECT id, name, type, plan_title, message, status, created_at FROM messages ORDER BY created_at DESC LIMIT 6`);
 const activity = await q(`SELECT type, title, created_at FROM activity ORDER BY created_at DESC LIMIT 8`);
-const recentPosts = await q(`SELECT id, title, status, published_at, updated_at FROM posts ORDER BY updated_at DESC LIMIT 5`);
+const recentPosts = await q(`SELECT id, title, slug, status, published_at, updated_at FROM posts ORDER BY updated_at DESC LIMIT 5`);
 
-const typeLabel = { contact: 'پیام تماس', consult: 'درخواست مشاوره', plan: 'درخواست پکیج' };
+const typeLabel: Record<string, string> = { contact: 'پیام تماس', consult: 'درخواست مشاوره', plan: 'درخواست پکیج' };
+const msgTypeLabel = (t: unknown) => typeLabel[String(t)] || String(t);
 ---
 <AdminLayout title="داشبورد مدیریت" crumb="کافه‌دانش › نمای کلی" newMessages={msgsNew}>
+  {publishedNow > 0 && (
+    <div class="info-strip" style="margin-bottom:12px;background:rgba(22,163,74,.08)">
+      <span>✅</span>
+      <span>{faNum(publishedNow)} مقالهٔ زمان‌بندی‌شده که زمانش رسیده بود، همین حالا به‌صورت خودکار منتشر شد.</span>
+    </div>
+  )}
   <div class="stats-row">
     <div class="stat-box">
       <span class="stat-ico bg-gold">📄</span>
@@ -39,12 +59,31 @@ const typeLabel = { contact: 'پیام تماس', consult: 'درخواست مش�
       <div><b>{faNum(postsPublished)} / {faNum(postsTotal)}</b><span>مقالات منتشرشده / کل ({faNum(postsDraft)} پیش‌نویس)</span></div>
     </div>
     <div class="stat-box">
-      <span class="stat-ico bg-amber">📥</span>
-      <div><b>{faNum(msgsNew)}</b><span>پیام جدید ({faNum(msgsTotal)} در کل)</span></div>
+      <span class="stat-ico bg-amber">⏰</span>
+      <div><b>{faNum(postsScheduled)}</b><span>مقالات زمان‌بندی‌شده</span></div>
     </div>
     <div class="stat-box">
-      <span class="stat-ico bg-green">🛠</span>
-      <div><b>{faNum(servicesTotal)}</b><span>خدمات فعال</span></div>
+      <span class="stat-ico bg-green">📥</span>
+      <div><b>{faNum(msgsNew)}</b><span>پیام جدید ({faNum(msgsTotal)} در کل)</span></div>
+    </div>
+  </div>
+
+  <div class="stats-row" style="margin-top:12px">
+    <div class="stat-box">
+      <span class="stat-ico bg-blue">🛠</span>
+      <div><b>{faNum(servicesPublished)} / {faNum(servicesTotal)}</b><span>خدمات منتشرشده / کل</span></div>
+    </div>
+    <div class="stat-box">
+      <span class="stat-ico bg-gold">💼</span>
+      <div><b>{faNum(projectsPublished)} / {faNum(projectsTotal)}</b><span>نمونه‌کارهای منتشرشده / کل</span></div>
+    </div>
+    <div class="stat-box">
+      <span class="stat-ico bg-amber">💰</span>
+      <div><b>{faNum(plansTotal)}</b><span>پلن تعرفه</span></div>
+    </div>
+    <div class="stat-box">
+      <span class="stat-ico bg-green">💬</span>
+      <div><b>{faNum(testimonialsTotal)}</b><span>نظر مشتری</span></div>
     </div>
   </div>
 
@@ -64,7 +103,7 @@ const typeLabel = { contact: 'پیام تماس', consult: 'درخواست مش�
                 <span class={`badge ${m.status === 'new' ? 'badge-new' : 'badge-gold'}`}>{m.status === 'new' ? 'جدید' : m.status === 'read' ? 'خوانده‌شده' : m.status === 'replied' ? 'پاسخ‌داده' : 'بایگانی'}</span>
                 <div style="flex:1;min-width:0">
                   <b style="font-size:13.5px">{m.name}</b>
-                  <span style="color:var(--a-muted);font-size:11.5px;margin-inline-start:8px">{typeLabel[m.type] || m.type} {m.plan_title ? `— ${m.plan_title}` : ''}</span>
+                  <span style="color:var(--a-muted);font-size:11.5px;margin-inline-start:8px">{msgTypeLabel(m.type)} {m.plan_title ? `— ${m.plan_title}` : ''}</span>
                   <p style="margin:4px 0 0;font-size:12.5px;color:var(--a-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{m.message}</p>
                 </div>
                 <small style="color:var(--a-muted);font-size:11px;flex:none">{relativeTimeFa(String(m.created_at))}</small>
@@ -86,9 +125,9 @@ const typeLabel = { contact: 'پیام تماس', consult: 'درخواست مش�
               {recentPosts.map((p) => (
                 <tr>
                   <td class="row-title"><b>{p.title}</b></td>
-                  <td><span class={`badge ${p.status === 'published' ? 'badge-pub' : 'badge-draft'}`}>{p.status === 'published' ? 'منتشرشده' : 'پیش‌نویس'}</span></td>
+                  <td><span class={`badge ${p.status === 'published' ? 'badge-pub' : p.status === 'scheduled' ? 'badge-gold' : 'badge-draft'}`}>{p.status === 'published' ? 'منتشرشده' : p.status === 'scheduled' ? 'زمان‌بندی‌شده' : 'پیش‌نویس'}</span></td>
                   <td>{p.published_at ? relativeTimeFa(String(p.published_at)) : '—'}</td>
-                  <td><a class="btn btn-ghost btn-sm" href={`/blog/${p.slug}`}>نمایش</a></td>
+                  <td><a class="btn btn-ghost btn-sm" href={`/admin/preview?type=posts&id=${p.id}`}>پیش‌نمایش</a></td>
                 </tr>
               ))}
             </tbody>
@@ -101,12 +140,36 @@ const typeLabel = { contact: 'پیام تماس', consult: 'درخواست مش�
       <div class="panel">
         <div class="panel-head"><h2>⚡ دسترسی سریع</h2></div>
         <div class="panel-body" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <a class="btn btn-gold" href="/admin/pages">صفحه جدید</a>
           <a class="btn btn-gold" href="/admin/posts">مقاله جدید</a>
+          <a class="btn btn-gold" href="/admin/pages">صفحه جدید</a>
+          <a class="btn btn-ghost" href="/admin/portfolio">نمونه‌کار جدید</a>
           <a class="btn btn-ghost" href="/admin/media">بارگذاری تصویر</a>
+          <a class="btn btn-ghost" href="/admin/messages">مشاهده پیام‌ها</a>
           <a class="btn btn-ghost" href="/admin/pricing">تعرفه‌ها</a>
           <a class="btn btn-ghost" href="/admin/faq">سؤالات متداول</a>
           <a class="btn btn-ghost" href="/admin/settings">تنظیمات سایت</a>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>🖥 وضعیت سیستم</h2></div>
+        <div class="panel-body grid-list" style="padding:0">
+          <div style="padding:10px 20px;display:flex;justify-content:space-between;align-items:center">
+            <span>اتصال دیتابیس</span>
+            <b style="color:var(--a-green)">✓ {dbInfo.kind === 'postgres' ? 'PostgreSQL (Neon / Vercel)' : 'PGlite محلی (پیش‌نمایش)'}</b>
+          </div>
+          <div style="padding:10px 20px;display:flex;justify-content:space-between;align-items:center">
+            <span>ذخیره‌سازی تصاویر</span>
+            <b>{storage === 'blob' ? 'Vercel Blob (تولید)' : 'پوشهٔ uploads محلی'}</b>
+          </div>
+          <div style="padding:10px 20px;display:flex;justify-content:space-between;align-items:center">
+            <span>کتابخانه رسانه</span>
+            <b>{faNum(mediaTotal)} فایل</b>
+          </div>
+          <div style="padding:10px 20px;display:flex;justify-content:space-between;align-items:center">
+            <span>سئوی پیش‌فرض و هویت سایت</span>
+            <a href="/admin/settings">تنظیم ←</a>
+          </div>
         </div>
       </div>
 

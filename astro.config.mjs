@@ -17,6 +17,10 @@ export default defineConfig({
     port: 3000,
     host: true,
   },
+  /* چکِ origin داخلی Astro خاموش می‌شود؛ بررسی دقیق‌ترِ همان چیز با پشتیبانی
+     از هدرهای forwarded در src/middleware.ts انجام می‌شود (checkOrigin داخلی
+     هاست را بدون پورت می‌سازد و آپلود فرم را در پشت پراکسی می‌شکند). */
+  security: { checkOrigin: false },
   devToolbar: { enabled: false },
   compressHTML: true,
   vite: {

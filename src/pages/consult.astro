@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
 import ContactForm from '../components/ContactForm.astro';
+import Icon from '../components/Icon.astro';
 import { q } from '../lib/db';
 
 const page = await q(`SELECT * FROM pages WHERE system_key='consult' AND status='published'`).then((r) => r[0] ?? null);
@@ -15,24 +16,36 @@ const defaultPlan = plan || service;
   description={String(page.seo_description) || String(page.excerpt)}
   activePath="/consult"
 >
-  <PageHero title={String(page.title)} sub={String(page.excerpt)} crumbs={[{ label: 'درخواست مشاوره', href: '' }]} />
-  <section class="sec">
-    <div class="container consult-layout">
-      <div class="consult-form-column" data-reveal="right">
-        <ContactForm type="consult" defaultPlan={defaultPlan} compact={false} />
-        {page.content ? <div class="prose-fa consult-copy" set:html={String(page.content)} /> : null}
+  <PageHero title="درخواست مشاوره" sub={String(page.excerpt)} crumbs={[{ label: 'درخواست مشاوره', href: '' }]} />
+
+  <section class="section">
+    <div class="container contact-grid">
+      <div data-reveal="right">
+        <ContactForm type="consult" defaultPlan={defaultPlan} />
+        {page.content ? <div class="prose-fa mt-3" data-reveal="up" set:html={String(page.content)} /> : null}
       </div>
-      <aside class="consult-info-column" data-reveal="left">
-        <div class="form-panel consult-info-panel" style="background:var(--ink);color:var(--txt-dark);border:none">
-          <h3 style="font-size:17px;color:var(--gold-2)">در جلسه مشاوره چه اتفاقی می‌افتد؟</h3>
-          <ul style="list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:12px">
-            <li style="display:flex;gap:10px"><span style="color:var(--gold);font-weight:800">✓</span><span style="font-size:13.5px;color:var(--mut-dark)">گوش می‌دهیم: کسب‌وکار، مخاطب و وضعیت فعلی شما.</span></li>
-            <li style="display:flex;gap:10px"><span style="color:var(--gold);font-weight:800">✓</span><span style="font-size:13.5px;color:var(--mut-dark)">سؤال می‌پرسیم: انتظار واقعی‌تان از سایت و محتوا چیست.</span></li>
-            <li style="display:flex;gap:10px"><span style="color:var(--gold);font-weight:800">✓</span><span style="font-size:13.5px;color:var(--mut-dark)">گزینه‌ها را می‌گوییم: چه راه‌حلی به درد شما می‌خورد و چه چیزی نمی‌خورد.</span></li>
-            <li style="display:flex;gap:10px"><span style="color:var(--gold);font-weight:800">✓</span><span style="font-size:13.5px;color:var(--mut-dark)">برآورد اولیه می‌دهیم: دامنهٔ زمانی و هزینه، بدون پنهان‌کاری.</span></li>
-          </ul>
-          <blockquote style="background:rgba(227,185,83,.1);border:none;border-inline-start:3px solid var(--gold);border-radius:12px;padding:14px 18px;margin-top:18px;font-size:13px;color:var(--gold-2)">مشاوره یعنی شنیدن و پیشنهاد؛ نه فروش فوری پکیج.</blockquote>
-        </div>
+
+      <aside class="contact-side" data-reveal="left">
+        <h2>در جلسه مشاوره چه اتفاقی می‌افتد؟</h2>
+        <p>مشاوره یعنی شنیدن و پیشنهاد؛ نه فروش فوری پکیج.</p>
+        <ul class="contact-side__list">
+          <li>
+            <Icon name="check" size={19} stroke={2.2} />
+            <span>گوش می‌دهیم: کسب‌وکار، مخاطب و وضعیت فعلی شما.</span>
+          </li>
+          <li>
+            <Icon name="check" size={19} stroke={2.2} />
+            <span>سؤال می‌پرسیم: انتظار واقعی‌تان از سایت و محتوا چیست.</span>
+          </li>
+          <li>
+            <Icon name="check" size={19} stroke={2.2} />
+            <span>گزینه‌ها را می‌گوییم: چه راه‌حلی به درد شما می‌خورد و چه چیزی نمی‌خورد.</span>
+          </li>
+          <li>
+            <Icon name="check" size={19} stroke={2.2} />
+            <span>برآورد اولیه می‌دهیم: دامنهٔ زمانی و هزینه، بدون پنهان‌کاری.</span>
+          </li>
+        </ul>
       </aside>
     </div>
   </section>

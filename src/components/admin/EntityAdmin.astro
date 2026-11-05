@@ -1,9 +1,11 @@
 ---
-/* کامپوننت عمومی مدیریت موجودیت‌ها: فهرست + فرم مودال + CRUD کامل با ذخیره واقعی */
+/* کامپوننت عمومی مدیریت موجودیت‌ها: فهرست + فرم مودال + CRUD کامل با ذخیره واقعی
+   امکانات: جست‌وجو/فیلتر وضعیت/مرتب‌سازی، عملیات گروهی (حذف، تغییر وضعیت)، کپی رکورد،
+   بخش سئو با چک‌لیست زنده، گالری تصاویر، پیش‌نمایش پیش‌نویس، ذخیره خودکار */
 interface FieldDef {
   key: string;
   label: string;
-  type: 'text' | 'textarea' | 'number' | 'select' | 'select-dyn' | 'checkbox' | 'image' | 'lines' | 'editor' | 'datetime';
+  type: string;
   required?: boolean;
   hint?: string;
   placeholder?: string;
@@ -14,7 +16,7 @@ interface FieldDef {
 interface ColDef {
   key: string;
   label: string;
-  type?: 'text' | 'badge' | 'thumb' | 'date' | 'num' | 'short';
+  type?: string;
 }
 interface Props {
   config: {
@@ -23,11 +25,14 @@ interface Props {
     help?: string;
     columns: ColDef[];
     fields: FieldDef[];
+    bulkStatus?: boolean;
   };
   dynOptions?: Record<string, { value: string; label: string }[]>;
 }
 const { config, dynOptions = {} } = Astro.props;
 const fullConfig = { ...config, dynOptions };
+const SEO_KEYS = ['seo_title', 'seo_description', 'canonical_url', 'og_title', 'og_description', 'og_image', 'noindex'];
+const hasSeo = config.fields.some((f) => SEO_KEYS.includes(f.key));
 ---
 <div class="info-strip" style="margin-bottom:4px">
   <span>ℹ️</span>
@@ -36,17 +41,40 @@ const fullConfig = { ...config, dynOptions };
 <div class="panel">
   <div class="panel-head">
     <h2>{config.title}</h2>
-    <div style="display:flex;gap:8px;align-items:center">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <input type="search" id="ent-search" placeholder="جست‌وجو…" style="border:1.5px solid var(--a-line);border-radius:10px;padding:7px 14px;font-family:inherit;font-size:12.5px" />
+      <select id="ent-status" style="border:1.5px solid var(--a-line);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:12.5px">
+        <option value="">همهٔ وضعیت‌ها</option>
+        <option value="published">منتشرشده</option>
+        <option value="draft">پیش‌نویس</option>
+        {config.entity === 'posts' && <option value="scheduled">زمان‌بندی‌شده</option>}
+        {config.entity === 'messages' && <option value="new">جدید</option>}
+        {config.entity === 'messages' && <option value="read">خوانده‌شده</option>}
+        {config.entity === 'messages' && <option value="replied">پاسخ‌داده</option>}
+        {config.entity === 'messages' && <option value="archived">بایگانی</option>}
+      </select>
+      <select id="ent-sort" style="border:1.5px solid var(--a-line);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:12.5px">
+        <option value="newest">جدیدترین</option>
+        <option value="oldest">قدیمی‌ترین</option>
+        <option value="title">بر اساس عنوان</option>
+      </select>
       <button class="btn btn-gold btn-sm" id="ent-add" type="button">＋ افزودن {config.title}</button>
     </div>
+  </div>
+  <div id="ent-bulkbar" style="display:none;padding:10px 16px;border-bottom:1px solid var(--a-line);background:var(--a-gold-soft, rgba(240,180,41,.08));align-items:center;gap:8px;flex-wrap:wrap">
+    <b style="font-size:12.5px" id="ent-bulk-count"></b>
+    <button class="btn btn-ghost btn-sm" id="ent-bulk-status" type="button" data-status="published">انتشار گروهی</button>
+    <button class="btn btn-ghost btn-sm" id="ent-bulk-status-draft" type="button" data-status="draft">تبدیل به پیش‌نویس</button>
+    <button class="btn btn-danger btn-sm" id="ent-bulk-delete" type="button">حذف گروهی</button>
+    <button class="btn btn-ghost btn-sm" id="ent-bulk-clear" type="button">لغو انتخاب</button>
   </div>
   <div class="table-scroll">
     <table class="admin-table" id="ent-table">
       <thead>
         <tr>
+          <th style="width:34px"><input type="checkbox" id="ent-check-all" title="انتخاب همه" style="width:16px;height:16px" /></th>
           {config.columns.map((c) => <th>{c.label}</th>)}
-          <th style="width:150px">عملیات</th>
+          <th style="width:175px">عملیات</th>
         </tr>
       </thead>
       <tbody><tr><td colspan="9" class="empty-state"><div class="big">⏳</div>در حال بارگذاری…</td></tr></tbody>
@@ -55,7 +83,7 @@ const fullConfig = { ...config, dynOptions };
 </div>
 
 <div class="modal-scrim" id="ent-modal">
-  <div class="modal" style="width:min(900px,100%)">
+  <div class="modal" style="width:min(940px,100%)">
     <div class="modal-head">
       <h3 id="ent-modal-title">ویرایش</h3>
       <button class="btn btn-ghost btn-sm" data-close type="button">بستن ✕</button>
@@ -63,10 +91,18 @@ const fullConfig = { ...config, dynOptions };
     <div class="modal-body">
       <form id="ent-form">
         <div class="form-grid" id="ent-fields"></div>
+        {hasSeo && (
+          <details class="seo-box" style="margin-top:16px;border:1.5px solid var(--a-line);border-radius:12px;padding:14px 16px;background:rgba(255,255,255,.55)">
+            <summary style="cursor:pointer;font-weight:700;font-size:13.5px">⚙️ سئو و اشتراک‌گذاری (عنوان، توضیح متا، Canonical، OG و Index)</summary>
+            <div class="form-grid" id="ent-seo-fields" style="margin-top:12px"></div>
+            <div id="ent-seo-check" style="margin-top:10px;display:grid;gap:4px;font-size:12px"></div>
+          </details>
+        )}
         <div class="form-msg" style="display:none;margin-top:14px"></div>
         <div class="form-actions" style="margin-top:18px">
           <button type="submit" class="btn btn-gold" id="ent-save">ذخیره در دیتابیس</button>
           <button type="button" class="btn btn-ghost" data-close>انصراف</button>
+          <button type="button" class="btn btn-ghost" id="ent-preview-btn" style="display:none">پیش‌نمایش ↗</button>
           <span id="ent-save-status" style="font-size:12px;color:var(--a-muted)"></span>
         </div>
       </form>
@@ -74,28 +110,40 @@ const fullConfig = { ...config, dynOptions };
   </div>
 </div>
 
-<script define:vars={{ fullConfig }}>
+<script define:vars={{ fullConfig, SEO_KEYS }}>
   document.addEventListener('DOMContentLoaded', () => {
     const { api, toast, confirmDlg, openMediaPicker, initEditor, linesToArray, arrayToLines, faNum } = window.CDA;
     const cfg = fullConfig;
     let items = [];
     let editingId = null;
+    let editingItem = null;
     let editor = null;
     let autoTimer = null;
     let dirty = false;
+    const selected = new Set();
 
     const table = document.getElementById('ent-table');
     const tbody = table.querySelector('tbody');
     const modal = document.getElementById('ent-modal');
     const form = document.getElementById('ent-form');
     const fieldsWrap = document.getElementById('ent-fields');
+    const seoWrap = document.getElementById('ent-seo-fields');
+    const seoCheck = document.getElementById('ent-seo-check');
     const msgBox = form.querySelector('.form-msg');
     const saveStatus = document.getElementById('ent-save-status');
     const searchInput = document.getElementById('ent-search');
+    const statusSelect = document.getElementById('ent-status');
+    const sortSelect = document.getElementById('ent-sort');
+    const bulkBar = document.getElementById('ent-bulkbar');
+    const bulkCount = document.getElementById('ent-bulk-count');
 
-    /* ---------- بارگذاری فهرست ---------- */
+    /* ---------- بارگذاری فهرست (با فیلتر و مرتب‌سازی سروری) ---------- */
     async function load() {
-      const j = await api(`/api/admin/${cfg.entity}?limit=200`);
+      const p = new URLSearchParams({ limit: '200' });
+      if (statusSelect.value) p.set('status', statusSelect.value);
+      if (searchInput.value.trim()) p.set('q', searchInput.value.trim());
+      if (sortSelect.value && sortSelect.value !== 'newest') p.set('sort', sortSelect.value);
+      const j = await api(`/api/admin/${cfg.entity}?${p.toString()}`);
       if (!j.ok) { toast(j.message || 'بارگذاری ناموفق بود', 'err'); return; }
       items = Array.isArray(j.data) ? j.data : [];
       render(items);
@@ -106,18 +154,37 @@ const fullConfig = { ...config, dynOptions };
       if (v === 'draft') return 'badge-draft';
       if (v === 'new') return 'badge-new';
       if (v === 'archived') return 'badge-arch';
+      if (v === 'scheduled') return 'badge-gold';
       return 'badge-gold';
     }
-    const badgeLabel = { published: 'منتشرشده', draft: 'پیش‌نویس', new: 'جدید', read: 'خوانده‌شده', replied: 'پاسخ‌داده', archived: 'بایگانی' };
+    const badgeLabel = { published: 'منتشرشده', draft: 'پیش‌نویس', scheduled: 'زمان‌بندی‌شده', new: 'جدید', read: 'خوانده‌شده', replied: 'پاسخ‌داده', archived: 'بایگانی' };
+
+    function updateBulkBar() {
+      if (!selected.size) { bulkBar.style.display = 'none'; return; }
+      bulkBar.style.display = 'flex';
+      bulkCount.textContent = faNum(selected.size) + ' مورد انتخاب شده';
+    }
 
     function render(list) {
       tbody.innerHTML = '';
+      selected.clear();
+      updateBulkBar();
       if (!list.length) {
         tbody.innerHTML = `<tr><td colspan="9" class="empty-state"><div class="big">🗂</div>هیچ موردی ثبت نشده است؛ با دکمهٔ «افزودن» اولین مورد را بسازید.</td></tr>`;
         return;
       }
       list.forEach((item) => {
         const tr = document.createElement('tr');
+        const tdSel = document.createElement('td');
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.style.cssText = 'width:16px;height:16px';
+        cb.addEventListener('change', () => {
+          if (cb.checked) selected.add(item.id); else selected.delete(item.id);
+          updateBulkBar();
+        });
+        tdSel.appendChild(cb);
+        tr.appendChild(tdSel);
         cfg.columns.forEach((c) => {
           const td = document.createElement('td');
           const v = item[c.key];
@@ -142,11 +209,13 @@ const fullConfig = { ...config, dynOptions };
         act.innerHTML = `
           <div style="display:flex;gap:5px">
             <button class="btn btn-ghost btn-icon" data-edit title="ویرایش">✏️</button>
-            <button class="btn btn-ghost btn-icon" data-view title="نمایش در سایت">👁</button>
+            <button class="btn btn-ghost btn-icon" data-view title="پیش‌نمایش در سایت">👁</button>
+            <button class="btn btn-ghost btn-icon" data-copy title="کپی به پیش‌نویس جدید">📄</button>
             <button class="btn btn-danger btn-icon" data-del title="حذف">🗑</button>
           </div>`;
         act.querySelector('[data-edit]').addEventListener('click', () => openEditor(item));
         act.querySelector('[data-view]').addEventListener('click', () => openPreview(item));
+        act.querySelector('[data-copy]').addEventListener('click', () => duplicateItem(item));
         act.querySelector('[data-del]').addEventListener('click', () => {
           confirmDlg('«' + (item.title || item.name || item.question || item.id) + '» برای همیشه حذف شود؟', async () => {
             const r = await api(`/api/admin/${cfg.entity}/${item.id}`, 'DELETE');
@@ -156,6 +225,17 @@ const fullConfig = { ...config, dynOptions };
         tr.appendChild(act);
         tbody.appendChild(tr);
       });
+      const checkAll = document.getElementById('ent-check-all');
+      checkAll.checked = false;
+      checkAll.onchange = () => {
+        selected.clear();
+        const cbs = tbody.querySelectorAll('input[type=checkbox]');
+        cbs.forEach((cb, idx) => {
+          cb.checked = checkAll.checked;
+          if (checkAll.checked && list[idx]) selected.add(list[idx].id);
+        });
+        updateBulkBar();
+      };
     }
 
     function previewUrl(item) {
@@ -166,11 +246,18 @@ const fullConfig = { ...config, dynOptions };
       return '/admin';
     }
     function openPreview(item) {
-      if ((item.status || '') === 'draft') {
-        toast('این مورد پیش‌نویس است؛ بعد از انتشار در سایت نمایش داده می‌شود', 'err');
+      const st = item.status || '';
+      if (st === 'draft' || st === 'scheduled') {
+        window.open(`/admin/preview?type=${cfg.entity}&id=${item.id}`, '_blank');
         return;
       }
       window.open(previewUrl(item), '_blank');
+    }
+
+    async function duplicateItem(item) {
+      const r = await api(`/api/admin/${cfg.entity}/duplicate`, 'POST', { id: item.id });
+      toast(r.message || (r.ok ? 'کپی شد' : 'کپی ناموفق بود'), r.ok ? 'ok' : 'err');
+      if (r.ok) load();
     }
 
     /* ---------- ساخت فرم از پیکربندی ---------- */
@@ -199,6 +286,19 @@ const fullConfig = { ...config, dynOptions };
               <button type="button" class="btn btn-ghost btn-sm" data-pick="${f.key}">انتخاب 🖼</button>
             </div>
             <img data-preview="${f.key}" src="${value ?? ''}" alt="" style="max-width:220px;border-radius:10px;margin-top:6px;display:${value ? 'block' : 'none'};border:1px solid var(--a-line)" />${f.hint ? `<span class="hint">${f.hint}</span>` : ''}</div>`;
+        case 'gallery': {
+          const arr = Array.isArray(value) ? value : [];
+          return `<div class="form-field full" data-gallery="${f.key}"><label>${f.label}</label>
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+              <input type="text" data-gallery-url="${f.key}" placeholder="آدرس تصویر…" style="direction:ltr;text-align:left;flex:1" />
+              <button type="button" class="btn btn-ghost btn-sm" data-gallery-pick="${f.key}">انتخاب از رسانه 🖼</button>
+              <button type="button" class="btn btn-ghost btn-sm" data-gallery-add="${f.key}">افزودن ＋</button>
+            </div>
+            <div data-gallery-list="${f.key}" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px">
+              ${arr.map((u) => galleryRow(String(u))).join('')}
+            </div>
+            ${f.hint ? `<span class="hint">${f.hint}</span>` : ''}</div>`;
+        }
         case 'number':
           return `<div class="form-field"><label>${f.label} ${req}</label><input name="${f.key}" data-ft="${f.type}" type="number" value="${value ?? 0}" />${f.hint ? `<span class="hint">${f.hint}</span>` : ''}</div>`;
         case 'datetime': {
@@ -211,10 +311,55 @@ const fullConfig = { ...config, dynOptions };
       }
     }
 
+    function galleryRow(u) {
+      return `<div style="position:relative;border:1px solid var(--a-line);border-radius:10px;overflow:hidden;background:#fff">
+        <img src="${u}" alt="" loading="lazy" style="width:100%;height:84px;object-fit:cover;display:block" />
+        <input type="hidden" value="${u}" />
+        <button type="button" data-gallery-remove style="position:absolute;top:4px;inset-inline-start:4px;width:22px;height:22px;border-radius:7px;background:rgba(220,38,38,.92);color:#fff;border:0;cursor:pointer;font-size:11px">✕</button>
+      </div>`;
+    }
+
+    function bindGallery() {
+      fieldsWrap.querySelectorAll('[data-gallery]').forEach((wrap) => {
+        const key = wrap.dataset.gallery;
+        const list = wrap.querySelector(`[data-gallery-list="${key}"]`);
+        wrap.querySelectorAll('[data-gallery-remove]').forEach((btn) => {
+          btn.addEventListener('click', () => { btn.closest('div[style*="position:relative"]').remove(); dirty = true; markDirty(); });
+        });
+        const addBtn = wrap.querySelector(`[data-gallery-add="${key}"]`);
+        const urlInput = wrap.querySelector(`[data-gallery-url="${key}"]`);
+        const add = () => {
+          const u = (urlInput.value || '').trim();
+          if (!u) { toast('ابتدا آدرس تصویر را وارد یا از رسانه انتخاب کنید', 'err'); return; }
+          list.insertAdjacentHTML('beforeend', galleryRow(u));
+          urlInput.value = '';
+          bindGalleryRemoveRow(list);
+          dirty = true; markDirty();
+        };
+        if (addBtn) addBtn.addEventListener('click', add);
+        if (urlInput) urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
+        const pickBtn = wrap.querySelector(`[data-gallery-pick="${key}"]`);
+        if (pickBtn) pickBtn.addEventListener('click', () => {
+          openMediaPicker((url) => { urlInput.value = url; add(); });
+        });
+      });
+    }
+    function bindGalleryRemoveRow(list) {
+      list.querySelectorAll('[data-gallery-remove]').forEach((btn) => {
+        if (btn.dataset.bound) return;
+        btn.dataset.bound = '1';
+        btn.addEventListener('click', () => { btn.closest('div[style*="position:relative"]').remove(); dirty = true; markDirty(); });
+      });
+    }
+
     function buildForm(item) {
-      fieldsWrap.innerHTML = cfg.fields.map((f) => fieldHtml(f, item ? item[f.key] : undefined)).join('');
+      const mainFields = cfg.fields.filter((f) => !SEO_KEYS.includes(f.key));
+      const seoFields = cfg.fields.filter((f) => SEO_KEYS.includes(f.key));
+      fieldsWrap.innerHTML = mainFields.map((f) => fieldHtml(f, item ? item[f.key] : undefined)).join('');
+      if (seoWrap) seoWrap.innerHTML = seoFields.map((f) => fieldHtml(f, item ? item[f.key] : undefined)).join('');
+
       /* فیلد ویرایشگر انتهای فرم — خارج از گرید */
-      const edField = cfg.fields.find((f) => f.type === 'editor');
+      const edField = mainFields.find((f) => f.type === "editor");
       if (edField) {
         const wrap = document.createElement('div');
         wrap.className = 'form-field full';
@@ -223,23 +368,57 @@ const fullConfig = { ...config, dynOptions };
         editor = initEditor('ent-editor', item ? (item[edField.key] || '') : '');
         editor.onChange(() => { dirty = true; markDirty(); });
       }
-      /* پیش‌نمایش تصویر */
-      fieldsWrap.querySelectorAll('[data-pick]').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const key = btn.dataset.pick;
-          openMediaPicker((url) => {
-            const input = fieldsWrap.querySelector(`[name="${key}"]`);
-            input.value = url;
-            const img = fieldsWrap.querySelector(`[data-preview="${key}"]`);
-            if (img) { img.src = url; img.style.display = 'block'; }
-            dirty = true;
+      /* پیش‌نمایش تصویر + گالری */
+      const bind = (root) => {
+        root.querySelectorAll('[data-pick]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const key = btn.dataset.pick;
+            openMediaPicker((url) => {
+              const input = root.querySelector(`[name="${key}"]`);
+              input.value = url;
+              const img = root.querySelector(`[data-preview="${key}"]`);
+              if (img) { img.src = url; img.style.display = 'block'; }
+              dirty = true; markDirty();
+            });
           });
         });
-      });
-      fieldsWrap.querySelectorAll('input, textarea, select').forEach((el) => {
-        el.addEventListener('input', () => { dirty = true; markDirty(); });
-        el.addEventListener('change', () => { dirty = true; markDirty(); });
-      });
+        root.querySelectorAll('input, textarea, select').forEach((el) => {
+          el.addEventListener('input', () => { dirty = true; markDirty(); updateSeoCheck(); });
+          el.addEventListener('change', () => { dirty = true; markDirty(); updateSeoCheck(); });
+        });
+      };
+      bind(fieldsWrap);
+      if (seoWrap) bind(seoWrap);
+      bindGallery();
+      editingItem = item || null;
+      updateSeoCheck();
+      /* دکمهٔ پیش‌نمایش داخل فرم */
+      const pv = document.getElementById('ent-preview-btn');
+      if (pv) {
+        pv.style.display = 'inline-block';
+        pv.onclick = () => {
+          if (editingId) window.open(`/admin/preview?type=${cfg.entity}&id=${editingId}`, '_blank');
+          else toast('برای پیش‌نمایش ابتدا یک‌بار ذخیره کنید', 'err');
+        };
+      }
+    }
+
+    /* چک‌لیست سئوی زنده — فقط راهنما، بدون امتیاز ساختگی */
+    function updateSeoCheck() {
+      if (!seoCheck) return;
+      const get = (k) => {
+        const el = (fieldsWrap.querySelector(`[name="${k}"]`) || (seoWrap && seoWrap.querySelector(`[name="${k}"]`)));
+        return el ? String(el.value || '').trim() : '';
+      };
+      const seoTitle = get('seo_title');
+      const seoDesc = get('seo_description');
+      const rows = [];
+      const st = editingItem ? editingItem.status : '';
+      const chk = (okc, txt) => `<span style="color:${okc ? 'var(--a-green,#16a34a)' : 'var(--a-amber,#b45309)'}">${okc ? '✓' : '○'} ${txt}</span>`;
+      rows.push(chk(seoTitle.length > 0 && seoTitle.length <= 60, `عنوان سئو: ${faNum(seoTitle.length)} کاراکتر (پیشنهادی تا ۶۰)`));
+      rows.push(chk(seoDesc.length >= 70 && seoDesc.length <= 165, `توضیح متا: ${faNum(seoDesc.length)} کاراکتر (پیشنهادی ۷۰ تا ۱۶۵)`));
+      rows.push(chk(st !== '', 'وضعیت انتشار را تعیین کنید (پیش‌نویس، زمان‌بندی یا انتشار)'));
+      seoCheck.innerHTML = rows.join('');
     }
 
     function markDirty() {
@@ -254,17 +433,26 @@ const fullConfig = { ...config, dynOptions };
     /* ---------- جمع‌آوری مقادیر ---------- */
     function collect() {
       const out = {};
-      form.querySelectorAll('[data-ft]').forEach((el) => {
-        const f = cfg.fields.find((x) => x.key === el.name);
-        if (!f) return;
-        const ft = el.dataset.ft;
-        if (ft === 'checkbox') out[f.key] = el.checked;
-        else if (ft === 'number') out[f.key] = Number(el.value || 0);
-        else if (ft === 'lines') out[f.key] = linesToArray(el.value);
-        else if (ft === 'editor') { /* از ویرایشگر گرفته می‌شود */ }
-        else if (ft === 'select-dyn') out[f.key] = el.value ? Number(el.value) : null;
-        else if (ft === 'datetime') out[f.key] = el.value ? new Date(el.value).toISOString() : null;
-        else out[f.key] = el.value;
+      const read = (root) => {
+        root.querySelectorAll('[data-ft]').forEach((el) => {
+          const f = cfg.fields.find((x) => x.key === el.name);
+          if (!f) return;
+          const ft = el.dataset.ft;
+          if (ft === 'checkbox') out[f.key] = el.checked;
+          else if (ft === 'number') out[f.key] = Number(el.value || 0);
+          else if (ft === 'lines') out[f.key] = linesToArray(el.value);
+          else if (ft === 'editor') { /* از ویرایشگر گرفته می‌شود */ }
+          else if (ft === 'select-dyn') out[f.key] = el.value ? Number(el.value) : null;
+          else if (ft === 'datetime') out[f.key] = el.value ? new Date(el.value).toISOString() : null;
+          else out[f.key] = el.value;
+        });
+      };
+      read(fieldsWrap);
+      if (seoWrap) read(seoWrap);
+      /* گالری */
+      fieldsWrap.querySelectorAll('[data-gallery]').forEach((wrap) => {
+        const key = wrap.dataset.gallery;
+        out[key] = Array.from(wrap.querySelectorAll('[data-gallery-list] input[type=hidden]')).map((i) => i.value).filter(Boolean);
       });
       const edField = cfg.fields.find((x) => x.type === 'editor');
       if (edField && editor) out[edField.key] = editor.getHtml();
@@ -274,7 +462,7 @@ const fullConfig = { ...config, dynOptions };
     /* ---------- ذخیره ---------- */
     async function doSave(auto = false) {
       const data = collect();
-      const missing = cfg.fields.find((f) => f.required && (!data[f.key] || (typeof data[f.key] === 'string' && data[f.key].trim().length < 2)));
+      const missing = cfg.fields.filter((f) => !SEO_KEYS.includes(f.key)).find((f) => f.required && (!data[f.key] || (typeof data[f.key] === 'string' && data[f.key].trim().length < 2)));
       if (missing && !(auto && missing.type === 'editor')) {
         msgBox.style.cssText = 'display:block;background:var(--a-red-soft);color:var(--a-red);border-radius:10px;padding:10px 14px';
         msgBox.textContent = `«${missing.label}» الزامی است`;
@@ -307,6 +495,24 @@ const fullConfig = { ...config, dynOptions };
       return false;
     }
 
+    /* ---------- عملیات گروهی ---------- */
+    async function bulkRun(action, value) {
+      if (!selected.size) return;
+      const r = await api(`/api/admin/${cfg.entity}/bulk`, 'POST', { action, ids: Array.from(selected), value });
+      toast(r.message || (r.ok ? 'انجام شد' : 'عملیات ناموفق بود'), r.ok ? 'ok' : 'err');
+      if (r.ok) load();
+    }
+    document.getElementById('ent-bulk-delete').addEventListener('click', () => {
+      confirmDlg(`${faNum(selected.size)} مورد انتخاب‌شده برای همیشه حذف شود؟`, () => bulkRun('delete'));
+    });
+    document.getElementById('ent-bulk-status').addEventListener('click', () => bulkRun('status', 'published'));
+    document.getElementById('ent-bulk-status-draft').addEventListener('click', () => bulkRun('status', 'draft'));
+    document.getElementById('ent-bulk-clear').addEventListener('click', () => {
+      tbody.querySelectorAll('input[type=checkbox]').forEach((cb) => (cb.checked = false));
+      selected.clear();
+      updateBulkBar();
+    });
+
     /* ---------- رویدادها ---------- */
     document.getElementById('ent-add').addEventListener('click', () => {
       editingId = null;
@@ -329,10 +535,13 @@ const fullConfig = { ...config, dynOptions };
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
     form.addEventListener('submit', async (e) => { e.preventDefault(); await doSave(false); });
 
+    let searchTimer = null;
     searchInput.addEventListener('input', () => {
-      const q = searchInput.value.trim().toLowerCase();
-      render(items.filter((i) => JSON.stringify(Object.values(i)).toLowerCase().includes(q)));
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(load, 350);
     });
+    statusSelect.addEventListener('change', load);
+    sortSelect.addEventListener('change', load);
 
     load();
   });

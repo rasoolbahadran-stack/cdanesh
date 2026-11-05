@@ -1,12 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#f2d488"/>
-      <stop offset=".48" stop-color="#e3b953"/>
-      <stop offset="1" stop-color="#c99a37"/>
+    <linearGradient id="cdg" x1="8" y1="56" x2="56" y2="8" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F4257B"/>
+      <stop offset="1" stop-color="#A35EEC"/>
     </linearGradient>
   </defs>
-  <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#g)"/>
-  <circle cx="14" cy="54" r="5" fill="#2e2455"/>
-  <text x="32" y="42" font-family="Vazirmatn, Tahoma, sans-serif" font-size="30" font-weight="800" fill="#221903" text-anchor="middle">ک</text>
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#cdg)"/>
+  <g stroke="#ffffff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M18 27h22v12a8 8 0 0 1-8 8h-6a8 8 0 0 1-8-8V27Z"/>
+    <path d="M40 30h3.5a5 5 0 0 1 0 10H40"/>
+    <path d="M23 21c0-2.6 2.2-2.6 2.2-5.2M31 21c0-2.6 2.2-2.6 2.2-5.2"/>
+  </g>
+  <path d="M45 12.6c.4 2.6 1.7 3.9 4.3 4.3-2.6.4-3.9 1.7-4.3 4.3-.4-2.6-1.7-3.9-4.3-4.3 2.6-.4 3.9-1.7 4.3-4.3Z" fill="#FFD7E8"/>
 </svg>

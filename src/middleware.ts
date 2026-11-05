@@ -20,8 +20,33 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   const path = context.url.pathname;
-  const session = sessionFromCookies(context.request.headers.get('cookie') || '');
+  const request = context.request;
+  const session = sessionFromCookies(request.headers.get('cookie') || '');
   context.locals.admin = session;
+
+  /* ---------- بررسی Origin برای POST/PUT/PATCH/DELETE (ضد CSRF) ----------
+     جایگزین دقیق checkOrigin داخلی Astro: از هدرهای forwarded استفاده می‌کند
+     تا هم روی Vercel و هم پشت پراکسی/محلی درست کار کند.
+     • درخواست‌های فرم‌مانند (multipart/urlencoded/text-plain) بدون Origin → 403
+       (مرورگرها همیشه Origin ارسال می‌کنند؛ فرم جعلی بین‌سایتی هم دارد).
+     • JSON بدون Origin فقط برای کلاینت‌های غیرمرورگری مجاز است؛ مرورگر روی
+       همهٔ POSTهای fetch درخواست پیش‌پرواز/CORS دارد و همان‌جا کنترل می‌شود. */
+  const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
+  const isPrerendered = (context as unknown as { isPrerendered?: boolean }).isPrerendered === true;
+  if (!isPrerendered && !safeMethods.includes(request.method)) {
+    const origin = request.headers.get('origin');
+    const ct = (request.headers.get('content-type') || '').toLowerCase();
+    const formLike = ct.includes('multipart/form-data') || ct.includes('application/x-www-form-urlencoded') || ct.includes('text/plain');
+    if (formLike) {
+      const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
+      const isLocal = host.startsWith('localhost') || host.startsWith('127.0.0.1');
+      const proto = request.headers.get('x-forwarded-proto') || (isLocal ? 'http' : 'https');
+      const expected = proto ? `${proto}://${host}` : '';
+      if (!origin || (expected && origin !== expected)) {
+        return new Response('درخواست بین‌سایتی مجاز نیست (CSRF)', { status: 403, headers: { 'content-type': 'text/plain; charset=utf-8' } });
+      }
+    }
+  }
 
   /* مسیرهای مدیریتی */
   const isAdminPage = path === '/admin' || path.startsWith('/admin/');

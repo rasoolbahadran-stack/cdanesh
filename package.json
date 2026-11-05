@@ -8,6 +8,7 @@
     "dev": "astro dev --port 3000 --host 2>&1 | tee dev.log",
     "dev:nextport": "astro dev --host 2>&1 | tee dev.log",
     "build": "astro build",
+    "build:static": "node scripts/build-static.mjs",
     "preview": "astro preview",
     "start": "node ./dist/server/entry.mjs",
     "check": "astro check",
@@ -22,6 +23,7 @@
     "pg": "^8.16.0"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.12",
     "@types/pg": "^8.15.0",
     "typescript": "^5.8.0"
   }

@@ -1,0 +1,79 @@
+---
+/* پیش‌نمایش پیش‌نویس/زمان‌بندی‌شده — فقط برای ادمین (محافظت‌شده با میان‌افزار)
+   /admin/preview?type=post&id=N  — هیچ محتوای غیرمنتشرشده بدون نشست ادمین دیده نمی‌شود */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import { q, q1 } from '../../lib/db';
+
+type EntityType = 'posts' | 'pages' | 'services' | 'projects';
+const rawType = String(Astro.url.searchParams.get('type') || 'posts');
+const id = Number(Astro.url.searchParams.get('id') || 0);
+const type: EntityType = (['posts', 'pages', 'services', 'projects'].includes(rawType) ? rawType : 'posts') as EntityType;
+
+let row: Record<string, unknown> | null = null;
+let publicUrl = '/';
+
+if (id > 0) {
+  if (type === 'posts') {
+    row = await q1('SELECT title, slug, excerpt, content, cover_image, seo_title, seo_description, status, published_at, author, reading_time FROM posts WHERE id = $1', [id]);
+    publicUrl = row ? `/blog/${row.slug}` : '/';
+  } else if (type === 'pages') {
+    row = await q1('SELECT title, slug, excerpt, content, featured_image, seo_title, seo_description, status FROM pages WHERE id = $1', [id]);
+    publicUrl = row ? `/page/${row.slug}` : '/';
+  } else if (type === 'services') {
+    row = await q1('SELECT title, slug, short_desc AS excerpt, content, image AS cover_image, seo_title, seo_description, status FROM services WHERE id = $1', [id]);
+    publicUrl = row ? `/services/${row.slug}` : '/';
+  } else if (type === 'projects') {
+    row = await q1('SELECT title, slug, summary AS excerpt, content, cover_image, seo_title, seo_description, status FROM projects WHERE id = $1', [id]);
+    publicUrl = row ? `/portfolio/${row.slug}` : '/';
+  }
+}
+
+const statusLabel: Record<string, string> = { draft: 'پیش‌نویس', scheduled: 'زمان‌بندی‌شده', published: 'منتشرشده' };
+const st = String(row?.status || 'draft');
+---
+{row ? (
+  <BaseLayout
+    title={String(row.seo_title || row.title || 'پیش‌نمایش')}
+    description={String(row.seo_description || row.excerpt || '')}
+    ogImage={String(row.cover_image || '')}
+    activePath="/admin"
+    noIndex={true}
+  >
+    <div style="position:sticky;top:0;z-index:60;background:#1d1233;color:#fff;padding:10px 20px;display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;font-size:13px">
+      <b>🧪 پیش‌نمایش مدیریتی</b>
+      <span style="opacity:.85">وضعیت: {statusLabel[st] || st} — این نسخه فقط برای شما قابل مشاهده است و در گوگل ثبت نمی‌شود</span>
+      <a href="/admin" style="background:#f0b429;color:#1d1233;border-radius:8px;padding:5px 12px;font-weight:700;text-decoration:none">بازگشت به پنل</a>
+    </div>
+
+    <PageHero
+      title={String(row.title || 'بدون عنوان')}
+      sub={String(row.excerpt || '')}
+      crumbs={[{ label: 'پنل مدیریت', href: '/admin' }, { label: 'پیش‌نمایش', href: '' }]}
+      meta={st === 'scheduled' && row.published_at ? ['انتشار در ' + new Date(String(row.published_at)).toLocaleDateString('fa-IR')] : []}
+    />
+
+    <section class="section pad-half">
+      <div class="container">
+        {String(row.cover_image || '') && (
+          <div class="article-cover" data-reveal="zoom">
+            <img src={String(row.cover_image)} alt={String(row.title || '')} width="1344" height="768" fetchpriority="high" decoding="async" />
+          </div>
+        )}
+        <div class="article-body mt-2">
+          <article class="prose-fa" data-reveal="up" set:html={String(row.content || '<p>محتوایی ثبت نشده است.</p>')} />
+        </div>
+      </div>
+    </section>
+  </BaseLayout>
+) : (
+  <BaseLayout title="پیش‌نمایش یافت نشد" description="رکورد موردنظر پیدا نشد" activePath="/admin" noIndex={true}>
+    <section class="section">
+      <div class="container" style="text-align:center;padding:80px 0">
+        <h1 style="font-size:28px;margin-bottom:14px">رکورد پیش‌نمایش پیدا نشد</h1>
+        <p style="color:var(--body);margin-bottom:24px">ممکن است حذف شده باشد یا شناسه نامعتبر است.</p>
+        <a href="/admin" class="btn">بازگشت به پنل</a>
+      </div>
+    </section>
+  </BaseLayout>
+)}

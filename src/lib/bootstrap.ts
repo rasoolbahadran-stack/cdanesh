@@ -2,9 +2,12 @@
    کافه‌دانش — راه‌انداز یک‌بارِ فرایند (مایگریشن + بذرپاشی)
    در اولین درخواست هر فرایند اجرا می‌شود و پس از آن فقط از کش می‌رود.
    ========================================================================== */
-import './schema'; // ثبت مایگریشن‌ها
+import './schema'; // ثبت مایگریشن‌های پایه
+import './schema-v2'; // ثبت مایگریشن افزایشی (سئو، زمان‌بندی، گالری، پیام‌ها، رمز)
 import { migrate } from './db';
 import { runSeed } from './seed';
+import { setDbPasswordHash } from './auth';
+import { q1 } from './db';
 
 const g = globalThis as unknown as { __cd_boot?: Promise<void> };
 
@@ -13,6 +16,15 @@ export function boot(): Promise<void> {
     g.__cd_boot = (async () => {
       await migrate();
       await runSeed();
+      /* هش رمز مدیر ذخیره‌شده در دیتابیس (تغییر رمز از پنل) را در حافظه می‌آورد؛
+         اگر خالی باشد، ADMIN_PASSWORD_HASH مرجع ورود می‌ماند. */
+      try {
+        const u = await q1<{ password_hash: string }>(
+          `SELECT password_hash FROM users WHERE username = $1`,
+          [process.env.ADMIN_USERNAME || 'admin'],
+        );
+        setDbPasswordHash(u?.password_hash || '');
+      } catch { /* جدول users ممکن است هنوز ساخته نشده باشد؛ مشکلی ایجاد نمی‌کند */ }
       console.log('[cdanesh] database ready (migrate + seed)');
     })().catch((e) => {
       g.__cd_boot = undefined;

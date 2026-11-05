@@ -1,14 +1,18 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
-import { ASTRO_PROJECTS } from '../../lib/portfolio-projects';
+import Icon from '../../components/Icon.astro';
+import { getPublishedProjects } from '../../lib/portfolio-unified';
+
+/* نمونه‌کارهای واقعی: از دیتابیس (قابل مدیریت از پنل)؛ در نبود دیتابیس، دادهٔ استاتیک واقعی */
+const ASTRO_PROJECTS = await getPublishedProjects();
 
 const categories = [...new Set(ASTRO_PROJECTS.map((project) => project.category))];
 const schema = [{
   '@context': 'https://schema.org',
   '@type': 'CollectionPage',
-  name: 'پروژه‌های اجراشده با Astro | کافه‌دانش',
-  description: 'فهرست پروژه‌های واقعی توسعه‌یافته با فریم‌ورک Astro در کافه‌دانش.',
+  name: 'پروژه‌های اجراشده با Astro | کافه دانش',
+  description: 'فهرست پروژه‌های واقعی توسعه‌یافته با فریم‌ورک Astro در کافه دانش.',
   url: 'https://cdanesh.ir/portfolio',
   mainEntity: {
     '@type': 'ItemList',
@@ -23,81 +27,75 @@ const schema = [{
 }];
 ---
 <BaseLayout
-  title="نمونه‌کارهای واقعی Astro | پروژه‌های کافه‌دانش"
-  description="مشاهده پروژه‌های واقعی کافه‌دانش با فریم‌ورک Astro؛ شامل فروشگاه‌های اینترنتی، وب‌سایت‌های شرکتی و سامانه‌های تحت وب."
+  title="نمونه‌کارهای واقعی Astro | پروژه‌های کافه دانش"
+  description="مشاهده پروژه‌های واقعی کافه دانش با فریم‌ورک Astro؛ شامل فروشگاه‌های اینترنتی، وب‌سایت‌های شرکتی و سامانه‌های تحت وب."
   activePath="/portfolio"
   schema={schema}
 >
   <PageHero
-    title="پروژه‌های اجراشده"
+    title="نمونه‌کارها"
     sub="در این فهرست، وب‌سایت‌ها و سامانه‌هایی را می‌بینید که با فریم‌ورک Astro توسعه داده شده‌اند. هر کارت به صفحه معرفی پروژه و نسخه آنلاین آن متصل است."
     crumbs={[{ label: 'نمونه‌کارها', href: '' }]}
   />
-  <section class="portfolio-page-section">
+
+  <section class="section pad-half">
     <div class="container">
-      <div class="pf-filter" data-reveal aria-label="فیلتر پروژه‌ها">
-        <button class="active" type="button" data-filter="all">همه پروژه‌ها</button>
+      <div class="pf-filter" data-reveal="up" aria-label="فیلتر پروژه‌ها">
+        <button class="active" type="button" data-filter="all">همهٔ پروژه‌ها</button>
         {categories.map((category) => <button type="button" data-filter={category}>{category}</button>)}
       </div>
-      <div class="portfolio-project-grid">
-        {ASTRO_PROJECTS.map((project, index) => (
-          <a
-            href={`/portfolio/${project.slug}`}
-            class="portfolio-project-card"
-            data-cat={project.category}
-            data-reveal
-            style={`--rd:${(index % 3) * 70}ms`}
-          >
-            <div class="portfolio-project-cover">
-              <img src={project.coverImage} alt={project.coverAlt} width="1152" height="768" loading="lazy" decoding="async" />
-              <span class="portfolio-project-chip">Astro</span>
-              <span class="portfolio-project-open" aria-hidden="true">↗</span>
-            </div>
-            <div class="portfolio-project-info">
-              <div class="portfolio-project-kicker">
-                <span>{project.category}</span>
-                <span>پروژه اجراشده</span>
+
+      <div class="grid-3">
+        {
+          ASTRO_PROJECTS.map((project, index) => (
+            <a
+              href={`/portfolio/${project.slug}`}
+              class="pf-card"
+              data-pf-item
+              data-cat={project.category}
+              data-reveal="up"
+              data-delay={String((index % 3) * 80)}
+            >
+              <div class="pf-card__thumb">
+                <img src={project.coverImage} alt={project.coverAlt} width="640" height="427" loading="lazy" decoding="async" />
+                <span class="pf-card__cat">{project.category}</span>
               </div>
-              <h3>{project.title}</h3>
-              <p>{project.summary}</p>
-              <div class="portfolio-project-bottom">
-                <span>مشاهده جزئیات پروژه</span>
-                <span aria-hidden="true">←</span>
+              <div class="pf-card__body">
+                <h3>{project.title}</h3>
+                <p>{project.summary}</p>
+                <div class="pf-card__foot">
+                  <div class="pf-card__tags">
+                    {project.tags.slice(0, 2).map((t) => <span>{t}</span>)}
+                  </div>
+                  <span class="pf-card__visit">
+                    جزئیات پروژه
+                    <Icon name="arrow-left" size={15} stroke={2.2} />
+                  </span>
+                </div>
               </div>
-            </div>
-          </a>
-        ))}
+            </a>
+          ))
+        }
       </div>
-      <p class="portfolio-image-note">تصاویر کارت‌ها تصویرسازی مرتبط با حوزه هر پروژه هستند؛ برای مشاهده ظاهر واقعی وب‌سایت، وارد صفحه پروژه شوید.</p>
+
+      <p class="small muted center mt-3" data-reveal="up">
+        تصاویر کارت‌ها تصویرسازی مرتبط با حوزهٔ هر پروژه هستند؛ برای مشاهدهٔ ظاهر واقعی وب‌سایت، وارد صفحهٔ پروژه شوید.
+      </p>
     </div>
   </section>
 
-  <section class="portfolio-cta-section">
-    <div class="portfolio-cta-wave" aria-hidden="true">
-      <svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path fill="#ffffff" d="M0,0 H1440 V25 C1280,52 1160,13 1000,30 C820,52 730,54 600,34 C430,8 330,16 190,36 C110,48 48,38 0,28 Z" /></svg>
-    </div>
+  <section class="section pad-half bg-lavender">
     <div class="container">
-      <div class="portfolio-cta-card" data-reveal="zoom">
-        <span class="section-label pink">شروع یک همکاری تازه</span>
+      <div class="cta-band" data-reveal="zoom">
+        <span class="cta-band__deco cta-band__deco--1" aria-hidden="true"></span>
+        <span class="cta-band__deco cta-band__deco--2" aria-hidden="true"></span>
         <h2>پروژه شما هم می‌تواند اینجا باشد</h2>
         <p>برای بررسی نیاز، انتخاب فناوری مناسب و دریافت برآورد شفاف، از یک گفت‌وگوی اولیه شروع کنیم.</p>
-        <a href="/consult" class="btn btn-gold btn-lg">درخواست مشاوره پروژه</a>
+        <div class="cta-band__btns">
+          <a href="/consult" class="btn btn--white btn--lg">درخواست مشاوره پروژه</a>
+          <a href="/pricing" class="btn btn--ghost-light">دیدن تعرفه‌ها</a>
+        </div>
       </div>
     </div>
   </section>
-
-  <script>
-    const filterButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.pf-filter [data-filter]'));
-    const projectCards = Array.from(document.querySelectorAll<HTMLElement>('.portfolio-project-card'));
-
-    filterButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        const selected = button.dataset.filter || 'all';
-        filterButtons.forEach((item) => item.classList.toggle('active', item === button));
-        projectCards.forEach((card) => {
-          card.hidden = selected !== 'all' && card.dataset.cat !== selected;
-        });
-      });
-    });
-  </script>
 </BaseLayout>

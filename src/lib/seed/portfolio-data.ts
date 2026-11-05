@@ -17,6 +17,13 @@ export interface ProjectSeed {
 }
 
 export const PROJECTS_SEED: ProjectSeed[] = [];
+
+export interface FaqSeed {
+  question: string;
+  answer: string;
+  sort_order: number;
+}
+
 export const FAQS_SEED: FaqSeed[] = [
   {
     question: 'برای شروع طراحی سایت چه اطلاعاتی لازم است؟',

@@ -12,7 +12,10 @@ export async function GET() {
 
   const staticPages = ['', '/services', '/portfolio', '/pricing', '/about', '/contact', '/consult', '/faq', '/blog', '/privacy', '/terms'];
   const entries: string[] = [];
+  const seen = new Set<string>();
   const add = (path: string, lastmod?: string) => {
+    if (seen.has(path)) return; // جلوگیری از آدرس تکراری در نقشهٔ سایت
+    seen.add(path);
     entries.push(`<url><loc>${siteUrl(path)}</loc>${lastmod ? `<lastmod>${new Date(lastmod).toISOString().slice(0, 10)}</lastmod>` : ''}<changefreq>weekly</changefreq><priority>${path === '' ? '1.0' : '0.8'}</priority></url>`);
   };
 

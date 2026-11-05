@@ -44,10 +44,11 @@ export function makeList(cfg: EntityConfig) {
       const url = new URL(request.url);
       const status = url.searchParams.get('status');
       const search = url.searchParams.get('q');
+      const sort = url.searchParams.get('sort') || 'newest';
       const limit = Math.min(200, Math.max(1, num(url.searchParams.get('limit'), 100)));
       const params: unknown[] = [];
       let where = '';
-      if (status && ['draft', 'published', 'new', 'read', 'replied', 'archived'].includes(status)) {
+      if (status && ['draft', 'published', 'scheduled', 'new', 'read', 'replied', 'archived'].includes(status)) {
         params.push(status);
         where += ` WHERE status = $${params.length}`;
       }
@@ -56,7 +57,8 @@ export function makeList(cfg: EntityConfig) {
         const ors = cfg.searchFields.map((f) => `${f} ILIKE $${params.length}`).join(' OR ');
         where += where ? ` AND (${ors})` : ` WHERE (${ors})`;
       }
-      const rows = await q(`SELECT * FROM ${cfg.table}${where} ORDER BY id DESC LIMIT ${limit}`, params);
+      const orderBy = sort === 'oldest' ? 'id ASC' : sort === 'title' && cfg.searchFields?.includes('title') ? 'title ASC' : 'id DESC';
+      const rows = await q(`SELECT * FROM ${cfg.table}${where} ORDER BY ${orderBy} LIMIT ${limit}`, params);
       return ok(rows);
     } catch (e) {
       return serverError(e);
@@ -161,4 +163,20 @@ export function makeOne(cfg: EntityConfig) {
       return serverError(e);
     }
   };
+}
+
+/* ---------- انتشار خودکار مقالات زمان‌بندی‌شده‌ای که زمانشان رسیده ---------- */
+export async function publishDueScheduled(): Promise<number> {
+  try {
+    const due = await q<{ id: number; title: string }>(
+      `SELECT id, title FROM posts WHERE status = 'scheduled' AND published_at IS NOT NULL AND published_at <= now()`,
+    );
+    for (const p of due) {
+      await q(`UPDATE posts SET status = 'published', updated_at = now() WHERE id = $1`, [p.id]);
+      await logActivity('publish', 'posts', p.id, `مقالهٔ زمان‌بندی‌شده «${p.title}» به‌صورت خودکار منتشر شد`);
+    }
+    return due.length;
+  } catch {
+    return 0;
+  }
 }

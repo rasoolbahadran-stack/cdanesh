@@ -11,10 +11,12 @@ if (!page) return Astro.redirect('/404', 302);
   description={String(page.seo_description) || String(page.excerpt)}
   activePath="/privacy"
 >
-  <PageHero title={String(page.title)} sub={String(page.excerpt)} crumbs={[{ label: 'حریم خصوصی', href: '' }]} />
-  <section class="sec">
-    <div class="wrap-narrow">
-      <div class="prose-fa" data-reveal set:html={String(page.content)} />
+  <PageHero title="حریم خصوصی" sub={String(page.excerpt)} crumbs={[{ label: 'حریم خصوصی', href: '' }]} />
+  <section class="section pad-half">
+    <div class="container">
+      <div class="article-body">
+        <div class="prose-fa" data-reveal="up" set:html={String(page.content)} />
+      </div>
     </div>
   </section>
 </BaseLayout>

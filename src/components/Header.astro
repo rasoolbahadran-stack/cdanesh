@@ -1,7 +1,7 @@
 ---
-/* هدر دقیقاً سبک Porto SEO 2: تاپ‌بار (تلفن سرمه‌ای + شبکه‌ها | ساعات + ایمیل)
-   + ناوبری سفید با لوگوی وردمارک + مگامنو تراز داخل کانتینر + جستجو */
+/* هدر کافه دانش — تاپ‌بار شیشه‌ای + ناوبری شناور روی گرادیان + زیرمنو + منوی موبایل */
 import Logo from './Logo.astro';
+import Icon from './Icon.astro';
 import type { SiteSettings } from '../lib/seed/settings-data';
 
 interface Props {
@@ -11,90 +11,180 @@ interface Props {
 const { settings, activePath = '' } = Astro.props;
 const c = settings.contact;
 const m = settings.menu;
+const phoneHref = 'tel:+98' + String(c.phone).replace(/\D/g, '').slice(1);
 
-const isActive = (href: string) => (href === '/' ? activePath === '/' : activePath.startsWith(href));
+const isActive = (href: string) => {
+  const clean = href.split('#')[0];
+  if (clean === '/' ) return activePath === '/';
+  return clean !== '' && activePath.startsWith(clean);
+};
+
+type MenuItem = { label: string; href: string };
+type MenuGroup = { title: string; items: { label: string; href: string; desc: string }[] };
+
+/* آیتم‌های اصلی: خانه + خدمات (زیرمنو) + لینک‌های تنظیمات */
+const serviceGroups: MenuGroup[] = m.megaGroups || [];
+const mainItems: { label: string; href: string; groups?: MenuGroup[] }[] = [
+  { label: 'خانه', href: '/' },
+  { label: 'خدمات', href: '/services', groups: serviceGroups },
+  ...m.main.map((it: MenuItem) => ({ label: it.label, href: it.href })),
+];
 ---
+
 <div class="topbar">
-  <div class="container">
-    <div class="topbar-left">
-      <a class="tb-phone" href={`tel:+98${c.phone.slice(1)}`}>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.3 0 .7-.2 1l-2.3 2.2z"/></svg>
+  <div class="container topbar__row">
+    <div class="topbar__group">
+      <a href={phoneHref}>
+        <Icon name="phone" size={14} stroke={2} />
         <span dir="ltr">{c.phoneDisplay}</span>
       </a>
-      <span class="tb-icons" aria-label="شبکه‌های اجتماعی">
-        <a href="#" aria-label="فیس‌بوک"><svg viewBox="0 0 24 24"><path d="M13.5 21v-8h2.7l.4-3.1h-3.1V7.9c0-.9.3-1.5 1.6-1.5h1.6V3.6c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.4H7.8V13h2.7v8h3z"/></svg></a>
-        <a href="#" aria-label="توییتر"><svg viewBox="0 0 24 24"><path d="M22 5.9c-.7.3-1.5.6-2.3.7.8-.5 1.5-1.3 1.8-2.3-.8.5-1.7.8-2.6 1a4.1 4.1 0 0 0-7 3.7A11.6 11.6 0 0 1 3.4 4.7a4.1 4.1 0 0 0 1.3 5.5c-.7 0-1.3-.2-1.9-.5v.1c0 2 1.4 3.6 3.3 4a4.2 4.2 0 0 1-1.9.1 4.1 4.1 0 0 0 3.8 2.9A8.2 8.2 0 0 1 2 18.4a11.6 11.6 0 0 0 6.3 1.8c7.5 0 11.7-6.3 11.7-11.7v-.5c.8-.6 1.5-1.3 2-2.1z"/></svg></a>
-        <a href="#" aria-label="لینکدین"><svg viewBox="0 0 24 24"><path d="M6.9 8.9H3.5V21h3.4V8.9zM5.2 3.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM20.5 13.9c0-3.2-1.7-4.7-4-4.7-1.8 0-2.7 1-3.1 1.7V8.9H10V21h3.4v-6.7c0-1.5.7-2.4 1.9-2.4 1.2 0 1.8.8 1.8 2.4V21h3.4v-7.1z"/></svg></a>
-      </span>
+      <span class="topbar__sep" aria-hidden="true"></span>
+      <span class="topbar__note">{c.hours}</span>
     </div>
-    <div class="topbar-right">
-      <span class="tb-item hide-sm">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 10.4l4.2 2.5-.8 1.3L11 13V6h2v6.4z"/></svg>
-        <span>{c.hours}</span>
-      </span>
-      <a class="tb-item" href={`mailto:${c.email}`}>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+    <div class="topbar__group">
+      <a href={`mailto:${c.email}`}>
+        <Icon name="mail" size={14} stroke={2} />
         <span dir="ltr">{c.email}</span>
       </a>
     </div>
   </div>
 </div>
 
-<header class="site-header">
-  <div class="container header-inner">
-    <Logo />
-    <nav class="main-nav" aria-label="منوی اصلی">
-      <a href="/" class={`nav-link ${isActive('/') ? 'active' : ''}`}>خانه</a>
-      <div class="nav-item">
-        <a href="/services" class={`nav-link ${isActive('/services') ? 'active' : ''}`}>
-          خدمات <span class="caret">▾</span>
-        </a>
-        <div class="mega" role="menu">
-          {m.megaGroups.map((g) => (
-            <div class="mega-col">
-              <h4>{g.title}</h4>
-              {g.items.map((it) => (
-                <a class="mega-item" href={it.href}>
-                  <b>{it.label}</b>
-                  <span>{it.desc}</span>
+<header id="header" class="header" data-sticky>
+  <div class="container header__wrap">
+    <Logo variant="light" class="header__logo" />
+
+    <nav class="header__nav" aria-label="ناوبری اصلی">
+      <ul class="header__menu">
+        {
+          mainItems.map((item) => {
+            const hasDrop = !!item.groups && item.groups.length > 0;
+            const active = isActive(item.href) || (item.groups || []).some((g: MenuGroup) => g.items.some((s: { href: string }) => isActive(s.href)));
+            return (
+              <li class:list={['header__item', { 'has-drop': hasDrop, 'is-active': active }]}>
+                <a href={item.href} class="header__link" aria-haspopup={hasDrop ? 'true' : undefined}>
+                  {item.label}
+                  {hasDrop && <Icon name="chevron-down" size={13} stroke={2.4} class="header__caret" />}
                 </a>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-      {m.main.filter((item) => item.href !== '/').map((item) => (
-        <a href={item.href} class={`nav-link ${isActive(item.href) ? 'active' : ''}`}>{item.label}</a>
-      ))}
+                {hasDrop && (
+                  <ul class="header__drop">
+                    {item.groups!.map((g: MenuGroup) => (
+                      <>
+                        <li class="drop-title" role="presentation">{g.title}</li>
+                        {g.items.map((sub: { label: string; href: string }) => (
+                          <li>
+                            <a href={sub.href}>{sub.label}</a>
+                          </li>
+                        ))}
+                      </>
+                    ))}
+                    <li class="drop-title" role="presentation">دسترسی سریع</li>
+                    <li><a href="/portfolio">نمونه‌کارها</a></li>
+                    <li><a href="/pricing">تعرفه‌ها</a></li>
+                    <li><a href="/faq">سؤالات متداول</a></li>
+                  </ul>
+                )}
+              </li>
+            );
+          })
+        }
+      </ul>
     </nav>
-    <div class="header-search">
-      <button class="search-toggle" type="button" aria-label="جستجو در سایت" aria-expanded="false" data-search-toggle>
-        <span class="st-sep" aria-hidden="true"></span>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg>
+
+    <div class="header__actions">
+      <a href={m.ctaHref} class="btn btn--sm">{m.ctaLabel}</a>
+      <button
+        class="header__burger"
+        type="button"
+        aria-label="باز کردن منو"
+        aria-expanded="false"
+        aria-controls="mobileMenu"
+        data-menu-open
+      >
+        <Icon name="menu" size={26} stroke={2.2} />
       </button>
-      <div class="search-box" data-search-box>
-        <form action="/blog" method="get" role="search">
-          <input type="search" name="q" placeholder="جستجوی مقاله…" aria-label="عبارت جستجو" />
-          <button type="submit">جستجو</button>
-        </form>
-      </div>
     </div>
-    <a href={m.ctaHref} class="btn btn-gold btn-sm header-cta-mobile">مشاوره رایگان</a>
-    <button class="burger" aria-label="باز کردن منو">☰</button>
   </div>
 </header>
 
-<div class="mobile-nav" aria-hidden="true">
-  <div class="mn-scrim"></div>
-  <div class="mn-panel">
-    <button class="mn-close" aria-label="بستن منو">✕</button>
-    <a href="/">خانه</a>
-    <div class="mn-group-label">خدمات</div>
-    {m.megaGroups.map((g) => g.items.map((it) => <a href={it.href}>{it.label}</a>))}
-    <div class="mn-group-label">دسترسی سریع</div>
-    {m.main.map((item) => <a href={item.href}>{item.label}</a>)}
-    <div style="margin-top:16px">
-      <a href={m.ctaHref} class="btn btn-gold btn-block">{m.ctaLabel} رایگان</a>
+<!-- منوی موبایل -->
+<div class="sidebar" id="mobileMenu" data-sidebar hidden>
+  <div class="sidebar__backdrop" data-menu-close></div>
+  <aside class="sidebar__panel" role="dialog" aria-modal="true" aria-label="منوی موبایل">
+    <div class="sidebar__head">
+      <Logo variant="dark" />
+      <button class="sidebar__close" type="button" aria-label="بستن منو" data-menu-close>
+        <Icon name="close" size={22} stroke={2.2} />
+      </button>
     </div>
-  </div>
+    <div class="sidebar__body">
+      <nav aria-label="منوی موبایل">
+        <ul class="sidebar__menu">
+        {
+          mainItems.map((item) => {
+            const hasDrop = !!item.groups && item.groups.length > 0;
+            return (
+              <li class="sidebar__item">
+                <a href={item.href} data-menu-nav>
+                  {item.label}
+                </a>
+                {hasDrop && (
+                  <>
+                    <button
+                      class="sidebar__toggle"
+                      type="button"
+                      aria-label={`باز کردن زیرمنوی ${item.label}`}
+                      data-sub-toggle
+                      aria-expanded="false"
+                    >
+                      <Icon name="plus" size={15} stroke={2.6} />
+                    </button>
+                    <ul class="sidebar__sub">
+                      {item.groups!.map((g: MenuGroup) =>
+                        g.items.map((sub: { label: string; href: string }) => (
+                          <li>
+                            <a href={sub.href} data-menu-nav>
+                              {sub.label}
+                            </a>
+                          </li>
+                        ))
+                      )}
+                      <li><a href="/services" data-menu-nav>همهٔ خدمات</a></li>
+                    </ul>
+                  </>
+                )}
+              </li>
+            );
+          })
+        }
+      </ul>
+    </nav>
+    </div>
+    <div class="sidebar__foot">
+      <a href={m.ctaHref} class="btn btn--full" data-menu-nav>{m.ctaLabel}</a>
+      <div class="sidebar__meta">
+        <a href={phoneHref} dir="ltr">{c.phoneDisplay}</a>
+        <span> | </span>
+        <a href={`mailto:${c.email}`} dir="ltr">{c.email}</a>
+      </div>
+    </div>
+  </aside>
 </div>
+
+<style>
+  /* فاصلهٔ هدر از تاپ‌بار */
+  .header {
+    top: 42px;
+  }
+
+  .header.is-sticky,
+  .header:global(.is-sticky) {
+    top: 0;
+  }
+
+  @media (max-width: 1023px) {
+    .header {
+      top: 0;
+    }
+  }
+</style>

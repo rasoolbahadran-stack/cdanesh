@@ -1,9 +1,18 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
+import Icon from '../../components/Icon.astro';
 import { q } from '../../lib/db';
 import { siteUrl } from '../../lib/seo';
 import { faNum, faDate } from '../../lib/persian';
+
+/* در بیلد استاتیک این مسیر prerender می‌شود؛ در بیلد سرور SSR می‌ماند */
+export const prerender = !!process.env.STATIC_BUILD;
+
+export async function getStaticPaths() {
+  const rows = await q<{ slug: string }>(`SELECT slug FROM posts WHERE status='published'`);
+  return rows.map((r) => ({ params: { slug: String(r.slug) } }));
+}
 
 interface PostRow {
   id: number;
@@ -30,7 +39,7 @@ const category = post.category_id
   : null;
 
 const related = await q(
-  `SELECT slug, title, cover_image, reading_time, published_at FROM posts
+  `SELECT slug, title, cover_image, reading_time, published_at, excerpt FROM posts
    WHERE status='published' AND slug != $1 ${post.category_id ? 'AND category_id = $2' : ''}
    ORDER BY published_at DESC LIMIT 3`,
   post.category_id ? [post.slug, post.category_id] : [post.slug],
@@ -53,8 +62,8 @@ const schema = [
     isAccessibleForFree: true,
     datePublished: post.published_at,
     dateModified: post.published_at,
-    author: { '@type': 'Organization', name: 'کافه‌دانش', url: siteUrl('/') },
-    publisher: { '@type': 'Organization', name: 'کافه‌دانش', logo: { '@type': 'ImageObject', url: siteUrl('/img/logo.svg') } },
+    author: { '@type': 'Organization', name: 'کافه دانش', url: siteUrl('/') },
+    publisher: { '@type': 'Organization', name: 'کافه دانش', logo: { '@type': 'ImageObject', url: siteUrl('/img/logo.svg') } },
     mainEntityOfPage: siteUrl(`/blog/${post.slug}`),
     inLanguage: 'fa-IR',
   },
@@ -74,45 +83,92 @@ const schema = [
   description={post.seo_description || post.excerpt}
   ogImage={post.cover_image}
   ogType="article"
-  ogPublishedTime={post.published_at}
+  ogPublishedTime={String(post.published_at)}
   activePath="/blog"
   schema={schema}
 >
   <PageHero
     title={post.title}
     sub={post.excerpt}
-    crumbs={[{ label: 'مجله', href: '/blog' }, ...(category ? [{ label: category.name, href: `/blog?cat=${category.slug}` }] : []), { label: '', href: '' }]}
-    meta={[`${category ? category.name : 'مقالات'}`, `🗓 ${faDate(post.published_at)}`, `⏱ ${faNum(String(post.reading_time))} دقیقه مطالعه`, `✍️ ${post.author}`]}
+    crumbs={[{ label: 'مجله', href: '/blog' }, ...(category ? [{ label: category.name, href: `/blog?cat=${category.slug}` }] : []), { label: post.title, href: '' }]}
+    meta={[String(category?.name || 'مقالات'), faDate(String(post.published_at)), `${faNum(Number(post.reading_time))} دقیقه مطالعه`, String(post.author)]}
   />
-  <section class="sec">
-    <div class="wrap-narrow">
-      <img src={post.cover_image} alt={post.title} width="1344" height="768" style="border-radius:26px;box-shadow:var(--shadow-card);margin-bottom:30px" data-reveal="zoom" fetchpriority="high" />
-      <article class="prose-fa" data-reveal set:html={post.content} />
-      <div style="margin-top:44px;padding-top:26px;border-top:1px dashed var(--line-light);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap" data-reveal>
-        <a href="/blog" class="btn btn-ghost btn-sm">← همه مقالات مجله</a>
-        <a href="/consult" class="btn btn-gold btn-sm">درخواست مشاوره رایگان</a>
+
+  <section class="section pad-half">
+    <div class="container">
+      <div class="article-cover" data-reveal="zoom">
+        <img src={String(post.cover_image)} alt={String(post.title)} width="1344" height="768" fetchpriority="high" decoding="async" />
+      </div>
+
+      <div class="article-body mt-2">
+        <article class="prose-fa" data-reveal="up" set:html={String(post.content)} />
+
+        <div class="author-box" data-reveal="up">
+          {
+            String(post.author || '').includes('رسول') ? (
+              <img class="author-box__ava" src="/assets/img/founder-rasool.webp" alt={String(post.author)} width="64" height="64" loading="lazy" style="object-fit:cover" />
+            ) : (
+              <span class="author-box__ava">{String(post.author || 'ک').trim().charAt(0)}</span>
+            )
+          }
+          <div>
+            <b>{String(post.author)}</b>
+            <p>
+              {String(post.author || '').includes('رسول')
+                ? 'طراح و توسعه‌دهندهٔ وب‌سایت — نویسندهٔ این مطلب در کافه دانش؛ با تمرکز بر طراحی سایت، تولید محتوا و سئو.'
+                : 'این مطلب توسط تیم کافه دانش با تمرکز بر طراحی سایت، تولید محتوا و سئو نوشته و بازبینی شده است.'}
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-2" style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap" data-reveal="up">
+          <a href="/blog" class="btn btn--ghost btn--sm">
+            <Icon name="arrow-right" size={16} stroke={2.2} />
+            همهٔ مقالات مجله
+          </a>
+          <a href="/consult" class="btn btn--sm">
+            <Icon name="send" size={16} stroke={2} />
+            درخواست مشاوره رایگان
+          </a>
+        </div>
       </div>
     </div>
   </section>
-  {related.length ? (
-    <section class="sec sec-cream" style="padding-top:56px">
-      <div class="container">
-        <div class="sec-head" data-reveal>
-          <span class="section-label">ادامهٔ مسیر</span>
-          <h2>مطالب مرتبط</h2>
+
+  {
+    related.length ? (
+      <section class="section pad-half bg-lavender">
+        <div class="container">
+          <div class="section-head section-head--center" data-reveal="up">
+            <span class="sub-title">
+              <Icon name="doc" size={20} stroke={2} class="sub-ico" />
+              ادامهٔ مسیر
+            </span>
+            <h2 class="sec-title" style="font-size:clamp(22px,3vw,32px)">مطالب مرتبط</h2>
+          </div>
+          <div class="grid-3">
+            {related.map((p, i) => (
+              <article class="post-card" data-reveal="up" data-delay={String(i * 70)}>
+                <div class="post-card__thumb">
+                  <img src={String(p.cover_image)} alt={String(p.title)} width="672" height="384" loading="lazy" decoding="async" />
+                </div>
+                <div class="post-card__body">
+                  <div class="post-card__meta">
+                    <Icon name="clock" size={13} stroke={2} />
+                    <span>{faNum(Number(p.reading_time))} دقیقه مطالعه</span>
+                  </div>
+                  <h3><a href={`/blog/${p.slug}`}>{String(p.title)}</a></h3>
+                  <p>{String(p.excerpt || '').slice(0, 110)}</p>
+                  <a href={`/blog/${p.slug}`} class="post-card__more">
+                    ادامهٔ مطلب
+                    <Icon name="arrow-left" size={15} stroke={2.2} />
+                  </a>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
-        <div class="grid-3">
-          {related.map((p, i) => (
-            <a href={`/blog/${p.slug}`} class="post-card" data-reveal style={`--rd:${i * 60}ms`}>
-              <div class="post-thumb"><img src={String(p.cover_image)} alt={String(p.title)} width="1344" height="768" loading="lazy" /></div>
-              <div class="post-body">
-                <div class="post-meta"><span>{faNum(String(p.reading_time))} دقیقه مطالعه</span></div>
-                <h3>{p.title}</h3>
-              </div>
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
-  ) : null}
+      </section>
+    ) : null
+  }
 </BaseLayout>

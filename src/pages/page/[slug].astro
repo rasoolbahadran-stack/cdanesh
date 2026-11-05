@@ -16,6 +16,14 @@ interface PageRow {
 }
 
 const { slug } = Astro.params;
+
+/* بیلد استاتیک: prerender صفحات منتشرشده | بیلد سرور: SSR */
+export const prerender = !!process.env.STATIC_BUILD;
+export async function getStaticPaths() {
+  const rows = await q<{ slug: string }>(`SELECT slug FROM pages WHERE status='published'`);
+  return rows.map((r) => ({ params: { slug: String(r.slug) } }));
+}
+
 const page = await q<PageRow>('SELECT title, slug, excerpt, content, featured_image, seo_title, seo_description FROM pages WHERE slug = $1 AND status = $2', [String(slug), 'published']).then((r) => r[0] ?? null);
 if (!page) return Astro.redirect('/404', 302);
 

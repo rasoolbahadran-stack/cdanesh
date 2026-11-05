@@ -1,34 +1,84 @@
 ---
+/* مدیریت رسانه — آپلود واقعی، پیش‌نمایش، ویرایش alt، کپی آدرس، جست‌وجو/مرتب‌سازی، حذف با بررسی استفاده */
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import { q } from '../../lib/db';
+import { faNum } from '../../lib/persian';
+
+const mediaCount = await q<{ c: number }>('SELECT count(*)::int AS c FROM media').then((r) => r[0]?.c ?? 0);
 ---
-<AdminLayout title="رسانه‌ها" crumb="مدیریت محتوا › کتابخانه تصاویر">
+<AdminLayout title="رسانه‌ها" crumb="مدیریت محتوا › کتابخانه تصاویر" >
   <div class="info-strip">
     <span>ℹ️</span>
-    <span>تصاویر روی <b>پایگاه ذخیره‌سازی پایدار</b> نگهداری می‌شوند (در تولید: Vercel Blob) و آدرسشان هرگز تغییر نمی‌کند.</span>
+    <span>تصاویر روی <b>پایگاه ذخیره‌سازی پایدار</b> نگهداری می‌شوند (در تولید: Vercel Blob، در پیش‌نمایش محلی: پوشهٔ uploads). حذف تصویری که در محتوا استفاده شده است با هشدار همراه است. حداکثر حجم هر فایل: ۶ مگابایت — فرمت‌های WebP، PNG، JPG، GIF، SVG.</span>
   </div>
   <div class="panel">
     <div class="panel-head">
-      <h2>🖼 کتابخانه رسانه</h2>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input type="file" id="media-file" accept="image/webp,image/png,image/jpeg,image/gif,image/svg+xml" style="display:none" />
+      <h2>🖼 کتابخانه رسانه ({faNum(mediaCount)} فایل)</h2>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input type="search" id="media-search" placeholder="جست‌وجوی نام یا متن جایگزین…" style="border:1.5px solid var(--a-line);border-radius:10px;padding:7px 14px;font-family:inherit;font-size:12.5px" />
+        <select id="media-sort" style="border:1.5px solid var(--a-line);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:12.5px">
+          <option value="newest">جدیدترین</option>
+          <option value="oldest">قدیمی‌ترین</option>
+          <option value="size">حجم (بیشترین)</option>
+          <option value="name">نام (الفبا)</option>
+        </select>
+        <input type="file" id="media-file" accept="image/webp,image/png,image/jpeg,image/gif,image/svg+xml" multiple style="display:none" />
         <button class="btn btn-gold btn-sm" id="media-upload" type="button">＋ بارگذاری تصویر</button>
       </div>
     </div>
     <div class="panel-body">
       <div class="media-grid" id="media-grid"></div>
-      <div id="media-empty" class="empty-state"><div class="big">🖼</div>هنوز تصویری بارگذاری نشده است</div>
+      <div id="media-empty" class="empty-state"><div class="big">🖼</div>هنوز تصویری بارگذاری نشده است؛ با دکمهٔ «بارگذاری تصویر» اولین فایل را اضافه کنید.</div>
+    </div>
+  </div>
+
+  {/* مودال ویرایش تصویر */}
+  <div class="modal-scrim" id="media-modal">
+    <div class="modal" style="width:min(560px,100%)">
+      <div class="modal-head"><h3>ویرایش تصویر</h3><button class="btn btn-ghost btn-sm" data-close>بستن ✕</button></div>
+      <div class="modal-body">
+        <img id="media-modal-img" src="" alt="" style="width:100%;max-height:260px;object-fit:contain;border-radius:12px;border:1px solid var(--a-line);background:#f6f6fb" />
+        <div style="display:grid;gap:10px;margin-top:14px;font-size:13px">
+          <div><b>نام فایل:</b> <span id="media-modal-name" dir="ltr" style="color:var(--a-muted)"></span></div>
+          <div><b>حجم:</b> <span id="media-modal-size"></span></div>
+          <div><b>آدرس:</b> <input id="media-modal-url" readonly dir="ltr" style="width:100%;text-align:left;border:1.5px solid var(--a-line);border-radius:8px;padding:7px 10px;font-size:12px" /></div>
+          <div><b>متن جایگزین (Alt):</b> <textarea id="media-modal-alt" rows="2" style="width:100%;border:1.5px solid var(--a-line);border-radius:10px;padding:10px 14px;font-family:inherit;font-size:13px;margin-top:4px"></textarea></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-gold btn-sm" id="media-alt-save">ذخیرهٔ Alt</button>
+            <button class="btn btn-ghost btn-sm" id="media-copy-url">📋 کپی آدرس</button>
+            <button class="btn btn-danger btn-sm" id="media-modal-del">🗑 حذف تصویر</button>
+          </div>
+          <div id="media-usage" style="font-size:12.5px;color:var(--a-muted)"></div>
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const { api, toast, confirmDlg } = window.CDA;
-      const grid = document.getElementById('media-grid');
-      const empty = document.getElementById('media-empty');
-      const fileInput = document.getElementById('media-file');
+      const { api, toast, confirmDlg, faNum } = window.CDA;
+      const grid = document.getElementById('media-grid')!;
+      const empty = document.getElementById('media-empty') as HTMLElement;
+      const fileInput = document.getElementById('media-file') as HTMLInputElement;
+      const modal = document.getElementById('media-modal')!;
+      const usageText: Record<string, string> = {
+        'محتوای صفحات': 'صفحات سایت',
+        'مقالات': 'مقالات مجله',
+        'خدمات': 'صفحات خدمات',
+        'نمونه‌کارها': 'نمونه‌کارها',
+        'تعرفه‌ها': 'تعرفه‌ها',
+        'نظرات مشتریان': 'نظرات مشتریان',
+        'پیام‌ها': 'پیام‌ها',
+      };
+      let current: { id: number; url: string } | null = null;
 
       async function load() {
-        const j = await api('/api/admin/media');
+        const q = (document.getElementById('media-search') as HTMLInputElement).value.trim();
+        const sort = (document.getElementById('media-sort') as HTMLSelectElement).value;
+        const p = new URLSearchParams();
+        if (q) p.set('q', q);
+        if (sort !== 'newest') p.set('sort', sort);
+        const j = await api('/api/admin/media?' + p.toString());
         grid.innerHTML = '';
         const items = Array.isArray(j.data) ? j.data : [];
         empty.style.display = items.length ? 'none' : 'block';
@@ -36,42 +86,89 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           const el = document.createElement('div');
           el.className = 'media-item';
           el.innerHTML = `
-            <img src="${m.url}" alt="${m.alt || m.filename}" loading="lazy" />
+            <img src="${m.url}" alt="${(m.alt || m.filename || '').replace(/"/g, '&quot;')}" loading="lazy" />
             <div class="mi-name">${m.filename}</div>
-            <button class="mi-del" title="حذف">🗑</button>
-            <button class="btn btn-ghost btn-sm" data-copy title="کپی آدرس" style="margin:6px;position:absolute;inset-inline-end:6px;top:6px">📋</button>`;
-          el.querySelector('[data-copy]').addEventListener('click', async (e) => {
+            <div style="position:absolute;top:6px;inset-inline-end:6px;display:flex;gap:4px">
+              <button class="mi-del" title="حذف">🗑</button>
+            </div>
+            <div style="position:absolute;bottom:30px;inset-inline-end:6px;font-size:11px;color:var(--a-muted)" dir="ltr">${faNum(Math.round((m.size || 0) / 1024))} KB</div>`;
+          el.querySelector('.mi-del')!.addEventListener('click', (e) => {
             e.stopPropagation();
-            await navigator.clipboard.writeText(m.url);
-            toast('آدرس تصویر کپی شد');
+            del(m);
           });
-          el.querySelector('.mi-del').addEventListener('click', (e) => {
-            e.stopPropagation();
-            confirmDlg('این تصویر برای همیشه حذف شود؟', async () => {
-              const r = await api(`/api/admin/media?id=${m.id}`, 'DELETE');
-              if (r.ok) { toast(r.message || 'حذف شد'); load(); } else toast(r.message || 'حذف ناموفق بود', 'err');
-            });
-          });
-          el.addEventListener('click', () => {
-            window.open(m.url, '_blank');
-          });
+          el.addEventListener('click', () => open(m));
           grid.appendChild(el);
         });
       }
 
-      document.getElementById('media-upload').addEventListener('click', () => fileInput.click());
+      function del(m: { id: number; url: string }) {
+        confirmDlg('این تصویر برای همیشه حذف شود؟ اگر در محتوای سایت استفاده شده باشد، ابتدا هشدار می‌گیرید.', async () => {
+          const r = await api(`/api/admin/media?id=${m.id}`, 'DELETE');
+          if (r.ok) { toast(r.message || 'حذف شد'); load(); }
+          else if (r.error === 'IN_USE') {
+            confirmDlg((r.message || 'تصویر درحال‌استفاده است') + '\n\nحذف قطعی تأیید می‌کنید؟', async () => {
+              const r2 = await api(`/api/admin/media?id=${m.id}&force=1`, 'DELETE');
+              if (r2.ok) { toast('تصویر حذف شد'); load(); } else toast(r2.message || 'حذف ناموفق بود', 'err');
+            });
+          }
+          else toast(r.message || 'حذف ناموفق بود', 'err');
+        });
+      }
+
+      async function open(m: { id: number; url: string; alt?: string; filename?: string; size?: number }) {
+        current = { id: m.id, url: m.url };
+        (document.getElementById('media-modal-img') as HTMLImageElement).src = m.url;
+        document.getElementById('media-modal-name')!.textContent = m.filename || '';
+        document.getElementById('media-modal-size')!.textContent = faNum(Math.round((m.size || 0) / 1024)) + ' کیلوبایت';
+        (document.getElementById('media-modal-url') as HTMLInputElement).value = m.url;
+        (document.getElementById('media-modal-alt') as HTMLTextAreaElement).value = m.alt || '';
+        document.getElementById('media-usage')!.textContent = 'برای بررسی استفادهٔ تصویر در محتوا، حذف را امتحان کنید — سیستم پیش از حذف هشدار می‌دهد.';
+        modal.classList.add('open');
+      }
+
+      document.getElementById('media-copy-url')!.addEventListener('click', async () => {
+        if (!current) return;
+        await navigator.clipboard.writeText(current.url);
+        toast('آدرس تصویر کپی شد');
+      });
+      document.getElementById('media-alt-save')!.addEventListener('click', async () => {
+        if (!current) return;
+        const alt = (document.getElementById('media-modal-alt') as HTMLTextAreaElement).value;
+        const r = await api('/api/admin/media', 'PATCH', { id: current.id, alt });
+        toast(r.message || (r.ok ? 'ذخیره شد' : 'ذخیره ناموفق بود'), r.ok ? 'ok' : 'err');
+        if (r.ok) load();
+      });
+      document.getElementById('media-modal-del')!.addEventListener('click', () => {
+        if (!current) return;
+        modal.classList.remove('open');
+        del({ id: current.id, url: current.url });
+      });
+      modal.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => modal.classList.remove('open')));
+      modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
+
+      let timer: ReturnType<typeof setTimeout> | null = null;
+      document.getElementById('media-search')!.addEventListener('input', () => {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(load, 350);
+      });
+      document.getElementById('media-sort')!.addEventListener('change', load);
+
+      document.getElementById('media-upload')!.addEventListener('click', () => fileInput.click());
       fileInput.addEventListener('change', async () => {
         if (!fileInput.files?.length) return;
-        const fd = new FormData();
-        fd.append('file', fileInput.files[0]);
-        toast('در حال بارگذاری…');
-        try {
-          const res = await fetch('/api/admin/media', { method: 'POST', body: fd });
-          const j = await res.json();
-          if (j.ok) { toast(j.message || 'تصویر بارگذاری شد'); load(); }
-          else toast(j.message || 'بارگذاری ناموفق بود', 'err');
-        } catch { toast('خطای شبکه', 'err'); }
+        for (const f of Array.from(fileInput.files as FileList)) {
+          const fd = new FormData();
+          fd.append('file', f);
+          toast('در حال بارگذاری «' + f.name + '»…');
+          try {
+            const res = await fetch('/api/admin/media', { method: 'POST', body: fd });
+            const j = await res.json();
+            if (j.ok) toast(j.message || 'تصویر بارگذاری شد');
+            else toast(j.message || 'بارگذاری ناموفق بود', 'err');
+          } catch { toast('خطای شبکه', 'err'); }
+        }
         fileInput.value = '';
+        load();
       });
 
       load();

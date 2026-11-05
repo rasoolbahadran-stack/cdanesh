@@ -1,6 +1,7 @@
 ---
 /* ═══ چیدمان مشترک صفحات متنی ابری (پروژه‌ای /terms ، /privacy و /p/<slug>) ═══ */
 import SiteLayout from '../layouts/SiteLayout.astro';
+import Icon from './Icon.astro';
 import { renderBlocks, tocFrom } from '../lib/ssr-articles.mjs';
 
 interface Props {
@@ -10,45 +11,53 @@ interface Props {
   draftPreview?: boolean; // true → پیش‌نمایش پیش‌نویس توسط مدیر (noindex + نوار اطلاع)
 }
 const { page, canonical, robots = '', draftPreview = false } = Astro.props;
-const title = page.seoTitle || (page.title + ' | کافه‌دانش');
+const title = page.seoTitle || (page.title + ' | کافه دانش');
 const description = page.seoDesc || page.lead || '';
 const toc = tocFrom(page.blocks);
 ---
 
-<SiteLayout title={title} description={description} canonical={canonical} robots={draftPreview ? 'noindex, nofollow' : robots}>
+<SiteLayout title={title} description={description} robots={draftPreview ? 'noindex, nofollow' : robots} activePath="/">
   {draftPreview && (
-    <div class="wrap" style="padding-top:120px">
-      <div style="background:rgba(227,185,83,.12); border:1px solid rgba(227,185,83,.4); border-radius:14px; padding:12px 18px; font-size:13.5px; margin-bottom:8px">
+    <div class="container" style="padding-top:130px">
+      <div class="static-note" style="margin-bottom:10px">
+        <Icon name="info" size={18} stroke={2} />
         پیش‌نمایش پیش‌نویس — این صفحه هنوز منتشر نشده و فقط برای شما (مدیر) نمایش داده می‌شود. برای انتشار: پنل → صفحات → انتشار.
       </div>
     </div>
   )}
   <section class="page-hero">
-    <div class="wrap">
+    <span class="page-hero__glow page-hero__glow--1" aria-hidden="true"></span>
+    <span class="page-hero__glow page-hero__glow--2" aria-hidden="true"></span>
+    <div class="container">
       <nav class="breadcrumb" aria-label="مسیر صفحه">
         <a href="/">خانه</a>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
-        <span>{page.eyebrow || page.title}</span>
+        <Icon name="chevron-left" size={13} stroke={2.2} />
+        <span aria-current="page">{page.eyebrow || page.title}</span>
       </nav>
-      <span class="eyebrow">{page.eyebrow || 'صفحه'}</span>
-      <h1 class="h1">{page.title}</h1>
-      {page.lead && <p class="lead">{page.lead}</p>}
+      <h1 data-reveal="up">{page.title}</h1>
+      {page.lead && <p class="page-hero__sub" data-reveal="up" data-delay="110">{page.lead}</p>}
     </div>
   </section>
 
-  <section class="section-tight">
-    <div class="wrap" style="max-width:880px">
-      <div class="prose" style="padding-top:10px">
-        <Fragment set:html={renderBlocks(page.blocks)} />
-      </div>
-      {toc.length > 2 && (
-        <div class="aside-card" style="margin-top:44px">
-          <b>در این صفحه</b>
-          <nav class="toc" aria-label="فهرست مطالب">
-            {toc.map(sh => <a href={'#' + sh.id} class={sh.level === 3 ? 'toc-l3' : ''}>{sh.t}</a>)}
-          </nav>
+  <section class="section pad-half">
+    <div class="container">
+      <div class="article-body">
+        {toc.length > 2 && (
+          <div class="toc" data-reveal="up">
+            <b>در این صفحه</b>
+            <ol>
+              {toc.map((sh: { id: string; t: string; level: number }) => (
+                <li style={sh.level === 3 ? 'padding-inline-start:14px' : ''}>
+                  <a href={'#' + sh.id}>{sh.t}</a>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+        <div class="prose" data-reveal="up">
+          <Fragment set:html={renderBlocks(page.blocks)} />
         </div>
-      )}
+      </div>
     </div>
   </section>
 </SiteLayout>

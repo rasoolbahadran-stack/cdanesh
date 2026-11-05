@@ -1,14 +1,15 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
 import { q } from '../lib/db';
 
 const plans = await q(`SELECT * FROM plans WHERE status='published' ORDER BY sort_order`);
-const faqs = await q(`SELECT question, answer FROM faqs WHERE status='published' ORDER BY sort_order`);
+const faqs = await q(`SELECT question, answer FROM faqs WHERE status='published' ORDER BY sort_order LIMIT 5`);
 ---
 <BaseLayout
-  title="تعرفه‌های طراحی سایت و پکیج‌ها | کافه‌دانش"
-  description="قیمت شفاف و ثابت پکیج‌های کافه‌دانش: استارتر ۱۵ میلیون، حرفه‌ای ۱۹ میلیون، فروشگاهی ۴۰ میلیون و پروژه‌های اختصاصی از ۷۰ میلیون تومان."
+  title="تعرفه‌های طراحی سایت و پکیج‌ها | کافه دانش"
+  description="قیمت شفاف و ثابت پکیج‌های کافه دانش: استارتر ۱۵ میلیون، حرفه‌ای ۱۹ میلیون، فروشگاهی ۴۰ میلیون و پروژه‌های اختصاصی از ۷۰ میلیون تومان."
   activePath="/pricing"
   schema={[{
     '@context': 'https://schema.org',
@@ -20,56 +21,123 @@ const faqs = await q(`SELECT question, answer FROM faqs WHERE status='published'
   }]}
 >
   <PageHero
-    title="پکیج‌های طراحی سایت"
-    sub="قیمت شفاف و ثابت؛ بدون هزینه پنهان. دامنهٔ کار هر پکیج دقیقاً مشخص است: تعداد صفحات، زمان تحویل و مدت پشتیبانی رایگان."
+    title="تعرفه‌ها و پکیج‌های خدمات"
+    sub="قیمت شفاف و ثابت؛ بدون هزینهٔ پنهان. دامنهٔ کار هر پکیج دقیقاً مشخص است."
     crumbs={[{ label: 'تعرفه‌ها', href: '' }]}
   />
-  <section class="sec">
+
+  <section class="section pad-half">
     <div class="container">
       <div class="plan-grid">
-        {plans.map((p, i) => {
-          const rawFeats = Array.isArray(p.features) ? (p.features as string[]) : [];
-          const notes = ['هر صفحه با ساختار استاندارد سئو و ریسپانسیو کامل تحویل می‌شود.', 'برجسته‌شدن این پکیج به‌معنای ادعای برتری نیست؛ تجربه نشان داده بیشترین نیازها را پوشش می‌دهد.', 'پنل مدیریت فروشگاه همراه با آموزش کامل تحویل داده می‌شود.', 'پس از تحلیل نیازها، پروپوزال مکتوب و شفاف ارائه می‌شود.'];
-          const hostingDuration = i < 2 ? '۶ ماه' : '۱ سال';
-          const hostingGift = `${hostingDuration} هاست هدیه`;
-          const feats = rawFeats.map((feature) => String(feature).replace(/(?:۶|٦|6)\s*ماه|(?:۱۲|١٢|12)\s*ماه|(?:۱|١|1)\s*سال|یک\s*سال/g, hostingDuration).replace(/هاستینگ/g, 'هاست'));
-          const displayFeats = feats.some((feature) => /هاست\s*هدیه/.test(feature)) ? feats : [hostingGift, ...feats];
-          return (
-            <div class={`plan-card ${p.highlighted ? 'highlight' : ''}`} data-reveal style={`--rd:${i * 60}ms`}>
-              <span class="hosting-badge">🎁 {hostingGift}</span>
-              {p.highlighted ? <span class="plan-ribbon">محبوب‌ترین</span> : null}
-              <div class="plan-chip">{p.badge}</div>
-              <h3>{p.title}</h3>
-              <div class="plan-desc">{p.description}</div>
-              <div class="plan-price">{p.price}</div>
-              <div class="plan-note">{p.price_note}</div>
-              <ul class="plan-feats">
-                {displayFeats.map((f) => <li><i>✓</i> {f}</li>)}
-              </ul>
-              <div class="plan-footnote">{notes[i] || ''}</div>
-              <a href={`/consult?plan=${encodeURIComponent(String(p.title))}`} class={`btn btn-block ${p.highlighted ? 'btn-gold' : 'btn-ghost'}`}>{p.cta_text}</a>
-            </div>
-          );
-        })}
+        {
+          plans.map((p, i) => {
+            const rawFeats = Array.isArray(p.features) ? (p.features as string[]) : [];
+            const hostingDuration = i < 2 ? '۶ ماه' : '۱ سال';
+            const hostingGift = `${hostingDuration} هاست هدیه`;
+            const feats = rawFeats.map((feature) =>
+              String(feature)
+                .replace(/(?:۶|٦|6)\s*ماه|(?:۱۲|١٢|12)\s*ماه|(?:۱|١|1)\s*سال|یک\s*سال/g, hostingDuration)
+                .replace(/هاستینگ/g, 'هاست'),
+            );
+            const displayFeats = feats.some((feature) => /هاست\s*هدیه/.test(feature)) ? feats : [hostingGift, ...feats];
+            const hl = Boolean(p.highlighted);
+            return (
+              <article class:list={['plan-card', { 'plan-card--hl': hl }]} data-reveal="up" data-delay={String(i * 90)}>
+                {hl ? <span class="plan-ribbon">پیشنهاد ما</span> : null}
+                <span class="plan-card__badge">
+                  <Icon name="check" size={13} stroke={2.4} />
+                  {String(p.badge)}
+                </span>
+                <h3>{String(p.title)}</h3>
+                <div class="plan-card__desc">{String(p.description)}</div>
+                <div class="plan-card__price">{String(p.price)}</div>
+                <div class="plan-card__note">{String(p.price_note)}</div>
+                <ul class="plan-card__feats">
+                  {displayFeats.map((f) => (
+                    <li>
+                      <Icon name="check" size={17} stroke={2.4} />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <a
+                  href={`/consult?plan=${encodeURIComponent(String(p.title))}`}
+                  class:list={['btn', 'btn--full', hl ? 'btn--white' : 'btn--ghost']}
+                >
+                  {String(p.cta_text || 'درخواست این پکیج')}
+                </a>
+              </article>
+            );
+          })
+        }
       </div>
-      <div class="pf-note" style="margin-top:32px">
-        💡 هزینه پروژه‌های اختصاصی پس از جلسهٔ نیازسنجی رایگان و تعیین محدودهٔ کار (تعداد صفحات، قابلیت‌های فنی و حجم محتوا) قیمت‌گذاری می‌شود.
+
+      <ul class="plan-notes" data-reveal="up">
+        <li>
+          <Icon name="info" size={17} stroke={2} />
+          <span>هر صفحه با ساختار استاندارد سئو و ریسپانسیو کامل تحویل می‌شود.</span>
+        </li>
+        <li>
+          <Icon name="info" size={17} stroke={2} />
+          <span>برجسته‌بودن پکیج حرفه‌ای به‌معنای ادعای برتری نیست؛ تجربه نشان داده بیشترین نیازها را پوشش می‌دهد.</span>
+        </li>
+        <li>
+          <Icon name="info" size={17} stroke={2} />
+          <span>پنل مدیریت فروشگاه همراه با آموزش کامل تحویل داده می‌شود.</span>
+        </li>
+        <li>
+          <Icon name="info" size={17} stroke={2} />
+          <span>پس از تحلیل نیازهای پروژه‌های اختصاصی، پروپوزال مکتوب و شفاف ارائه می‌شود.</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  {/* سؤالات مرتبط */}
+  <section class="section pad-half bg-lavender">
+    <div class="container">
+      <div class="section-head section-head--center" data-reveal="up">
+        <span class="sub-title">
+          <Icon name="info" size={20} stroke={2} class="sub-ico" />
+          سؤالات متداول
+        </span>
+        <h2 class="sec-title">سؤالات پرتکرار دربارهٔ هزینه و روند کار</h2>
+      </div>
+      <div class="faq-wrap">
+        {
+          faqs.map((f, i) => (
+            <div class:list={["faq-item", { "is-open": i === 0 }]} data-accordion-item data-reveal="up">
+              <button class="faq-item__btn" type="button" data-accordion-btn aria-expanded={i === 0 ? 'true' : 'false'}>
+                {String(f.question)}
+                <span class="faq-item__sign">
+                  <Icon name="plus" size={15} stroke={2.6} />
+                </span>
+              </button>
+              <div class="faq-item__panel" data-accordion-panel aria-hidden={i === 0 ? 'false' : 'true'}>
+                <div class="faq-item__panel-inner">{String(f.answer)}</div>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+      <div class="faq-cta" data-reveal="up">
+        <a href="/faq" class="btn btn--ghost">مشاهدهٔ همهٔ سؤالات متداول</a>
       </div>
     </div>
   </section>
-  <section class="sec sec-cream" style="padding-top:56px">
+
+  {/* CTA */}
+  <section class="section pad-half">
     <div class="container">
-      <div class="sec-head center" data-reveal>
-        <span class="section-label">پرسش‌های رایج درباره قیمت</span>
-        <h2>قبل از انتخاب پکیج بخوانید</h2>
-      </div>
-      <div class="faq-list">
-        {faqs.slice(0, 4).map((f) => (
-          <details class="faq-item" data-reveal>
-            <summary><span class="fq-ico">+</span> {f.question}</summary>
-            <div class="fq-body">{f.answer}</div>
-          </details>
-        ))}
+      <div class="cta-band" data-reveal="zoom">
+        <span class="cta-band__deco cta-band__deco--1" aria-hidden="true"></span>
+        <span class="cta-band__deco cta-band__deco--2" aria-hidden="true"></span>
+        <h2>مطمئن نیستید کدام پکیج مناسب شماست؟</h2>
+        <p>در جلسه مشاوره رایگان، نیازتان را بررسی می‌کنیم و پکیج درست را پیشنهاد می‌دهیم — حتی اگر هیچ‌کدام نباشد.</p>
+        <div class="cta-band__btns">
+          <a href="/consult" class="btn btn--white btn--lg">درخواست مشاوره رایگان</a>
+          <a href="/services" class="btn btn--ghost-light">مشاهدهٔ خدمات</a>
+        </div>
       </div>
     </div>
   </section>

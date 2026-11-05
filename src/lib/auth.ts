@@ -64,18 +64,30 @@ export interface LoginResult {
 }
 
 export function login(username: string, password: string, secureRequest: boolean): LoginResult {
-  const hash = process.env.ADMIN_PASSWORD_HASH;
-  if (!hash) {
-    return { ok: false, error: 'NO_ADMIN_CONFIG', message: 'ADMIN_PASSWORD_HASH در متغیرهای محیطی تنظیم نشده است' };
-  }
+  const envHash = process.env.ADMIN_PASSWORD_HASH || '';
   const u = String(username || '');
   const p = String(password || '');
+
+  /* مرجع رمز: هش دیتابیس (تغییر رمز از پنل) مقدم است؛ سپس ADMIN_PASSWORD_HASH.
+     نام و رفتار متغیر محیطی بدون تغییر حفظ می‌شود. */
+  const dbHash = (globalThis as { __cd_admin_dbhash?: string }).__cd_admin_dbhash || '';
+  if (!dbHash && !envHash) {
+    return { ok: false, error: 'NO_ADMIN_CONFIG', message: 'ADMIN_PASSWORD_HASH در متغیرهای محیطی تنظیم نشده است' };
+  }
   if (u.length > 64 || p.length > 128) {
     return { ok: false, error: 'BAD_CREDENTIALS', message: 'نام کاربری یا رمز عبور نادرست است' };
   }
-  if (u !== (process.env.ADMIN_USERNAME || 'admin') || sha256(p) !== hash) {
+  const given = sha256(p);
+  const okUser = u === (process.env.ADMIN_USERNAME || 'admin');
+  const okPass = (dbHash && given === dbHash) || (!dbHash && envHash && given === envHash);
+  if (!okUser || !okPass) {
     return { ok: false, error: 'BAD_CREDENTIALS', message: 'نام کاربری یا رمز عبور نادرست است' };
   }
+  return issueSession(u, secureRequest);
+}
+
+/* ساخت کوکی نشست — توسط login و تغییر رمز استفاده می‌شود */
+export function issueSession(u: string, secureRequest: boolean): LoginResult {
   const payload = { u, role: 'admin', exp: Date.now() + SESSION_MS };
   const token = sign(payload);
   const secure = secureRequest ? '; Secure' : '';
@@ -83,6 +95,17 @@ export function login(username: string, password: string, secureRequest: boolean
     ok: true,
     cookie: `${COOKIE_NAME}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax${secure}; Max-Age=${SESSION_MS / 1000}`,
   };
+}
+
+/* تازه‌سازی نشست فعلی (پس از تغییر رمز) */
+export function refreshSession(session: { u: string; role: string }, secureRequest: boolean): string | null {
+  const r = issueSession(session.u, secureRequest);
+  return r.ok ? r.cookie || null : null;
+}
+
+/* هش رمز ذخیره‌شده در دیتابیس را برای این فرایند ثبت می‌کند (در boot خوانده می‌شود) */
+export function setDbPasswordHash(hash: string): void {
+  (globalThis as { __cd_admin_dbhash?: string }).__cd_admin_dbhash = hash || '';
 }
 
 export function sessionFromCookies(header: string): { u: string; role: string; exp: number } | null {
