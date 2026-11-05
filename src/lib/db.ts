@@ -8,7 +8,7 @@
    مایگریشن‌ها idempotent هستند و در اولین اجرا خودکار اعمال می‌شوند.
    هرگز داده‌های موجود بازنویسی یا حذف نمی‌شوند.
    ========================================================================== */
-import { env } from './env';
+import { env, hasEnv } from './env';
 
 type Row = Record<string, unknown>;
 
@@ -24,25 +24,16 @@ const g = globalThis as unknown as {
 };
 
 async function createDriver(): Promise<DbDriver> {
-  /* ─── حالت تولید: فقط PostgreSQL واقعی ───
-     در Vercel فایل‌سیستم تابع فقط‌خواندنی است؛ بنابراین هرگز نباید
-     در این محیط به PGlite یا فایل محلی .pgdata برگردیم. */
-  const dbUrl = (env('DATABASE_URL') || '').trim();
+  /* ─── حالت تولید: Postgres واقعی با DATABASE_URL ───
+     فقط URL معتبرِ postgresql:// یا postgres:// پذیرفته می‌شود؛
+     مقادیر ناسازگار محیط (مثل file:) به حالت پیش‌نمایش محلی می‌روند. */
+  const dbUrl = env('DATABASE_URL') || '';
   const isPgUrl = /^postgres(ql)?:\/\//i.test(dbUrl);
-  const isVercelRuntime = Boolean(process.env.VERCEL || process.env.VERCEL_ENV);
-
-  if (isVercelRuntime && !isPgUrl) {
-    throw new Error(
-      !dbUrl
-        ? 'DATABASE_URL در محیط اجرای Vercel در دسترس نیست. آن را در تنظیمات همین Project برای Production ثبت کنید و سپس Redeploy انجام دهید.'
-        : 'مقدار DATABASE_URL معتبر نیست؛ باید با postgresql:// یا postgres:// شروع شود. مقدار اتصال Neon را بررسی کنید.',
-    );
-  }
-
-  if (isPgUrl) {
+  if (dbUrl && isPgUrl) {
     const { Pool } = await import('pg');
     const pool = new Pool({
-      connectionString: dbUrl,
+      connectionString: env('DATABASE_URL'),
+      ssl: { rejectUnauthorized: false },
       max: 5,
     });
     return {
@@ -57,7 +48,7 @@ async function createDriver(): Promise<DbDriver> {
     };
   }
 
-  /* ─── حالت پیش‌نمایش محلی: PGlite فقط خارج از Vercel ─── */
+  /* ─── حالت پیش‌نمایش: PGlite امبدد ─── */
   const { PGlite } = await import('@electric-sql/pglite');
   const lite = new PGlite('./.pgdata');
   return {

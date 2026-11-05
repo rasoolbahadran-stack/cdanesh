@@ -1,0 +1,88 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+const title = "ثبت درخواست خدمات | کافه‌دانش";
+const description = "فرم درخواست مشاوره و سفارش خدمات طراحی سایت، سئو، تولید محتوا و راهکارهای هوش مصنوعی.";
+const canonical = "https://cdanesh.ir/request";
+---
+
+<SiteLayout title={title} description={description} canonical={canonical}>
+<!-- ═══ هیرو درخواست ═══ -->
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="breadcrumb" aria-label="مسیر صفحه">
+      <a href="/">خانه</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      <span>ثبت درخواست</span>
+    </nav>
+    <span class="eyebrow">ثبت درخواست خدمات</span>
+    <h1 class="h1">پروژه‌تان را <span class="gold">دقیق</span> بگویید تا دقیق جواب بگیرید</h1>
+    <p class="lead">این فرم کمک می‌کند قبل از جلسه مشاوره، تصویر روشنی از نیاز شما داشته باشیم. همه فیلدها محرمانه‌اند و فقط برای آماده‌کردن پیشنهاد استفاده می‌شوند.</p>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="wrap" style="max-width:880px">
+    <div class="form-card">
+      <!-- پیام موفقیت فقط پس از ثبت واقعی توسط forms.js ساخته و نشان داده می‌شود -->
+      <div class="form-ok" role="status" hidden></div>
+      <div class="form-ok form-err-global" role="alert" style="background:rgba(229,118,106,.1); border-color:rgba(229,118,106,.4); color:var(--err); display:none" data-err-global></div>
+      <input type="hidden" id="rpackage" name="package">
+      <form data-cd-form="request" novalidate>
+        <div class="form-grid">
+        <div class="field"><label for="rname">نام و نام خانوادگی <i>*</i></label><input class="control" id="rname" name="name" required placeholder="مثلاً علی رضایی"><span class="field-err">این فیلد الزامی است.</span></div>
+          <div class="field"><label for="rphone">شماره موبایل <i>*</i></label><input class="control" id="rphone" name="phone" type="tel" data-kind="phone" required placeholder="09123456789" dir="ltr" style="text-align:right"><span class="field-err">شماره موبایل معتبر نیست؛ نمونه درست: 09123456789</span></div>
+          <div class="field"><label for="remail">ایمیل (اختیاری)</label><input class="control" id="remail" name="email" type="email" placeholder="you@example.com" dir="ltr" style="text-align:right"></div>
+          <div class="field">
+            <label for="rsvc">خدمت موردنیاز <i>*</i></label>
+            <select class="control" id="rsvc" name="service" required>
+              <option value="">انتخاب کنید…</option>
+              <option value="web">طراحی سایت اختصاصی</option>
+              <option value="corporate">سایت شرکتی / خدماتی</option>
+              <option value="shop">فروشگاه اینترنتی</option>
+              <option value="dev">برنامه‌نویسی و توسعه وب</option>
+              <option value="uiux">طراحی UI/UX</option>
+              <option value="seo">سئو تکنیکال و محتوایی</option>
+              <option value="content">تولید مقالات تخصصی</option>
+              <option value="strategy">استراتژی و تقویم محتوایی</option>
+              <option value="ai">دستیار هوشمند / ابزار AI</option>
+              <option value="automation">اتوماسیون فرایندها</option>
+              <option value="unsure">هنوز مطمئن نیستم — مشاوره می‌خواهم</option>
+            </select>
+            <span class="field-err">این فیلد الزامی است.</span>
+          </div>
+          <div class="field">
+            <label for="rbudget">بودجه تقریبی (اختیاری)</label>
+            <select class="control" id="rbudget" name="budget">
+              <option value="">انتخاب کنید…</option>
+              <option>زیر ۱۵ میلیون تومان</option>
+              <option>۱۵ تا ۳۰ میلیون تومان</option>
+              <option>۳۰ تا ۵۰ میلیون تومان</option>
+              <option>۵۰ تا ۱۰۰ میلیون تومان</option>
+              <option>بالای ۱۰۰ میلیون تومان</option>
+              <option>هنوز بودجه مشخص نکرده‌ام</option>
+            </select>
+            <span class="field-err"></span>
+          </div>
+          <div class="field field-full"><label for="rsubj">موضوع پروژه</label><input class="control" id="rsubj" name="subject" placeholder="مثلاً فروشگاه اینترنتی محصولات ارگانیک"></div>
+          <div class="field field-full">
+            <label for="rmsg">توضیحات پروژه <i>*</i></label>
+            <textarea class="control" id="rmsg" name="message" required placeholder="کمی از کسب‌وکارتان بگویید: چه می‌فروشید، مخاطبتان کیست، الان سایت دارید یا نه، و انتظارتان از پروژه چیست…"></textarea>
+            <span class="field-err">این فیلد الزامی است.</span>
+          </div>
+          <div class="field field-full" style="position:absolute; right:-9999px" aria-hidden="true"><label for="rweb">وب‌سایت</label><input id="rweb" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+        </div>
+        <button class="btn btn-gold btn-block btn-lg" type="submit" style="margin-top:24px">ارسال درخواست مشاوره رایگان</button>
+        <p class="form-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          <span>اطلاعات شما فقط برای پاسخ به همین درخواست استفاده می‌شود — <a href="/privacy" style="color:var(--gold)">سیاست حریم خصوصی</a>. فیلدهای ستاره‌دار الزامی‌اند.</span>
+        </p>
+      </form>
+    </div>
+    <div class="feat-grid" style="margin-top:40px">
+      <div class="feat-card"><div class="bento-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.8-.9L3 20l1-4.9a8.4 8.4 0 1 1 17-3.6Z"/></svg></div><b>بعد از ارسال چه می‌شود؟</b><p>درخواست شما در پنل ثبت می‌شود؛ حداکثر ۱ روز کاری بعد برای هماهنگی جلسه تماس می‌گیریم.</p></div>
+      <div class="feat-card"><div class="bento-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4 20 9.5 9.5 20 4 20 4 14.5Z"/></svg></div><b>در جلسه مشاوره چه می‌گذرد؟</b><p>اهداف، مخاطب و بودجه واقعی بررسی می‌شود و مسیر پیشنهادی با گزینه‌های مختلف ارائه می‌گردد.</p></div>
+      <div class="feat-card"><div class="bento-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></div><b>پیشنهاد شفاف</b><p>دامنه کار، زمان‌بندی و هزینه در قالب یک پیشنهاد مکتوب و قابل مقایسه تحویل می‌شود.</p></div>
+    </div>
+  </div>
+</section>
+</SiteLayout>

@@ -1,5 +1,5 @@
 ---
-// ورود به پنل مدیریت
+/* ورود به پنل مدیریت */
 import '../../styles/admin.css';
 ---
 <!doctype html>
@@ -24,7 +24,7 @@ import '../../styles/admin.css';
         <form id="login-form">
           <div class="form-field" style="margin-bottom:14px">
             <label for="username">نام کاربری</label>
-            <input id="username" name="username" type="text" autocomplete="username" required placeholder="نام کاربری" />
+            <input id="username" name="username" type="text" autocomplete="username" required placeholder="admin" />
           </div>
           <div class="form-field">
             <label for="password">رمز عبور</label>
@@ -34,7 +34,8 @@ import '../../styles/admin.css';
           <button type="submit" class="btn btn-gold btn-block" style="margin-top:18px" id="login-btn">ورود به پنل</button>
         </form>
         <div class="login-creds">
-          🔐 ورود با اطلاعات مدیریتی تنظیم‌شده در محیط سرور انجام می‌شود.
+          🔐 رمز عبور در متغیر محیطی <b>ADMIN_PASSWORD_HASH</b> (هش SHA-256) نگهداری می‌شود.
+          برای محیط پیش‌نمایش این سندباکس: نام کاربری <b>admin</b> و رمز <b>cdanesh2026</b>
         </div>
         <a href="/" style="display:block;text-align:center;margin-top:16px;font-size:12px;color:var(--a-muted)">← بازگشت به سایت</a>
       </div>

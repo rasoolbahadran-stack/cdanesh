@@ -1,0 +1,103 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import ServiceFaq from '../components/ServiceFaq.astro';
+import faqData from '../data/faq-pages.json';
+const faqItems = (faqData['speed'] || []).filter(x => x.on !== false);
+const faqSchema = { '@context': 'https://schema.org', '@type': 'FAQPage',
+  mainEntity: faqItems.map(it => ({ '@type': 'Question', name: it.q, acceptedAnswer: { '@type': 'Answer', text: it.a } })) };
+
+import { serviceRelated, postCardHtml } from '../lib/ssr-articles.mjs';
+const relatedArticles = serviceRelated('speed');
+const title = "بهینه‌سازی سرعت سایت | Core Web Vitals و تجربه سریع — کافه‌دانش";
+const description = "بهینه‌سازی سرعت سایت با تمرکز بر Core Web Vitals: بهبود LCP و INP و CLS، بهینه‌سازی تصاویر WebP، کش و زیرساخت. بررسی اولیه رایگان.";
+const canonical = "https://cdanesh.ir/speed-optimization";
+---
+
+<SiteLayout title={title} description={description} canonical={canonical}>
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} slot="head" />
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="breadcrumb" aria-label="مسیر صفحه">
+      <a href="/">خانه</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      <a href="/services">خدمات</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      <span>بهینه‌سازی سرعت</span>
+    </nav>
+    <span class="eyebrow">بهینه‌سازی سرعت</span>
+    <h1 class="h1">سریع‌تر باز شود، <span class="gold">بهتر بفروشد</span></h1>
+    <p class="lead">هر ثانیه تأخیر در باز شدن صفحه، بخشی از بازدیدکننده‌ها را می‌برد. سرعت را با داده اندازه و به‌صورت هدفمند بهبود می‌دهیم.</p>
+  </div>
+</section>
+
+<section class="section-tight" style="padding-top:10px">
+  <div class="wrap">
+    <div class="prose" style="max-width:860px; margin-bottom:56px">
+<p>کاربر در چند ثانیه اول تصمیم می‌گیرد بماند یا برود — و گوگل همین حس را با سنجه‌های Core Web Vitals اندازه می‌گیرد: سرعت ظاهرشدن محتوای اصلی (LCP)، سرعت پاسخ به کلیک (INP) و ثبات عناصر صفحه (CLS). بهبود این سه، هم تجربه کاربر و هم رتبه جست‌وجو را بالا می‌برد.</p>
+        <p>مسیر کار ما داده‌محور است: اول وضعیت فعلی اندازه‌گیری و گلوگاه‌ها دقیق مشخص می‌شوند (تصاویر، کد، کش، هاست)، بعد اصلاحات با اولویت اثر اجرا و نتیجه دوباره اندازه‌گیری می‌شود. ظاهر و محتوای سایت شما بدون تغییر می‌ماند؛ فقط سریع‌تر باز می‌شود.</p>
+    </div>
+    <div class="section-head side" style="margin-bottom:32px">
+      <h2 class="h3">در این خدمت چه چیزی تحویل می‌گیرید؟</h2>
+    </div>
+    <div class="feat-grid">
+        <div class="feat-card reveal"><div class="bento-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="m5 19 5-5 3 3 3-3 3 3"/></svg></div><b>بهینه‌سازی کامل تصاویر</b><p>تبدیل به WebP، ابعاد متناسب با نمایش و بارگذاری هوشمند (Lazy Loading) خارج از دید.</p></div>
+        <div class="feat-card reveal" data-delay="1"><div class="bento-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 14 16 9"/><path d="M20.5 17.5a9 9 0 1 0-17 0"/><circle cx="12" cy="15" r="1.6"/></svg></div><b>بهبود Core Web Vitals</b><p>کار هدفمند روی سه سنجه اصلی با سنجش قبل و بعد از اصلاحات.</p></div>
+        <div class="feat-card reveal"><div class="bento-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4.5 4.5 0 0 0-6 6L3 18l3 3 5.7-5.7a4.5 4.5 0 0 0 6-6L14 13l-3-3 3.7-3.7Z"/></svg></div><b>بهینه‌سازی کد و اسکریپت‌ها</b><p>حذف اسکریپت‌های اضافی، فشرده‌سازی و بارگذاری کنترل‌شده منابع.</p></div>
+        <div class="feat-card reveal" data-delay="1"><div class="bento-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg></div><b>کش و CDN درست</b><p>تنظیم کش مرورگر و شبکه توزیع محتوا برای بازگشت سریع‌تر بازدیدکننده‌ها.</p></div>
+        <div class="feat-card reveal"><div class="bento-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg></div><b>سرعت واقعی موبایل</b><p>چون رتبه‌بندی و کاربران موبایل‌محورند، بهبود روی تجربه موبایل سنجیده می‌شود.</p></div>
+        <div class="feat-card reveal" data-delay="1"><div class="bento-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg></div><b>گزارش مقایسه‌ای</b><p>وضعیت قبل و بعد با اعداد — بدون ادعای کلامی.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:30px">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">مسیر شروع</span>
+      <h2 class="h2">از کجا شروع کنیم؟</h2>
+      <p class="lead">هر همکاری از یک گفت‌وگوی هدفمند برای شناخت نیازها و تعیین مسیر مناسب شروع می‌شود؛ جلسه اول مشاوره رایگان است.</p>
+    </div>
+    <div class="plan-list" style="max-width:860px; margin-inline:auto">
+          <div class="plan-row reveal"><div class="bento-ico" style="width:42px;height:42px;margin:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3M11 8v6M8 11h6"/></svg></div><div><b>بررسی و گزارش</b><span>اندازه‌گیری وضعیت فعلی و فهرست اولویت‌دار گلوگاه‌ها با اثر هر مورد.</span></div><a class="plan-link" href="/request">شروع گفت‌وگو ←</a></div>
+          <div class="plan-row reveal"><div class="bento-ico" style="width:42px;height:42px;margin:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 14 16 9"/><path d="M20.5 17.5a9 9 0 1 0-17 0"/><circle cx="12" cy="15" r="1.6"/></svg></div><div><b>بهینه‌سازی اجرایی</b><span>اجرای اصلاحات تصاویر، کش و کد تا رسیدن به وضعیت مطلوب سنجه‌ها.</span></div><a class="plan-link" href="/request">شروع گفت‌وگو ←</a></div>
+          <div class="plan-row reveal"><div class="bento-ico" style="width:42px;height:42px;margin:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg></div><div><b>پایش مستمر</b><span>بازبینی دوره‌ای سرعت پس از تغییرات جدید سایت تا کیفیت حفظ شود.</span></div><a class="plan-link" href="/request">شروع گفت‌وگو ←</a></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:20px">
+  <div class="wrap">
+    <div class="section-head side" style="margin-bottom:30px">
+      <h2 class="h3">سؤالات متداول بهینه‌سازی سرعت</h2>
+    </div>
+    <ServiceFaq pageKey="speed" className="faq-list" />
+  </div>
+</section>
+
+<section class="section-tight" style="padding-top:30px">
+  <div class="wrap">
+    <div class="section-head side" style="margin-bottom:30px">
+      <h2 class="h3">مقالات مرتبط با این خدمت</h2>
+    </div>
+    <div class="posts-grid" data-related-articles="speed">
+      {/* مقالات مرتبط در HTML اولیه — قابل خزش برای موتور جست‌وجو */}
+      {relatedArticles.map((a, i) => <Fragment set:html={postCardHtml(a, i)} />)}
+    </div>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="wrap">
+    <div class="cta-banner reveal">
+      <div>
+        <h2>گام بعدی: یک گفت‌وگوی هدفمند</h2>
+        <p>در جلسه اول، نیازهای شما شنیده می‌شود، مسیر پیشنهادی چیده می‌شود و برآورد مکتوب شفاف ارائه می‌گردد.</p>
+      </div>
+      <div class="cta-actions">
+        <a class="btn btn-dark btn-lg" href="/request">درخواست مشاوره رایگان</a>
+        <a class="btn btn-ghost btn-lg" href="/portfolio" style="border-color:rgba(34,25,3,.3); color:#171208">مشاهده نمونه‌کارها</a>
+      </div>
+    </div>
+  </div>
+</section>
+</SiteLayout>

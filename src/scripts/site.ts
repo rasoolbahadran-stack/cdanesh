@@ -104,6 +104,59 @@
     }, { passive: true });
   }
 
+  /* ---------- جستجوی هدر (سبک Porto) ---------- */
+  const sToggle = document.querySelector<HTMLButtonElement>('[data-search-toggle]');
+  const sBox = document.querySelector<HTMLElement>('[data-search-box]');
+  if (sToggle && sBox) {
+    sToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = sBox.classList.toggle('open');
+      sToggle.setAttribute('aria-expanded', String(open));
+      if (open) (sBox.querySelector('input') as HTMLInputElement | null)?.focus();
+    });
+    document.addEventListener('click', (e) => {
+      if (!sBox.contains(e.target as Node) && !sToggle.contains(e.target as Node)) {
+        sBox.classList.remove('open');
+        sToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { sBox.classList.remove('open'); sToggle.setAttribute('aria-expanded', 'false'); }
+    });
+  }
+
+  /* ---------- رنگ موج فوتر = پس‌زمینهٔ آخرین بخش صفحه ---------- */
+  const wavePath = document.querySelector<SVGPathElement>('.footer-wave path');
+  if (wavePath) {
+    const main = document.querySelector('main');
+    if (main) {
+      const kids = Array.from(main.children).reverse();
+      for (const el of kids) {
+        const bg = getComputedStyle(el).backgroundColor;
+        if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') {
+          wavePath.setAttribute('fill', bg);
+          break;
+        }
+      }
+    }
+  }
+
+  /* ---------- نوارهای پیشرفت (Porto) ---------- */
+  const pbars = document.querySelectorAll<HTMLElement>('.progress .pb-bar');
+  if (pbars.length && 'IntersectionObserver' in window && !reduced) {
+    const pio = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (en.isIntersecting) {
+          en.target.closest('.progress')?.classList.add('in');
+          pio.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.4 });
+    pbars.forEach((b) => pio.observe(b));
+  } else {
+    pbars.forEach((b) => b.closest('.progress')?.classList.add('in'));
+  }
+
   /* ---------- توست عمومی ---------- */
   (window as unknown as { cdToast: (msg: string, kind?: string) => void }).cdToast = (msg: string, kind = 'ok') => {
     let wrap = document.querySelector('.toast-wrap') as HTMLElement | null;
@@ -119,6 +172,44 @@
     wrap.appendChild(t);
     setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .4s'; setTimeout(() => t.remove(), 420); }, 4200);
   };
+
+  /* ---------- فرم خبرنامه/مشاورهٔ بخش سرمه‌ای Porto ---------- */
+  document.querySelectorAll<HTMLFormElement>('form[data-nl-form]').forEach((form) => {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      const msgBox = form.querySelector<HTMLElement>('.nl-msg');
+      const data = new FormData(form);
+      const name = String(data.get('name') || '').trim();
+      const phone = String(data.get('phone') || '').trim().replace(/\s|-/g, '');
+      const errs: string[] = [];
+      if (name.length < 2) errs.push('نام را کامل بنویسید');
+      if (!/^0\d{9,10}$/.test(phone)) errs.push('شماره موبایل معتبر وارد کنید (مثل ۰۹۱۲۳۴۵۶۷۸۹)');
+      if (msgBox) { msgBox.className = `nl-msg ${errs.length ? 'err' : ''}`; msgBox.textContent = errs.join(' — '); }
+      if (errs.length) return;
+
+      if (btn) { btn.disabled = true; btn.dataset.orig = btn.textContent || ''; btn.textContent = 'در حال ارسال…'; }
+      try {
+        const res = await fetch(form.dataset.action || '/api/consult', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            phone,
+            message: 'درخواست مشاورهٔ رایگان از فرم پایین بخش‌های صفحهٔ اصلی سایت کافه‌دانش',
+          }),
+        });
+        const j = await res.json();
+        if (msgBox) { msgBox.className = `nl-msg ${j.ok ? 'ok' : 'err'}`; msgBox.textContent = j.message || (j.ok ? 'درخواست شما ثبت شد؛ به‌زودی تماس می‌گیریم.' : 'ارسال ناموفق بود؛ دوباره تلاش کنید.'); }
+        (window as unknown as { cdToast: (m: string, k?: string) => void }).cdToast(j.message || 'درخواست شما ثبت شد', j.ok ? 'ok' : 'err');
+        if (j.ok) form.reset();
+      } catch {
+        if (msgBox) { msgBox.className = 'nl-msg err'; msgBox.textContent = 'خطای شبکه؛ دوباره تلاش کنید'; }
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = btn.dataset.orig || 'بررسی کنید — مشاوره رایگان'; }
+      }
+    });
+  });
 
   /* ---------- فرم‌های عمومی (تماس / مشاوره) ---------- */
   document.querySelectorAll<HTMLFormElement>('form[data-public-form]').forEach((form) => {

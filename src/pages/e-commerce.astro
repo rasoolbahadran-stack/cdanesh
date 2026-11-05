@@ -1,0 +1,103 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import ServiceFaq from '../components/ServiceFaq.astro';
+import faqData from '../data/faq-pages.json';
+const faqItems = (faqData['e-commerce'] || []).filter(x => x.on !== false);
+const faqSchema = { '@context': 'https://schema.org', '@type': 'FAQPage',
+  mainEntity: faqItems.map(it => ({ '@type': 'Question', name: it.q, acceptedAnswer: { '@type': 'Answer', text: it.a } })) };
+
+import { serviceRelated, postCardHtml } from '../lib/ssr-articles.mjs';
+const relatedArticles = serviceRelated('e-commerce');
+const title = "طراحی فروشگاه اینترنتی اختصاصی و حرفه‌ای | کافه‌دانش";
+const description = "طراحی فروشگاه اینترنتی اختصاصی با تجربه خرید روان، صفحه محصول تبدیل‌محور، درگاه پرداخت امن و پنل مدیریت آسان. برآورد شفاف پس از نیازسنجی.";
+const canonical = "https://cdanesh.ir/e-commerce";
+---
+
+<SiteLayout title={title} description={description} canonical={canonical}>
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} slot="head" />
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="breadcrumb" aria-label="مسیر صفحه">
+      <a href="/">خانه</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      <a href="/services">خدمات</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      <span>فروشگاه اینترنتی</span>
+    </nav>
+    <span class="eyebrow">فروشگاه اینترنتی</span>
+    <h1 class="h1">فروشگاهی که خرید کردن در آن <span class="gold">آسان است</span></h1>
+    <p class="lead">از جست‌وجوی محصول تا درگاه پرداخت؛ هر مرحله برای «تصمیم‌گیری سریع مشتری» طراحی می‌شود — نه فقط زیبایی.</p>
+  </div>
+</section>
+
+<section class="section-tight" style="padding-top:10px">
+  <div class="wrap">
+    <div class="prose" style="max-width:860px; margin-bottom:56px">
+<p>فروشگاه اینترنتی خوب، یک ویترین آنلاین نیست؛ یک فروشنده آموزش‌دیده است: محصول درست را جلوی چشم مشتری می‌گذارد، سؤالش را پیش از پرسیدن پاسخ می‌دهد و پرداخت را کوتاه و امن نگه می‌دارد. تفاوت فروشگاه‌های موفق و ناموفق معمولاً در همین جزئیات کوچک مسیر خرید است، نه در لوگو و رنگ‌ها.</p>
+        <p>در پروژه‌های فروشگاهی ما، اول رفتار مشتری شما بررسی می‌شود: چه می‌خرند، از کجا وارد می‌شوند و در کجا رها می‌کنند. بعد ساختار دسته‌بندی، صفحه محصول و فرایند پرداخت بر اساس همان داده طراحی می‌شود. نتیجه، فروشگاهی است که مدیرش راحت مدیریت می‌کند و مشتری راحت خرید می‌کند.</p>
+    </div>
+    <div class="section-head side" style="margin-bottom:32px">
+      <h2 class="h3">در این خدمت چه چیزی تحویل می‌گیرید؟</h2>
+    </div>
+    <div class="feat-grid">
+        <div class="feat-card reveal"><div class="bento-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg></div><b>طراحی اختصاصی و متناسب با برند</b><p>ظاهر فروشگاه شما کپی هیچ قالبی نیست؛ چیدمان برای محصولات و مخاطب خودتان طراحی می‌شود.</p></div>
+        <div class="feat-card reveal" data-delay="1"><div class="bento-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg></div><b>صفحه محصول تبدیل‌محور</b><p>عکس‌های مرتب، اطلاعات خرید، نظرات و دعوت به اقدام؛ همه در چیدمانی که تصمیم را آسان می‌کند.</p></div>
+        <div class="feat-card reveal"><div class="bento-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.6"/><circle cx="17" cy="20" r="1.6"/><path d="M3 3h2l2.6 12.4a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L21 7H6"/></svg></div><b>سبد خرید و پرداخت کوتاه</b><p>حداقل مرحله ممکن تا پرداخت، پشتیبانی از درگاه‌های معتبر و تجربه موبایل بی‌اصطکاک.</p></div>
+        <div class="feat-card reveal" data-delay="1"><div class="bento-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4.5 4.5 0 0 0-6 6L3 18l3 3 5.7-5.7a4.5 4.5 0 0 0 6-6L14 13l-3-3 3.7-3.7Z"/></svg></div><b>پنل مدیریت آسان محصولات</b><p>قیمت، موجودی، عکس و توضیحات را خودتان به‌روز کنید؛ آموزش کامل کار با پنل تحویل داده می‌شود.</p></div>
+        <div class="feat-card reveal"><div class="bento-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3M11 8v6M8 11h6"/></svg></div><b>سئوی فروشگاه از روز اول</b><p>ساختار دسته‌بندی و صفحه محصول برای دیده‌شدن در جست‌وجو طراحی می‌شود؛ اصلاح بعدی هزینه دارد.</p></div>
+        <div class="feat-card reveal" data-delay="1"><div class="bento-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 3 7v6c0 5 3.8 8.4 9 10 5.2-1.6 9-5 9-10V7l-9-5Z"/><path d="m9 12 2 2 4-4"/></svg></div><b>امنیت داده مشتری</b><p>پرداخت امن، مدیریت درست نشست‌ها و رعایت اصول نگهداری اطلاعات مشتریان.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:30px">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">مسیر شروع</span>
+      <h2 class="h2">از کجا شروع کنیم؟</h2>
+      <p class="lead">هر همکاری از یک گفت‌وگوی هدفمند برای شناخت نیازها و تعیین مسیر مناسب شروع می‌شود؛ جلسه اول مشاوره رایگان است.</p>
+    </div>
+    <div class="plan-list" style="max-width:860px; margin-inline:auto">
+          <div class="plan-row reveal"><div class="bento-ico" style="width:42px;height:42px;margin:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.6"/><circle cx="17" cy="20" r="1.6"/><path d="M3 3h2l2.6 12.4a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L21 7H6"/></svg></div><div><b>فروشگاه پایه</b><span>شروع فروش آنلاین با دامنه کار مشخص: دسته‌بندی، صفحه محصول و درگاه پرداخت.</span></div><a class="plan-link" href="/request?pkg=design-basic">شروع گفت‌وگو ←</a></div>
+          <div class="plan-row reveal"><div class="bento-ico" style="width:42px;height:42px;margin:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg></div><div><b>فروشگاه حرفه‌ای</b><span>با فیلترهای پیشرفته، سئوی کامل و بهینه‌سازی سرعت برای نرخ تبدیل بهتر.</span></div><a class="plan-link" href="/request?pkg=design-pro">شروع گفت‌وگو ←</a></div>
+          <div class="plan-row reveal"><div class="bento-ico" style="width:42px;height:42px;margin:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><path d="M10 6.5h7v7"/></svg></div><div><b>فروشگاه سفارشی</b><span>منطق قیمت‌گذاری خاص، یکپارچه‌سازی با انبار یا نرم‌افزارهای داخلی شما.</span></div><a class="plan-link" href="/request?pkg=design-custom">شروع گفت‌وگو ←</a></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:20px">
+  <div class="wrap">
+    <div class="section-head side" style="margin-bottom:30px">
+      <h2 class="h3">سؤالات متداول فروشگاه اینترنتی</h2>
+    </div>
+    <ServiceFaq pageKey="e-commerce" className="faq-list" />
+  </div>
+</section>
+
+<section class="section-tight" style="padding-top:30px">
+  <div class="wrap">
+    <div class="section-head side" style="margin-bottom:30px">
+      <h2 class="h3">مقالات مرتبط با این خدمت</h2>
+    </div>
+    <div class="posts-grid" data-related-articles="e-commerce">
+      {/* مقالات مرتبط در HTML اولیه — قابل خزش برای موتور جست‌وجو */}
+      {relatedArticles.map((a, i) => <Fragment set:html={postCardHtml(a, i)} />)}
+    </div>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="wrap">
+    <div class="cta-banner reveal">
+      <div>
+        <h2>گام بعدی: یک گفت‌وگوی هدفمند</h2>
+        <p>در جلسه اول، نیازهای شما شنیده می‌شود، مسیر پیشنهادی چیده می‌شود و برآورد مکتوب شفاف ارائه می‌گردد.</p>
+      </div>
+      <div class="cta-actions">
+        <a class="btn btn-dark btn-lg" href="/request">درخواست مشاوره رایگان</a>
+        <a class="btn btn-ghost btn-lg" href="/portfolio" style="border-color:rgba(34,25,3,.3); color:#171208">مشاهده نمونه‌کارها</a>
+      </div>
+    </div>
+  </div>
+</section>
+</SiteLayout>

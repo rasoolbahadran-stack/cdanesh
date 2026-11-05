@@ -1,0 +1,120 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import ServiceFaq from '../components/ServiceFaq.astro';
+import faqData from '../data/faq-pages.json';
+const faqItems = (faqData['seo'] || []).filter(x => x.on !== false);
+const faqSchema = { '@context': 'https://schema.org', '@type': 'FAQPage',
+  mainEntity: faqItems.map(it => ({ '@type': 'Question', name: it.q, acceptedAnswer: { '@type': 'Answer', text: it.a } })) };
+
+import { serviceRelated, postCardHtml } from '../lib/ssr-articles.mjs';
+const relatedArticles = serviceRelated('seo');
+const title = "خدمات سئو سایت و بهینه‌سازی گوگل | کافه‌دانش";
+const description = "سئو تکنیکال، استراتژی کلمات کلیدی و بهینه‌سازی محتوا — بدون وعده غیرواقعی، با کار اصولی و قابل اندازه‌گیری.";
+const canonical = "https://cdanesh.ir/seo";
+---
+
+<SiteLayout title={title} description={description} canonical={canonical}>
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} slot="head" />
+<!-- ═══ هیرو صفحه خدمت ═══ -->
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="breadcrumb" aria-label="مسیر صفحه">
+      <a href="/">خانه</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      <a href="/services">خدمات</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      <span>سئو</span>
+    </nav>
+    <span class="eyebrow">خدمت سئو</span>
+    <h1 class="h1">سئویی که <span class="gold">کار می‌کند</span>، نه شعاری که تضمین دارد</h1>
+    <p class="lead">سئو نتیجه کارهای درست و پیوسته است: زیرساخت فنی سالم، محتوای واقعاً مفید و بهینه‌سازی مداوم. ما همین کارها را انجام می‌دهیم و گزارشش را شفاف می‌دهیم — بدون وعده رتبه اول.</p>
+    <div class="page-hero-pills">
+      <span class="chip">سئو تکنیکال</span>
+      <span class="chip">سئوی محتوا</span>
+      <span class="chip">گزارش شفاف</span>
+    </div>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="wrap">
+    <div class="split">
+      <div class="prose">
+        <h2 id="technical">سئو تکنیکال: زیرساختی که موتور جست‌وجو می‌فهمد</h2>
+        <p>قبل از هر کلمه کلیدی، سایت باید از نظر فنی سالم باشد: سرعت بارگذاری، ساختار هدینگ‌ها، نسخه موبایل، داده‌های ساختاریافته، نقشه سایت و مدیریت خطاهای خزنده. در بررسی تکنیکال، همه این موارد اندازه‌گیری می‌شوند و اولویت‌بندی اصلاحات با اثر واقعی ارائه می‌شود.</p>
+        <ul class="check-list">
+          <li>بررسی Core Web Vitals و بهینه‌سازی سرعت</li>
+          <li>اصلاح ساختار هدینگ‌ها، متا و canonical</li>
+          <li>داده‌های ساختاریافته و breadcrumb</li>
+          <li>sitemap و robots استاندارد + رفع خطاهای ایندکس</li>
+          <li>جلوگیری از محتوای تکراری و صفحات بی‌ارزش</li>
+        </ul>
+        <h2 id="content-seo">سئوی محتوا و استراتژی کلمات کلیدی</h2>
+        <p>کلمه کلیدی درست، همان چیزی است که مخاطب واقعاً جست‌وجو می‌کند و شما می‌توانید در آن رقابت کنید. با تحلیل موضوعات، بررسی رقبا و قصد جست‌وجوی کاربر، نقشه محتوایی ساخته می‌شود که هر مقاله یک هدف روشن دارد و به صفحات خدمت شما لینک می‌خورد.</p>
+        <blockquote>سئو یک پروژه یک‌باره نیست؛ یک روند است. تفاوت سایت‌هایی که بعد از شش ماه نتیجه می‌گیرند در پیوستگی کار است، نه یک اکشن جادویی.</blockquote>
+        <h2 id="measurement">اندازه‌گیری و گزارش</h2>
+        <p>هر دوره گزارش شفاف شامل: وضعیت ایندکس، رشد جست‌وجوهای نمایشی، کلیک‌ها و جایگاه کلمات هدف، و کارهای انجام‌شده. اگر کاری نتیجه نداده، صادقانه گفته می‌شود و مسیر اصلاح می‌شود. ادعای عدد دلخواه در گزارش‌های ما جای ندارد.</p>
+        <h3>مثال خروجی گزارش دوره‌ای</h3>
+        <table>
+          <tr><th>سنجه</th><th>وضعیت</th><th>اقدام بعدی</th></tr>
+          <tr><td>صفحات ایندکس‌شده</td><td>رشد نسبت به دوره قبل</td><td>تقویت لینک‌سازی داخلی</td></tr>
+          <tr><td>کلمات در صفحه اول</td><td>گزارش دقیق فهرست</td><td>به‌روزرسانی محتوا</td></tr>
+          <tr><td>سرعت صفحات (LCP)</td><td>بهینه / نیازمند اصلاح</td><td>فشرده‌سازی تصاویر</td></tr>
+        </table>
+      </div>
+      <aside>
+        <div class="aside-card">
+          <b>در این صفحه</b>
+          <nav class="toc" aria-label="فهرست مطالب">
+            <a href="#technical">سئو تکنیکال</a>
+            <a href="#content-seo">سئوی محتوا</a>
+            <a href="#measurement">اندازه‌گیری و گزارش</a>
+          </nav>
+        </div>
+        <div class="aside-card" style="background:linear-gradient(150deg,rgba(227,185,83,.14),rgba(227,185,83,.04)); border-color:rgba(227,185,83,.35)">
+          <b>بررسی اولیه رایگان</b>
+          <p class="muted" style="font-size:13.5px; margin-bottom:14px">وضعیت فنی فعلی سایت شما را بررسی و فهرست اولویت‌دار اصلاحات را ارائه می‌کنیم.</p>
+          <a class="btn btn-gold btn-block" href="/request">درخواست بررسی</a>
+        </div>
+        <div class="aside-card">
+          <b>سایر خدمات</b>
+          <div class="plan-list">
+            <a class="plan-row" href="/content-production">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              <span><b>تولید محتوای تخصصی</b><span>مقالات سئوشده</span></span>
+              <span class="plan-link">مشاهده ←</span>
+            </a>
+            <a class="plan-row" href="/web-design">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M8 21V9"/></svg>
+              <span><b>طراحی سایت</b><span>اختصاصی و استاندارد</span></span>
+              <span class="plan-link">مشاهده ←</span>
+            </a>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ سؤالات مرتبط ═══ -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">سؤالات متداول</span>
+      <h2 class="h2">درباره سئو</h2>
+    </div>
+    <ServiceFaq pageKey="seo" className="faq-list" />
+  </div>
+</section>
+<section class="section-tight" style="padding-top:30px">
+  <div class="wrap">
+    <div class="section-head side" style="margin-bottom:30px">
+      <h2 class="h3">مقالات مرتبط با این خدمت</h2>
+    </div>
+    <div class="posts-grid" data-related-articles="seo">
+      {/* مقالات مرتبط در HTML اولیه — قابل خزش برای موتور جست‌وجو */}
+      {relatedArticles.map((a, i) => <Fragment set:html={postCardHtml(a, i)} />)}
+    </div>
+  </div>
+</section>
+</SiteLayout>

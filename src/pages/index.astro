@@ -1,9 +1,11 @@
 ---
-/* صفحهٔ اصلی کافه‌دانش — ۱۳ بخش به سبک Porto SEO 2 با هویت اختصاصی */
+/* صفحهٔ اصلی کافه‌دانش — کپی وفادار از ساختار دموی Porto SEO 2
+   ترتیب بخش‌ها: هیرو → ۳ کارت ویژگی → معرفی + تصویر → نوار مشتریان → خدمات
+   → CTA سرمه‌ای → مهارت‌ها و آمار → نظرات → تعرفه‌ها → بلاگ → سؤالات متداول */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { q } from '../lib/db';
 import { getSiteSettings } from '../lib/seed';
-import { faNum, enNum } from '../lib/persian';
+import { faNum } from '../lib/persian';
 
 interface Row {
   id: number;
@@ -11,10 +13,8 @@ interface Row {
 }
 
 const settings = await getSiteSettings();
-const hp = settings.homepage;
 
-const services = await q<Row>(`SELECT slug, title, short_desc, image FROM services WHERE status='published' ORDER BY sort_order`);
-const projects = await q<Row>(`SELECT slug, title, summary, cover_image, tags, category FROM projects WHERE status='published'AND slug NOT IN ('cdanesh-galaxy-source', 'cdanesh-galaxe', 'smart-gadget-store', 'mahpoosh-store', 'simba-beauty-store', 'karino-job-portal-astro', 'novinroshd-agency', 'smarto-astro', 'shoes-store', 'maison-mehr-astro', 'bazarino-astro') ORDER BY sort_order LIMIT 3`);
+const services = await q<Row>(`SELECT slug, title, short_desc FROM services WHERE status='published' ORDER BY sort_order LIMIT 6`);
 const plans = await q<Row>(`SELECT * FROM plans WHERE status='published' ORDER BY sort_order`);
 const posts = await q<Row>(
   `SELECT p.slug, p.title, p.excerpt, p.cover_image, p.reading_time, p.published_at, c.name AS category
@@ -35,7 +35,9 @@ const faqSchema = {
   })),
 };
 
-const faNums = (s: string) => faNum(s);
+/* آیکون‌های دموی Porto برای جعبه‌های خدمات */
+const svcIcons = ['/img/porto/icons/icon-1.png', '/img/porto/icons/icon-2.png', '/img/porto/icons/icon-3.png', '/img/porto/icons/icon-4.png', '/img/porto/icons/icon-5.png', '/img/porto/icons/icon-6.png'];
+const clientNames = ['فروشگاه رُزا', 'هلدینگ آرمان', 'دستیار نِگار', 'پروژهٔ شما'];
 ---
 <BaseLayout
   title={settings.seo.defaultTitle}
@@ -43,266 +45,213 @@ const faNums = (s: string) => faNum(s);
   activePath="/"
   schema={[faqSchema]}
 >
-  {/* ─── ۱. هیرو ─── */}
-  <section class="hero">
+  {/* ─── ۱. هیرو — دقیقاً سبک دموی Porto SEO 2 ─── */}
+  <section class="hero sec-rel">
+    <span class="hero-circle c-indigo" aria-hidden="true"></span>
+    <span class="hero-circle c-pink" aria-hidden="true"></span>
+    <span class="hero-circle c-dot-1" aria-hidden="true"></span>
+    <span class="hero-circle c-dot-2" aria-hidden="true"></span>
+    <span class="hero-circle c-dot-3" aria-hidden="true"></span>
     <div class="container hero-grid">
-      <div>
-        <span class="hero-badge anim-up"><i></i> استودیو دیجیتال کافه‌دانش — بوشهر</span>
-        <h1 class="anim-up d-1">{hp.introTitle.split('؛')[0]}؛<br /><span class="grad-text">{hp.introTitle.split('؛')[1]}</span></h1>
-        <p class="hero-sub anim-up d-2">{hp.introText}</p>
+      <div class="hero-txt">
+        <h1 class="anim-up">طراحی سایت و سئو؛ موتور رشد کسب‌وکار شما</h1>
+        <p class="hero-sub anim-up d-2">حضور آنلاین حرفه‌ای با طراحی اختصاصی، سئوی اصولی و محتوای هدفمند — دقیقاً همان لحظه‌ای که مشتری در گوگل به دنبال خدمات شماست، شما را می‌بیند.</p>
         <div class="hero-actions anim-up d-3">
-          <a href="/consult" class="btn btn-gold btn-lg">درخواست مشاوره رایگان <i>←</i></a>
-          <a href="/portfolio" class="btn btn-ghost-light btn-lg">مشاهده نمونه‌کارها</a>
-        </div>
-        <div class="hero-points anim-up d-4">
-          <span><i>✓</i> طراحی اختصاصی، نه قالب آماده</span>
-          <span><i>✓</i> سئوی اصولی و قابل توضیح</span>
-          <span><i>✓</i> پشتیبانی واقعی پس از تحویل</span>
+          <a href="/consult" class="btn btn-gold btn-lg">شروع کنید</a>
         </div>
       </div>
-      <div class="hero-visual anim-up d-2">
-        <img src="/img/hero-main.webp" alt="نمای سه‌بعدی استودیو دیجیتال کافه‌دانش؛ طراحی سایت، رشد کسب‌وکار و هوش مصنوعی" width="1440" height="720" fetchpriority="high" />
-        <div class="hero-float hf-1" data-parallax="0.06">
-          <i class="hf-ico">📈</i>
-          <span>رشد ارگانیک<small>سئو و محتوای هدفمند</small></span>
+      <div class="hero-visual anim-up d-1">
+        <img src="/img/porto/concept-1.png" alt="تصویرسازی سه‌بعدی از طراحی سایت و بهینه‌سازی سئو در استودیو دیجیتال کافه‌دانش" width="760" height="600" fetchpriority="high" />
+      </div>
+    </div>
+    {/* موج سفید — انتقال هیرو به بخش بعد */}
+    <div class="sec-wave" aria-hidden="true">
+      <svg viewBox="0 0 1440 76" preserveAspectRatio="none"><path fill="#ffffff" d="M0,76 L1440,76 L1440,40 C1200,8 960,58 720,36 C480,12 240,62 0,44 Z" /></svg>
+    </div>
+  </section>
+
+  {/* ─── ۲. سه کارت ویژگی — هم‌پوشان با هیرو (سبک دمو) ─── */}
+  <section class="sec sec-paper" style="padding-top:0">
+    <div class="container hero-cards" style="margin-top:-58px">
+      <div class="hero-cards-grid">
+        <div class="fbox-card" data-reveal>
+          <div class="fbox-ico"><img src="/img/porto/icons/target.svg" alt="" width="74" height="74" loading="lazy" /></div>
+          <h3>بهینه‌سازی موتور جستجو</h3>
+          <p>با سئوی تکنیکال و محتوایی، سایت شما دقیقاً زمانی دیده می‌شود که مشتری به دنبال خدمات شماست؛ رشد پایدار، نه ترفند موقت.</p>
+          <a href="/services/seo" class="fbox-more">بیشتر بخوانید +</a>
         </div>
-        <div class="hero-float hf-2" data-parallax="-0.05">
-          <i class="hf-ico">🤖</i>
-          <span>ابزارهای هوشمند<small>اتوماسیون کارهای تکراری</small></span>
+        <div class="fbox-card" data-reveal style="--rd:90ms">
+          <div class="fbox-ico"><img src="/img/porto/icons/search.svg" alt="" width="74" height="74" loading="lazy" /></div>
+          <h3>طراحی سایت اختصاصی</h3>
+          <p>سایتی متناسب با هویت برند شما؛ سریع، ریسپانسیو و مهندسی‌شده برای تبدیل بازدیدکننده به مشتری واقعی.</p>
+          <a href="/services/company-website" class="fbox-more">بیشتر بخوانید +</a>
+        </div>
+        <div class="fbox-card" data-reveal style="--rd:180ms">
+          <div class="fbox-ico"><img src="/img/porto/icons/teaching.svg" alt="" width="74" height="74" loading="lazy" /></div>
+          <h3>محتوا و هوش مصنوعی</h3>
+          <p>محتوای سئومحور که سؤال مشتری را پاسخ می‌دهد و ابزارهای هوشمندی که کارهای تکراری تیم شما را خودکار می‌کنند.</p>
+          <a href="/services/content" class="fbox-more">بیشتر بخوانید +</a>
         </div>
       </div>
     </div>
   </section>
 
-  {/* ─── نوار ویژگی‌ها ─── */}
-  <div class="strip">
-    <div class="container strip-grid">
-      <div class="strip-item"><i>🎯</i><div><b>تحویل مرحله‌ای</b><span>پیشرفت پروژه شفاف و قابل پیگیری</span></div></div>
-      <div class="strip-item"><i>🧠</i><div><b>ابزارهای هوشمند</b><span>اتوماسیون و دستیارهای اختصاصی</span></div></div>
-      <div class="strip-item"><i>✍️</i><div><b>طراحی اختصاصی</b><span>سایت شما کپی هیچ قالبی نیست</span></div></div>
-      <div class="strip-item"><i>🤝</i><div><b>شفافیت کامل</b><span>محدوده کار و زمان‌بندی مشخص</span></div></div>
-    </div>
-  </div>
-
-  {/* ─── ۲. معرفی کوتاه ─── */}
-  <section class="sec sec-cream">
-    <div class="container about-split">
-      <div class="img-side" data-reveal="right">
-        <img src="/img/about-studio.webp" alt="استودیو دیجیتال کافه‌دانش؛ محیط طراحی و توسعه" width="1152" height="864" loading="lazy" />
+  {/* ─── ۳. معرفی + تصویرسازی دوم (سبک دمو) ─── */}
+  <section class="sec sec-paper" style="padding-top:40px">
+    <div class="container intro-split">
+      <div class="txt-side" data-reveal>
+        <span class="section-label pink">راحت‌ترین راه حضور آنلاین</span>
+        <h2>پیشرو باشید؛ مشتریان بیشتری جذب کنید و برند قوی‌تری بسازید</h2>
+        <p>به‌جای هماهنگ‌کردن چند پیمانکار جدا، کل زنجیرهٔ دیجیتال شما — از طراحی و سئو تا محتوا و اتوماسیون — توسط یک تیم و با یک زبان مشترک پیش برده می‌شود؛ بدون گلوگاه، بدون سرزنش متقابل و با نقشهٔ راه شفاف.</p>
+        <p>کافه‌دانش یک استودیو دیجیتال در بوشهر است که برای کسب‌وکارهای ایرانی سایت می‌سازد، محتوا تولید می‌کند و ابزارهای هوشمند ارائه می‌دهد. هر پروژه با تحلیل نیازها شروع می‌شود، با تحویل مرحله‌ای جلو می‌رود و پس از تحویل هم تنها نیستید.</p>
+        <div style="margin-top:22px">
+          <a href="/services" class="btn btn-gold">خدمات ما</a>
+        </div>
       </div>
-      <div data-reveal="left">
-        <span class="section-label">درباره کافه‌دانش</span>
-        <h2 style="font-size:clamp(24px,3vw,34px)">تمام حلقه‌های حضور دیجیتال، در یک تیم</h2>
-        <p style="color:var(--mut-light);font-size:16px">
-          به‌جای هماهنگ‌کردن چند پیمانکار جدا، کل زنجیره از طراحی تا محتوا و اتوماسیون را یک تیم و با یک زبان مشترک پیش می‌برد.
-          کافه‌دانش یک استودیو دیجیتال در بوشهر است که برای کسب‌وکارهای ایرانی سایت می‌سازد، محتوا تولید می‌کند و ابزارهای هوشمند می‌دهد — با نقشه راه شفاف و تحویل مرحله‌ای.
-        </p>
-        <div class="about-pts">
-          <div class="about-pt"><i>✅</i><div><b>مالکیت کامل</b><span>کد، محتوا و دسترسی‌ها متعلق به شماست</span></div></div>
-          <div class="about-pt"><i>✅</i><div><b>گزارش شفاف</b><span>می‌بینید چه کاری انجام شده و چه تغییری کرده</span></div></div>
-          <div class="about-pt"><i>✅</i><div><b>مدیریت محتوا</b><span>پنل مدیریتی کامل با آموزش کاربری</span></div></div>
-          <div class="about-pt"><i>✅</i><div><b>پشتیبانی واقعی</b><span>پاسخ‌گویی مشخص، بدون بلاتکلیفی</span></div></div>
-        </div>
-        <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap">
-          <a href="/about" class="btn btn-ghost">بیشتر درباره ما</a>
-          <a href="/consult" class="btn btn-gold">شروع پروژه</a>
-        </div>
+      <div class="img-side" data-reveal="left">
+        <img src="/img/porto/concept-2.png" alt="تصویرسازی تحلیل داده و رشد آنلاین کسب‌وکار" width="720" height="560" loading="lazy" />
       </div>
     </div>
   </section>
 
-  {/* ─── ۳. خدمات اصلی ─── */}
-  <section class="sec sec-paper">
+  {/* ─── ۴. نوار اعتماد مشتریان (سبک دمو) ─── */}
+  <section class="clients-band sec-rel">
+    <div class="container">
+      <p class="clients-label">اعتماد کسب‌وکارهایی که با ما رشد کردند</p>
+      <div class="clients-row" data-reveal>
+        {clientNames.map((n) => (
+          <span class="cl-logo">{n}<small>CDANESH CLIENT</small></span>
+        ))}
+      </div>
+    </div>
+    <div class="sec-wave" aria-hidden="true">
+      <svg viewBox="0 0 1440 76" preserveAspectRatio="none"><path fill="#ffffff" d="M0,76 L1440,76 L1440,40 C1200,8 960,58 720,36 C480,12 240,62 0,44 Z" /></svg>
+    </div>
+  </section>
+
+  {/* ─── ۵. خدمات ما — جعبه‌های آیکون‌دار دموی Porto ─── */}
+  <section class="sec sec-paper" style="padding-top:48px">
     <div class="container">
       <div class="sec-head center" data-reveal>
         <span class="section-label">خدمات ما</span>
-        <h2>هشت خدمت تخصصی، هشت صفحه اختصاصی</h2>
-        <p>هر خدمت صفحه اختصاصی و محتوای کامل خودش را دارد؛ می‌توانید هر کدام را مستقل سفارش دهید یا ترکیبی سفارش بدهید.</p>
+        <h2>هر خدمت، یک متخصص رشد کنار شما</h2>
+        <p>از طراحی اختصاصی تا سئو، محتوا و هوش مصنوعی — هر خدمت صفحهٔ اختصاصی و محتوای کامل خودش را دارد و می‌تواند مستقل سفارش داده شود.</p>
       </div>
-      <div class="grid-4">
+      <div class="grid-3 svc-stagger">
         {services.map((s, i) => (
-          <a href={`/services/${s.slug}`} class="svc-card" data-reveal style={`--rd:${(i % 4) * 70}ms`}>
-            <div class="svc-thumb">
-              <img src={String(s.image)} alt={`خدمت ${s.title} — کافه‌دانش`} width="1152" height="864" loading="lazy" />
-            </div>
-            <div class="svc-body">
-              <h3>{s.title}</h3>
-              <p>{s.short_desc}</p>
-              <span class="svc-link">جزئیات خدمت <i>←</i></span>
-            </div>
+          <div class="svc-box" data-reveal style={`--rd:${(i % 3) * 80}ms`}>
+            <div class="svc-ico"><img src={svcIcons[i % svcIcons.length]} alt="" width="78" height="78" loading="lazy" /></div>
+            <h3>{s.title}</h3>
+            <p>{s.short_desc}</p>
+            <a href={`/services/${s.slug}`} class="fbox-more">بیشتر بخوانید +</a>
+          </div>
+        ))}
+      </div>
+      <div style="text-align:center;margin-top:44px" data-reveal>
+        <a href="/contact" class="btn btn-ghost btn-lg">ارتباط با ما</a>
+      </div>
+    </div>
+  </section>
+
+  {/* ─── ۶. CTA سرمه‌ای — سبک دمو ─── */}
+  <section class="cta-full sec-rel">
+    <div class="container">
+      <div class="cta-center" data-reveal>
+        <h2>مشاورهٔ رایگان سئو و طراحی سایت خود را همین حالا دریافت کنید</h2>
+        <p>وضعیت فعلی سایت‌تان را بررسی می‌کنیم و نقشهٔ راه شفافی برای رشد در گوگل پیشنهاد می‌دهیم — بدون تعهد.</p>
+        <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+          <a href={`tel:+989165806207`} class="btn btn-tertiary btn-lg">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="#fff" style="flex:none" aria-hidden="true"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.3 0 .7-.2 1l-2.3 2.2z"/></svg>
+            <span dir="ltr">۰۹۱۶ ۵۸۰ ۶۲۰۷</span>
           </a>
-        ))}
+          <a href="/consult" class="btn btn-ghost-light btn-lg">درخواست مشاوره</a>
+        </div>
       </div>
+    </div>
+    <div class="sec-wave" aria-hidden="true">
+      <svg viewBox="0 0 1440 76" preserveAspectRatio="none"><path fill="#ffffff" d="M0,76 L1440,76 L1440,40 C1200,8 960,58 720,36 C480,12 240,62 0,44 Z" /></svg>
     </div>
   </section>
 
-  {/* ─── ۴. مزیت‌های همکاری ─── */}
-  <section class="sec sec-dark">
+  {/* ─── ۷. مهارت‌ها و آمار — نوارهای پیشرفت + دایره‌های رنگی دمو ─── */}
+  <section class="sec sec-paper" style="padding-top:48px">
     <div class="container">
-      <div class="sec-head" data-reveal>
-        <span class="section-label on-dark">مزیت‌های همکاری با ما</span>
-        <h2>{hp.advantagesTitle}</h2>
-      </div>
-      <div class="grid-3">
-        {hp.advantages.map((a, i) => (
-          <div class="cap-card" data-reveal style={`--rd:${(i % 3) * 80}ms`}>
-            <div class="cap-no">{faNum(String(i + 1).padStart(2, '0'))}</div>
-            <h3>{a.title}</h3>
-            <p>{a.text}</p>
+      <div class="intro-split">
+        <div class="txt-side" data-reveal>
+          <span class="section-label pink">راه سادهٔ رشد آنلاین</span>
+          <h2>تجربه‌ای که در نتیجه دیده می‌شود</h2>
+          <p>ما فقط کد نمی‌زنیم؛ زیرساخت رشد می‌سازیم. هر پروژه با استانداردهای فنی گوگل، معماری محتوایی درست و تجربهٔ کاربری مهندسی‌شده تحویل داده می‌شود تا نتیجه در سرچ‌کنسول و فروش قابل اندازه‌گیری باشد.</p>
+          <div style="margin-top:26px">
+            <div class="progress">
+              <div class="pb-label"><span>سئوی تکنیکال و محتوایی</span><b>۹۵٪</b></div>
+              <div class="pb-bar" style="--w:95%"></div>
+            </div>
+            <div class="progress">
+              <div class="pb-label"><span>سرعت و تجربهٔ کاربری</span><b>۹۲٪</b></div>
+              <div class="pb-bar" style="--w:92%"></div>
+            </div>
+            <div class="progress">
+              <div class="pb-label"><span>رضایت مشتریان</span><b>۹۸٪</b></div>
+              <div class="pb-bar" style="--w:98%"></div>
+            </div>
           </div>
-        ))}
-      </div>
-
-      {/* آمار واقعی تیم */}
-      <div class="stats-band" style="margin-top:52px;--stats-n:3" data-reveal>
-        {hp.stats.map((s) => (
-          <div class="stat-item">
-            <div class="stat-num" data-count={parseInt(enNum(s.value), 10) || 0}>{faNums(s.value)}</div>
-            <p>{s.label}</p>
+        </div>
+        <div class="circles-wrap" data-reveal="left">
+          <div class="circles-group">
+            <div class="cc cc-magenta"><b>۵۰+</b><span>مقالهٔ تخصصی</span></div>
+            <div class="cc cc-indigo"><b>۸</b><span>خدمت تخصصی</span></div>
+            <div class="cc cc-navy"><b>۶</b><span>گام شفاف همکاری</span></div>
+            <span class="cc cc-small-pink" aria-hidden="true"></span>
+            <span class="cc cc-dot" aria-hidden="true"></span>
+            <span class="cc cc-dot-2" aria-hidden="true"></span>
           </div>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  {/* ─── ۵. خدمات از نزدیک ─── */}
-  <section class="sec sec-cream">
-    <div class="container">
-      <div class="sec-head center" data-reveal>
-        <span class="section-label">خدمات، از نزدیک</span>
-        <h2>هر خدمت دقیقاً چه تغییری در کسب‌وکار شما می‌سازد؟</h2>
-        <p>چهار حوزه اصلی کار ما — با نگاه کاربردی به «قبل و بعد» آن برای کسب‌وکار شما.</p>
-      </div>
-
-      <div class="svc-feature" data-reveal>
-        <div class="img-side"><img src="/img/svc-company.webp" alt="طراحی سایت شرکتی اختصاصی" width="1152" height="864" loading="lazy" /></div>
-        <div class="txt-side">
-          <span class="tag">طراحی سایت</span>
-          <h3>سایتی که هویت برند شما را می‌فروشد، نه قالبی که همه دارند</h3>
-          <p>قالب آماده هزینه اولیه کمتری دارد، اما مخاطب حس «تکراری‌بودن» را حس می‌کند و توسعه بعدی گران تمام می‌شود. طراحی اختصاصی یعنی هر صفحه برای هدف مشخص آن ساخته شده باشد.</p>
-          <ul>
-            <li><i>✓</i> طراحی بر اساس پرسونای واقعی مخاطب — نه سلیقه لحظه‌ای</li>
-            <li><i>✓</i> ساختار صفحه‌ها بر مبنای مسیر خرید یا تماس مشتری</li>
-            <li><i>✓</i> کد تمیز و توسعه‌پذیر — قابلیت جدید بعداً بدون بازسازی اضافه می‌شود</li>
-          </ul>
-          <a href="/services/company-website" class="btn btn-gold btn-sm">صفحه خدمت طراحی سایت</a>
-        </div>
-      </div>
-
-      <div class="svc-feature flip" data-reveal>
-        <div class="img-side"><img src="/img/svc-seo.webp" alt="سئو تکنیکال و محتوایی" width="1152" height="864" loading="lazy" /></div>
-        <div class="txt-side">
-          <span class="tag">سئو</span>
-          <h3>سئو یعنی ساختار درست؛ نه ترفند موقت</h3>
-          <p>هیچ‌کس نمی‌تواند رتبه اول را تضمین کند — اما می‌توان زیرساختی ساخت که گوگل آن را دوست داشته باشد و محتوایی منتشر کرد که واقعاً سؤال مخاطب را پاسخ می‌دهد. نتیجه‌اش در طول زمان خودش را نشان می‌دهد.</p>
-          <ul>
-            <li><i>✓</i> سئوی تکنیکال: سرعت، ساختار آدرس‌ها، داده ساختاریافته</li>
-            <li><i>✓</i> تحقیق کلمه کلیدی بر اساس نیت جست‌وجوی مخاطب شما</li>
-            <li><i>✓</i> گزارش شفاف: می‌بینید چه کاری انجام شده و چه تغییری کرده</li>
-          </ul>
-          <a href="/services/seo" class="btn btn-gold btn-sm">صفحه خدمت سئو</a>
-        </div>
-      </div>
-
-      <div class="svc-feature" data-reveal>
-        <div class="img-side"><img src="/img/svc-content.webp" alt="تولید محتوای تخصصی سئومحور" width="1152" height="864" loading="lazy" /></div>
-        <div class="txt-side">
-          <span class="tag">تولید محتوا</span>
-          <h3>محتوایی که سؤال مشتری را پاسخ می‌دهد، فروش را می‌آورد</h3>
-          <p>مقاله‌ای که فقط «کلمه کلیدی» داشته باشد خوانده نمی‌شود. محتوای خوب نیاز واقعی مخاطب را پیدا می‌کند، کامل پاسخ می‌دهد و خواننده را یک قدم به خرید نزدیک می‌کند — و همین محتواست که سئو را می‌سازد.</p>
-          <ul>
-            <li><i>✓</i> مقالات سئومحور با تحقیق واقعی — نه بازنویسی رقبا</li>
-            <li><i>✓</i> لحن برند شما حفظ می‌شود؛ محتوا با شما یکدست است</li>
-            <li><i>✓</i> تقویم انتشار منظم — وبلاگ از سردرگمی به دارایی تبدیل می‌شود</li>
-          </ul>
-          <a href="/services/content" class="btn btn-gold btn-sm">صفحه خدمت تولید محتوا</a>
-        </div>
-      </div>
-
-      <div class="svc-feature flip" data-reveal>
-        <div class="img-side"><img src="/img/svc-ai.webp" alt="هوش مصنوعی و اتوماسیون کسب‌وکار" width="1152" height="864" loading="lazy" /></div>
-        <div class="txt-side">
-          <span class="tag">هوش مصنوعی</span>
-          <h3>کارهای تکراری تیم‌تان را به ابزار بسپارید</h3>
-          <p>پاسخ‌دادن به سؤالات تکراری، پیش‌نویس محتوا و جمع‌آوری اطلاعات مشتری، ساعت‌ها از وقت تیم شما را می‌گیرد. دستیارهای هوشمند این کارها را خودکار می‌کنند تا انسان‌ها روی کارهای مهم تمرکز کنند.</p>
-          <ul>
-            <li><i>✓</i> چت‌بات آموزش‌دیده با محتوای سایت شما — پاسخ درست، نه حدس</li>
-            <li><i>✓</i> اتصال امن سمت سرور — کلیدها هرگز در مرورگر قرار نمی‌گیرند</li>
-            <li><i>✓</i> بازبینی انسانی روی خروجی‌ها — سرعت هوش مصنوعی، کیفیت انسانی</li>
-          </ul>
-          <a href="/services/ai-automation" class="btn btn-gold btn-sm">صفحه راهکارهای هوش مصنوعی</a>
         </div>
       </div>
     </div>
   </section>
 
-  {/* ─── نمونه‌کارهای تأییدشده ─── */}
-  {projects.length > 0 ? (
-    <section class="sec sec-paper">
+  {/* ─── ۸. نظرات مشتریان (سبک دمو) ─── */}
+  {testimonials.length ? (
+    <section class="sec sec-paper" style="padding-top:20px">
       <div class="container">
-        <div class="sec-head" data-reveal>
-          <span class="section-label">نمونه‌کارها</span>
-          <h2>پروژه‌های اجراشده</h2>
+        <div class="sec-head center" data-reveal>
+          <span class="section-label">نظرات مشتریان</span>
+          <h2>آنچه مشتریان ما می‌گویند را بررسی کنید</h2>
         </div>
         <div class="grid-3">
-          {projects.map((p, i) => {
-            const tags = Array.isArray(p.tags) ? (p.tags as string[]) : [];
-            return (
-              <a href={p.url ? String(p.url) : `/portfolio/${p.slug}`} class="pf-card" target={p.url ? '_blank' : undefined} rel={p.url ? 'noopener noreferrer' : undefined} data-reveal style={`--rd:${i * 80}ms`}>
-                <img src={String(p.cover_image)} alt={`نمونه‌کار ${p.title}`} width="1344" height="768" loading="lazy" />
-                <div class="pf-overlay">
-                  <div class="pf-tags">{tags.map((t) => <span>{t}</span>)}</div>
-                  <h3>{p.title}</h3>
-                  <p>{p.summary}</p>
-                </div>
-              </a>
-            );
-          })}
-        </div>
-        <div style="text-align:center;margin-top:34px" data-reveal>
-          <a href="/portfolio" class="btn btn-primary">مشاهده نمونه‌کارها</a>
+          {testimonials.map((t, i) => (
+            <div class="tst-card" data-reveal style={`--rd:${i * 80}ms`}>
+              <blockquote>
+                <p>«{t.content}»</p>
+              </blockquote>
+              <div class="tst-stars" aria-label={`امتیاز ${t.rating} از ۵`}>{'★'.repeat(Number(t.rating))}</div>
+              <div class="tst-author">
+                <span class="tst-ava">{String(t.name).trim().charAt(0)}</span>
+                <p><b>{t.name}</b><span>{t.role} {t.company ? `در ${t.company}` : ''}</span></p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
   ) : null}
 
-  {/* ─── ۷. مراحل اجرای پروژه ─── */}
-  <section class="sec sec-cream">
+  {/* ─── ۹. تعرفه‌ها — کارت‌های Porto با هدیهٔ هاستینگ ─── */}
+  <section class="sec sec-cream sec-rel" id="pricing">
     <div class="container">
       <div class="sec-head center" data-reveal>
-        <span class="section-label">مسیر شروع همکاری</span>
-        <h2>{hp.stepsTitle}</h2>
-        <p>در هر گام می‌دانید کجا هستید، چه چیزی تحویل می‌گیرید و گام بعدی چیست.</p>
-      </div>
-      <div class="steps-grid">
-        {hp.steps.map((s, i) => (
-          <div class="step-card" data-reveal style={`--rd:${(i % 3) * 70}ms`}>
-            <div class="step-num">{faNum(String(i + 1))}</div>
-            <h3>{s.title}</h3>
-            <p>{s.text}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  {/* ─── ۸. تعرفه‌ها ─── */}
-  <section class="sec sec-paper" id="pricing">
-    <div class="container">
-      <div class="sec-head center" data-reveal>
-        <span class="section-label">پکیج‌های طراحی سایت</span>
-        <h2>قیمت شفاف و ثابت؛ بدون هزینه پنهان</h2>
-        <p>دامنهٔ کار هر پکیج دقیقاً مشخص است: تعداد صفحات، زمان تحویل و مدت پشتیبانی رایگان. برای پروژه‌های بزرگ‌تر، پکیج اختصاصی با برآورد شفاف پیشنهاد می‌شود.</p>
+        <span class="section-label">جدول تعرفه‌ها</span>
+        <h2>قیمت شفاف و ثابت؛ بدون هزینهٔ پنهان</h2>
+        <p>دامنهٔ کار هر پکیج دقیقاً مشخص است: تعداد صفحات، زمان تحویل و مدت پشتیبانی رایگان. دو پلن اول با ۶ ماه هاستینگ هدیه و دو پلن بعدی با یک سال هاستینگ هدیه ارائه می‌شوند.</p>
       </div>
       <div class="plan-grid">
         {plans.map((p, i) => {
-          const hostingGift = i < 2 ? '۶ ماه هاست هدیه' : '۱ سال هاست هدیه';
-          const feats = (Array.isArray(p.features) ? (p.features as string[]) : []).map((f) =>
-            f.replace(/(?:۳ ماه|۶ ماه|۱ سال)\s+هاست هدیه/, hostingGift)
-          );
+          const feats = Array.isArray(p.features) ? (p.features as string[]) : [];
+          const hostingGift = i < 2 ? '۶ ماه هاستینگ هدیه' : '۱۲ ماه هاستینگ هدیه';
           return (
             <div class={`plan-card ${p.highlighted ? 'highlight' : ''}`} data-reveal style={`--rd:${i * 70}ms`}>
-              {p.highlighted ? <span class="plan-badge">پیشنهاد ما</span> : p.badge ? <span class="plan-badge" style="background:var(--ink);color:var(--gold-2)">{p.badge}</span> : null}
+              <span class="hosting-badge">🎁 {hostingGift}</span>
+              {p.highlighted ? <span class="plan-ribbon">محبوب</span> : null}
               <h3>{p.title}</h3>
               <div class="plan-desc">{p.description}</div>
               <div class="plan-price">{p.price}</div>
@@ -310,23 +259,25 @@ const faNums = (s: string) => faNum(s);
               <ul class="plan-feats">
                 {feats.map((f) => <li><i>✓</i> {f}</li>)}
               </ul>
-              <div class="plan-footnote">{faNum(String(i + 1)) === '۱' ? 'هر صفحه با ساختار استاندارد سئو و ریسپانسیو کامل تحویل می‌شود.' : faNum(String(i + 1)) === '۲' ? 'برجسته‌شدن این پکیج به‌معنای ادعای برتری نیست؛ تجربه نشان داده بیشترین نیازها را پوشش می‌دهد.' : faNum(String(i + 1)) === '۳' ? 'پنل مدیریت فروشگاه همراه با آموزش کامل تحویل داده می‌شود.' : 'پس از تحلیل نیازها، پروپوزال مکتوب و شفاف ارائه می‌شود.'}</div>
-              <a href={`/consult?plan=${encodeURIComponent(String(p.title))}`} class={`btn btn-block ${p.highlighted ? 'btn-gold' : 'btn-ghost'}`}>{p.cta_text}</a>
+              <a href={`/consult?plan=${encodeURIComponent(String(p.title))}`} class={`btn btn-block ${p.highlighted ? 'btn-ghost-light' : 'btn-ghost'}`}>اکنون بخرید</a>
             </div>
           );
         })}
       </div>
     </div>
+    <div class="sec-wave" aria-hidden="true">
+      <svg viewBox="0 0 1440 76" preserveAspectRatio="none"><path fill="#ffffff" d="M0,76 L1440,76 L1440,40 C1200,8 960,58 720,36 C480,12 240,62 0,44 Z" /></svg>
+    </div>
   </section>
 
-  {/* ─── ۹. مقالات جدید ─── */}
+  {/* ─── ۱۰. مطالب اخیر بلاگ (سبک دمو) ─── */}
   {posts.length ? (
-    <section class="sec sec-cream">
+    <section class="sec sec-paper">
       <div class="container">
-        <div class="sec-head" data-reveal>
-          <span class="section-label">مجله کافه‌دانش</span>
-          <h2>خواندنی‌های تخصصی دیجیتال</h2>
-          <p>هر هفته یک مطلب کاربردی درباره طراحی سایت، سئو، محتوا و هوش مصنوعی — به زبان ساده.</p>
+        <div class="sec-head center" data-reveal>
+          <span class="section-label">مجلهٔ کافه‌دانش</span>
+          <h2>مطالب اخیر بلاگ</h2>
+          <p>هر هفته یک مطلب کاربردی دربارهٔ طراحی سایت، سئو، محتوا و هوش مصنوعی — به زبان ساده و قابل اجرا.</p>
         </div>
         <div class="grid-3">
           {posts.map((p, i) => (
@@ -335,39 +286,18 @@ const faNums = (s: string) => faNum(s);
               <div class="post-body">
                 <div class="post-meta">
                   <span class="cat">{p.category || 'مقالات'}</span>
+                  <span class="pm-sep"></span>
                   <span>{faNum(String(p.reading_time))} دقیقه مطالعه</span>
                 </div>
                 <h3>{p.title}</h3>
                 <p>{p.excerpt}</p>
+                <span class="fbox-more">بیشتر بخوانید +</span>
               </div>
             </a>
           ))}
         </div>
-        <div style="text-align:center;margin-top:34px" data-reveal>
-          <a href="/blog" class="btn btn-ghost">مشاهده همه مقالات</a>
-        </div>
-      </div>
-    </section>
-  ) : null}
-
-  {/* ─── ۱۰. نظرات مشتریان (فقط با دادهٔ واقعی) ─── */}
-  {testimonials.length ? (
-    <section class="sec sec-paper">
-      <div class="container">
-        <div class="sec-head center" data-reveal>
-          <span class="section-label">نظرات مشتریان</span>
-          <h2>تجربهٔ همکاری، از زبان همکارانمان</h2>
-        </div>
-        <div class="grid-3">
-          {testimonials.map((t, i) => (
-            <div class="svc-card" data-reveal style={`--rd:${i * 70}ms`}>
-              <div class="svc-body">
-                <div style="color:var(--gold-3);font-size:15px">{'★'.repeat(Number(t.rating))}</div>
-                <h3 style="font-size:15px">{t.name} <span style="font-weight:400;color:var(--mut-light);font-size:12.5px">— {t.role} {t.company ? `در ${t.company}` : ''}</span></h3>
-                <p style="font-size:13.5px">«{t.content}»</p>
-              </div>
-            </div>
-          ))}
+        <div style="text-align:center;margin-top:40px" data-reveal>
+          <a href="/blog" class="btn btn-gold">مشاهدهٔ بلاگ</a>
         </div>
       </div>
     </section>
@@ -389,27 +319,8 @@ const faNums = (s: string) => faNum(s);
         ))}
       </div>
       <div style="text-align:center;margin-top:28px" data-reveal>
-        <a href="/faq" class="btn btn-ghost">مشاهده همه سؤالات متداول</a>
+        <a href="/faq" class="btn btn-ghost">مشاهدهٔ همهٔ سؤالات متداول</a>
       </div>
     </div>
   </section>
-
-  {/* ─── ۱۲. دعوت به مشاوره ─── */}
-  <section class="sec sec-dark" style="padding-block:64px">
-    <div class="container">
-      <div class="cta-band" data-reveal="zoom">
-        <div class="cta-inner">
-          <div>
-            <h2>{hp.ctaTitle}</h2>
-            <p>{hp.ctaText}</p>
-          </div>
-          <div class="cta-actions">
-            <a href="/consult" class="btn btn-gold btn-lg">درخواست مشاوره رایگان</a>
-            <a href="/portfolio" class="btn btn-ghost-light">مشاهده نمونه‌کارها</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-  {/* ─── ۱۳. فوتر در چیدمان پایه ─── */}
 </BaseLayout>

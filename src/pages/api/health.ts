@@ -13,7 +13,7 @@ export const GET: APIRoute = async () => {
       ok: true,
       db: r.length ? 'connected' : 'unknown',
       storage: storageKind(),
-      adminConfigured: hasEnv('ADMIN_PASSWORD_HASH') || hasEnv('ADMIN_PASSWORD'),
+      adminConfigured: hasEnv('ADMIN_PASSWORD_HASH'),
       time: new Date().toISOString(),
     }), { headers: { 'content-type': 'application/json; charset=utf-8' } });
   } catch (e) {

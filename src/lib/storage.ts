@@ -1,8 +1,10 @@
 /* ==========================================================================
    کافه‌دانش — لایهٔ ذخیره‌سازی رسانه
    ---------------------------------------------------------------------------
-   • روی Vercel فقط Vercel Blob مجاز است؛ فضای فایل‌سیستم Function دائمی نیست.
-   • محلی/توسعهٔ خارج از Vercel → پوشهٔ public/uploads
+   • روی Vercel (BLOB_READ_WRITE_TOKEN موجود) → Vercel Blob (پایدار و دائمی)
+     — همان زیرساختی که پروژهٔ فعلی کافه‌دانش برای تصاویر استفاده می‌کند.
+   • محلی/پیش‌نمایش → پوشهٔ public/uploads
+   آدرس تصاویر هرگز شکسته نمی‌شود؛ نام فایل امن‌سازی می‌شود.
    ========================================================================== */
 import { hasEnv } from './env';
 import fs from 'node:fs/promises';
@@ -19,14 +21,7 @@ export const ALLOWED_MIME: Record<string, string> = {
 };
 
 export function storageKind(): 'blob' | 'local' {
-  const onVercel = Boolean(process.env.VERCEL || process.env.VERCEL_ENV);
-  const blobConfigured = hasEnv('BLOB_READ_WRITE_TOKEN');
-
-  if (onVercel && !blobConfigured) {
-    throw new Error('BLOB_READ_WRITE_TOKEN در محیط Vercel تنظیم نشده است؛ ذخیره‌سازی محلی در Production مجاز نیست.');
-  }
-
-  return blobConfigured ? 'blob' : 'local';
+  return hasEnv('BLOB_READ_WRITE_TOKEN') ? 'blob' : 'local';
 }
 
 function safeName(original: string): string {

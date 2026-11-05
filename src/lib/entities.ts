@@ -1,8 +1,8 @@
 /* ==========================================================================
    کافه‌دانش — پیکربندی موجودیت‌های قابل مدیریت از پنل
    ========================================================================== */
-import type { EntityConfig } from './crud';
-import { N } from './crud';
+import { N, type EntityConfig } from './crud';
+
 
 export const ENTITIES: Record<string, EntityConfig> = {
   pages: {

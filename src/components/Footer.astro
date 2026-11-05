@@ -1,41 +1,50 @@
 ---
-/* فوتر کامل استاندارد: برند + سه ستون لینک + راه‌های ارتباطی + نوار پایین */
+/* فوتر دقیقاً سبک Porto SEO 2: موج بالایی + ۴ ستون (درباره ما / لینک‌های مفید / خدمات ما / تماس با ما) + آیکون‌های گرد سفید */
 import Logo from './Logo.astro';
 import type { SiteSettings } from '../lib/seed/settings-data';
 
 interface Props {
   settings: SiteSettings;
+  waveColor?: 'cream' | 'paper';
 }
 const { settings } = Astro.props;
 const f = settings.footer;
 const c = settings.contact;
 ---
 <footer class="site-footer">
+  <div class="footer-wave" aria-hidden="true">
+    <svg viewBox="0 0 1440 78" preserveAspectRatio="none"><path d="M0,0 L1440,0 L1440,32 C1200,64 960,20 720,42 C480,64 240,12 0,36 Z" fill="#eff1f3" /></svg>
+  </div>
   <div class="container">
     <div class="footer-grid">
       <div class="footer-brand">
         <Logo />
         <p>{f.aboutText}</p>
-        <a href="/consult" class="btn btn-gold btn-sm">درخواست مشاوره رایگان</a>
+        <div class="footer-social" aria-label="شبکه‌های اجتماعی">
+          <a href="#" aria-label="فیس‌بوک">f</a>
+          <a href="#" aria-label="توییتر">t</a>
+          <a href="#" aria-label="لینکدین">in</a>
+          <a href="#" aria-label="تلگرام">tg</a>
+        </div>
       </div>
       <div>
-        <h4>خدمات</h4>
-        <ul>
-          {f.colServices.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
-        </ul>
-      </div>
-      <div>
-        <h4>دسترسی سریع</h4>
+        <h4>لینک‌های مفید</h4>
         <ul>
           {f.colQuick.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
         </ul>
       </div>
       <div>
-        <h4>راه‌های ارتباطی</h4>
+        <h4>خدمات ما</h4>
+        <ul>
+          {f.colServices.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+        </ul>
+      </div>
+      <div>
+        <h4>تماس با ما</h4>
         <ul class="footer-contact">
           <li><i>📍</i> {c.address}</li>
-          <li><i>✉️</i> <a href={`mailto:${c.email}`}>{c.email}</a></li>
           <li><i>📞</i> <a href={`tel:+98${c.phone.slice(1)}`}>{c.phoneDisplay}</a></li>
+          <li><i>✉️</i> <a href={`mailto:${c.email}`}>{c.email}</a></li>
           <li><i>🕘</i> {c.hours}</li>
           {c.github ? <li><i>💻</i> <a href={c.github} target="_blank" rel="noopener">GitHub</a></li> : null}
         </ul>

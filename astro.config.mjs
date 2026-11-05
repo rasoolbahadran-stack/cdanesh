@@ -1,7 +1,7 @@
 // ==========================================================================
- // کافه‌دانش (CDANESH STUDIO) — پیکربندی Astro
- // آداپتور: روی Vercel → @astrojs/vercel (SSR) | محلی/سندباکس → Node standalone
- // ==========================================================================
+// کافه‌دانش (CDANESH STUDIO) — پیکربندی Astro
+// آداپتور: روی Vercel → @astrojs/vercel (SSR) | محلی/سندباکس → Node standalone
+// ==========================================================================
 import { defineConfig } from 'astro/config';
 import node from '@astrojs/node';
 import vercel from '@astrojs/vercel';

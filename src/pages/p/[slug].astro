@@ -1,0 +1,48 @@
+---
+// ═══ صفحهٔ ابری — /p/<slug> ═══
+// صفحات ساخته‌شده و ویرایش‌شده از بخش «صفحات» پنل مدیریت؛
+// prerender=false → در هر درخواست سمت سرور از دادهٔ ابری رندر می‌شود
+// (متن کامل در HTML واقعی — قابل خزش برای گوگل).
+export const prerender = false;
+
+import ProsePage from '../../components/ProsePage.astro';
+import { getPublicPages, pageBySlug, getAllPages, RESERVED_SLUGS } from '../../lib/ssr-pages.mjs';
+import { isAuthedAsync } from '../../../server/lib/admin-auth.mjs';
+
+const { slug } = Astro.params;
+/* رفع باگ «صفحه منتشر نمیشود»: اسلاگ ذخیره‌شده می‌تواند حرف بزرگ داشته باشد
+   یا در URL انکود شده باشد؛ مقایسه باید decode + بدون حساسیت به بزرگی حروف باشد. */
+let key = String(slug || '');
+try { key = decodeURIComponent(key); } catch { /* انکود ناقص → همان خام */ }
+key = key.trim().toLowerCase();
+const bySlugCi = (list, s) => (list || []).find(p => String(p.slug || '').trim().toLowerCase() === s) || null;
+
+if (!key || RESERVED_SLUGS.has(key)) {
+  return new Response(null, { status: 302, headers: { Location: '/404', 'Cache-Control': 'no-store' } });
+}
+
+const pages = await getPublicPages();
+let page = bySlugCi(pages, key);
+let isDraftPreview = false;
+
+if (!page) {
+  /* پیش‌نویس یا ناموجود؟ فقط مدیرِ واردشده می‌تواند پیش‌نمایش پیش‌نویس را ببیند
+     (noindex — برای گوگل همان رفتار قبلی: 404/ریدایرکت). */
+  try {
+    const authed = await isAuthedAsync({ headers: { cookie: Astro.request.headers.get('cookie') || '' } });
+    if (authed) {
+      const all = await getAllPages();
+      const draft = bySlugCi(all, key);
+      if (draft) { page = draft; isDraftPreview = true; }
+    }
+  } catch (e) { /* بدون نشست معتبر → مثل قبل 404 */ }
+}
+
+if (!page) {
+  // صفحهٔ عمومی نیست (پیش‌نویس) یا وجود ندارد → صفحهٔ ۴۰۴
+  // no-store → اگر مدیر اول قبل از انتشار آدرس را باز کرده باشد، 404 کش نمیشود
+  return new Response(null, { status: 302, headers: { Location: '/404', 'Cache-Control': 'no-store' } });
+}
+---
+
+<ProsePage page={page} canonical={'https://cdanesh.ir/p/' + page.slug} draftPreview={isDraftPreview} />

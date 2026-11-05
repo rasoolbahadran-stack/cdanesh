@@ -28,14 +28,14 @@ const faqs = await q(`SELECT question, answer FROM faqs WHERE status='published'
     <div class="container">
       <div class="plan-grid">
         {plans.map((p, i) => {
-          const hostingGift = i < 2 ? '۶ ماه هاست هدیه' : '۱ سال هاست هدیه';
-          const feats = (Array.isArray(p.features) ? (p.features as string[]) : []).map((f) =>
-            f.replace(/(?:۳ ماه|۶ ماه|۱ سال)\s+هاست هدیه/, hostingGift)
-          );
+          const feats = Array.isArray(p.features) ? (p.features as string[]) : [];
           const notes = ['هر صفحه با ساختار استاندارد سئو و ریسپانسیو کامل تحویل می‌شود.', 'برجسته‌شدن این پکیج به‌معنای ادعای برتری نیست؛ تجربه نشان داده بیشترین نیازها را پوشش می‌دهد.', 'پنل مدیریت فروشگاه همراه با آموزش کامل تحویل داده می‌شود.', 'پس از تحلیل نیازها، پروپوزال مکتوب و شفاف ارائه می‌شود.'];
+          const hostingGift = i < 2 ? '۶ ماه هاستینگ هدیه' : '۱۲ ماه هاستینگ هدیه';
           return (
             <div class={`plan-card ${p.highlighted ? 'highlight' : ''}`} data-reveal style={`--rd:${i * 60}ms`}>
-              {p.highlighted ? <span class="plan-badge">پیشنهاد ما</span> : p.badge ? <span class="plan-badge" style="background:var(--ink);color:var(--gold-2)">{p.badge}</span> : null}
+              <span class="hosting-badge">🎁 {hostingGift}</span>
+              {p.highlighted ? <span class="plan-ribbon">محبوب‌ترین</span> : null}
+              <div class="plan-chip">{p.badge}</div>
               <h3>{p.title}</h3>
               <div class="plan-desc">{p.description}</div>
               <div class="plan-price">{p.price}</div>

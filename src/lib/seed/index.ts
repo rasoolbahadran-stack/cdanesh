@@ -11,6 +11,8 @@ import { PROJECTS_SEED, FAQS_SEED } from './portfolio-data';
 import { PAGES_SEED } from './pages-data';
 import articlesA from './articles-a.json';
 import articlesB from './articles-b.json';
+import articlesC from './articles-c.json';
+import articlesD from './articles-d.json';
 
 interface ArticleJson {
   slug: string;
@@ -29,22 +31,34 @@ interface ArticleJson {
 const ARTICLES: ArticleJson[] = [
   ...(articlesA as ArticleJson[]),
   ...(articlesB as ArticleJson[]),
+  ...(articlesC as ArticleJson[]),
+  ...(articlesD as ArticleJson[]),
 ];
 
-/* نقشهٔ تصویر شاخص مقالات (تصاویر سه‌بعدی اختصاصی) */
+/* نقشهٔ تصویر شاخص مقالات — تصاویر واقعی وب (WebP) از منابع آزاد */
 const POST_COVERS: Record<string, string> = {
-  'guide-choosing-web-design-company': '/img/svc-company.webp',
-  'web-design-cost-iran': '/img/post-cost.webp',
-  'custom-vs-template': '/img/post-custom.webp',
-  'ecommerce-design-principles': '/img/svc-ecommerce.webp',
-  'technical-seo-guide': '/img/svc-seo.webp',
-  'site-speed-optimization': '/img/svc-speed.webp',
-  'seo-content-guide': '/img/svc-content.webp',
-  'uiux-increase-sales': '/img/svc-uiux.webp',
-  'ai-for-iranian-business': '/img/svc-ai.webp',
-  'business-automation': '/img/svc-ai.webp',
-  'start-online-business': '/img/pf-rosa.webp',
-  'local-business-website': '/img/post-local.webp',
+  'guide-choosing-web-design-company': '/img/blog/guide-choosing-web-design-company.webp',
+  'web-design-cost-iran': '/img/blog/web-design-cost-iran.webp',
+  'custom-vs-template': '/img/blog/custom-vs-template.webp',
+  'ecommerce-design-principles': '/img/blog/ecommerce-design-principles.webp',
+  'technical-seo-guide': '/img/blog/technical-seo-guide.webp',
+  'site-speed-optimization': '/img/blog/site-speed-optimization.webp',
+  'seo-content-guide': '/img/blog/seo-content-guide.webp',
+  'uiux-increase-sales': '/img/blog/uiux-increase-sales.webp',
+  'ai-for-iranian-business': '/img/blog/ai-for-iranian-business.webp',
+  'business-automation': '/img/blog/business-automation.webp',
+  'start-online-business': '/img/blog/start-online-business.webp',
+  'local-business-website': '/img/blog/local-business-website.webp',
+  'core-web-vitals-guide': '/img/blog/core-web-vitals-guide.webp',
+  'keyword-research-persian': '/img/blog/keyword-research-persian.webp',
+  'google-business-profile-local-seo': '/img/blog/google-business-profile-local-seo.webp',
+  'backlink-strategy-white-hat': '/img/blog/backlink-strategy-white-hat.webp',
+  'cro-increase-conversion': '/img/blog/cro-increase-conversion.webp',
+  'google-analytics-4-tutorial': '/img/blog/google-analytics-4-tutorial.webp',
+  'website-security-ssl-guide': '/img/blog/website-security-ssl-guide.webp',
+  'email-marketing-newsletter': '/img/blog/email-marketing-newsletter.webp',
+  'schema-markup-rich-snippets': '/img/blog/schema-markup-rich-snippets.webp',
+  'instagram-to-website-funnel': '/img/blog/instagram-to-website-funnel.webp',
 };
 
 const CATEGORIES: { name: string; slug: string; description: string }[] = [
@@ -61,7 +75,7 @@ const CATEGORIES: { name: string; slug: string; description: string }[] = [
 ];
 
 /* سه مقالهٔ تازه‌ترین، شاخص */
-const FEATURED_SLUGS = ['seo-content-guide', 'uiux-increase-sales', 'ai-for-iranian-business'];
+const FEATURED_SLUGS = ['core-web-vitals-guide', 'cro-increase-conversion', 'keyword-research-persian'];
 
 export async function runSeed(): Promise<void> {
   /* ---------- تنظیمات ---------- */
@@ -112,10 +126,10 @@ export async function runSeed(): Promise<void> {
   /* ---------- نمونه‌کارها ---------- */
   for (const p of PROJECTS_SEED) {
     await q(
-      `INSERT INTO projects (title, slug, category, summary, content, cover_image, tags, url, note, sort_order, status, seo_title, seo_description)
-       VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10,'published',$11,$12)
-       ON CONFLICT (slug) DO UPDATE SET url=EXCLUDED.url, title=EXCLUDED.title, category=EXCLUDED.category, summary=EXCLUDED.summary, note=EXCLUDED.note, sort_order=EXCLUDED.sort_order, status=CASE WHEN EXCLUDED.url <> '' THEN 'published' ELSE projects.status END, updated_at=now()`,
-      [p.title, p.slug, p.category, p.summary, p.content, p.cover_image, JSON.stringify(p.tags), p.url || '', p.note, p.sort_order, p.seo_title, p.seo_description],
+      `INSERT INTO projects (title, slug, category, summary, content, cover_image, tags, note, sort_order, status, seo_title, seo_description)
+       VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,'published',$10,$11)
+       ON CONFLICT (slug) DO NOTHING`,
+      [p.title, p.slug, p.category, p.summary, p.content, p.cover_image, JSON.stringify(p.tags), p.note, p.sort_order, p.seo_title, p.seo_description],
     );
   }
 

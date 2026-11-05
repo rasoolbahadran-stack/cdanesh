@@ -3,54 +3,56 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
 import { q } from '../../lib/db';
 
-const projects = await q(`SELECT slug, title, category, summary, cover_image, tags, note, url FROM projects WHERE status='published'AND slug NOT IN ('cdanesh-galaxy-source', 'cdanesh-galaxe', 'smart-gadget-store', 'mahpoosh-store', 'simba-beauty-store', 'karino-job-portal-astro', 'novinroshd-agency', 'smarto-astro', 'shoes-store', 'maison-mehr-astro', 'bazarino-astro') ORDER BY sort_order`);
+const projects = await q(`SELECT slug, title, category, summary, cover_image, tags, note FROM projects WHERE status='published' ORDER BY sort_order`);
 const cats = [...new Set(projects.map((p) => String(p.category)))];
 ---
 <BaseLayout
   title="نمونه‌کارهای کافه‌دانش | فروشگاه، سایت شرکتی و هوش مصنوعی"
-  description="نمونه‌کارهای واقعی و تأییدشده طراحی سایت و توسعه وب توسط کافه‌دانش."
+  description="نمونه‌کارهای استودیو دیجیتال کافه‌دانش: فروشگاه اینترنتی، وب‌سایت شرکتی و صفحه فرود هوش مصنوعی؛ نمونه‌های مفهومی ساخته‌شده توسط تیم."
   activePath="/portfolio"
 >
   <PageHero
     title="نمونه‌کارها"
-    sub="پروژه‌های اجراشده و تأییدشده کافه‌دانش."
+    sub="نمونه‌های زیر مفهومی و ساخته خود ما هستند (پروژه‌های واقعی به‌محض آماده‌شدن و با اجازه صاحبان‌شان منتشر می‌شوند) — کیفیت اجرا را همین‌جا ببینید."
     crumbs={[{ label: 'نمونه‌کارها', href: '' }]}
   />
   <section class="sec">
     <div class="container">
-      {projects.length ? (
-        <>
-          <div class="pf-filter" data-reveal>
-            <button class="active" data-filter="all">همه</button>
-            {cats.map((c) => <button data-filter={c}>{c}</button>)}
+      <div class="pf-filter" data-reveal>
+        <button class="active" data-filter="all">همه</button>
+        {cats.map((c) => <button data-filter={c}>{c}</button>)}
+      </div>
+      <div class="grid-3">
+        {projects.map((p, i) => {
+          const tags = Array.isArray(p.tags) ? (p.tags as string[]) : [];
+          return (
+            <a href={`/portfolio/${p.slug}`} class="pf-card pf-filterable" data-cat={String(p.category)} data-reveal style={`--rd:${(i % 3) * 70}ms`}>
+              <img src={String(p.cover_image)} alt={`نمونه‌کار ${p.title}`} width="1344" height="768" loading="lazy" />
+              <div class="pf-overlay">
+                <div class="pf-tags">{tags.map((t) => <span>{t}</span>)}</div>
+                <h3>{p.title}</h3>
+                <p>{p.summary}</p>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+      <div class="pf-note" style="margin-top:30px">ℹ️ نمونه‌های مفهومی برای نمایش سبک و کیفیت اجرای کافه‌دانش هستند؛ در پروژه شما همه‌چیز بر اساس برند، محصول و نیاز واقعی‌تان ساخته می‌شود.</div>
+    </div>
+  </section>
+  <section class="sec sec-dark" style="padding-block:64px">
+    <div class="container">
+      <div class="cta-band" data-reveal="zoom">
+        <div class="cta-inner">
+          <div>
+            <h2>پروژه شما هم می‌تواند اینجا باشد</h2>
+            <p>از یک جلسه رایگان شروع کنید؛ نیازها را می‌شنویم، برآورد شفاف می‌دهیم و مرحله‌به‌مرحله با تأیید شما جلو می‌رویم.</p>
           </div>
-          <div class="portfolio-grid">
-            {projects.map((p, i) => {
-              const tags = Array.isArray(p.tags) ? (p.tags as string[]) : [];
-              return (
-                <a href={p.url ? String(p.url) : `/portfolio/${p.slug}`} target={p.url ? '_blank' : undefined} rel={p.url ? 'noopener noreferrer' : undefined} class="portfolio-card pf-filterable" data-cat={String(p.category)} data-reveal style={`--rd:${(i % 3) * 70}ms`}>
-                  <div class="portfolio-card-media">
-                    <img src={String(p.cover_image)} alt={`تصویر پروژه ${p.title}`} loading="lazy" />
-                    <span class="portfolio-card-arrow">↗</span>
-                  </div>
-                  <div class="portfolio-card-body">
-                    <span class="portfolio-card-category">{p.category}</span>
-                    <h2>{p.title}</h2>
-                    <p>{p.summary}</p>
-                    <div class="pf-tags">{tags.map((t) => <span>{t}</span>)}</div>
-                  </div>
-                </a>
-              );
-            })}
+          <div class="cta-actions">
+            <a href="/consult" class="btn btn-gold btn-lg">شروع پروژه شما</a>
           </div>
-        </>
-      ) : (
-        <div class="portfolio-empty">
-          <span class="portfolio-empty-mark">✦</span>
-          <h2>نمونه‌کارهای تأییدشده</h2>
-          <p>در حال حاضر پروژه‌ای برای نمایش عمومی تأیید نشده است.</p>
         </div>
-      )}
+      </div>
     </div>
   </section>
 </BaseLayout>

@@ -3,33 +3,41 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
 import { q } from '../../lib/db';
 import { faNum, faDate } from '../../lib/persian';
-import { siteUrl } from '../../lib/seo';
 
 const page = Math.max(1, parseInt(Astro.url.searchParams.get('page') || '1', 10) || 1);
 const PER = 9;
 const catSlug = Astro.url.searchParams.get('cat') || '';
+const searchQ = (Astro.url.searchParams.get('q') || '').trim().slice(0, 60);
 
 const cats = await q(`SELECT slug, name FROM categories ORDER BY sort_order`);
 const cat = catSlug ? await q(`SELECT id, name FROM categories WHERE slug = $1`, [catSlug]).then((r) => r[0] ?? null) : null;
 
+/* پارامترهای where: جستجو + دسته‌بندی */
+const where: string[] = ["p.status='published'"];
+const params: unknown[] = [];
+if (cat) { params.push(cat.id); where.push(`p.category_id=$${params.length}`); }
+if (searchQ) { params.push(`%${searchQ}%`); where.push(`(p.title ILIKE $${params.length} OR p.excerpt ILIKE $${params.length} OR p.content ILIKE $${params.length})`); }
+const whereSql = where.join(' AND ');
+
 const totalRow = await q<{ c: number }>(
-  'SELECT count(*)::int AS c FROM posts p WHERE p.status=$1' + (cat ? ' AND p.category_id=$2' : ''),
-  cat ? ['published', cat.id] : ['published'],
+  `SELECT count(*)::int AS c FROM posts p WHERE ${whereSql}`,
+  params,
 );
 const total = totalRow[0]?.c ?? 0;
 const pages = Math.max(1, Math.ceil(total / PER));
 const posts = await q(
   `SELECT p.slug, p.title, p.excerpt, p.cover_image, p.reading_time, p.published_at, c.name AS category
    FROM posts p LEFT JOIN categories c ON c.id = p.category_id
-   WHERE p.status='published' ${cat ? 'AND p.category_id=$1' : ''}
+   WHERE ${whereSql}
    ORDER BY p.published_at DESC LIMIT ${PER} OFFSET ${PER * (page - 1)}`,
-  cat ? [cat.id] : [],
+  params,
 );
 const qs = (n: number) => {
-  const params = new URLSearchParams();
-  if (catSlug) params.set('cat', catSlug);
-  if (n > 1) params.set('page', String(n));
-  const s = params.toString();
+  const params2 = new URLSearchParams();
+  if (catSlug) params2.set('cat', catSlug);
+  if (searchQ) params2.set('q', searchQ);
+  if (n > 1) params2.set('page', String(n));
+  const s = params2.toString();
   return '/blog' + (s ? `?${s}` : '');
 };
 ---
@@ -41,19 +49,19 @@ const qs = (n: number) => {
     '@context': 'https://schema.org',
     '@type': 'Blog',
     name: 'مجله کافه‌دانش',
-    url: siteUrl('/blog'),
+    url: 'https://cdanesh.ir/blog',
     publisher: { '@type': 'Organization', name: 'کافه‌دانش' },
   }]}
 >
   <PageHero
-    title={cat ? `مقالات «${cat.name}»` : 'مجله کافه‌دانش'}
-    sub="خواندنی‌های تخصصی دیجیتال؛ هر هفته یک مطلب کاربردی درباره طراحی سایت، سئو، محتوا و هوش مصنوعی — به زبان ساده."
+    title={searchQ ? `نتایج جستجو برای «${searchQ}»` : cat ? `مقالات «${cat.name}»` : 'مجله کافه‌دانش'}
+    sub={searchQ ? `${faNum(String(total))} مقاله پیدا شد` : 'خواندنی‌های تخصصی دیجیتال؛ هر هفته یک مطلب کاربردی درباره طراحی سایت، سئو، محتوا و هوش مصنوعی — به زبان ساده.'}
     crumbs={[{ label: 'مجله', href: '' }]}
   />
   <section class="sec">
     <div class="container">
       <div class="pf-filter" data-reveal>
-        <a href="/blog" class="btn btn-sm ${!cat ? 'btn-gold' : 'btn-ghost'}">همه</a>
+        <a href="/blog" class={`btn btn-sm ${!cat && !searchQ ? 'btn-gold' : 'btn-ghost'}`}>همه</a>
         {cats.map((c) => (
           <a href={`/blog?cat=${c.slug}`} class={`btn btn-sm ${cat?.slug === c.slug ? 'btn-gold' : 'btn-ghost'}`}>{c.name}</a>
         ))}
@@ -76,7 +84,7 @@ const qs = (n: number) => {
           ))}
         </div>
       ) : (
-        <div class="form-panel" style="text-align:center">هنوز مقاله‌ای در این دسته منتشر نشده است. <a href="/blog" style="color:var(--gold-3);font-weight:700">مشاهده همه مقالات</a></div>
+        <div class="form-panel" style="text-align:center">هنوز مقاله‌ای با این فیلتر منتشر نشده است. <a href="/blog" style="color:var(--pink-deep);font-weight:700">مشاهدهٔ همهٔ مقالات</a></div>
       )}
       {pages > 1 ? (
         <nav style="display:flex;gap:8px;justify-content:center;margin-top:40px" aria-label="صفحه‌بندی">

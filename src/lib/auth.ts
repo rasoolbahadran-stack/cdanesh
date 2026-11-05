@@ -14,9 +14,7 @@ const COOKIE_NAME = 'cd_admin';
 const SESSION_MS = 1000 * 60 * 60 * 12; // ۱۲ ساعت
 
 function secret(): string {
-  // سازگاری با پروژهٔ قدیمی: از راز محرمانهٔ موجود در Vercel استفاده می‌شود.
-  // در صورت نبود کلید جدا، هیچ مقدار ثابت توسعه‌ای برای امضای نشست پذیرفته نیست.
-  return process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD_HASH || '';
+  return process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD_HASH || 'cdanesh-dev-secret';
 }
 
 export function sha256(s: string): string {
@@ -33,9 +31,7 @@ function verify(token: string): { u: string; role: string; exp: number } | null 
   try {
     const parts = String(token).split('.');
     if (parts.length !== 2) return null;
-    const sessionSecret = secret();
-    if (!sessionSecret) return null;
-    const expect = crypto.createHmac('sha256', sessionSecret).update(parts[0]).digest('base64url');
+    const expect = crypto.createHmac('sha256', secret()).update(parts[0]).digest('base64url');
     const a = Buffer.from(parts[1]);
     const b = Buffer.from(expect);
     if (a.length === b.length && crypto.timingSafeEqual(a, b)) {
@@ -68,20 +64,16 @@ export interface LoginResult {
 }
 
 export function login(username: string, password: string, secureRequest: boolean): LoginResult {
-  const legacyPassword = process.env.ADMIN_PASSWORD || '';
-  const expectedHash = process.env.ADMIN_PASSWORD_HASH || (legacyPassword ? sha256(legacyPassword) : '');
-  if (!expectedHash) {
-    return { ok: false, error: 'NO_ADMIN_CONFIG', message: 'ADMIN_PASSWORD_HASH یا ADMIN_PASSWORD در متغیرهای محیطی تنظیم نشده است' };
+  const hash = process.env.ADMIN_PASSWORD_HASH;
+  if (!hash) {
+    return { ok: false, error: 'NO_ADMIN_CONFIG', message: 'ADMIN_PASSWORD_HASH در متغیرهای محیطی تنظیم نشده است' };
   }
   const u = String(username || '');
   const p = String(password || '');
   if (u.length > 64 || p.length > 128) {
     return { ok: false, error: 'BAD_CREDENTIALS', message: 'نام کاربری یا رمز عبور نادرست است' };
   }
-  const expected = Buffer.from(expectedHash, 'hex');
-  const actual = Buffer.from(sha256(p), 'hex');
-  const passwordMatches = expected.length === 32 && actual.length === 32 && crypto.timingSafeEqual(actual, expected);
-  if (u !== (process.env.ADMIN_USERNAME || 'admin') || !passwordMatches) {
+  if (u !== (process.env.ADMIN_USERNAME || 'admin') || sha256(p) !== hash) {
     return { ok: false, error: 'BAD_CREDENTIALS', message: 'نام کاربری یا رمز عبور نادرست است' };
   }
   const payload = { u, role: 'admin', exp: Date.now() + SESSION_MS };
