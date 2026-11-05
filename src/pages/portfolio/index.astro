@@ -41,6 +41,21 @@ const cats = [...new Set(projects.map((p) => String(p.category)))];
       <div class="pf-note" style="margin-top:30px">ℹ️ پیش‌نمایش زنده داخل کارت‌ها برای بررسی سریع است. برای مشاهده کامل هر پروژه، روی کارت کلیک کنید.</div>
     </div>
   </section>
+  <script>
+    const setupPortfolioPreviews = () => {
+      document.querySelectorAll<HTMLElement>('.pf-live-frame').forEach((frame) => {
+        const iframe = frame.querySelector('iframe');
+        if (!iframe) return;
+        const scale = frame.clientWidth / 1280;
+        const renderedHeight = 3200 * scale;
+        const overflow = Math.max(0, renderedHeight - frame.clientHeight);
+        iframe.style.setProperty('--pf-scale', String(scale));
+        iframe.style.setProperty('--pf-overflow', `${overflow}px`);
+      });
+    };
+    setupPortfolioPreviews();
+    window.addEventListener('resize', setupPortfolioPreviews, { passive: true });
+  </script>
   <section class="sec sec-dark" style="padding-block:64px">
     <div class="container">
       <div class="cta-band" data-reveal="zoom">

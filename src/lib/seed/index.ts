@@ -114,7 +114,7 @@ export async function runSeed(): Promise<void> {
     await q(
       `INSERT INTO projects (title, slug, category, summary, content, cover_image, tags, url, note, sort_order, status, seo_title, seo_description)
        VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10,'published',$11,$12)
-       ON CONFLICT (slug) DO UPDATE SET url=EXCLUDED.url, title=EXCLUDED.title, category=EXCLUDED.category, summary=EXCLUDED.summary, note=EXCLUDED.note, sort_order=EXCLUDED.sort_order, updated_at=now()`,
+       ON CONFLICT (slug) DO UPDATE SET url=EXCLUDED.url, title=EXCLUDED.title, category=EXCLUDED.category, summary=EXCLUDED.summary, note=EXCLUDED.note, sort_order=EXCLUDED.sort_order, status=CASE WHEN EXCLUDED.url <> '' THEN 'published' ELSE projects.status END, updated_at=now()`,
       [p.title, p.slug, p.category, p.summary, p.content, p.cover_image, JSON.stringify(p.tags), p.url || '', p.note, p.sort_order, p.seo_title, p.seo_description],
     );
   }
