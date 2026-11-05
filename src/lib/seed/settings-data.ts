@@ -1,5 +1,5 @@
 /* ==========================================================================
-   کافه‌دانش — دادهٔ اولیهٔ تنظیمات سایت (از سایت فعلی cdanesh.ir)
+   کافه دانش — دادهٔ اولیهٔ تنظیمات سایت (از سایت فعلی cdanesh.ir)
    همهٔ مقادیر از پنل مدیریت قابل ویرایش هستند.
    ========================================================================== */
 
@@ -56,9 +56,9 @@ export interface SiteSettings {
 
 export const SETTINGS_SEED: SiteSettings = {
   identity: {
-    brandFa: 'کافه‌دانش',
-    brandEn: 'CDANESH STUDIO',
-    tagline: 'استودیو دیجیتال CDANESH STUDIO',
+    brandFa: 'کافه دانش',
+    brandEn: 'Cafe Danesh',
+    tagline: 'کافه دانش؛ طراحی سایت، سئو و راهکارهای هوشمند برای رشد کسب‌وکارها.',
     logoImage: '/img/logo.svg',
     designer: 'Rasool Bahadoran',
   },
@@ -72,18 +72,18 @@ export const SETTINGS_SEED: SiteSettings = {
     mapEmbed: '',
   },
   seo: {
-    defaultTitle: 'طراحی سایت اختصاصی و سئو در بوشهر | CDANESH STUDIO',
-    titlePattern: '%s | CDANESH STUDIO',
+    defaultTitle: 'طراحی سایت اختصاصی و سئو در بوشهر | کافه دانش',
+    titlePattern: '%s | کافه دانش',
     defaultDescription:
-      'CDANESH STUDIO (کافه‌دانش): طراحی سایت اختصاصی، سئو تکنیکال و محتوایی، تولید مقالات تخصصی و راهکارهای هوش مصنوعی — همه در یک تیم.',
+      'کافه دانش (Cafe Danesh): طراحی سایت اختصاصی، سئو تکنیکال و محتوایی، تولید مقالات تخصصی و راهکارهای هوش مصنوعی — همه در یک تیم.',
     ogImage: '/img/og-default.webp',
     keywords: [
       'طراحی سایت بوشهر',
       'طراحی سایت اختصاصی',
       'سئو بوشهر',
       'طراحی فروشگاه اینترنتی',
-      'CDANESH STUDIO',
-      'کافه‌دانش',
+      'Cafe Danesh',
+      'کافه دانش',
       'طراحی سایت شرکتی',
     ],
   },
@@ -117,7 +117,7 @@ export const SETTINGS_SEED: SiteSettings = {
         items: [
           { label: 'دستیارهای هوشمند', href: '/services/ai-automation', desc: 'چت‌بات و دستیار اختصاصی کسب‌وکار شما' },
           { label: 'پشتیبانی و نگهداری سایت', href: '/services/support', desc: 'امنیت، به‌روزرسانی و همراهی مداوم' },
-          { label: 'همه خدمات', href: '/services', desc: 'مرور کامل سرویس‌های کافه‌دانش' },
+          { label: 'همه خدمات', href: '/services', desc: 'مرور کامل سرویس‌های کافه دانش' },
         ],
       },
     ],
@@ -126,7 +126,7 @@ export const SETTINGS_SEED: SiteSettings = {
   },
   footer: {
     aboutText:
-      'CDANESH STUDIO (کافه‌دانش)؛ طراحی سایت، سئو و راهکارهای هوشمند برای رشد واقعی کسب‌وکار شما.',
+      'کافه دانش (Cafe Danesh)؛ طراحی سایت، سئو و راهکارهای هوشمند برای رشد واقعی کسب‌وکار شما.',
     colServices: [
       { label: 'همه خدمات', href: '/services' },
       { label: 'طراحی سایت', href: '/services/company-website' },
@@ -150,7 +150,7 @@ export const SETTINGS_SEED: SiteSettings = {
       { label: 'info@cdanesh.ir', href: 'mailto:info@cdanesh.ir' },
       { label: '۰۹۱۶ ۵۸۰ ۶۲۰۷', href: 'tel:+989165806207' },
     ],
-    copyright: '© ۱۴۰۵ CDANESH STUDIO — تمامی حقوق محفوظ است.',
+    copyright: '© ۱۴۰۵ کافه دانش — تمامی حقوق محفوظ است.',
   },
   homepage: {
     introTitle: 'سایت، محتوا و هوش مصنوعی؛ سه موتور رشد کسب‌وکار شما',
