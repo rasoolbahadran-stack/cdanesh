@@ -9,34 +9,65 @@ const page = await q(`SELECT * FROM pages WHERE system_key='contact' AND status=
 if (!page) return Astro.redirect('/404', 302);
 const settings = await getSiteSettings();
 const c = settings.contact;
+const phoneDigits = String(c.phone).replace(/\D/g, '');
+const phoneHref = phoneDigits.startsWith('0') ? `+98${phoneDigits.slice(1)}` : phoneDigits;
+
+const contactMethods = [
+  { label: 'تماس تلفنی', value: c.phoneDisplay, href: `tel:${phoneHref}`, icon: '☎', direction: 'ltr' },
+  { label: 'ایمیل', value: c.email, href: `mailto:${c.email}`, icon: '✉', direction: 'ltr' },
+  { label: 'نشانی دفتر', value: c.address, href: '', icon: '⌖', direction: 'rtl' },
+  { label: 'ساعات پاسخ‌گویی', value: c.hours, href: '', icon: '◷', direction: 'rtl' },
+];
 ---
 <BaseLayout
   title={String(page.seo_title) || String(page.title)}
   description={String(page.seo_description) || String(page.excerpt)}
   activePath="/contact"
 >
-  <PageHero title={String(page.title)} sub={String(page.excerpt)} crumbs={[{ label: 'تماس با ما', href: '' }]} />
-  <section class="sec">
-    <div class="container" style="display:grid;grid-template-columns:1fr 1.25fr;gap:36px;align-items:start" class="contact-grid">
-      <div data-reveal="right">
-        <div class="form-panel" style="margin-bottom:18px">
-          <h3 style="font-size:16.5px">راه‌های ارتباطی</h3>
-          <ul style="list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:14px">
-            <li style="display:flex;gap:12px;align-items:center"><span style="width:44px;height:44px;border-radius:13px;background:var(--gold-soft);display:grid;place-items:center;font-size:18px">📞</span><div><b style="font-size:14px">تلفن</b><a href={`tel:+98${c.phone.slice(1)}`} style="display:block;direction:ltr;text-align:right;color:var(--gold-3);font-weight:700">{c.phoneDisplay}</a></div></li>
-            <li style="display:flex;gap:12px;align-items:center"><span style="width:44px;height:44px;border-radius:13px;background:var(--gold-soft);display:grid;place-items:center;font-size:18px">✉️</span><div><b style="font-size:14px">ایمیل</b><a href={`mailto:${c.email}`} style="display:block;color:var(--gold-3);font-weight:700">{c.email}</a></div></li>
-            <li style="display:flex;gap:12px;align-items:center"><span style="width:44px;height:44px;border-radius:13px;background:var(--gold-soft);display:grid;place-items:center;font-size:18px">📍</span><div><b style="font-size:14px">نشانی</b><span style="display:block;color:var(--mut-light);font-size:13.5px">{c.address}</span></div></li>
-            <li style="display:flex;gap:12px;align-items:center"><span style="width:44px;height:44px;border-radius:13px;background:var(--gold-soft);display:grid;place-items:center;font-size:18px">🕘</span><div><b style="font-size:14px">ساعات کاری</b><span style="display:block;color:var(--mut-light);font-size:13.5px">{c.hours}</span></div></li>
-          </ul>
+  <PageHero
+    title={String(page.title)}
+    sub={String(page.excerpt)}
+    crumbs={[{ label: 'تماس با ما', href: '' }]}
+  />
+  <section class="sec contact-section">
+    <div class="container contact-layout">
+      <aside class="contact-aside" data-reveal="right">
+        <div class="contact-aside-intro">
+          <span class="section-label pink">در ارتباط باشیم</span>
+          <h2>برای شروع گفتگو، از راه مناسب خودتان استفاده کنید.</h2>
+          <p>برای پرسش درباره خدمات، پیگیری درخواست یا هماهنگی جلسه، راه‌های ارتباطی زیر در دسترس هستند.</p>
         </div>
-        <div class="pf-note">💡 برای درخواست پروژه و نیازسنجی، فرم <a href="/consult" style="color:var(--gold-3);font-weight:700">درخواست مشاوره</a> گزینه دقیق‌تری است.</div>
-      </div>
-      <div>
-        <div class="prose-fa" style="margin-bottom:22px" set:html={String(page.content)} />
-        <ContactForm type="contact" />
+        <div class="contact-methods">
+          {contactMethods.map((item) => (
+            <div class="contact-method">
+              <span class="contact-method-icon" aria-hidden="true">{item.icon}</span>
+              <div class="contact-method-copy">
+                <span class="contact-method-label">{item.label}</span>
+                {item.href
+                  ? <a href={item.href} dir={item.direction}>{item.value}</a>
+                  : <p dir={item.direction}>{item.value}</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div class="contact-consult-note">
+          <strong>برای برآورد هزینه و زمان پروژه</strong>
+          <p>فرم درخواست مشاوره اطلاعات لازم برای بررسی اولیه پروژه را دریافت می‌کند.</p>
+          <a href="/consult">رفتن به فرم مشاوره <span aria-hidden="true">←</span></a>
+        </div>
+      </aside>
+
+      <div class="contact-form-column" data-reveal="left">
+        <div class="contact-form-heading">
+          <span class="section-label">ارسال پیام</span>
+          <h2>پیام خود را برای ما بنویسید</h2>
+          <p>پیام شما پس از ثبت در سایت بررسی می‌شود و برای پاسخ‌گویی با شما تماس می‌گیریم.</p>
+        </div>
+        {page.content ? <div class="prose-fa contact-page-copy" set:html={String(page.content)} /> : null}
+        <div class="contact-form-shell">
+          <ContactForm type="contact" />
+        </div>
       </div>
     </div>
   </section>
 </BaseLayout>
-<style>
-  @media (max-width: 900px) { .contact-grid { grid-template-columns: 1fr !important; } }
-</style>
