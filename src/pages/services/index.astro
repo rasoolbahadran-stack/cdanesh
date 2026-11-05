@@ -1,18 +1,29 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
-import { q } from '../../lib/db';
-
-const services = await q(`SELECT slug, title, short_desc, icon, features, image
-  FROM services
-  WHERE status = 'published'
-    AND slug IN ('company-website', 'content', 'seo')
-  ORDER BY CASE slug
-    WHEN 'company-website' THEN 1
-    WHEN 'content' THEN 2
-    WHEN 'seo' THEN 3
-    ELSE 4
-  END`);
+const services = [
+  {
+    slug: 'company-website',
+    title: 'طراحی سایت',
+    short_desc: 'طراحی سایت شرکتی و فروشگاهی متناسب با هویت برند، مخاطب و هدف کسب‌وکار شما.',
+    image: '/img/svc-company.webp',
+    features: ['سایت شرکتی و فروشگاهی', 'طراحی رابط و تجربه کاربری', 'توسعه و آماده‌سازی فنی'],
+  },
+  {
+    slug: 'content',
+    title: 'تولید محتوا',
+    short_desc: 'تولید مقالات تخصصی و محتوای صفحات سایت بر اساس نیاز مخاطب، تحقیق موضوعی و لحن برند.',
+    image: '/img/svc-content.webp',
+    features: ['مقالات تخصصی و وبلاگ', 'محتوای صفحات خدمات و محصولات', 'تحقیق موضوع و تقویم محتوایی'],
+  },
+  {
+    slug: 'seo',
+    title: 'سئو',
+    short_desc: 'بهینه‌سازی فنی و محتوایی سایت برای کمک به دیده‌شدن در جست‌وجوهای مرتبط گوگل.',
+    image: '/img/svc-seo.webp',
+    features: ['سئوی تکنیکال و داخلی', 'تحقیق کلمات کلیدی', 'بررسی و بهینه‌سازی مستمر'],
+  },
+];
 ---
 <BaseLayout
   title="خدمات کافه دانش | طراحی سایت، تولید محتوا و سئو"
