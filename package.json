@@ -1,9 +1,9 @@
 {
-  "name": "cdanesh-studio",
+  "name": "cafe-danesh",
   "version": "2.0.0",
   "private": true,
   "type": "module",
-  "description": "کافه‌دانش (CDANESH STUDIO) — وب‌سایت و پنل مدیریت با Astro SSR + Postgres",
+  "description": "کافه دانش (Cafe Danesh) — وب‌سایت و پنل مدیریت با Astro SSR + Postgres",
   "scripts": {
     "dev": "astro dev --port 3000 --host 2>&1 | tee dev.log",
     "dev:nextport": "astro dev --host 2>&1 | tee dev.log",
