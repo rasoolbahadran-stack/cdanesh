@@ -1,55 +1,41 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
-import { q } from '../../lib/db';
+import { ASTRO_PROJECTS } from '../../lib/portfolio-projects';
 import { siteUrl } from '../../lib/seo';
 
-interface ProjectRow {
-  title: string;
-  slug: string;
-  category: string;
-  summary: string;
-  content: string;
-  cover_image: string;
-  tags: unknown;
-  note: string;
-  seo_title: string;
-  seo_description: string;
-}
-
 const { slug } = Astro.params;
-const project = await q<ProjectRow>('SELECT * FROM projects WHERE slug = $1 AND status = $2', [String(slug), 'published']).then((r) => r[0] ?? null);
-if (!project) return Astro.redirect('/404', 302);
+const project = ASTRO_PROJECTS.find((item) => item.slug === String(slug));
+if (!project) return Astro.redirect('/404', 404);
 
-const others = await q<ProjectRow>('SELECT slug, title, summary, cover_image, category FROM projects WHERE status = $1 AND slug != $2 ORDER BY sort_order LIMIT 2', ['published', project.slug]);
-const tags = Array.isArray(project.tags) ? (project.tags as string[]) : [];
-
+const related = ASTRO_PROJECTS.filter((item) => item.slug !== project.slug).slice(0, 3);
 const schema = [
   {
     '@context': 'https://schema.org',
     '@type': 'CreativeWork',
     name: project.title,
     description: project.summary,
-    image: siteUrl(project.cover_image),
+    image: siteUrl(project.coverImage),
     creator: { '@type': 'Organization', name: 'کافه‌دانش', url: siteUrl('/') },
-    keywords: tags.join('، '),
+    keywords: project.tags.join('، '),
     url: siteUrl(`/portfolio/${project.slug}`),
+    sameAs: project.url,
   },
   {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'خانه', item: '/' },
-      { '@type': 'ListItem', position: 2, name: 'نمونه‌کارها', item: '/portfolio' },
+      { '@type': 'ListItem', position: 1, name: 'خانه', item: siteUrl('/') },
+      { '@type': 'ListItem', position: 2, name: 'نمونه‌کارها', item: siteUrl('/portfolio') },
       { '@type': 'ListItem', position: 3, name: project.title, item: siteUrl(`/portfolio/${project.slug}`) },
     ],
   },
 ];
 ---
 <BaseLayout
-  title={project.seo_title || project.title}
-  description={project.seo_description || project.summary}
-  ogImage={project.cover_image}
+  title={project.seoTitle}
+  description={project.seoDescription}
+  ogImage={project.coverImage}
   activePath="/portfolio"
   schema={schema}
 >
@@ -57,29 +43,48 @@ const schema = [
     title={project.title}
     sub={project.summary}
     crumbs={[{ label: 'نمونه‌کارها', href: '/portfolio' }, { label: project.title, href: '' }]}
-    meta={tags.map((t) => `#${t}`)}
+    meta={[project.category, 'پیاده‌سازی با Astro']}
   />
-  <section class="sec">
-    <div class="container" style="max-width:1000px">
-      <img src={project.cover_image} alt={`تصویر پروژه ${project.title}`} width="1344" height="768" style="border-radius:26px;box-shadow:var(--shadow-card);margin-bottom:34px" data-reveal="zoom" />
-      {project.note ? <div class="pf-note" data-reveal>ℹ️ {project.note}</div> : null}
-      <div class="prose-fa" data-reveal set:html={project.content} />
+  <section class="sec project-detail-section">
+    <div class="container project-detail-layout">
+      <div class="project-detail-copy" data-reveal="right">
+        <span class="section-label pink">پروژه اجراشده با Astro</span>
+        <h2>{project.title}</h2>
+        <p>{project.description}</p>
+        <div class="project-fact-grid">
+          <div class="project-fact"><span>فریم‌ورک</span><strong>Astro</strong></div>
+          <div class="project-fact"><span>نوع پروژه</span><strong>{project.category}</strong></div>
+        </div>
+        <a class="btn btn-gold btn-lg project-live-button" href={project.url} target="_blank" rel="noopener noreferrer">
+          مشاهده نسخه آنلاین <span aria-hidden="true">↗</span>
+        </a>
+        <p class="project-live-caption">این پیوند شما را به نسخه عمومی منتشرشده پروژه هدایت می‌کند.</p>
+      </div>
+      <div class="project-detail-visual" data-reveal="left">
+        <img src={project.coverImage} alt={project.coverAlt} width="1152" height="768" loading="eager" fetchpriority="high" />
+        <span class="project-visual-label">تصویرسازی حوزه پروژه</span>
+      </div>
     </div>
   </section>
-  <section class="sec sec-cream" style="padding-top:56px">
+
+  <section class="sec sec-paper project-related-section">
     <div class="container">
-      <div class="sec-head" data-reveal>
-        <span class="section-label">نمونه‌کارهای مرتبط</span>
-        <h2>کارهای دیگر ما</h2>
+      <div class="sec-head">
+        <span class="section-label">ادامه نمونه‌کارها</span>
+        <h2>پروژه‌های دیگر کافه‌دانش</h2>
       </div>
-      <div class="grid-2">
-        {others.map((p, i) => (
-          <a href={`/portfolio/${p.slug}`} class="pf-card" data-reveal style={`--rd:${i * 70}ms`}>
-            <img src={String(p.cover_image)} alt={`نمونه‌کار ${p.title}`} width="1344" height="768" loading="lazy" />
-            <div class="pf-overlay">
-              <div class="pf-tags"><span>{p.category}</span></div>
-              <h3>{p.title}</h3>
-              <p>{p.summary}</p>
+      <div class="portfolio-project-grid portfolio-related-grid">
+        {related.map((item, index) => (
+          <a href={`/portfolio/${item.slug}`} class="portfolio-project-card" data-reveal style={`--rd:${index * 60}ms`}>
+            <div class="portfolio-project-cover">
+              <img src={item.coverImage} alt={item.coverAlt} width="1152" height="768" loading="lazy" />
+              <span class="portfolio-project-chip">Astro</span>
+            </div>
+            <div class="portfolio-project-info">
+              <div class="portfolio-project-kicker"><span>{item.category}</span><span>پروژه اجراشده</span></div>
+              <h3>{item.title}</h3>
+              <p>{item.summary}</p>
+              <div class="portfolio-project-bottom"><span>مشاهده جزئیات پروژه</span><span aria-hidden="true">←</span></div>
             </div>
           </a>
         ))}
