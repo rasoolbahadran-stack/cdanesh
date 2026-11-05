@@ -10,6 +10,7 @@ export interface ProjectSeed {
   content: string;
   cover_image: string;
   tags: string[];
+  url?: string;
   note: string;
   sort_order: number;
   seo_title: string;
