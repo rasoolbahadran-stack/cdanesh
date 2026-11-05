@@ -295,7 +295,10 @@ const faNums = (s: string) => faNum(s);
       </div>
       <div class="plan-grid">
         {plans.map((p, i) => {
-          const feats = Array.isArray(p.features) ? (p.features as string[]) : [];
+          const hostingGift = i < 2 ? '۶ ماه هاست هدیه' : '۱ سال هاست هدیه';
+          const feats = (Array.isArray(p.features) ? (p.features as string[]) : []).map((f) =>
+            f.replace(/(?:۳ ماه|۶ ماه|۱ سال)\s+هاست هدیه/, hostingGift)
+          );
           return (
             <div class={`plan-card ${p.highlighted ? 'highlight' : ''}`} data-reveal style={`--rd:${i * 70}ms`}>
               {p.highlighted ? <span class="plan-badge">پیشنهاد ما</span> : p.badge ? <span class="plan-badge" style="background:var(--ink);color:var(--gold-2)">{p.badge}</span> : null}
