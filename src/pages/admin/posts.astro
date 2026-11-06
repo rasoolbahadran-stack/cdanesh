@@ -107,6 +107,9 @@ const fa = (n: number | string) => new Intl.NumberFormat('fa-IR').format(Number(
         (form.querySelector('[name=title]') as HTMLInputElement).value = String(r.title ?? '');
         (form.querySelector('[name=category]') as HTMLInputElement).value = String(r.category ?? '');
         (form.querySelector('[name=excerpt]') as HTMLInputElement).value = String(r.excerpt ?? '');
+        (form.querySelector('[name=read_minutes]') as HTMLInputElement).value = String(r.read_minutes ?? r.readMinutes ?? 6);
+        (form.querySelector('[name=content]') as HTMLTextAreaElement).value = String(r.content ?? '');
+        (form.querySelector('[name=published]') as HTMLInputElement).checked = Boolean(r.published);
         (form.querySelector('[name=cover]') as HTMLInputElement).value = String(r.cover ?? '');
         title.textContent = `ویرایش: ${r.title ?? ''}`;
         form.scrollIntoView({ behavior: 'smooth', block: 'start' });
