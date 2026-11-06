@@ -794,3 +794,454 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
   .hero__chip--b { right: 0; }
   .hero__photo-ring { width: clamp(200px, 52vw, 280px); }
 }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   بازطراحی ریسپانسیو موبایل — اصلاح عرض، تراز و چینش کارت‌ها
+   این بخش عمداً در انتهای فایل قرار دارد تا بر قواعد قدیمی اولویت داشته باشد.
+   ═══════════════════════════════════════════════════════════════ */
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+body {
+  min-width: 0;
+}
+
+main,
+main > *,
+section,
+.container,
+[class*="__inner"],
+[class*="__content"] {
+  min-width: 0;
+}
+
+img,
+video,
+iframe,
+svg {
+  max-width: 100%;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+a,
+button,
+li,
+small,
+strong,
+span {
+  overflow-wrap: anywhere;
+}
+
+.container {
+  width: min(var(--container), calc(100% - 40px));
+  max-width: 100%;
+}
+
+@media (max-width: 1020px) {
+  .hero__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+  }
+
+  .hero__media {
+    order: -1;
+    width: 100%;
+    min-width: 0;
+    min-height: clamp(280px, 64vw, 420px);
+  }
+
+  .hero__dash {
+    width: min(88%, 490px);
+  }
+
+  .hero__photo-ring {
+    width: clamp(170px, 42vw, 250px);
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pf-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .footer__top {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mega {
+    max-width: calc(100vw - 32px);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    right: auto;
+    left: 0;
+    transform: translateY(6px);
+  }
+
+  .mega-wrap:hover .mega,
+  .mega-wrap:focus-within .mega,
+  .mega.is-open {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 760px) {
+  .container {
+    width: calc(100% - 32px);
+    padding-inline: 0;
+  }
+
+  .section {
+    padding-block: 54px;
+  }
+
+  .section--tight {
+    padding-block: 38px;
+  }
+
+  .header {
+    top: 10px;
+  }
+
+  .header__wrap {
+    width: calc(100% - 24px);
+    gap: 10px;
+    padding: 7px 10px;
+    border-radius: 16px;
+  }
+
+  .logo svg {
+    width: 150px;
+    height: auto;
+  }
+
+  .header__cta {
+    margin-inline-start: auto;
+    gap: 8px;
+  }
+
+  .header__cta .btn {
+    display: none;
+  }
+
+  .burger {
+    display: block;
+    width: 42px;
+    height: 42px;
+  }
+
+  .mobile-menu {
+    overflow: hidden;
+  }
+
+  .mobile-menu__panel {
+    width: min(340px, 88vw);
+    max-width: 100%;
+    padding: 18px 18px calc(24px + env(safe-area-inset-bottom));
+  }
+
+  .hero {
+    padding-top: 112px;
+    border-bottom-left-radius: 30px;
+    border-bottom-right-radius: 30px;
+  }
+
+  .hero__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+    padding-bottom: 42px;
+  }
+
+  .hero__title {
+    font-size: clamp(1.65rem, 7vw, 2.25rem);
+    line-height: 1.55;
+  }
+
+  .hero__mark {
+    white-space: normal;
+  }
+
+  .hero__text {
+    font-size: 0.98rem;
+    line-height: 2;
+  }
+
+  .hero__btns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .hero__btns .btn {
+    width: 100%;
+  }
+
+  .hero__points {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+    margin-top: 22px;
+  }
+
+  .hero__media {
+    min-height: clamp(245px, 72vw, 350px);
+    margin-inline: auto;
+    width: 100%;
+  }
+
+  .hero__dash {
+    width: 88%;
+    right: 0;
+  }
+
+  .hero__photo-ring {
+    width: clamp(150px, 43vw, 205px);
+    left: 0;
+    border-width: 4px;
+  }
+
+  .hero__chip {
+    max-width: 62%;
+    padding: 8px 10px;
+    font-size: 0.72rem;
+  }
+
+  .hero__chip--a {
+    top: -8px;
+    left: 0;
+  }
+
+  .hero__chip--b {
+    right: 0;
+    bottom: 4%;
+  }
+
+  .hero__trust-inner {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    text-align: center;
+    font-size: 0.8rem;
+  }
+
+  .page-hero {
+    padding-top: 118px;
+    padding-bottom: 42px;
+    border-bottom-left-radius: 28px;
+    border-bottom-right-radius: 28px;
+  }
+
+  .page-hero h1 {
+    font-size: clamp(1.55rem, 6.5vw, 2.15rem);
+    line-height: 1.55;
+  }
+
+  .page-hero p {
+    font-size: 0.94rem;
+    line-height: 2;
+  }
+
+  /* تمام گریدهای محتوایی در موبایل به ستون مرتب تبدیل می‌شوند. */
+  main [class*="grid"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+    min-width: 0;
+  }
+
+  .stats,
+  .steps,
+  .cap-grid,
+  .pf-grid,
+  .footer__top,
+  .form-grid,
+  .contact-grid,
+  .consult-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .stat,
+  .step,
+  .cap,
+  .pf-card,
+  .post-card,
+  .form-card,
+  .contact-card,
+  .contact-side,
+  .cta-band,
+  .aside-card {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .cap {
+    padding: 15px;
+    gap: 11px;
+  }
+
+  .pf-grid {
+    gap: 18px;
+  }
+
+  .pf-card__foot {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .pf-card__live {
+    opacity: 1;
+    transform: none;
+  }
+
+  .post-card__body {
+    padding: 16px;
+  }
+
+  .contact-card {
+    padding: 20px 17px;
+    gap: 12px;
+  }
+
+  .contact-side,
+  .form-card,
+  .cta-band {
+    padding: 24px 18px;
+    border-radius: 20px;
+  }
+
+  .feature-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .split,
+  .split-old {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .hero__btns,
+  .cta-band__btns,
+  .notfound__btns {
+    width: 100%;
+  }
+
+  .cta-band__btns .btn,
+  .notfound__btns .btn {
+    width: 100%;
+  }
+
+  .footer__top {
+    gap: 24px;
+    padding-block: 42px 30px;
+  }
+
+  .footer__bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: right;
+    padding-bottom: calc(22px + env(safe-area-inset-bottom));
+  }
+
+  .article-cover {
+    margin-top: -18px;
+    padding-inline: 0;
+  }
+
+  .article-cover img {
+    border-radius: 18px;
+  }
+
+  .author-box {
+    align-items: flex-start;
+    padding: 18px;
+    gap: 12px;
+  }
+
+  .author-box__ava {
+    width: 48px;
+    height: 48px;
+    font-size: 19px;
+  }
+
+  .prose {
+    font-size: 0.97rem;
+  }
+
+  .prose table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .to-top {
+    width: 42px;
+    height: 42px;
+    left: 14px;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+  }
+
+  .admin-main {
+    padding: 20px 14px;
+  }
+
+  .admin-table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 420px) {
+  .container {
+    width: calc(100% - 28px);
+  }
+
+  .logo svg {
+    width: 136px;
+  }
+
+  .hero__media {
+    min-height: 245px;
+  }
+
+  .hero__photo-ring {
+    width: 150px;
+  }
+
+  .hero__chip {
+    max-width: 66%;
+    font-size: 0.68rem;
+  }
+
+  .hero__trust-inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .section-head__title {
+    font-size: 1.45rem;
+  }
+
+  .btn,
+  .btn--lg {
+    max-width: 100%;
+    padding-inline: 18px;
+  }
+
+  .article-meta,
+  .post-hero-meta {
+    gap: 8px 12px;
+  }
+}
