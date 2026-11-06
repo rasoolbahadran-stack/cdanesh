@@ -8,12 +8,9 @@ import { getPortfolio, getPortfolioItem } from '../../lib/content';
 import { pfStatusLabel } from '../../lib/types';
 import { jsonLdBreadcrumb } from '../../lib/seo';
 
-export async function getStaticPaths() {
-  const items = await getPortfolio();
-  return items.map((p) => ({ params: { slug: p.slug }, props: { slug: p.slug } }));
-}
+export const prerender = false;
 
-const { slug } = Astro.props;
+const slug = Astro.params.slug ?? '';
 const item = await getPortfolioItem(slug);
 if (!item) return Astro.redirect('/404');
 
