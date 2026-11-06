@@ -1245,3 +1245,93 @@ span {
     gap: 8px 12px;
   }
 }
+
+
+/* ── اصلاح ریشه‌ای اسکرول افقی و انیمیشن‌های Reveal ─────────────
+   اسکریپت سایت کلاس is-in اضافه می‌کند؛ CSS قبلی کلاس دیگری را بررسی می‌کرد.
+   در نتیجه عناصر در حالت translateX باقی می‌ماندند و عرض صفحه را جابه‌جا می‌کردند.
+*/
+html {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden !important;
+}
+
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden !important;
+}
+
+main {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+/* هماهنگ‌سازی نام کلاس واقعی جاوااسکریپت با CSS */
+[data-reveal].is-in,
+[data-reveal].is-revealed,
+[data-reveal].revealed {
+  opacity: 1 !important;
+  transform: none !important;
+  visibility: visible;
+}
+
+/* عناصر متحرک نباید بیرون محدوده viewport اسکرول ایجاد کنند. */
+[data-reveal] {
+  max-width: 100%;
+}
+
+@media (max-width: 760px) {
+  .hero__mark {
+    white-space: normal !important;
+  }
+
+  /* گریدهایی که در صفحات با style مستقیم تعریف شده‌اند نیز موبایل‌پسند شوند. */
+  main [style*="grid-template-columns"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  main [style*="display:grid"],
+  main [style*="display: grid"] {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  main .container,
+  main .section,
+  main section,
+  main article,
+  main aside,
+  main figure,
+  main .card,
+  main .hero__content,
+  main .hero__media {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .hero__dash {
+    width: min(88%, 490px);
+  }
+
+  .hero__chip--a,
+  .hero__chip--b {
+    max-width: min(68%, 250px);
+  }
+
+  .hero__glow--1 {
+    left: -220px;
+  }
+
+  .hero__glow--2 {
+    right: -220px;
+  }
+
+  .marquee {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+}
