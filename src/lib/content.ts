@@ -57,6 +57,7 @@ export function getService(slug: string): Service | undefined {
 
 // فقط پروژه‌های واقعیِ منتشرشده و دارای نشانی عمومی در صفحات سایت نمایش داده شوند.
 const isPublicPortfolioItem = (item: PortfolioItem) =>
+  item.slug !== 'cdanesh-galaxe' &&
   item.status === 'published' && Boolean(item.liveUrl?.trim());
 
 export async function getPortfolio(): Promise<PortfolioItem[]> {
