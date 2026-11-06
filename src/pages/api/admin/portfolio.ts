@@ -1,6 +1,6 @@
 export const prerender = false;
 import type { APIRoute } from 'astro';
-import { upsertPortfolio, deletePortfolio, getPortfolio } from '../../../lib/db';
+import { upsertPortfolio, deletePortfolio, listAdminPortfolio } from '../../../lib/cms-db';
 
 function clean(v: unknown, max = 3000): string {
   return String(v ?? '').trim().slice(0, max);
@@ -8,7 +8,7 @@ function clean(v: unknown, max = 3000): string {
 
 export const GET: APIRoute = async () => {
   try {
-    const rows = await getPortfolio();
+    const rows = await listAdminPortfolio();
     return new Response(JSON.stringify({ ok: true, rows }), {
       headers: { 'Content-Type': 'application/json' },
     });
