@@ -1,212 +1,197 @@
 [
- {
-  "slug": "bazarino-astro",
-  "title": "بازارینو",
-  "excerpt": "فروشگاه آنلاین چنددسته‌ای با ساختار مناسب مرور محصولات و خرید اینترنتی.",
-  "description": "فروشگاه آنلاین چنددسته‌ای با ساختار مناسب مرور محصولات و خرید اینترنتی.",
-  "category": "وب‌سایت",
-  "tags": [
-   "طراحی اختصاصی"
-  ],
-  "cover": "/img/pf/bazarino-astro.webp",
-  "preview": "/img/pf/bazarino-astro.webp",
-  "liveUrl": "https://bazarino-astro-lva12s6uw-rasoolbahadran-stacks-projects.vercel.app",
-  "status": "published",
-  "sort": 1
- },
- {
-  "slug": "maison-mehr-astro",
-  "title": "مزون مهر",
-  "excerpt": "وب‌سایت مزون با هویت بصری ظریف و نمایش مجموعه پوشاک و محصولات منتخب.",
-  "description": "وب‌سایت مزون با هویت بصری ظریف و نمایش مجموعه پوشاک و محصولات منتخب.",
-  "category": "وب‌سایت",
-  "tags": [
-   "طراحی اختصاصی"
-  ],
-  "cover": "/img/pf/maison-mehr-astro.webp",
-  "preview": "/img/pf/maison-mehr-astro.webp",
-  "liveUrl": "https://maison-mehr-astro-qh6eqe6i7-rasoolbahadran-stacks-projects.vercel.app",
-  "status": "published",
-  "sort": 2
- },
- {
-  "slug": "shoes-store",
-  "title": "فروشگاه کفش",
-  "excerpt": "فروشگاه تخصصی کفش با تمرکز بر نمایش مدل‌ها، تصاویر محصول و انتخاب آسان.",
-  "description": "فروشگاه تخصصی کفش با تمرکز بر نمایش مدل‌ها، تصاویر محصول و انتخاب آسان.",
-  "category": "وب‌سایت",
-  "tags": [
-   "طراحی اختصاصی"
-  ],
-  "cover": "/img/pf/shoes-store.webp",
-  "preview": "/img/pf/shoes-store.webp",
-  "liveUrl": "https://shoes-store-l1jonvses-rasoolbahadran-stacks-projects.vercel.app",
-  "status": "published",
-  "sort": 3
- },
- {
-  "slug": "smart-gadget-store",
-  "title": "فروشگاه اسمارت گجت",
-  "excerpt": "فروشگاه آنلاین لوازم و گجت‌های هوشمند با تمرکز بر معرفی محصول و تجربه خرید.",
-  "description": "فروشگاه آنلاین لوازم و گجت‌های هوشمند با تمرکز بر معرفی محصول و تجربه خرید.",
-  "category": "وب‌سایت",
-  "tags": [
-   "طراحی اختصاصی"
-  ],
-  "cover": "/img/pf/smart-gadget-store.webp",
-  "preview": "/img/pf/smart-gadget-store.webp",
-  "liveUrl": "https://smart-gadget-store-7sumgyr27-rasoolbahadran-stacks-projects.vercel.app",
-  "status": "published",
-  "sort": 4
- },
- {
-  "slug": "mahpoosh-store",
-  "title": "فروشگاه ماه‌پوش",
-  "excerpt": "فروشگاه پوشاک با چیدمان محصولات، دسته‌بندی و طراحی مناسب برندهای مد.",
-  "description": "فروشگاه پوشاک با چیدمان محصولات، دسته‌بندی و طراحی مناسب برندهای مد.",
-  "category": "وب‌سایت",
-  "tags": [
-   "طراحی اختصاصی"
-  ],
-  "cover": "/img/pf/mahpoosh-store.webp",
-  "preview": "/img/pf/mahpoosh-store.webp",
-  "liveUrl": "https://mahpoosh-store-l7m677k0r-rasoolbahadran-stacks-projects.vercel.app",
-  "status": "published",
-  "sort": 5
- },
- {
-  "slug": "simba-beauty-store",
-  "title": "فروشگاه سیمبا بیوتی",
-  "excerpt": "فروشگاه محصولات زیبایی و مراقبت شخصی با ارائه تصویری محصولات و مسیر خرید ساده.",
-  "description": "فروشگاه محصولات زیبایی و مراقبت شخصی با ارائه تصویری محصولات و مسیر خرید ساده.",
-  "category": "وب‌سایت",
-  "tags": [
-   "طراحی اختصاصی"
-  ],
-  "cover": "/img/pf/simba-beauty-store.webp",
-  "preview": "/img/pf/simba-beauty-store.webp",
-  "liveUrl": "https://simba-beauty-store-nsivjbi3o-rasoolbahadran-stacks-projects.vercel.app",
-  "status": "published",
-  "sort": 6
- },
- {
-  "slug": "smarto-astro",
-  "title": "فروشگاه اسمارتو",
-  "excerpt": "فروشگاه اینترنتی با طراحی مدرن، نمایش دسته‌بندی‌ها و کارت‌های محصول.",
-  "description": "فروشگاه اینترنتی با طراحی مدرن، نمایش دسته‌بندی‌ها و کارت‌های محصول.",
-  "category": "وب‌سایت",
-  "tags": [
-   "طراحی اختصاصی"
-  ],
-  "cover": "/img/pf/smarto-astro.webp",
-  "preview": "/img/pf/smarto-astro.webp",
-  "liveUrl": "https://smarto-astro-qwg6y7jgh-rasoolbahadran-stacks-projects.vercel.app",
-  "status": "published",
-  "sort": 7
- },
- {
-  "slug": "karino-job-portal-astro",
-  "title": "پورتال کاریابی کارینو",
-  "excerpt": "سامانه کاریابی و معرفی فرصت‌های شغلی با ساختار مناسب جست‌وجو و مرور موقعیت‌ها.",
-  "description": "سامانه کاریابی و معرفی فرصت‌های شغلی با ساختار مناسب جست‌وجو و مرور موقعیت‌ها.",
-  "category": "وب‌سایت",
-  "tags": [
-   "طراحی اختصاصی"
-  ],
-  "cover": "/img/pf/karino-job-portal-astro.webp",
-  "preview": "/img/pf/karino-job-portal-astro.webp",
-  "liveUrl": "https://karino-job-portal-astro-rjzgu9cmo.vercel.app",
-  "status": "published",
-  "sort": 8
- },
- {
-  "slug": "novinroshd-agency",
-  "title": "آژانس نوین‌رشد",
-  "excerpt": "وب‌سایت آژانس خدمات دیجیتال برای معرفی تخصص‌ها، خدمات و مسیر همکاری.",
-  "description": "وب‌سایت آژانس خدمات دیجیتال برای معرفی تخصص‌ها، خدمات و مسیر همکاری.",
-  "category": "وب‌سایت",
-  "tags": [
-   "طراحی اختصاصی"
-  ],
-  "cover": "/img/pf/novinroshd-agency.webp",
-  "preview": "/img/pf/novinroshd-agency.webp",
-  "liveUrl": "https://novinroshd-agency-l8g2njc35-rasoolbahadran-stacks-projects.vercel.app",
-  "status": "published",
-  "sort": 9
- },
- {
-  "slug": "cdanesh-galaxy-source",
-  "title": "دموی طراحی سایت کهکشانی",
-  "excerpt": "وب‌سایت نمایشی با طراحی فضایی، جلوه‌های بصری مدرن و معرفی خدمات دیجیتال.",
-  "description": "وب‌سایت نمایشی با طراحی فضایی، جلوه‌های بصری مدرن و معرفی خدمات دیجیتال.",
-  "category": "وب‌سایت",
-  "tags": [
-   "طراحی اختصاصی"
-  ],
-  "cover": "/img/pf/cdanesh-galaxy-source.webp",
-  "preview": "/img/pf/cdanesh-galaxy-source.webp",
-  "liveUrl": "https://cdanesh-galaxy-source-5z1xo3ipb-rasoolbahadran-stacks-projects.vercel.app",
-  "status": "published",
-  "sort": 10
- },
- {
-  "slug": "cdanesh-galaxe",
-  "title": "نسخه دوم دموی کهکشانی",
-  "excerpt": "نسخه دوم تجربه طراحی کهکشانی با ساختار بصری متفاوت و تعاملات مدرن.",
-  "description": "نسخه دوم تجربه طراحی کهکشانی با ساختار بصری متفاوت و تعاملات مدرن.",
-  "category": "وب‌سایت",
-  "tags": [
-   "طراحی اختصاصی"
-  ],
-  "cover": "/img/pf/cdanesh-galaxe.webp",
-  "preview": "/img/pf/cdanesh-galaxe.webp",
-  "liveUrl": "https://cdanesh-galaxe-i98bz8vz9-rasoolbahadran-stacks-projects.vercel.app",
-  "status": "published",
-  "sort": 11
- },
- {
-  "slug": "rosa-shop",
-  "title": "نمونه‌کار فروشگاه اینترنتی رُزا | کافه دانش",
-  "excerpt": "نمونه مفهومی فروشگاه اینترنتی رُزا: تجربه خرید روان، فیلتر دسته‌بندی و صفحه محصول بهینه‌شده برای تبدیل.",
-  "description": "فروش محصولات تازه با تجربه خرید روان، فیلتر دسته‌بندی و صفحه محصول بهینه‌شده برای تبدیل.",
-  "category": "وب‌سایت",
-  "tags": [
-   "فروشگاهی"
-  ],
-  "cover": "/img/pf-rosa.webp",
-  "preview": "/img/pf-rosa.webp",
-  "liveUrl": "",
-  "status": "conceptual",
-  "sort": 12
- },
- {
-  "slug": "arman-holding",
-  "title": "نمونه‌کار وب‌سایت هلدینگ آرمان | کافه دانش",
-  "excerpt": "نمونه مفهومی وب‌سایت هلدینگ آرمان: معرفی شرکت‌های تابعه، پروژه‌های اجراشده و روند همکاری برای مخاطب B2B.",
-  "description": "معرفی سه شرکت تابعه، پروژه‌های اجراشده و روند همکاری؛ ساختار منظم برای مخاطب B2B.",
-  "category": "وب‌سایت",
-  "tags": [
-   "شرکتی"
-  ],
-  "cover": "/img/pf-arman.webp",
-  "preview": "/img/pf-arman.webp",
-  "liveUrl": "",
-  "status": "conceptual",
-  "sort": 13
- },
- {
-  "slug": "negar-assistant",
-  "title": "نمونه‌کار دستیار هوشمند نِگار | کافه دانش",
-  "excerpt": "نمونه مفهومی صفحه فرود دستیار هوشمند نِگار: نمایش زنده گفتگو، پلن‌های قیمت‌گذاری و ثبت‌نام آزمایشی.",
-  "description": "صفحه فرود محصول با نمایش زنده گفتگو، پلن‌های قیمت‌گذاری و ثبت‌نام آزمایشی؛ برای محصول SaaS.",
-  "category": "وب‌سایت",
-  "tags": [
-   "هوش مصنوعی"
-  ],
-  "cover": "/img/pf-negar.webp",
-  "preview": "/img/pf-negar.webp",
-  "liveUrl": "",
-  "status": "conceptual",
-  "sort": 14
- }
+  {
+    "slug": "bazarino-astro",
+    "title": "بازارینو",
+    "excerpt": "فروشگاه آنلاین چنددسته‌ای با ساختار مناسب مرور محصولات و خرید اینترنتی.",
+    "description": "فروشگاه آنلاین چنددسته‌ای با ساختار مناسب مرور محصولات و خرید اینترنتی.",
+    "category": "وب‌سایت",
+    "tags": [
+      "طراحی اختصاصی"
+    ],
+    "cover": "/img/pf/bazarino-astro.webp",
+    "preview": "/img/pf/bazarino-astro.webp",
+    "liveUrl": "https://bazarino-astro-lva12s6uw-rasoolbahadran-stacks-projects.vercel.app",
+    "status": "published",
+    "sort": 1
+  },
+  {
+    "slug": "maison-mehr-astro",
+    "title": "مزون مهر",
+    "excerpt": "وب‌سایت مزون با هویت بصری ظریف و نمایش مجموعه پوشاک و محصولات منتخب.",
+    "description": "وب‌سایت مزون با هویت بصری ظریف و نمایش مجموعه پوشاک و محصولات منتخب.",
+    "category": "وب‌سایت",
+    "tags": [
+      "طراحی اختصاصی"
+    ],
+    "cover": "/img/pf/maison-mehr-astro.webp",
+    "preview": "/img/pf/maison-mehr-astro.webp",
+    "liveUrl": "https://maison-mehr-astro-qh6eqe6i7-rasoolbahadran-stacks-projects.vercel.app",
+    "status": "published",
+    "sort": 2
+  },
+  {
+    "slug": "shoes-store",
+    "title": "فروشگاه کفش",
+    "excerpt": "فروشگاه تخصصی کفش با تمرکز بر نمایش مدل‌ها، تصاویر محصول و انتخاب آسان.",
+    "description": "فروشگاه تخصصی کفش با تمرکز بر نمایش مدل‌ها، تصاویر محصول و انتخاب آسان.",
+    "category": "وب‌سایت",
+    "tags": [
+      "طراحی اختصاصی"
+    ],
+    "cover": "/img/pf/shoes-store.webp",
+    "preview": "/img/pf/shoes-store.webp",
+    "liveUrl": "https://shoes-store-l1jonvses-rasoolbahadran-stacks-projects.vercel.app",
+    "status": "published",
+    "sort": 3
+  },
+  {
+    "slug": "smart-gadget-store",
+    "title": "فروشگاه اسمارت گجت",
+    "excerpt": "فروشگاه آنلاین لوازم و گجت‌های هوشمند با تمرکز بر معرفی محصول و تجربه خرید.",
+    "description": "فروشگاه آنلاین لوازم و گجت‌های هوشمند با تمرکز بر معرفی محصول و تجربه خرید.",
+    "category": "وب‌سایت",
+    "tags": [
+      "طراحی اختصاصی"
+    ],
+    "cover": "/img/pf/smart-gadget-store.webp",
+    "preview": "/img/pf/smart-gadget-store.webp",
+    "liveUrl": "https://smart-gadget-store-7sumgyr27-rasoolbahadran-stacks-projects.vercel.app",
+    "status": "published",
+    "sort": 4
+  },
+  {
+    "slug": "mahpoosh-store",
+    "title": "فروشگاه ماه‌پوش",
+    "excerpt": "فروشگاه پوشاک با چیدمان محصولات، دسته‌بندی و طراحی مناسب برندهای مد.",
+    "description": "فروشگاه پوشاک با چیدمان محصولات، دسته‌بندی و طراحی مناسب برندهای مد.",
+    "category": "وب‌سایت",
+    "tags": [
+      "طراحی اختصاصی"
+    ],
+    "cover": "/img/pf/mahpoosh-store.webp",
+    "preview": "/img/pf/mahpoosh-store.webp",
+    "liveUrl": "https://mahpoosh-store-l7m677k0r-rasoolbahadran-stacks-projects.vercel.app",
+    "status": "published",
+    "sort": 5
+  },
+  {
+    "slug": "simba-beauty-store",
+    "title": "فروشگاه سیمبا بیوتی",
+    "excerpt": "فروشگاه محصولات زیبایی و مراقبت شخصی با ارائه تصویری محصولات و مسیر خرید ساده.",
+    "description": "فروشگاه محصولات زیبایی و مراقبت شخصی با ارائه تصویری محصولات و مسیر خرید ساده.",
+    "category": "وب‌سایت",
+    "tags": [
+      "طراحی اختصاصی"
+    ],
+    "cover": "/img/pf/simba-beauty-store.webp",
+    "preview": "/img/pf/simba-beauty-store.webp",
+    "liveUrl": "https://simba-beauty-store-nsivjbi3o-rasoolbahadran-stacks-projects.vercel.app",
+    "status": "published",
+    "sort": 6
+  },
+  {
+    "slug": "smarto-astro",
+    "title": "فروشگاه اسمارتو",
+    "excerpt": "فروشگاه اینترنتی با طراحی مدرن، نمایش دسته‌بندی‌ها و کارت‌های محصول.",
+    "description": "فروشگاه اینترنتی با طراحی مدرن، نمایش دسته‌بندی‌ها و کارت‌های محصول.",
+    "category": "وب‌سایت",
+    "tags": [
+      "طراحی اختصاصی"
+    ],
+    "cover": "/img/pf/smarto-astro.webp",
+    "preview": "/img/pf/smarto-astro.webp",
+    "liveUrl": "https://smarto-astro-qwg6y7jgh-rasoolbahadran-stacks-projects.vercel.app",
+    "status": "published",
+    "sort": 7
+  },
+  {
+    "slug": "karino-job-portal-astro",
+    "title": "پورتال کاریابی کارینو",
+    "excerpt": "سامانه کاریابی و معرفی فرصت‌های شغلی با ساختار مناسب جست‌وجو و مرور موقعیت‌ها.",
+    "description": "سامانه کاریابی و معرفی فرصت‌های شغلی با ساختار مناسب جست‌وجو و مرور موقعیت‌ها.",
+    "category": "وب‌سایت",
+    "tags": [
+      "طراحی اختصاصی"
+    ],
+    "cover": "/img/pf/karino-job-portal-astro.webp",
+    "preview": "/img/pf/karino-job-portal-astro.webp",
+    "liveUrl": "https://karino-job-portal-astro-rjzgu9cmo.vercel.app",
+    "status": "published",
+    "sort": 8
+  },
+  {
+    "slug": "novinroshd-agency",
+    "title": "آژانس نوین‌رشد",
+    "excerpt": "وب‌سایت آژانس خدمات دیجیتال برای معرفی تخصص‌ها، خدمات و مسیر همکاری.",
+    "description": "وب‌سایت آژانس خدمات دیجیتال برای معرفی تخصص‌ها، خدمات و مسیر همکاری.",
+    "category": "وب‌سایت",
+    "tags": [
+      "طراحی اختصاصی"
+    ],
+    "cover": "/img/pf/novinroshd-agency.webp",
+    "preview": "/img/pf/novinroshd-agency.webp",
+    "liveUrl": "https://novinroshd-agency-l8g2njc35-rasoolbahadran-stacks-projects.vercel.app",
+    "status": "published",
+    "sort": 9
+  },
+  {
+    "slug": "cdanesh-galaxy-source",
+    "title": "دموی طراحی سایت کهکشانی",
+    "excerpt": "وب‌سایت نمایشی با طراحی فضایی، جلوه‌های بصری مدرن و معرفی خدمات دیجیتال.",
+    "description": "وب‌سایت نمایشی با طراحی فضایی، جلوه‌های بصری مدرن و معرفی خدمات دیجیتال.",
+    "category": "وب‌سایت",
+    "tags": [
+      "طراحی اختصاصی"
+    ],
+    "cover": "/img/pf/cdanesh-galaxy-source.webp",
+    "preview": "/img/pf/cdanesh-galaxy-source.webp",
+    "liveUrl": "https://cdanesh-galaxy-source-5z1xo3ipb-rasoolbahadran-stacks-projects.vercel.app",
+    "status": "published",
+    "sort": 10
+  },
+  {
+    "slug": "rosa-shop",
+    "title": "نمونه‌کار فروشگاه اینترنتی رُزا | کافه دانش",
+    "excerpt": "نمونه مفهومی فروشگاه اینترنتی رُزا: تجربه خرید روان، فیلتر دسته‌بندی و صفحه محصول بهینه‌شده برای تبدیل.",
+    "description": "فروش محصولات تازه با تجربه خرید روان، فیلتر دسته‌بندی و صفحه محصول بهینه‌شده برای تبدیل.",
+    "category": "وب‌سایت",
+    "tags": [
+      "فروشگاهی"
+    ],
+    "cover": "/img/pf-rosa.webp",
+    "preview": "/img/pf-rosa.webp",
+    "liveUrl": "",
+    "status": "conceptual",
+    "sort": 12
+  },
+  {
+    "slug": "arman-holding",
+    "title": "نمونه‌کار وب‌سایت هلدینگ آرمان | کافه دانش",
+    "excerpt": "نمونه مفهومی وب‌سایت هلدینگ آرمان: معرفی شرکت‌های تابعه، پروژه‌های اجراشده و روند همکاری برای مخاطب B2B.",
+    "description": "معرفی سه شرکت تابعه، پروژه‌های اجراشده و روند همکاری؛ ساختار منظم برای مخاطب B2B.",
+    "category": "وب‌سایت",
+    "tags": [
+      "شرکتی"
+    ],
+    "cover": "/img/pf-arman.webp",
+    "preview": "/img/pf-arman.webp",
+    "liveUrl": "",
+    "status": "conceptual",
+    "sort": 13
+  },
+  {
+    "slug": "negar-assistant",
+    "title": "نمونه‌کار دستیار هوشمند نِگار | کافه دانش",
+    "excerpt": "نمونه مفهومی صفحه فرود دستیار هوشمند نِگار: نمایش زنده گفتگو، پلن‌های قیمت‌گذاری و ثبت‌نام آزمایشی.",
+    "description": "صفحه فرود محصول با نمایش زنده گفتگو، پلن‌های قیمت‌گذاری و ثبت‌نام آزمایشی؛ برای محصول SaaS.",
+    "category": "وب‌سایت",
+    "tags": [
+      "هوش مصنوعی"
+    ],
+    "cover": "/img/pf-negar.webp",
+    "preview": "/img/pf-negar.webp",
+    "liveUrl": "",
+    "status": "conceptual",
+    "sort": 14
+  }
 ]
