@@ -1,16 +1,14 @@
 export const prerender = false;
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
-import { getSession } from '../../lib/auth';
-import { getPortfolio, dbAvailable } from '../../lib/db';
+import { listAdminPortfolio, dbAvailable } from '../../lib/cms-db';
 import localPortfolio from '../../data/content/portfolio.json';
 
-const session = await getSession(Astro.cookies);
 const useDb = dbAvailable();
 let rows: Array<Record<string, unknown>> = [];
 if (useDb) {
   try {
-    rows = (await getPortfolio()) as unknown as Array<Record<string, unknown>>;
+    rows = (await listAdminPortfolio()) as unknown as Array<Record<string, unknown>>;
   } catch { /* no db */ }
 }
 if (!rows.length) rows = localPortfolio as unknown as Array<Record<string, unknown>>;
