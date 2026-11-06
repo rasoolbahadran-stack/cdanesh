@@ -1,5 +1,5 @@
-export const prerender = false;
 ---
+export const prerender = false;
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { listAdminPosts, dbAvailable } from '../../lib/cms-db';
 import localPosts from '../../data/content/posts.json';
@@ -49,7 +49,7 @@ const fa = (n: number | string) => new Intl.NumberFormat('fa-IR').format(Number(
                     <td><b>{String(r.title ?? '')}</b><br /><small style="color:var(--mut)" dir="ltr">/{String(r.slug ?? '')}</small></td>
                     <td>{String(r.category ?? '—')}</td>
                     <td>{String(r.dateFa ?? r.published_at ?? '—').slice(0, 12)}</td>
-                    <td><span class="badge badge--ok">منتشرشده</span></td>
+                    <td><span class="badge" class:list={{ 'badge--ok': r.published, 'badge--soon': !r.published }}>{r.published ? 'منتشرشده' : 'پیش‌نویس'}</span></td>
                     <td>
                       <div class="admin-actions">
                         <a href={`/blog/${r.slug}`} target="_blank">مشاهده</a>
