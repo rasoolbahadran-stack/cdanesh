@@ -1,5 +1,5 @@
-export const prerender = false;
 ---
+export const prerender = false;
 import AdminLayout from '../../layouts/AdminLayout.astro';
 ---
 <AdminLayout title="پنل مدیریت کافه دانش">
@@ -12,7 +12,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       </div>
       <form id="login-form" style="display:grid;gap:14px">
         <div class="field">
-          <label for="username">ایمیل</label>
+          <label for="username">نام کاربری</label>
           <input id="username" name="username" type="text" required autocomplete="username" dir="ltr" />
         </div>
         <div class="field">
@@ -38,7 +38,10 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           body: JSON.stringify(data),
         });
         const j = await res.json();
-        if (res.ok && j.ok) window.location.href = '/admin';
+        if (res.ok && j.ok) {
+          const next = new URLSearchParams(window.location.search).get('next');
+          window.location.href = next && next.startsWith('/') && !next.startsWith('//') ? next : '/admin';
+        }
         else {
           status.className = 'form-status is-err';
           status.textContent = j.message || j.error || 'ورود ناموفق بود';
