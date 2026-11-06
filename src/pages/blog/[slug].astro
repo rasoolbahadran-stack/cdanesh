@@ -4,18 +4,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Blocks from '../../components/Blocks.astro';
 import PostCard from '../../components/PostCard.astro';
 import CtaBand from '../../components/CtaBand.astro';
-import { getPosts, getRelatedPosts } from '../../lib/content';
+import { getPost, getRelatedPosts } from '../../lib/content';
 import type { Post } from '../../lib/types';
 import { jsonLdArticle, jsonLdBreadcrumb } from '../../lib/seo';
 
-export async function getStaticPaths() {
-  const posts = await getPosts();
-  return posts.map((p) => ({ params: { slug: p.slug }, props: { slug: p.slug } }));
-}
+export const prerender = false;
 
-const { slug } = Astro.props;
-const posts = await getPosts();
-const post = posts.find((p) => p.slug === slug) as Post | undefined;
+const slug = Astro.params.slug ?? '';
+const post = await getPost(slug) as Post | undefined;
 if (!post) return Astro.redirect('/404');
 
 const related = getRelatedPosts(slug, 3);
