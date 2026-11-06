@@ -58,7 +58,7 @@ export function getService(slug: string): Service | undefined {
 
 // پروژه‌های Astro از Vercel کشف می‌شوند؛ اطلاعات تصویری/توضیحی از محتوای محلی و CMS حفظ می‌شود.
 const isPublicPortfolioItem = (item: PortfolioItem) =>
-  item.slug !== 'cdanesh-galaxe' &&
+  !['cdanesh-galaxe', 'cdanesh-galaxy-source'].includes(item.slug) &&
   item.status === 'published' &&
   Boolean(item.liveUrl?.trim());
 
