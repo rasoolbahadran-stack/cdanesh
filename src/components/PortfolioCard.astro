@@ -11,16 +11,23 @@ const badgeClass =
 ---
 <article class="pf-card" data-pf-item data-cat={item.category} data-reveal="up" data-delay={delay}>
   <div class="pf-card__thumb">
-    <img
-      src={item.preview}
-      alt={`${item.title} — نمونه‌کار کافه دانش`}
-      class="pf-card__shot"
-      width="900"
-      height="1200"
-      loading="lazy"
-      decoding="async"
-      style="object-fit:cover;object-position:top"
-    />
+    {item.preview ? (
+      <img
+        src={item.preview}
+        alt={`${item.title} — نمونه‌کار کافه دانش`}
+        class="pf-card__shot"
+        width="900"
+        height="1200"
+        loading="lazy"
+        decoding="async"
+        style="object-fit:cover;object-position:top"
+      />
+    ) : (
+      <div class="pf-card__placeholder" role="img" aria-label={`${item.title} — پیش‌نمایش در انتظار تصویر`}>
+        <span>{item.title}</span>
+        <small>پروژه منتشرشده با Astro</small>
+      </div>
+    )}
     <span class="pf-card__grad" aria-hidden="true"></span>
     <span class:list={['pf-card__badge', badgeClass]}>
       <span class="pf-card__badge-dot" aria-hidden="true"></span>
