@@ -193,22 +193,24 @@ const meta = {
 
   <!-- ═══════════ مزیت‌ها ═══════════ -->
   <section class="section" aria-labelledby="pros-title">
-    <div class="container" style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(28px,5vw,60px);align-items:start">
-      <div>
+    <div class="container">
+      <div class="pros-section__head">
         <SectionHead tag="مزیت‌های همکاری با ما" title="پنج دلیل که نتیجه کار را متمایز می‌کند" />
-        <img src="/img/ai/about-team.webp" alt="تیم کافه دانش در استودیو هنگام جلسه طراحی" width="672" height="384" loading="lazy" decoding="async" style="border-radius:var(--r-lg);box-shadow:var(--shadow-card)" />
       </div>
-      <ul class="pro-list" style="margin-top:8px">
-        {PROS.map((p, i) => (
-          <li class="pro" data-reveal="left" data-delay={String(i * 80)}>
-            <span class="pro__num" aria-hidden="true"></span>
-            <div>
-              <h3>{p.t}</h3>
-              <p>{p.d}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <div class="pros-section__body">
+        <img class="pros-section__image" src="/img/ai/about-team.webp" alt="تیم کافه دانش در استودیو هنگام جلسه طراحی" width="672" height="384" loading="lazy" decoding="async" />
+        <ul class="pro-list">
+          {PROS.map((p, i) => (
+            <li class="pro" data-reveal="left" data-delay={String(i * 80)}>
+              <span class="pro__num" aria-hidden="true"></span>
+              <div>
+                <h3>{p.t}</h3>
+                <p>{p.d}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   </section>
 
