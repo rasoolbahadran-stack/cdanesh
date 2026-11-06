@@ -55,7 +55,10 @@ export function getService(slug: string): Service | undefined {
   return localServices.find((s) => s.slug === slug);
 }
 
-// فقط پروژه‌های واقعاً منتشرشده و دارای نشانی عمومی در صفحات سایت نمایش داده شوند.
+// فقط پروژه‌های واقعیِ منتشرشده و دارای نشانی عمومی در صفحات سایت نمایش داده شوند.
+const isPublicPortfolioItem = (item: PortfolioItem) =>
+  item.status === 'published' && Boolean(item.liveUrl?.trim());
+
 export async function getPortfolio(): Promise<PortfolioItem[]> {
   const localItems = localPortfolio.filter(isPublicPortfolioItem);
   if (!useDb()) return localItems;
