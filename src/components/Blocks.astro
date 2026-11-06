@@ -12,6 +12,7 @@ const fa = (s: string | number) => new Intl.NumberFormat('fa-IR').format(Number(
     if (b.t === 'h3') return <h3>{b.x}</h3>;
     if (b.t === 'h4') return <h4>{b.x}</h4>;
     if (b.t === 'p') return <p set:html={b.x} />;
+    if (b.t === 'html') return <div set:html={b.x} />;
     if (b.t === 'blockquote') return <blockquote set:html={b.x} />;
     if (b.t === 'ul') return <ul>{b.items.map((it) => <li set:html={it} />)}</ul>;
     if (b.t === 'ol') return <ol>{b.items.map((it) => <li set:html={it} />)}</ol>;
