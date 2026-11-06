@@ -13,7 +13,7 @@ const posts = await getPosts();
 const portfolio = await getPortfolio();
 const faq = getFaq();
 const latestPosts = posts.slice(0, 3);
-const showPf = portfolio.filter((p) => p.status === 'published').slice(0, 6);
+const showPf = portfolio.filter((p) => p.status === 'published').slice(0, 3);
 
 const marqueeItems = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
 
@@ -40,11 +40,11 @@ const meta = {
     <div class="container hero__grid">
       <div class="hero__content">
         <h1 class="hero__title" data-reveal="up">
-          سایت، محتوا و هوش مصنوعی؛<br />
+          طراحی سایت، تولید محتوا و سئو؛<br />
           <span class="hero__mark">سه موتور رشد</span> کسب‌وکار شما
         </h1>
         <p class="hero__text" data-reveal="up" data-delay="120">
-          سایتی که برند شما را معرفی می‌کند، محتوایی که مخاطب را می‌آورد و ابزارهایی که کارهای تکراری را حذف می‌کنند — همه را یک تیم، با یک نقشه راه و تحویل مرحله‌به‌مرحله انجام می‌دهد.
+          از طراحی وب‌سایت اختصاصی تا نگارش مقالات تخصصی و سئوی اصولی؛ سه خدمت مکمل را با یک برنامه روشن و تحویل مرحله‌به‌مرحله ارائه می‌کنیم.
         </p>
         <div class="hero__btns" data-reveal="up" data-delay="240">
           <a href="/consult" class="btn btn--lg">درخواست مشاوره رایگان</a>
@@ -132,7 +132,7 @@ const meta = {
     <div class="hero__trust">
       <div class="container hero__trust-inner" data-reveal="up" data-delay="420">
         <span>✳ <b>تحویل مرحله‌ای</b> — پیشرفت پروژه شفاف و قابل پیگیری</span>
-        <span>✳ <b>ابزارهای هوشمند</b> — اتوماسیون و دستیارهای اختصاصی</span>
+        <span>✳ <b>محتوای هدفمند</b> — مقاله‌های تخصصی متناسب با مخاطب</span>
         <span>✳ <b>مالکیت کامل</b> — کد، محتوا و دسترسی‌ها متعلق به شماست</span>
       </div>
     </div>
@@ -161,8 +161,8 @@ const meta = {
         </div>
         <div class="stat" data-reveal="up" data-delay="120">
           <span class="stat__ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4.5" /><circle cx="12" cy="12" r="1" /></svg></span>
-          <p class="stat__num"><span data-count="7">۰</span></p>
-          <p class="stat__label">توانمندی اصلی تیم</p>
+          <p class="stat__num"><span data-count="8">۰</span></p>
+          <p class="stat__label">خدمت تخصصی در سه حوزه</p>
         </div>
         <div class="stat" data-reveal="up" data-delay="240">
           <span class="stat__ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" /></svg></span>
@@ -215,7 +215,7 @@ const meta = {
   <!-- ═══════════ خدمات ═══════════ -->
   <section class="section bg-lavender" aria-labelledby="svc-title">
     <div class="container">
-      <SectionHead tag="خدمات ما" title="هشت خدمت تخصصی، هشت صفحه اختصاصی" sub="هر خدمت صفحه اختصاصی و محتوای کامل خودش را دارد؛ می‌توانید هر کدام را مستقل سفارش دهید یا ترکیبی سفارش بدهید." center />
+      <SectionHead tag="خدمات ما" title="هشت خدمت تخصصی در سه حوزه اصلی" sub="خدمات ما در سه حوزه طراحی وب‌سایت، تولید مقالات تخصصی و سئوی سایت ارائه می‌شود؛ هر کدام را می‌توانید مستقل یا در قالب یک برنامه یکپارچه سفارش دهید." center />
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:22px" class="svc-grid">
         {SERVICE_CARDS.map((s, i) => (
           <a href={`/services/${s.slug}`} class="svc-card" data-reveal="up" data-delay={String((i % 4) * 80)} style="color:inherit">
@@ -240,7 +240,7 @@ const meta = {
   <!-- ═══════════ خدمات از نزدیک ═══════════ -->
   <section class="section" aria-labelledby="svc4-title">
     <div class="container">
-      <SectionHead tag="خدمات، از نزدیک" title="هر خدمت دقیقاً چه تغییری در کسب‌وکار شما می‌سازد؟" sub="چهار حوزه اصلی کار ما — با نگاه کاربردی به «قبل و بعد» آن برای کسب‌وکار شما." />
+      <SectionHead tag="خدمات، از نزدیک" title="هر خدمت دقیقاً چه تغییری در کسب‌وکار شما می‌سازد؟" sub="سه حوزه اصلی کار ما — با نگاه کاربردی به نتیجه هر خدمت برای کسب‌وکار شما." />
       <div style="display:grid;gap:clamp(22px,3vw,34px)">
         {HOME_FOUR.map((h, i) => (
           <div style={`display:grid;grid-template-columns:${i % 2 ? '1.1fr 0.9fr' : '0.9fr 1.1fr'};gap:clamp(20px,4vw,48px);align-items:center`} class="home-four-row" data-reveal="up">
@@ -327,7 +327,7 @@ const meta = {
   <!-- ═══════════ مجله ═══════════ -->
   <section class="section" aria-labelledby="blog-title">
     <div class="container">
-      <SectionHead tag="مجله کافه‌دانش" title="خواندنی‌های تخصصی دیجیتال" sub="هر هفته یک مطلب کاربردی درباره طراحی سایت، سئو، محتوا و هوش مصنوعی — به زبان ساده." />
+      <SectionHead tag="مجله کافه‌دانش" title="خواندنی‌های تخصصی دیجیتال" sub="هر هفته یک مطلب کاربردی درباره طراحی وب‌سایت، سئو و تولید محتوای تخصصی — به زبان ساده." />
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px" class="blog-grid">
         {latestPosts.map((p, i) => (
           <PostCard post={p} delay={String(i * 90)} />
