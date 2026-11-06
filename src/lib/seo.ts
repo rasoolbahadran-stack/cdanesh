@@ -1,6 +1,11 @@
 // کمکی‌های SEO — متا، canonical، JSON-LD
 import { SITE } from './content';
 
+export function siteUrl(path = ''): string {
+  const normalized = path ? (path.startsWith('/') ? path : `/${path}`) : '';
+  return `${SITE.url}${normalized}`;
+}
+
 export interface PageMeta {
   title: string;
   description: string;
