@@ -6,7 +6,7 @@ import portfolioJson from '../data/content/portfolio.json';
 import faqJson from '../data/content/faq.json';
 import pagesJson from '../data/content/pages.json';
 import type { Post, Service, PortfolioItem, FaqItem, PageDoc, Block } from './types';
-import { getPosts as dbPosts, getPortfolio as dbPortfolio, dbAvailable } from './db';
+import { getPosts as dbPosts, getPortfolio as dbPortfolio, dbAvailable } from './cms-db';
 
 const localPosts = postsJson as Post[];
 const localServices = servicesJson as Service[];
