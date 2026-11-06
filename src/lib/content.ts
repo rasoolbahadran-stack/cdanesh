@@ -59,6 +59,10 @@ export function getService(slug: string): Service | undefined {
 const isPublicPortfolioItem = (item: PortfolioItem) =>
   item.status === 'published' && Boolean(item.liveUrl?.trim());
 
+// فقط پروژه‌های واقعیِ منتشرشده و دارای نشانی عمومی در صفحات سایت نمایش داده شوند.
+const isPublicPortfolioItem = (item: PortfolioItem) =>
+  item.status === 'published' && Boolean(item.liveUrl?.trim());
+
 export async function getPortfolio(): Promise<PortfolioItem[]> {
   const localItems = localPortfolio.filter(isPublicPortfolioItem);
   if (!useDb()) return localItems;
@@ -66,28 +70,30 @@ export async function getPortfolio(): Promise<PortfolioItem[]> {
   const rows = await dbPortfolio().catch(() => null);
   if (!rows || !rows.length) return localItems;
 
-  // اگر CMS به اشتباه یک تصویر پیش‌نمایش را به چند پروژه وصل کرده باشد،
-  // برای اسلاگ‌های شناخته‌شده از تصویر اختصاصی موجود در Git استفاده می‌کنیم.
-  const previewCounts = new Map<string, number>();
-  rows.forEach((item) => {
-    const preview = String(item.preview || item.cover || '').trim();
-    if (preview) previewCounts.set(preview, (previewCounts.get(preview) || 0) + 1);
-  });
-
   const merged = new Map(localItems.map((item) => [item.slug, item]));
+
   rows.forEach((row) => {
     const remote = row as unknown as PortfolioItem;
     const local = localPortfolio.find((item) => item.slug === remote.slug);
-    const previewKey = String(remote.preview || remote.cover || '').trim();
-    const duplicatedPreview = Boolean(previewKey && (previewCounts.get(previewKey) || 0) > 1);
+    const liveUrl = remote.liveUrl?.trim() || local?.liveUrl || '';
 
-    merged.set(remote.slug, {
-      ...local,
+    // برای پروژه‌های شناخته‌شده، داده‌های نمایشی (عنوان، متن، دسته، برچسب،
+    // ترتیب و تصویر) دقیقاً از محتوای نسخه استاتیک نگه داشته می‌شوند.
+    // وضعیت انتشار و نشانی زنده همچنان از CMS خوانده می‌شوند.
+    merged.set(remote.slug, local ? {
       ...remote,
-      cover: duplicatedPreview && local?.cover ? local.cover : (remote.cover || local?.cover || ''),
-      preview: duplicatedPreview && local?.preview
-        ? local.preview
-        : (remote.preview || local?.preview || remote.cover || ''),
+      title: local.title,
+      excerpt: local.excerpt,
+      description: local.description,
+      category: local.category,
+      tags: local.tags,
+      cover: local.cover,
+      preview: local.preview,
+      sort: local.sort,
+      liveUrl,
+    } : {
+      ...remote,
+      liveUrl,
     });
   });
 
