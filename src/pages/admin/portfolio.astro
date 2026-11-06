@@ -1,41 +1,166 @@
 ---
+export const prerender = false;
 import AdminLayout from '../../layouts/AdminLayout.astro';
-import EntityAdmin from '../../components/admin/EntityAdmin.astro';
+import { listAdminPortfolio, dbAvailable } from '../../lib/cms-db';
+import localPortfolio from '../../data/content/portfolio.json';
 
-const config = {
-  entity: 'projects',
-  title: 'نمونه‌کارها',
-  help: 'پروژه‌های نمایشی سایت. برچسب‌ها به‌شکل فیلتر در صفحهٔ نمونه‌کارها ظاهر می‌شوند.',
-  columns: [
-    { key: 'cover_image', label: 'تصویر', type: 'thumb' },
-    { key: 'title', label: 'عنوان' },
-    { key: 'category', label: 'دسته' },
-    { key: 'status', label: 'وضعیت', type: 'badge' },
-    { key: 'sort_order', label: 'ترتیب', type: 'num' },
-  ],
-  fields: [
-    { key: 'title', label: 'عنوان پروژه', type: 'text', required: true },
-    { key: 'slug', label: 'اسلاگ', type: 'text' },
-    { key: 'category', label: 'دستهٔ نمایش', type: 'text', hint: 'مثلاً فروشگاهی، شرکتی، هوش مصنوعی' },
-    { key: 'summary', label: 'توضیح کوتاه', type: 'textarea', full: true },
-    { key: 'content', label: 'شرح پروژه', type: 'editor' },
-    { key: 'cover_image', label: 'تصویر کاور', type: 'image' },
-    { key: 'gallery', label: 'گالری تصاویر پروژه', type: 'gallery', hint: 'تصاویر بیشتر برای صفحهٔ پروژه؛ هر تصویر جداگانه انتخاب یا با آدرس اضافه می‌شود' },
-    { key: 'tags', label: 'برچسب‌ها', type: 'lines', hint: 'هر برچسب در یک خط' },
-    { key: 'url', label: 'لینک پروژه (در صورت وجود)', type: 'text' },
-    { key: 'note', label: 'یادداشت شفافیت', type: 'text', hint: 'مثلاً: نمونه مفهومی ساختهٔ خود ما' },
-    { key: 'status', label: 'وضعیت', type: 'select', options: ['published', 'draft'], labels: ['منتشرشده', 'پیش‌نویس'] },
-    { key: 'sort_order', label: 'ترتیب', type: 'number' },
-    { key: 'seo_title', label: 'عنوان سئو', type: 'text' },
-    { key: 'seo_description', label: 'توضیح سئو', type: 'textarea' },
-    { key: 'canonical_url', label: 'Canonical URL', type: 'text' },
-    { key: 'og_title', label: 'عنوان اشتراک‌گذاری (OG Title)', type: 'text' },
-    { key: 'og_description', label: 'توضیح اشتراک‌گذاری (OG Description)', type: 'textarea' },
-    { key: 'og_image', label: 'تصویر اشتراک‌گذاری', type: 'image' },
-    { key: 'noindex', label: 'Noindex', type: 'checkbox' },
-  ],
-};
+const useDb = dbAvailable();
+let rows: Array<Record<string, unknown>> = [];
+if (useDb) {
+  try {
+    rows = (await listAdminPortfolio()) as unknown as Array<Record<string, unknown>>;
+  } catch { /* no db */ }
+}
+if (!rows.length) rows = localPortfolio as unknown as Array<Record<string, unknown>>;
+const statusFa: Record<string, string> = { published: 'نسخه زنده', conceptual: 'نمونه مفهومی', soon: 'به‌زودی' };
 ---
-<AdminLayout title="نمونه‌کارها" crumb="بخش‌های سایت › نمونه‌کارها">
-  <EntityAdmin config={config} />
+<AdminLayout title="پنل مدیریت کافه دانش">
+  <div class="admin-body">
+    <div class="admin-shell">
+      <aside class="admin-side">
+        <div style="display:flex;align-items:center;gap:10px">
+          <img src="/img/logo.svg" alt="" width="38" height="38" style="border-radius:10px" />
+          <div><b style="color:#fff;display:block">کافه دانش</b><small style="opacity:.7">پنل مدیریت</small></div>
+        </div>
+        <nav class="admin-side__nav" aria-label="منوی مدیریت">
+          <a href="/admin">🏠 داشبورد</a>
+          <a href="/admin/posts">📝 مقالات</a>
+          <a href="/admin/portfolio" class="is-active">🎨 نمونه‌کارها</a>
+          <a href="/admin/messages">💬 پیام‌ها</a>
+          <a href="/" target="_blank">🌍 مشاهده سایت</a>
+        </nav>
+      </aside>
+
+      <main class="admin-main">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+          <h1 style="margin:0">مدیریت نمونه‌کارها</h1>
+          <button type="button" class="btn btn--sm" data-new-item>+ نمونه‌کار جدید</button>
+        </div>
+
+        <div style="overflow-x:auto;margin-top:20px">
+          <table class="admin-table">
+            <thead>
+              <tr><th>عنوان</th><th>دسته</th><th>وضعیت انتشار</th><th>نسخه زنده</th><th>عملیات</th></tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr>
+                  <td><b>{String(r.title ?? '')}</b><br /><small style="color:var(--mut)" dir="ltr">/{String(r.slug ?? '')}</small></td>
+                  <td>{String(r.category ?? '—')}</td>
+                  <td><span class:list={['badge', r.status === 'published' ? 'badge--ok' : 'badge--soon']}>{statusFa[String(r.status)] ?? String(r.status)}</span></td>
+                  <td>
+                    {r.liveUrl || r.live_url
+                      ? <a href={String(r.liveUrl || r.live_url)} target="_blank" rel="noopener" dir="ltr" style="font-size:.78rem">{String(r.liveUrl || r.live_url).slice(0, 34)}…</a>
+                      : <span style="color:var(--mut)">—</span>}
+                  </td>
+                  <td>
+                    <div class="admin-actions">
+                      <a href={`/portfolio/${r.slug}`} target="_blank">مشاهده</a>
+                      <button type="button" data-edit={JSON.stringify(r)}>ویرایش</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {useDb ? (
+          <div class="admin-card" style="margin-top:24px">
+            <h2 style="font-size:1.05rem" data-form-title>ویرایشگر نمونه‌کار</h2>
+            <form id="pf-form" style="display:grid;gap:12px;margin-top:14px">
+              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px" class="form-grid">
+                <div class="field"><label>اسلاگ (انگلیسی)</label><input name="slug" required dir="ltr" /></div>
+                <div class="field"><label>عنوان</label><input name="title" required /></div>
+                <div class="field"><label>دسته</label><input name="category" value="وب‌سایت" /></div>
+                <div class="field"><label>وضعیت</label>
+                  <select name="status">
+                    <option value="published">نسخه زنده منتشر شده</option>
+                    <option value="conceptual">نمونه مفهومی</option>
+                    <option value="soon">در انتظار انتشار</option>
+                  </select>
+                </div>
+                <div class="field field--full"><label>لینک نسخه زنده</label><input name="live_url" dir="ltr" placeholder="https://..." /></div>
+                <div class="field field--full"><label>توضیح کوتاه</label><input name="excerpt" /></div>
+                <div class="field field--full"><label>برچسب‌ها (با ویرگول)</label><input name="tags" placeholder="فروشگاهی, طراحی اختصاصی" /></div>
+                <div class="field"><label>ترتیب نمایش</label><input name="sort_order" type="number" value="100" /></div>
+                <div class="field field--full"><label>پیش‌نمایش (مسیر WebP)</label><input name="preview_webp" dir="ltr" placeholder="/img/pf/..." /></div>
+                <div class="field field--full"><label>توضیح کامل</label><textarea name="description" style="min-height:120px"></textarea></div>
+              </div>
+              <label style="display:flex;gap:8px;align-items:center;font-weight:700;font-size:.92rem">
+                <input type="checkbox" name="published" checked /> نمایش در سایت
+              </label>
+              <div style="display:flex;gap:10px">
+                <button type="submit" class="btn btn--sm">ذخیره</button>
+                <button type="button" class="btn btn--sm btn--outline" data-delete>حذف</button>
+              </div>
+              <p class="form-status" role="status"></p>
+            </form>
+          </div>
+        ) : (
+          <p class="form-status is-err" style="display:flex;margin-top:20px">
+            برای ویرایش نمونه‌کارها، DATABASE_URL را تنظیم کنید. فهرست بالا از داده‌های محلی است.
+          </p>
+        )}
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('pf-form') as HTMLFormElement | null;
+    const status = form?.querySelector('.form-status') as HTMLElement;
+    const title = document.querySelector('[data-form-title]') as HTMLElement;
+    document.querySelectorAll('[data-edit]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const r = JSON.parse((btn as HTMLElement).dataset.edit || '{}');
+        if (!form) return;
+        (form.querySelector('[name=slug]') as HTMLInputElement).value = String(r.slug ?? '');
+        (form.querySelector('[name=title]') as HTMLInputElement).value = String(r.title ?? '');
+        (form.querySelector('[name=category]') as HTMLInputElement).value = String(r.category ?? '');
+        (form.querySelector('[name=status]') as HTMLSelectElement).value = String(r.status ?? 'soon');
+        (form.querySelector('[name=live_url]') as HTMLInputElement).value = String(r.liveUrl ?? r.live_url ?? '');
+        (form.querySelector('[name=excerpt]') as HTMLInputElement).value = String(r.excerpt ?? '');
+        (form.querySelector('[name=tags]') as HTMLInputElement).value = Array.isArray(r.tags) ? r.tags.join(', ') : '';
+        (form.querySelector('[name=sort_order]') as HTMLInputElement).value = String(r.sort ?? r.sort_order ?? 100);
+        (form.querySelector('[name=preview_webp]') as HTMLInputElement).value = String(r.preview ?? r.preview_webp ?? '');
+        (form.querySelector('[name=description]') as HTMLTextAreaElement).value = String(r.description ?? '');
+        title.textContent = `ویرایش: ${r.title ?? ''}`;
+        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+    document.querySelector('[data-new-item]')?.addEventListener('click', () => {
+      if (!form) return;
+      form.reset();
+      title.textContent = 'نمونه‌کار جدید';
+    });
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(form).entries()) as Record<string, unknown>;
+      data.published = (form.querySelector('[name=published]') as HTMLInputElement).checked;
+      data.tags = String(data.tags || '').split(',').map((s) => s.trim()).filter(Boolean);
+      try {
+        const res = await fetch('/api/admin/portfolio', {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+        });
+        const j = await res.json();
+        if (res.ok && j.ok) { status.className = 'form-status is-ok'; status.textContent = 'ذخیره شد ✅'; }
+        else { status.className = 'form-status is-err'; status.textContent = j.error || 'ذخیره ناموفق'; }
+      } catch {
+        status.className = 'form-status is-err'; status.textContent = 'ارتباط با سرور برقرار نشد';
+      }
+    });
+    document.querySelector('[data-delete]')?.addEventListener('click', async () => {
+      if (!form) return;
+      const slug = (form.querySelector('[name=slug]') as HTMLInputElement).value;
+      if (!slug || !confirm(`نمونه‌کار «${slug}» حذف شود؟`)) return;
+      const res = await fetch('/api/admin/portfolio', {
+        method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug }),
+      });
+      const j = await res.json();
+      if (status) {
+        status.className = 'form-status ' + (j.ok ? 'is-ok' : 'is-err');
+        status.textContent = j.ok ? 'حذف شد' : (j.error || 'حذف ناموفق');
+      }
+    });
+  </script>
 </AdminLayout>

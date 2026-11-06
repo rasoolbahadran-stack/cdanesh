@@ -1,211 +1,83 @@
 ---
-/* صندوق ورودی پیام‌ها — ستاره، یادداشت داخلی، وضعیت، فیلتر، خروجی CSV */
+export const prerender = false;
 import AdminLayout from '../../layouts/AdminLayout.astro';
-import { q } from '../../lib/db';
-import { faNum } from '../../lib/persian';
+import { listMessages, dbAvailable } from '../../lib/cms-db';
 
-const messages = await q(`SELECT * FROM messages ORDER BY created_at DESC LIMIT 500`);
-const newCount = messages.filter((m) => m.status === 'new').length;
-const typeLabel: Record<string, string> = { contact: 'پیام تماس', consult: 'درخواست مشاوره', plan: 'درخواست پکیج' };
-const faDate = (v: unknown) => {
-  try { return new Intl.DateTimeFormat('fa-IR-u-ca-persian', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(String(v))); }
-  catch { return '—'; }
-};
+const useDb = dbAvailable();
+let rows: Array<Record<string, unknown>> = [];
+if (useDb) {
+  try {
+    rows = (await listMessages()) as unknown as Array<Record<string, unknown>>;
+  } catch { /* no db */ }
+}
+const fa = (n: number | string) => new Intl.NumberFormat('fa-IR').format(Number(n));
+const kindFa: Record<string, string> = { contact: 'تماس', consult: 'مشاوره' };
 ---
-<AdminLayout title="پیام‌ها و درخواست‌های مشاوره" crumb="ارتباط › صندوق ورودی" newMessages={newCount}>
-  <div class="info-strip">
-    <span>ℹ️</span>
-    <span>پیام‌های فرم‌های تماس و مشاورهٔ سایت این‌جا جمع می‌شوند؛ وضعیت هر درخواست را مدیریت کنید و برای پیگیری، یادداشت داخلی ثبت کنید.</span>
-  </div>
-
-  <div class="panel">
-    <div class="panel-head">
-      <h2>📥 صندوق ورودی</h2>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <input type="search" id="msg-search" placeholder="جست‌وجو در نام، تلفن، ایمیل، متن…" style="border:1.5px solid var(--a-line);border-radius:10px;padding:7px 14px;font-family:inherit;font-size:12.5px;min-width:210px" />
-        <select id="msg-type" style="border:1.5px solid var(--a-line);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:12.5px">
-          <option value="">همهٔ انواع</option>
-          <option value="contact">پیام تماس</option>
-          <option value="consult">درخواست مشاوره</option>
-          <option value="plan">درخواست پکیج</option>
-        </select>
-        <select id="msg-status" style="border:1.5px solid var(--a-line);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:12.5px">
-          <option value="">همهٔ وضعیت‌ها</option>
-          <option value="new">جدید</option>
-          <option value="read">خوانده‌شده</option>
-          <option value="replied">پاسخ‌داده</option>
-          <option value="archived">بایگانی</option>
-        </select>
-        <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600">
-          <input type="checkbox" id="msg-starred" style="width:16px;height:16px" /> فقط مهم‌ها ⭐
-        </label>
-        <a class="btn btn-ghost btn-sm" href="/api/admin/messages-csv" download>⬇ خروجی CSV</a>
-      </div>
-    </div>
-    <div style="padding:8px 16px;font-size:12.5px;color:var(--a-muted)" id="msg-summary">{faNum(messages.length)} پیام — {faNum(newCount)} جدید</div>
-    <div class="table-scroll">
-      <table class="admin-table" id="msg-table" style="min-width:860px">
-        <thead>
-          <tr><th style="width:36px">⭐</th><th>فرستنده</th><th>نوع</th><th>متن پیام</th><th>یادداشت داخلی</th><th>تاریخ</th><th>وضعیت</th><th style="width:190px">عملیات</th></tr>
-        </thead>
-        <tbody>
-          {messages.length === 0 ? (
-            <tr><td colspan="8" class="empty-state"><div class="big">📭</div>هنوز پیامی دریافت نشده است؛ فرم‌های تماس و مشاوره همین‌جا جمع می‌شوند.</td></tr>
-          ) : (
-            messages.map((m) => (
-              <tr data-id={m.id} data-row={JSON.stringify({ name: m.name, email: m.email, phone: m.phone, company: m.company, message: m.message, type: m.type, status: m.status, plan_title: m.plan_title, admin_note: m.admin_note, starred: !!m.starred, created_at: m.created_at })}>
-                <td><button class="btn btn-ghost btn-icon msg-star" title="مهم / غیرمهم" style={m.starred ? 'color:#d97706' : ''}>{m.starred ? '★' : '☆'}</button></td>
-                <td class="row-title">
-                  <b>{m.name}</b>
-                  {m.phone ? <small dir="ltr">{m.phone}</small> : null}
-                  {m.email ? <small dir="ltr">{m.email}</small> : null}
-                  {m.company ? <small>{m.company}</small> : null}
-                </td>
-                <td><span class="badge badge-gold">{typeLabel[String(m.type)] || m.type}</span>{m.plan_title ? <div style="font-size:11px;color:var(--a-muted);margin-top:4px">{m.plan_title}</div> : null}</td>
-                <td style="max-width:250px;font-size:12.5px">{m.message}</td>
-                <td style="max-width:180px;font-size:12px;color:var(--a-muted)" class="msg-note-cell">{m.admin_note || '—'}</td>
-                <td style="font-size:11.5px;white-space:nowrap">{faDate(m.created_at)}</td>
-                <td><span class={`msg-status badge ${m.status === 'new' ? 'badge-new' : m.status === 'read' ? 'badge-gold' : m.status === 'replied' ? 'badge-pub' : 'badge-arch'}`}>{m.status === 'new' ? 'جدید' : m.status === 'read' ? 'خوانده‌شده' : m.status === 'replied' ? 'پاسخ‌داده' : 'بایگانی'}</span></td>
-                <td>
-                  <div style="display:flex;gap:5px;flex-wrap:wrap">
-                    <button class="btn btn-ghost btn-sm" data-status="read" title="خوانده‌شده">👁</button>
-                    <button class="btn btn-ghost btn-sm" data-status="replied" title="پاسخ‌داده">✓</button>
-                    <button class="btn btn-ghost btn-sm" data-status="archived" title="بایگانی">📦</button>
-                    <button class="btn btn-ghost btn-sm" data-detail title="مشاهده و یادداشت">📋</button>
-                    <button class="btn btn-danger btn-sm" data-del title="حذف">🗑</button>
-                  </div>
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  {/* مودال جزئیات + یادداشت */}
-  <div class="modal-scrim" id="msg-modal">
-    <div class="modal" style="width:min(620px,100%)">
-      <div class="modal-head"><h3>جزئیات پیام</h3><button class="btn btn-ghost btn-sm" data-close>بستن ✕</button></div>
-      <div class="modal-body">
-        <div id="msg-detail" style="display:grid;gap:10px;font-size:13.5px"></div>
-        <div style="margin-top:16px">
-          <label style="font-weight:700;font-size:13px">یادداشت داخلی برای پیگیری</label>
-          <textarea id="msg-note" rows="4" style="width:100%;margin-top:6px;border:1.5px solid var(--a-line);border-radius:10px;padding:10px 14px;font-family:inherit;font-size:13px" placeholder="مثلاً: تماس گرفته شد، منتظر جواب ایمیل…"></textarea>
-          <div style="display:flex;gap:10px;margin-top:10px;align-items:center">
-            <button class="btn btn-gold btn-sm" id="msg-note-save">ذخیرهٔ یادداشت</button>
-            <span id="msg-note-status" style="font-size:12px;color:var(--a-muted)"></span>
-          </div>
+<AdminLayout title="پنل مدیریت کافه دانش">
+  <div class="admin-body">
+    <div class="admin-shell">
+      <aside class="admin-side">
+        <div style="display:flex;align-items:center;gap:10px">
+          <img src="/img/logo.svg" alt="" width="38" height="38" style="border-radius:10px" />
+          <div><b style="color:#fff;display:block">کافه دانش</b><small style="opacity:.7">پنل مدیریت</small></div>
         </div>
-      </div>
+        <nav class="admin-side__nav" aria-label="منوی مدیریت">
+          <a href="/admin">🏠 داشبورد</a>
+          <a href="/admin/posts">📝 مقالات</a>
+          <a href="/admin/portfolio">🎨 نمونه‌کارها</a>
+          <a href="/admin/messages" class="is-active">💬 پیام‌ها</a>
+          <a href="/" target="_blank">🌍 مشاهده سایت</a>
+        </nav>
+      </aside>
+
+      <main class="admin-main">
+        <h1 style="margin:0 0 6px">صندوق پیام‌ها</h1>
+        <p style="color:var(--mut)">پیام‌های فرم تماس و درخواست مشاوره</p>
+
+        {rows.length ? (
+          <div style="display:grid;gap:14px;margin-top:20px">
+            {rows.map((m) => (
+              <article class="admin-card" style:border-right={m.is_read ? 'none' : '4px solid var(--pink)'}>
+                <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center">
+                  <div>
+                    <b>{String(m.name ?? '')}</b>
+                    <span class="badge" style="margin-inline-start:8px;background:var(--lavender);color:var(--purple)">{kindFa[String(m.kind)] ?? String(m.kind)}</span>
+                    {m.is_read ? '' : <span class="badge badge--draft" style="margin-inline-start:6px">جدید</span>}
+                  </div>
+                  <small style="color:var(--mut)" dir="ltr">{String(m.created_at ?? '').slice(0, 16)}</small>
+                </div>
+                <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:.9rem">
+                  {m.phone ? <span dir="ltr">📞 {String(m.phone)}</span> : ''}
+                  {m.email ? <span dir="ltr">✉️ {String(m.email)}</span> : ''}
+                  {m.service ? <span>🧩 {String(m.service)}</span> : ''}
+                </div>
+                {m.message ? <p style="margin:10px 0 0;font-size:.92rem;color:var(--body)">{String(m.message)}</p> : ''}
+                {!m.is_read && (
+                  <button type="button" class="btn btn--sm btn--outline" style="margin-top:12px" data-mark-read={String(m.id)}>علامت‌گذاری به‌عنوان خوانده‌شده</button>
+                )}
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div class="admin-card" style="margin-top:20px">
+            {useDb
+              ? <p style="margin:0;color:var(--mut)">هنوز پیامی ثبت نشده است.</p>
+              : <p style="margin:0;color:var(--mut)">برای مشاهده پیام‌ها، DATABASE_URL را تنظیم کنید. پیام‌های فرم‌ها در حالت بدون دیتابیس در لاگ سرور ثبت می‌شوند.</p>}
+          </div>
+        )}
+      </main>
     </div>
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const { api, toast, confirmDlg, faNum } = window.CDA;
-      const modal = document.getElementById('msg-modal')!;
-      let currentId: string | null = null;
-      let allRows: HTMLElement[] = Array.from(document.querySelectorAll('#msg-table tr[data-id]'));
-
-      const applyFilters = () => {
-        const q = (document.getElementById('msg-search') as HTMLInputElement).value.trim().toLowerCase();
-        const t = (document.getElementById('msg-type') as HTMLSelectElement).value;
-        const s = (document.getElementById('msg-status') as HTMLSelectElement).value;
-        const starOnly = (document.getElementById('msg-starred') as HTMLInputElement).checked;
-        let visible = 0;
-        allRows.forEach((tr) => {
-          const d = JSON.parse(tr.dataset.row || '{}');
-          const hay = [d.name, d.email, d.phone, d.company, d.message, d.plan_title].join(' ').toLowerCase();
-          const ok = (!q || hay.includes(q)) && (!t || d.type === t) && (!s || d.status === s) && (!starOnly || d.starred);
-          (tr as HTMLElement).style.display = ok ? '' : 'none';
-          if (ok) visible++;
+    document.querySelectorAll('[data-mark-read]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = (btn as HTMLElement).dataset.markRead;
+        const res = await fetch('/api/admin/messages', {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }),
         });
-        document.getElementById('msg-summary')!.textContent = visible + ' پیام نمایش داده‌شده';
-      };
-      ['msg-search', 'msg-type', 'msg-status', 'msg-starred'].forEach((id) => {
-        const el = document.getElementById(id);
-        el!.addEventListener('input', applyFilters);
-        el!.addEventListener('change', applyFilters);
+        if (res.ok) window.location.reload();
       });
-
-      allRows.forEach((tr) => {
-        const id = tr.dataset.id!;
-        const row = () => JSON.parse(tr.dataset.row || '{}');
-
-        tr.querySelector('.msg-star')!.addEventListener('click', async function (this: HTMLButtonElement) {
-          const d = row();
-          const next = !d.starred;
-          const r = await api(`/api/admin/messages/${id}`, 'PATCH', { starred: next });
-          if (r.ok) {
-            d.starred = next;
-            tr.dataset.row = JSON.stringify(d);
-            this.textContent = next ? '★' : '☆';
-            this.style.color = next ? '#d97706' : '';
-            toast(next ? 'پیام مهم علامت‌گذاری شد' : 'علامت مهم برداشته شد');
-          } else toast(r.message || 'عملیات ناموفق بود', 'err');
-        });
-
-        tr.querySelectorAll('[data-status]').forEach((btn) => {
-          btn.addEventListener('click', async () => {
-            const r = await api(`/api/admin/messages/${id}`, 'PATCH', { status: (btn as HTMLElement).dataset.status });
-            if (r.ok) { toast(r.message || 'ثبت شد'); setTimeout(() => window.location.reload(), 600); }
-            else toast(r.message || 'عملیات ناموفق بود', 'err');
-          });
-        });
-
-        tr.querySelector('[data-detail]')!.addEventListener('click', () => {
-          currentId = id;
-          const d = row();
-          const typeLabel: Record<string, string> = { contact: 'پیام تماس', consult: 'درخواست مشاوره', plan: 'درخواست پکیج' };
-          const statusLabel: Record<string, string> = { new: 'جدید', read: 'خوانده‌شده', replied: 'پاسخ‌داده', archived: 'بایگانی' };
-          const detail = document.getElementById('msg-detail')!;
-          detail.innerHTML = `
-            <div><b>فرستنده:</b> ${d.name || '—'}</div>
-            <div><b>نوع:</b> ${typeLabel[d.type] || d.type}${d.plan_title ? ' — ' + d.plan_title : ''}</div>
-            <div><b>تماس:</b> <span dir="ltr">${d.phone || '—'}</span>${d.email ? ' | <span dir="ltr">' + d.email + '</span>' : ''}${d.company ? ' | ' + d.company : ''}</div>
-            <div><b>تاریخ:</b> ${d.created_at ? new Date(d.created_at).toLocaleString('fa-IR') : '—'}</div>
-            <div><b>وضعیت فعلی:</b> ${statusLabel[d.status] || d.status}</div>
-            <div style="background:rgba(255,255,255,.6);border:1px solid var(--a-line);border-radius:10px;padding:12px 14px;line-height:1.9"><b>متن پیام:</b><br/>${(d.message || '—').replace(/</g, '&lt;')}</div>`;
-          (document.getElementById('msg-note') as HTMLTextAreaElement).value = d.admin_note || '';
-          document.getElementById('msg-note-status')!.textContent = '';
-          modal.classList.add('open');
-        });
-
-        tr.querySelector('[data-del]')!.addEventListener('click', () => {
-          confirmDlg('این پیام برای همیشه حذف شود؟', async () => {
-            const r = await api(`/api/admin/messages/${id}`, 'DELETE');
-            if (r.ok) { toast(r.message || 'حذف شد'); setTimeout(() => window.location.reload(), 600); }
-            else toast(r.message || 'حذف ناموفق بود', 'err');
-          });
-        });
-      });
-
-      document.getElementById('msg-note-save')!.addEventListener('click', async () => {
-        if (!currentId) return;
-        const note = (document.getElementById('msg-note') as HTMLTextAreaElement).value;
-        const r = await api(`/api/admin/messages/${currentId}`, 'PATCH', { admin_note: note });
-        const st = document.getElementById('msg-note-status')!;
-        if (r.ok) {
-          st.textContent = '✓ ذخیره شد';
-          st.style.color = 'var(--a-green)';
-          const tr = allRows.find((t) => t.dataset.id === currentId);
-          if (tr) {
-            const d = JSON.parse(tr.dataset.row || '{}');
-            d.admin_note = note;
-            tr.dataset.row = JSON.stringify(d);
-            const cell = tr.querySelector('.msg-note-cell')!;
-            cell.textContent = note || '—';
-          }
-          toast('یادداشت ذخیره شد');
-        } else {
-          st.textContent = '✕ ذخیره نشد: ' + (r.message || '');
-          st.style.color = 'var(--a-red)';
-        }
-      });
-
-      modal.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => modal.classList.remove('open')));
-      modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
     });
   </script>
 </AdminLayout>

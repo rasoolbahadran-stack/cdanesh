@@ -1,66 +1,40 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
-import Icon from '../components/Icon.astro';
-import { q } from '../lib/db';
+import { getFaq } from '../lib/content';
+import { jsonLdFaq, jsonLdBreadcrumb } from '../lib/seo';
 
-const faqs = await q(`SELECT question, answer FROM faqs WHERE status='published' ORDER BY sort_order`);
+const faq = getFaq();
+const fa = (n: number) => new Intl.NumberFormat('fa-IR').format(n);
 
-const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: faqs.map((f) => ({
-    '@type': 'Question',
-    name: String(f.question),
-    acceptedAnswer: { '@type': 'Answer', text: String(f.answer) },
-  })),
+const meta = {
+  title: 'سؤالات متداول | کافه دانش',
+  description: 'پاسخ شفاف به سؤالات پرتکرار درباره طراحی سایت، هزینه، زمان اجرا، سئو، هوش مصنوعی و مالکیت کد در کافه دانش.',
+  path: '/faq',
 };
 ---
-<BaseLayout
-  title="سؤالات متداول | کافه دانش"
-  description="پاسخ سؤالات رایج درباره طراحی سایت، هزینه، زمان تحویل، سئو، هوش مصنوعی و مالکیت کد در کافه دانش."
-  activePath="/faq"
-  schema={[faqSchema]}
->
-  <PageHero
-    title="سؤالات متداول"
-    sub="هرچیزی که قبل از شروع پروژه بهتر است بدانید — شفاف و بدون ابهام."
-    crumbs={[{ label: 'سؤالات متداول', href: '' }]}
-  />
+<BaseLayout meta={meta} current="/faq" extraJsonLd={[jsonLdFaq(faq), jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'سؤالات متداول', url: '/faq' }])]}>
+  <PageHero title="سؤالات متداول" sub={`${fa(faq.length)} پاسخ شفاف و بدون ابهام درباره روند کار، هزینه‌ها و همکاری با کافه‌دانش.`} crumbs={[{ label: 'خانه', href: '/' }, { label: 'سؤالات متداول' }]} />
 
-  <section class="section pad-half">
+  <section class="section">
     <div class="container">
       <div class="faq-wrap">
-        {
-          faqs.map((f, i) => (
-            <div class:list={["faq-item", { "is-open": i === 0 }]} data-accordion-item data-reveal="up" data-delay={String((i % 4) * 50)}>
-              <button class="faq-item__btn" type="button" data-accordion-btn aria-expanded={i === 0 ? 'true' : 'false'}>
-                {String(f.question)}
-                <span class="faq-item__sign">
-                  <Icon name="plus" size={15} stroke={2.6} />
-                </span>
-              </button>
-              <div class="faq-item__panel" data-accordion-panel aria-hidden={i === 0 ? 'false' : 'true'}>
-                <div class="faq-item__panel-inner">{String(f.answer)}</div>
-              </div>
+        {faq.map((f, i) => (
+          <div class:list={['faq-item', { 'is-open': i === 0 }]} data-accordion-item data-reveal="up" data-delay={String(i * 60)}>
+            <button class="faq-item__btn" type="button" data-accordion-btn aria-expanded={i === 0 ? 'true' : 'false'}>
+              {f.q}
+              <span class="faq-item__sign" aria-hidden="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+              </span>
+            </button>
+            <div class="faq-item__panel" data-accordion-panel aria-hidden={i === 0 ? 'false' : 'true'}>
+              <div class="faq-item__panel-inner">{f.a}</div>
             </div>
-          ))
-        }
+          </div>
+        ))}
       </div>
-    </div>
-  </section>
-
-  <section class="section pad-half bg-lavender">
-    <div class="container">
-      <div class="cta-band" data-reveal="zoom">
-        <span class="cta-band__deco cta-band__deco--1" aria-hidden="true"></span>
-        <span class="cta-band__deco cta-band__deco--2" aria-hidden="true"></span>
-        <h2>سؤال دیگری دارید؟</h2>
-        <p>از طریق فرم مشاوره بپرسید؛ در ساعات کاری پاسخ می‌دهیم.</p>
-        <div class="cta-band__btns">
-          <a href="/consult" class="btn btn--white btn--lg">درخواست مشاوره رایگان</a>
-          <a href="/contact" class="btn btn--ghost-light">تماس با ما</a>
-        </div>
+      <div style="text-align:center;margin-top:34px" data-reveal="up">
+        <p style="color:var(--mut)">سؤال دیگری دارید؟ از طریق <a href="/consult">فرم مشاوره</a> بپرسید؛ در ساعات کاری پاسخ می‌دهیم.</p>
       </div>
     </div>
   </section>

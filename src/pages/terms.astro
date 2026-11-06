@@ -1,22 +1,18 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
-import { q } from '../lib/db';
+import Blocks from '../components/Blocks.astro';
+import { getPage } from '../lib/content';
+import { jsonLdBreadcrumb } from '../lib/seo';
 
-const page = await q(`SELECT * FROM pages WHERE system_key='terms' AND status='published'`).then((r) => r[0] ?? null);
-if (!page) return Astro.redirect('/404', 302);
+const page = getPage('terms')!;
+const bodyBlocks = page.blocks.filter((b) => b.t !== 'h1');
+
+const meta = { title: 'شرایط استفاده | کافه دانش', description: page.meta, path: '/terms' };
 ---
-<BaseLayout
-  title={String(page.seo_title) || String(page.title)}
-  description={String(page.seo_description) || String(page.excerpt)}
-  activePath="/terms"
->
-  <PageHero title="شرایط استفاده" sub={String(page.excerpt)} crumbs={[{ label: 'شرایط استفاده', href: '' }]} />
-  <section class="section pad-half">
-    <div class="container">
-      <div class="article-body">
-        <div class="prose-fa" data-reveal="up" set:html={String(page.content)} />
-      </div>
-    </div>
+<BaseLayout meta={meta} current="/terms" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'شرایط استفاده', url: '/terms' }])]}>
+  <PageHero title="شرایط استفاده" sub="قواعد استفاده از خدمات و محتوای کافه دانش." crumbs={[{ label: 'خانه', href: '/' }, { label: 'شرایط استفاده' }]} />
+  <section class="section--tight">
+    <div class="container"><Blocks blocks={bodyBlocks} /></div>
   </section>
 </BaseLayout>

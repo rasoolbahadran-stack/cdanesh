@@ -1,76 +1,64 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
-import ContactForm from '../components/ContactForm.astro';
-import Icon from '../components/Icon.astro';
-import { q } from '../lib/db';
-import { getSiteSettings } from '../lib/seed';
+import FormBlock from '../components/FormBlock.astro';
+import { SITE } from '../lib/content';
+import { jsonLdBreadcrumb } from '../lib/seo';
 
-const page = await q(`SELECT * FROM pages WHERE system_key='contact' AND status='published'`).then((r) => r[0] ?? null);
-if (!page) return Astro.redirect('/404', 302);
-const settings = await getSiteSettings();
-const c = settings.contact;
-const phoneDigits = String(c.phone).replace(/\D/g, '');
-const phoneHref = phoneDigits.startsWith('0') ? `+98${phoneDigits.slice(1)}` : phoneDigits;
+const meta = {
+  title: 'تماس با ما | کافه دانش',
+  description: 'راه‌های ارتباط با استودیو دیجیتال کافه‌دانش: ایمیل، تلفن، فرم پیام و شبکه‌ها — بوشهر، خیابان شهید رجایی.',
+  path: '/contact',
+};
 ---
-<BaseLayout
-  title={String(page.seo_title) || String(page.title)}
-  description={String(page.seo_description) || String(page.excerpt)}
-  activePath="/contact"
->
+<BaseLayout meta={meta} current="/contact" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'تماس با ما', url: '/contact' }])]}>
   <PageHero
     title="تماس با ما"
-    sub={String(page.excerpt)}
+    sub="برای پرسش دربارهٔ خدمات، وضعیت پروژه یا درخواست جلسه، از هر کدام از راه‌های زیر راحت‌ترین را انتخاب کنید."
+    crumbs={[{ label: 'خانه', href: '/' }, { label: 'تماس با ما' }]}
   />
 
   <section class="section">
     <div class="container contact-grid">
-      {/* ستون فرم */}
-      <div data-reveal="right">
-        <span class="sub-title">
-          <Icon name="send" size={20} stroke={2} class="sub-ico" />
-          ارسال پیام
-        </span>
-        <h2 class="sec-title" style="font-size:clamp(23px,3vw,32px)">درخواست خود را ثبت کنید</h2>
-        <p class="sec-text mb-2">فیلدهای ستاره‌دار را تکمیل کنید تا بتوانیم برای پیگیری درخواست با شما تماس بگیریم.</p>
-        <ContactForm type="contact" />
-        {page.content ? <div class="prose-fa mt-3" data-reveal="up" set:html={String(page.content)} /> : null}
+      <div class="card" style="padding:clamp(22px,4vw,36px)">
+        <h2 style="font-size:1.3rem">درخواست خود را ثبت کنید</h2>
+        <p style="color:var(--mut);font-size:.94rem">فیلدهای ستاره‌دار را تکمیل کنید تا بتوانیم برای پیگیری درخواست با شما تماس بگیریم.</p>
+        <FormBlock kind="contact" />
       </div>
 
-      {/* ستون اطلاعات تماس */}
-      <aside data-reveal="left">
-        <div class="contact-side mb-2">
-          <h2>راه‌های ارتباط با کافه دانش</h2>
-          <p>برای پرسش درباره خدمات، پیگیری درخواست یا هماهنگی جلسه، از راه‌های ارتباطی زیر استفاده کنید.</p>
-          <ul class="contact-side__list">
-            <li>
-              <Icon name="phone" size={20} stroke={1.9} />
-              <a href={`tel:${phoneHref}`} dir="ltr">{c.phoneDisplay}</a>
+      <aside class="contact-aside">
+        <div class="card" style="padding:24px">
+          <h3 style="font-size:1.05rem">راه‌های ارتباطی</h3>
+          <ul style="list-style:none;padding:0;margin:14px 0 0;display:grid;gap:14px;font-size:.95rem">
+            <li style="display:flex;gap:11px;align-items:flex-start">
+              <span class="hero__chip-ico" style="flex:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2" /></svg></span>
+              <span><b>تلفن:</b> <a href={`tel:${SITE.phoneIntl}`} dir="ltr">{SITE.phoneFa}</a><br /><small style="color:var(--mut)">شنبه تا پنجشنبه، ۹ تا ۱۸</small></span>
             </li>
-            <li>
-              <Icon name="mail" size={20} stroke={1.9} />
-              <a href={`mailto:${c.email}`} dir="ltr">{c.email}</a>
+            <li style="display:flex;gap:11px;align-items:flex-start">
+              <span class="hero__chip-ico" style="flex:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5" /><path d="m4 7 8 6 8-6" /></svg></span>
+              <span><b>ایمیل:</b> <a href={`mailto:${SITE.email}`} dir="ltr">{SITE.email}</a></span>
             </li>
-            <li>
-              <Icon name="pin" size={20} stroke={1.9} />
-              <span>{c.address}</span>
-            </li>
-            <li>
-              <Icon name="clock" size={20} stroke={1.9} />
-              <span>{c.hours}</span>
+            <li style="display:flex;gap:11px;align-items:flex-start">
+              <span class="hero__chip-ico" style="flex:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z" /><circle cx="12" cy="10" r="2.6" /></svg></span>
+              <span><b>آدرس:</b> {SITE.address}</span>
             </li>
           </ul>
         </div>
 
-        <div class="service-cta" style="text-align:start">
-          <h2 style="font-size:19px">برای برآورد هزینه و زمان پروژه</h2>
-          <p>از فرم درخواست مشاوره استفاده کنید تا نیازهای پروژه را دقیق‌تر بررسی کنیم.</p>
-          <a href="/consult" class="btn btn--sm">
-            رفتن به فرم مشاوره
-            <Icon name="arrow-left" size={16} stroke={2.2} />
-          </a>
+        <div class="card" style="padding:24px">
+          <h3 style="font-size:1.05rem">قبل از تماس بهتر است آماده کنید</h3>
+          <p style="font-size:.92rem;color:var(--mut)">اگر پروژهٔ مشخصی در ذهن دارید، چند خط دربارهٔ آن بنویسید: کسب‌وکارتان چه می‌فروشد، سایت دارید یا نه و نتیجهٔ مطلوب چیست.</p>
+          <p style="font-size:.92rem;margin:0">اگر دنبال <b>درخواست پروژه</b> هستید، بهتر است از <a href="/consult">فرم درخواست مشاوره</a> استفاده کنید؛ آن فرم برای نیازسنجی دقیق‌تر طراحی شده است.</p>
         </div>
       </aside>
     </div>
   </section>
 </BaseLayout>
+
+<style is:global>
+  .contact-grid { display: grid; grid-template-columns: 1fr; gap: 30px; }
+  @media (min-width: 1000px) {
+    .contact-grid { grid-template-columns: 1.15fr .85fr; align-items: start; }
+    .contact-aside { position: sticky; top: 100px; display: grid; gap: 20px; }
+  }
+</style>
