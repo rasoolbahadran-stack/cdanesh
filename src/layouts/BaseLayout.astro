@@ -163,21 +163,22 @@ const extraLd = extraJsonLd.map((j) => JSON.stringify(j));
           };
           btn?.setAttribute('disabled', 'true');
           const data = Object.fromEntries(new FormData(form).entries());
+          if (typeof data.service === 'string' && !data.plan_title) data.plan_title = data.service;
           try {
             const res = await fetch(form.dataset.action || '/api/contact', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(data),
             });
-            if (res.ok) {
-              set('is-ok', 'درخواست شما ثبت شد؛ در ساعات کاری با شما تماس می‌گیریم. ✅');
-              form.reset();
-            } else {
-              throw new Error('bad status');
+            const payload = await res.json().catch(() => ({}));
+            if (!res.ok || payload.ok === false) {
+              set('is-err', payload.message || payload.error || 'ثبت درخواست انجام نشد. لطفاً اطلاعات را بررسی کنید.');
+              return;
             }
-          } catch {
-            set('is-ok', 'پیام شما ذخیره شد (حالت پیش‌نمایش). پس از اتصال دیتابیس، به پنل مدیریت منتقل می‌شود.');
+            set('is-ok', payload.message || 'درخواست شما با موفقیت ثبت شد. ✅');
             form.reset();
+          } catch {
+            set('is-err', 'ارتباط با سرور برقرار نشد. لطفاً چند لحظه بعد دوباره تلاش کنید.');
           } finally {
             btn?.removeAttribute('disabled');
           }
