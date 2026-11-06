@@ -7,19 +7,19 @@ import CtaBand from '../components/CtaBand.astro';
 import { getPortfolio } from '../lib/content';
 import { jsonLdBreadcrumb } from '../lib/seo';
 
-const items = await getPortfolio();
+const items = (await getPortfolio()).filter((item) => item.status === 'published');
 const categories = ['همه', ...new Set(items.map((i) => i.category))];
 
 const meta = {
   title: 'نمونه‌کارهای واقعی Astro | پروژه‌های کافه دانش',
-  description: 'مشاهده پروژه‌های واقعی کافه دانش با فریم‌ورک Astro؛ شامل فروشگاه‌های اینترنتی، وب‌سایت‌های شرکتی و سامانه‌های تحت وب.',
+  description: 'مشاهده وب‌سایت‌ها و سامانه‌های منتشرشده کافه دانش، همراه پیش‌نمایش پروژه و پیوند مشاهده نسخه آنلاین.',
   path: '/portfolio',
 };
 ---
 <BaseLayout meta={meta} current="/portfolio" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'نمونه‌کارها', url: '/portfolio' }])]}>
   <PageHero
     title="نمونه‌کارها"
-    sub="پروژه‌های منتشرشده با نسخهٔ زندهٔ واقعی روی Vercel، به‌همراه نمونه‌های مفهومیِ ساختهٔ خودمان — وضعیت انتشار هر پروژه روی کارت مشخص است."
+    sub="در این صفحه فقط پروژه‌هایی نمایش داده می‌شوند که نسخه آنلاین و منتشرشده دارند؛ برای آشنایی با هر پروژه، جزئیات آن را باز کنید."
     crumbs={[{ label: 'خانه', href: '/' }, { label: 'نمونه‌کارها' }]}
   />
 
