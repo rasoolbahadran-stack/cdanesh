@@ -1,16 +1,14 @@
 export const prerender = false;
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
-import { getSession } from '../../lib/auth';
-import { getPosts, dbAvailable } from '../../lib/db';
+import { listAdminPosts, dbAvailable } from '../../lib/cms-db';
 import localPosts from '../../data/content/posts.json';
 
-const session = await getSession(Astro.cookies);
 const useDb = dbAvailable();
 let rows: Array<Record<string, unknown>> = [];
 if (useDb) {
   try {
-    rows = (await getPosts()) as unknown as Array<Record<string, unknown>>;
+    rows = (await listAdminPosts()) as unknown as Array<Record<string, unknown>>;
   } catch { /* no db */ }
 }
 if (!rows.length) rows = localPosts as unknown as Array<Record<string, unknown>>;
