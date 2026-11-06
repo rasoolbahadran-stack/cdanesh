@@ -22,7 +22,7 @@ const meta = {
   title: `${item.title} | نمونه‌کار کافه دانش`,
   description: item.excerpt,
   path: `/portfolio/${item.slug}`,
-  image: item.cover,
+  image: item.cover || item.preview || undefined,
 };
 ---
 <BaseLayout meta={meta} current="/portfolio" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'نمونه‌کارها', url: '/portfolio' }, { name: item.title, url: meta.path }])]}>
