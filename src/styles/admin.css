@@ -52,7 +52,7 @@ body.admin-body img { max-width: 100%; display: block; }
 .login-creds b { direction: ltr; unicode-bidi: embed; }
 
 /* ---------- چیدمان ---------- */
-.admin-layout { display: grid; grid-template-columns: 252px minmax(0, 1fr); min-height: 100vh; transition: grid-template-columns .28s cubic-bezier(.22,.8,.35,1); }
+.admin-layout { display: grid; grid-template-columns: 224px minmax(0, 1fr); min-height: 100vh; transition: grid-template-columns .28s cubic-bezier(.22,.8,.35,1); }
 .admin-layout.side-collapsed { grid-template-columns: 76px minmax(0, 1fr); }
 .admin-side { background: linear-gradient(180deg, #171940, #1e214e 70%); color: #a9aec7; padding: 20px 14px; display: flex; flex-direction: column; gap: 5px; position: sticky; top: 0; height: 100vh; overflow-y: auto; overflow-x: hidden; flex: none; }
 .admin-side .side-brand { display: flex; align-items: center; gap: 10px; padding: 6px 10px 18px; color: #fff; }
