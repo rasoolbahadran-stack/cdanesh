@@ -2,8 +2,14 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
 import FormBlock from '../components/FormBlock.astro';
-import { SITE } from '../lib/content';
+import { SITE, PRICING } from '../lib/content';
 import { jsonLdBreadcrumb } from '../lib/seo';
+
+const selectedPackageKey = Astro.url.searchParams.get('package');
+const selectedPackage = PRICING.find((item) => item.key === selectedPackageKey);
+const initialSubject = selectedPackage
+  ? `پرسش درباره پکیج ${selectedPackage.name} — ${selectedPackage.price}`
+  : '';
 
 const meta = {
   title: 'تماس با ما | کافه دانش',
@@ -23,7 +29,7 @@ const meta = {
       <div class="card" style="padding:clamp(22px,4vw,36px)">
         <h2 style="font-size:1.3rem">درخواست خود را ثبت کنید</h2>
         <p style="color:var(--mut);font-size:.94rem">فیلدهای ستاره‌دار را تکمیل کنید تا بتوانیم برای پیگیری درخواست با شما تماس بگیریم.</p>
-        <FormBlock kind="contact" />
+        <FormBlock kind="contact" initialSubject={initialSubject} />
       </div>
 
       <aside class="contact-aside">
