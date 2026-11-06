@@ -3,8 +3,9 @@
 interface Props {
   kind: 'contact' | 'consult';
   withService?: boolean;
+  initialSubject?: string;
 }
-const { kind, withService = kind === 'consult' } = Astro.props;
+const { kind, withService = kind === 'consult', initialSubject = '' } = Astro.props;
 const action = kind === 'contact' ? '/api/contact' : '/api/consult';
 const services = ['طراحی سایت', 'فروشگاه اینترنتی', 'سئو و بهینه‌سازی', 'تولید محتوا', 'هوش مصنوعی و اتوماسیون', 'پشتیبانی و نگهداری', 'سایر'];
 ---
@@ -31,7 +32,7 @@ const services = ['طراحی سایت', 'فروشگاه اینترنتی', 'س�
   ) : (
     <div class="field">
       <label for={`${kind}-subject`}>موضوع</label>
-      <input id={`${kind}-subject`} name="service" type="text" placeholder="درباره چه چیزی می‌خواهید صحبت کنیم؟" />
+      <input id={`${kind}-subject`} name="service" type="text" value={initialSubject} placeholder="درباره چه چیزی می‌خواهید صحبت کنیم؟" />
     </div>
   )}
   <div class="field field--full">
