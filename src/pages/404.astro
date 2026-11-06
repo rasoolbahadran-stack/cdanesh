@@ -1,21 +1,23 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Icon from '../components/Icon.astro';
+
+const meta = {
+  title: 'صفحه پیدا نشد | کافه دانش',
+  description: 'صفحه‌ای که دنبالش بودید در کافه دانش پیدا نشد.',
+  path: '/404',
+  noindex: true,
+};
 ---
-<BaseLayout title="صفحه پیدا نشد | کافه دانش" description="صفحه موردنظر شما در کافه دانش پیدا نشد؛ از لینک‌های زیر مسیر درست را پیدا کنید." noIndex={true}>
-  <section class="notfound">
-    <div class="container" style="max-width:620px">
-      <div class="notfound__code" data-reveal="zoom">۴۰۴</div>
-      <h1 data-reveal="up">این صفحه در کافه دانش پیدا نشد</h1>
-      <p data-reveal="up" data-delay="100">ممکن است آدرس را اشتباه وارد کرده باشید یا صفحه جابه‌جا شده باشد؛ از لینک‌های زیر ادامه دهید.</p>
-      <div class="notfound__btns" data-reveal="up" data-delay="200">
-        <a href="/" class="btn">
-          <Icon name="arrow-right" size={17} stroke={2.2} />
-          صفحه اصلی
-        </a>
-        <a href="/blog" class="btn btn--ghost">مجله</a>
-        <a href="/services" class="btn btn--ghost">خدمات</a>
-        <a href="/consult" class="btn btn--ghost">درخواست مشاوره</a>
+<BaseLayout meta={meta} current="">
+  <section class="section" style="min-height:62vh;display:grid;place-items:center;text-align:center">
+    <div class="container" style="max-width:560px">
+      <p style="font-size:clamp(4rem,12vw,7rem);font-weight:900;line-height:1;background:var(--grad-btn-hover);-webkit-background-clip:text;background-clip:text;color:transparent;margin:0">۴۰۴</p>
+      <h1 style="font-size:1.5rem">این صفحه در استودیو پیدا نشد</h1>
+      <p style="color:var(--mut)">آدرس تغییر کرده یا صفحه وجود ندارد. از مسیرهای زیر ادامه دهید:</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:22px">
+        <a href="/" class="btn">صفحه اصلی</a>
+        <a href="/portfolio" class="btn btn--outline">نمونه‌کارها</a>
+        <a href="/blog" class="btn btn--outline">مجله</a>
       </div>
     </div>
   </section>

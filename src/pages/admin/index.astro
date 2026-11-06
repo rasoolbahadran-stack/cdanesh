@@ -1,202 +1,77 @@
 ---
-/* داشبورد مدیریت — آمار کلی، وضعیت سیستم، فعالیت‌های اخیر، پیام‌های جدید، دسترسی سریع */
+export const prerender = false;
 import AdminLayout from '../../layouts/AdminLayout.astro';
-import { q } from '../../lib/db';
-import { relativeTimeFa, faNum } from '../../lib/persian';
-import { db } from '../../lib/db';
-import { storageKind } from '../../lib/storage';
-import { publishDueScheduled } from '../../lib/crud';
+import { adminStats } from '../../lib/cms-db';
 
-/* انتشار خودکار مقالات زمان‌بندی‌شده‌ای که زمانشان رسیده */
-const publishedNow = await publishDueScheduled();
-
-const count = async (sql: string, params: unknown[] = []) => {
-  const r = await q<{ c: number }>(sql, params);
-  return r[0]?.c ?? 0;
-};
-
-const [pagesTotal, postsTotal, postsPublished, postsDraft, postsScheduled, servicesTotal, servicesPublished, projectsTotal, projectsPublished, mediaTotal, msgsNew, msgsTotal, faqTotal, plansTotal, testimonialsTotal] = await Promise.all([
-  count(`SELECT count(*)::int AS c FROM pages`),
-  count(`SELECT count(*)::int AS c FROM posts`),
-  count(`SELECT count(*)::int AS c FROM posts WHERE status='published'`),
-  count(`SELECT count(*)::int AS c FROM posts WHERE status='draft'`),
-  count(`SELECT count(*)::int AS c FROM posts WHERE status='scheduled'`),
-  count(`SELECT count(*)::int AS c FROM services`),
-  count(`SELECT count(*)::int AS c FROM services WHERE status='published'`),
-  count(`SELECT count(*)::int AS c FROM projects`),
-  count(`SELECT count(*)::int AS c FROM projects WHERE status='published'`),
-  count(`SELECT count(*)::int AS c FROM media`),
-  count(`SELECT count(*)::int AS c FROM messages WHERE status='new'`),
-  count(`SELECT count(*)::int AS c FROM messages`),
-  count(`SELECT count(*)::int AS c FROM faqs`),
-  count(`SELECT count(*)::int AS c FROM plans`),
-  count(`SELECT count(*)::int AS c FROM testimonials`),
-]);
-
-const dbInfo = await db();
-const storage = storageKind();
-const recentMessages = await q(`SELECT id, name, type, plan_title, message, status, created_at FROM messages ORDER BY created_at DESC LIMIT 6`);
-const activity = await q(`SELECT type, title, created_at FROM activity ORDER BY created_at DESC LIMIT 8`);
-const recentPosts = await q(`SELECT id, title, slug, status, published_at, updated_at FROM posts ORDER BY updated_at DESC LIMIT 5`);
-
-const typeLabel: Record<string, string> = { contact: 'پیام تماس', consult: 'درخواست مشاوره', plan: 'درخواست پکیج' };
-const msgTypeLabel = (t: unknown) => typeLabel[String(t)] || String(t);
+const session = Astro.locals.admin;
+let stats = { posts: 0, portfolio: 0, messages: 0, unread: 0 };
+let dbOk = true;
+try {
+  stats = await adminStats();
+} catch {
+  dbOk = false;
+}
 ---
-<AdminLayout title="داشبورد مدیریت" crumb="کافه‌دانش › نمای کلی" newMessages={msgsNew}>
-  {publishedNow > 0 && (
-    <div class="info-strip" style="margin-bottom:12px;background:rgba(22,163,74,.08)">
-      <span>✅</span>
-      <span>{faNum(publishedNow)} مقالهٔ زمان‌بندی‌شده که زمانش رسیده بود، همین حالا به‌صورت خودکار منتشر شد.</span>
-    </div>
-  )}
-  <div class="stats-row">
-    <div class="stat-box">
-      <span class="stat-ico bg-gold">📄</span>
-      <div><b>{faNum(pagesTotal)}</b><span>صفحات سایت</span></div>
-    </div>
-    <div class="stat-box">
-      <span class="stat-ico bg-blue">📝</span>
-      <div><b>{faNum(postsPublished)} / {faNum(postsTotal)}</b><span>مقالات منتشرشده / کل ({faNum(postsDraft)} پیش‌نویس)</span></div>
-    </div>
-    <div class="stat-box">
-      <span class="stat-ico bg-amber">⏰</span>
-      <div><b>{faNum(postsScheduled)}</b><span>مقالات زمان‌بندی‌شده</span></div>
-    </div>
-    <div class="stat-box">
-      <span class="stat-ico bg-green">📥</span>
-      <div><b>{faNum(msgsNew)}</b><span>پیام جدید ({faNum(msgsTotal)} در کل)</span></div>
+<AdminLayout title="پنل مدیریت کافه دانش">
+  <div class="admin-body">
+    <div class="admin-shell">
+      <aside class="admin-side">
+        <div style="display:flex;align-items:center;gap:10px">
+          <img src="/img/logo.svg" alt="" width="38" height="38" style="border-radius:10px" />
+          <div>
+            <b style="color:#fff;display:block">کافه دانش</b>
+            <small style="opacity:.7">پنل مدیریت</small>
+          </div>
+        </div>
+        <nav class="admin-side__nav" aria-label="منوی مدیریت">
+          <a href="/admin" class="is-active">🏠 داشبورد</a>
+          <a href="/admin/posts">📝 مقالات</a>
+          <a href="/admin/portfolio">🎨 نمونه‌کارها</a>
+          <a href="/admin/messages">💬 پیام‌ها</a>
+          <a href="/" target="_blank">🌍 مشاهده سایت</a>
+        </nav>
+        <form id="logout-form" style="margin-top:26px">
+          <button type="submit" class="btn btn--sm btn--outline" style="width:100%;justify-content:center">خروج</button>
+        </form>
+      </aside>
+
+      <main class="admin-main">
+        <h1>سلام {session?.u ?? 'مدیر'} 👋</h1>
+        <p style="color:var(--mut)">وضعیت کلی محتوای سایت در یک نگاه</p>
+
+        {!dbOk && (
+          <div class="form-status is-err" style="display:flex;margin-bottom:16px">
+            اتصال به دیتابیس برقرار نیست (DATABASE_URL). سایت با داده‌های محلی کار می‌کند؛ پس از تنظیم متغیر محیطی، امکانات مدیریت فعال می‌شود.
+          </div>
+        )}
+
+        <div class="admin-cards">
+          <div class="admin-card"><b>{new Intl.NumberFormat('fa-IR').format(stats.posts)}</b><span>مقاله منتشرشده</span></div>
+          <div class="admin-card"><b>{new Intl.NumberFormat('fa-IR').format(stats.portfolio)}</b><span>نمونه‌کار</span></div>
+          <div class="admin-card"><b>{new Intl.NumberFormat('fa-IR').format(stats.messages)}</b><span>پیام دریافتی</span></div>
+          <div class="admin-card"><b>{new Intl.NumberFormat('fa-IR').format(stats.unread)}</b><span>پیام خوانده‌نشده</span></div>
+        </div>
+
+        <div class="admin-card" style="margin-top:22px">
+          <h2 style="font-size:1.05rem">دسترسی سریع</h2>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+            <a href="/admin/posts" class="btn btn--sm">مدیریت مقالات</a>
+            <a href="/admin/portfolio" class="btn btn--sm btn--purple">مدیریت نمونه‌کارها</a>
+            <a href="/admin/messages" class="btn btn--sm btn--outline">صندوق پیام‌ها</a>
+          </div>
+          <p style="color:var(--mut);font-size:.85rem;margin-top:14px">
+            نکته: پس از تغییر محتوای دیتابیس، برای به‌روزرسانی صفحات عمومی می‌توانید Redeploy کنید (یا VERCEL_DEPLOY_HOOK_URL را در .env تنظیم کنید).
+          </p>
+        </div>
+      </main>
     </div>
   </div>
 
-  <div class="stats-row" style="margin-top:12px">
-    <div class="stat-box">
-      <span class="stat-ico bg-blue">🛠</span>
-      <div><b>{faNum(servicesPublished)} / {faNum(servicesTotal)}</b><span>خدمات منتشرشده / کل</span></div>
-    </div>
-    <div class="stat-box">
-      <span class="stat-ico bg-gold">💼</span>
-      <div><b>{faNum(projectsPublished)} / {faNum(projectsTotal)}</b><span>نمونه‌کارهای منتشرشده / کل</span></div>
-    </div>
-    <div class="stat-box">
-      <span class="stat-ico bg-amber">💰</span>
-      <div><b>{faNum(plansTotal)}</b><span>پلن تعرفه</span></div>
-    </div>
-    <div class="stat-box">
-      <span class="stat-ico bg-green">💬</span>
-      <div><b>{faNum(testimonialsTotal)}</b><span>نظر مشتری</span></div>
-    </div>
-  </div>
-
-  <div class="dash-grid">
-    <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
-      <div class="panel">
-        <div class="panel-head">
-          <h2>📥 جدیدترین پیام‌ها و درخواست‌های مشاوره</h2>
-          <a class="more" href="/admin/messages">مشاهده همه ←</a>
-        </div>
-        <div class="panel-body grid-list" style="padding:0">
-          {recentMessages.length === 0 ? (
-            <div class="empty-state"><div class="big">📭</div>هنوز پیامی دریافت نشده است؛ فرم‌های تماس و مشاوره همین‌جا جمع می‌شوند.</div>
-          ) : (
-            recentMessages.map((m) => (
-              <div style="padding:14px 20px;display:flex;gap:14px;align-items:flex-start">
-                <span class={`badge ${m.status === 'new' ? 'badge-new' : 'badge-gold'}`}>{m.status === 'new' ? 'جدید' : m.status === 'read' ? 'خوانده‌شده' : m.status === 'replied' ? 'پاسخ‌داده' : 'بایگانی'}</span>
-                <div style="flex:1;min-width:0">
-                  <b style="font-size:13.5px">{m.name}</b>
-                  <span style="color:var(--a-muted);font-size:11.5px;margin-inline-start:8px">{msgTypeLabel(m.type)} {m.plan_title ? `— ${m.plan_title}` : ''}</span>
-                  <p style="margin:4px 0 0;font-size:12.5px;color:var(--a-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{m.message}</p>
-                </div>
-                <small style="color:var(--a-muted);font-size:11px;flex:none">{relativeTimeFa(String(m.created_at))}</small>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head">
-          <h2>📝 آخرین مقالات ویرایش‌شده</h2>
-          <a class="more" href="/admin/posts">مدیریت مقالات ←</a>
-        </div>
-        <div class="table-scroll">
-          <table class="admin-table" style="min-width:480px">
-            <thead><tr><th>عنوان</th><th>وضعیت</th><th>تاریخ انتشار</th><th>عملیات</th></tr></thead>
-            <tbody>
-              {recentPosts.map((p) => (
-                <tr>
-                  <td class="row-title"><b>{p.title}</b></td>
-                  <td><span class={`badge ${p.status === 'published' ? 'badge-pub' : p.status === 'scheduled' ? 'badge-gold' : 'badge-draft'}`}>{p.status === 'published' ? 'منتشرشده' : p.status === 'scheduled' ? 'زمان‌بندی‌شده' : 'پیش‌نویس'}</span></td>
-                  <td>{p.published_at ? relativeTimeFa(String(p.published_at)) : '—'}</td>
-                  <td><a class="btn btn-ghost btn-sm" href={`/admin/preview?type=posts&id=${p.id}`}>پیش‌نمایش</a></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
-      <div class="panel">
-        <div class="panel-head"><h2>⚡ دسترسی سریع</h2></div>
-        <div class="panel-body" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <a class="btn btn-gold" href="/admin/posts">مقاله جدید</a>
-          <a class="btn btn-gold" href="/admin/pages">صفحه جدید</a>
-          <a class="btn btn-ghost" href="/admin/portfolio">نمونه‌کار جدید</a>
-          <a class="btn btn-ghost" href="/admin/media">بارگذاری تصویر</a>
-          <a class="btn btn-ghost" href="/admin/messages">مشاهده پیام‌ها</a>
-          <a class="btn btn-ghost" href="/admin/pricing">تعرفه‌ها</a>
-          <a class="btn btn-ghost" href="/admin/faq">سؤالات متداول</a>
-          <a class="btn btn-ghost" href="/admin/settings">تنظیمات سایت</a>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head"><h2>🖥 وضعیت سیستم</h2></div>
-        <div class="panel-body grid-list" style="padding:0">
-          <div style="padding:10px 20px;display:flex;justify-content:space-between;align-items:center">
-            <span>اتصال دیتابیس</span>
-            <b style="color:var(--a-green)">✓ {dbInfo.kind === 'postgres' ? 'PostgreSQL (Neon / Vercel)' : 'PGlite محلی (پیش‌نمایش)'}</b>
-          </div>
-          <div style="padding:10px 20px;display:flex;justify-content:space-between;align-items:center">
-            <span>ذخیره‌سازی تصاویر</span>
-            <b>{storage === 'blob' ? 'Vercel Blob (تولید)' : 'پوشهٔ uploads محلی'}</b>
-          </div>
-          <div style="padding:10px 20px;display:flex;justify-content:space-between;align-items:center">
-            <span>کتابخانه رسانه</span>
-            <b>{faNum(mediaTotal)} فایل</b>
-          </div>
-          <div style="padding:10px 20px;display:flex;justify-content:space-between;align-items:center">
-            <span>سئوی پیش‌فرض و هویت سایت</span>
-            <a href="/admin/settings">تنظیم ←</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head"><h2>🕰 آخرین فعالیت‌ها</h2></div>
-        <div class="panel-body grid-list" style="padding:0">
-          {activity.length === 0 ? (
-            <div class="empty-state">هنوز فعالیتی ثبت نشده است.</div>
-          ) : (
-            activity.map((a) => (
-              <div style="padding:10px 20px;display:flex;justify-content:space-between;gap:10px;font-size:12.5px">
-                <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{a.title}</span>
-                <small style="color:var(--a-muted);flex:none">{relativeTimeFa(String(a.created_at))}</small>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head"><h2>📊 نمای سریع بخش‌ها</h2></div>
-        <div class="panel-body grid-list" style="padding:0">
-          <div style="padding:10px 20px;display:flex;justify-content:space-between"><span>نمونه‌کارها</span><b>{faNum(projectsTotal)}</b></div>
-          <div style="padding:10px 20px;display:flex;justify-content:space-between"><span>سؤالات متداول</span><b>{faNum(faqTotal)}</b></div>
-          <div style="padding:10px 20px;display:flex;justify-content:space-between"><span>تصاویر رسانه</span><b>{faNum(mediaTotal)}</b></div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <script>
+    document.getElementById('logout-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await fetch('/api/auth/logout', { method: 'POST' });
+      window.location.href = '/admin/login';
+    });
+  </script>
 </AdminLayout>

@@ -1,0 +1,42 @@
+---
+// نمونه‌کارها — فیلتر دسته‌بندی + کارت‌های اسکرول هنگام Hover
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import PortfolioCard from '../components/PortfolioCard.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { getPortfolio } from '../lib/content';
+import { jsonLdBreadcrumb } from '../lib/seo';
+
+const items = await getPortfolio();
+const categories = ['همه', ...new Set(items.map((i) => i.category))];
+
+const meta = {
+  title: 'نمونه‌کارهای واقعی Astro | پروژه‌های کافه دانش',
+  description: 'مشاهده پروژه‌های واقعی کافه دانش با فریم‌ورک Astro؛ شامل فروشگاه‌های اینترنتی، وب‌سایت‌های شرکتی و سامانه‌های تحت وب.',
+  path: '/portfolio',
+};
+---
+<BaseLayout meta={meta} current="/portfolio" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'نمونه‌کارها', url: '/portfolio' }])]}>
+  <PageHero
+    title="نمونه‌کارها"
+    sub="پروژه‌های منتشرشده با نسخهٔ زندهٔ واقعی روی Vercel، به‌همراه نمونه‌های مفهومیِ ساختهٔ خودمان — وضعیت انتشار هر پروژه روی کارت مشخص است."
+    crumbs={[{ label: 'خانه', href: '/' }, { label: 'نمونه‌کارها' }]}
+  />
+
+  <section class="section">
+    <div class="container">
+      <div class="pf-filters" role="group" aria-label="فیلتر دسته‌بندی نمونه‌کارها">
+        {categories.map((c, i) => (
+          <button type="button" class:list={[{ 'is-active': i === 0 }]} data-pf-filter={c}>{c}</button>
+        ))}
+      </div>
+      <div class="pf-grid">
+        {items.map((p, i) => (
+          <PortfolioCard item={p} delay={String((i % 3) * 80)} />
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <CtaBand title="پروژه شما هم می‌تواند اینجا باشد" sub="اگر سایتی مثل همین نمونه‌ها می‌خواهید، از جلسه مشاوره رایگان شروع کنیم." />
+</BaseLayout>

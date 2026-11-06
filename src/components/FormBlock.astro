@@ -1,0 +1,49 @@
+---
+// بلوک فرم تماس/مشاوره — با ارسال به API و پشتیبان ثبت در Neon
+interface Props {
+  kind: 'contact' | 'consult';
+  withService?: boolean;
+}
+const { kind, withService = kind === 'consult' } = Astro.props;
+const action = kind === 'contact' ? '/api/contact' : '/api/consult';
+const services = ['طراحی سایت', 'فروشگاه اینترنتی', 'سئو و بهینه‌سازی', 'تولید محتوا', 'هوش مصنوعی و اتوماسیون', 'پشتیبانی و نگهداری', 'سایر'];
+---
+<form data-form data-action={action} class="form-grid" novalidate={false}>
+  <div class="field">
+    <label for={`${kind}-name`}>نام و نام خانوادگی <span aria-hidden="true" style="color:var(--pink)">*</span></label>
+    <input id={`${kind}-name`} name="name" type="text" required autocomplete="name" placeholder="مثلاً سارا محمدی" />
+  </div>
+  <div class="field">
+    <label for={`${kind}-phone`}>شماره تماس <span aria-hidden="true" style="color:var(--pink)">*</span></label>
+    <input id={`${kind}-phone`} name="phone" type="tel" required autocomplete="tel" inputmode="tel" dir="ltr" placeholder="0912 000 0000" />
+  </div>
+  <div class="field">
+    <label for={`${kind}-email`}>ایمیل (اختیاری)</label>
+    <input id={`${kind}-email`} name="email" type="email" autocomplete="email" dir="ltr" placeholder="you@example.com" />
+  </div>
+  {withService ? (
+    <div class="field">
+      <label for={`${kind}-service`}>خدمت موردنیاز</label>
+      <select id={`${kind}-service`} name="service">
+        {services.map((s) => <option value={s}>{s}</option>)}
+      </select>
+    </div>
+  ) : (
+    <div class="field">
+      <label for={`${kind}-subject`}>موضوع</label>
+      <input id={`${kind}-subject`} name="service" type="text" placeholder="درباره چه چیزی می‌خواهید صحبت کنیم؟" />
+    </div>
+  )}
+  <div class="field field--full">
+    <label for={`${kind}-message`}>توضیحات پیام <span aria-hidden="true" style="color:var(--pink)">*</span></label>
+    <textarea id={`${kind}-message`} name="message" required minlength="10" maxlength="3000" placeholder="کمی از کسب‌وکارتان و هدفتان بنویسید؛ هرچه دقیق‌تر، مشاوره کاربردی‌تر."></textarea>
+  </div>
+  <div class="field--full" style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+    <button type="submit" class="btn btn--lg">
+      {kind === 'consult' ? 'ثبت درخواست مشاوره' : 'ارسال پیام'}
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" /></svg>
+    </button>
+    <p class="form-note" style="margin:0">اطلاعات شما فقط برای پاسخ‌گویی استفاده می‌شود؛ <a href="/privacy">حریم خصوصی</a>.</p>
+  </div>
+  <p class="form-status" role="status" aria-live="polite"></p>
+</form>

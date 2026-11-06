@@ -1,43 +1,26 @@
 ---
-/* هیروی صفحات داخلی: گرادیان برند + بردکرامب + عنوان + توضیح */
-import Icon from './Icon.astro';
-
+// هدر صفحه داخلی — بنر گرادیان با خطوط منحنی، هماهنگ با زبان Hero
 interface Props {
   title: string;
   sub?: string;
-  crumbs?: { label: string; href: string }[];
-  meta?: string[];
+  crumbs?: Array<{ label: string; href?: string }>;
 }
-const { title, sub, crumbs = [], meta = [] } = Astro.props;
+const { title, sub, crumbs = [] } = Astro.props;
 ---
-
 <section class="page-hero">
-  <span class="page-hero__glow page-hero__glow--1" aria-hidden="true"></span>
-  <span class="page-hero__glow page-hero__glow--2" aria-hidden="true"></span>
+  <svg class="hero__ribbon" viewBox="0 0 1440 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <path d="M-40 120 C 260 320, 620 60, 900 200 S 1380 330, 1520 210" stroke="rgba(11,18,51,0.16)" stroke-width="130" fill="none" stroke-linecap="round" />
+    <path d="M-60 330 C 300 130, 700 380, 1080 240 S 1420 120, 1540 260" stroke="rgba(255,255,255,0.10)" stroke-width="72" fill="none" stroke-linecap="round" />
+  </svg>
+  <span class="hero__glow hero__glow--1" aria-hidden="true"></span>
   <div class="container">
-    <nav class="breadcrumb" aria-label="مسیر صفحه" data-reveal="down">
-      <a href="/">خانه</a>
-      {
-        crumbs.map((c: { label: string; href: string }) => (
-          <>
-            <Icon name="chevron-left" size={13} stroke={2.2} />
-            {c.href ? <a href={c.href}>{c.label}</a> : <span>{c.label}</span>}
-          </>
-        ))
-      }
-      <Icon name="chevron-left" size={13} stroke={2.2} />
-      <span aria-current="page">{title}</span>
-    </nav>
+    {crumbs.length > 0 && (
+      <nav class="page-hero__crumbs" aria-label="مسیر صفحه">
+        {crumbs.map((c) => (c.href ? <a href={c.href}>{c.label}</a> : <span aria-current="page">{c.label}</span>))}
+      </nav>
+    )}
     <h1 data-reveal="up">{title}</h1>
-    {sub ? <p class="page-hero__sub" data-reveal="up" data-delay="110">{sub}</p> : null}
-    {
-      meta.length ? (
-        <div class="page-hero__meta" data-reveal="up" data-delay="200">
-          {meta.map((m: string) => (
-            <span set:html={m} />
-          ))}
-        </div>
-      ) : null
-    }
+    {sub && <p data-reveal="up" data-delay="120">{sub}</p>}
+    <slot />
   </div>
 </section>

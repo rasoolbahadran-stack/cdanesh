@@ -1,106 +1,68 @@
 ---
-/* فوتر کافه دانش — سرمه‌ای تیره با هاله‌های گرادیانی + امضای طراح */
+// پاورقی کافه دانش — همان ساختار و لینک‌های سایت فعلی
 import Logo from './Logo.astro';
-import Icon from './Icon.astro';
-import type { SiteSettings } from '../lib/seed/settings-data';
-
-interface Props {
-  settings: SiteSettings;
-}
-const { settings } = Astro.props;
-const f = settings.footer;
-const c = settings.contact;
-const phoneHref = 'tel:+98' + String(c.phone).replace(/\D/g, '').slice(1);
-const github = c.github || 'https://github.com/rasoolbahadran-stack';
+import { FOOTER_LINKS, SITE } from '../lib/content';
 ---
-
 <footer class="footer">
   <div class="container">
-    <div class="footer__grid">
-      <!-- معرفی برند -->
+    <div class="footer__top">
       <div class="footer__about">
-        <Logo variant="light" class="footer__logo" />
-        <p class="footer__desc">{f.aboutText}</p>
-        <ul class="footer__social" aria-label="راه‌های ارتباطی سریع">
-          <li>
-            <a href={`mailto:${c.email}`} aria-label="ایمیل کافه دانش">
-              <Icon name="mail" size={17} stroke={1.9} />
-            </a>
-          </li>
-          <li>
-            <a href={phoneHref} aria-label="تماس تلفنی">
-              <Icon name="phone" size={17} stroke={1.9} />
-            </a>
-          </li>
-          <li>
-            <a href={github} target="_blank" rel="noopener" aria-label="گیت‌هاب کافه دانش">
-              <Icon name="github" size={17} stroke={1.7} />
-            </a>
-          </li>
-          <li>
-            <a href="/consult" aria-label="درخواست مشاوره">
-              <Icon name="send" size={17} stroke={1.9} />
-            </a>
-          </li>
-        </ul>
+        <a href="/" class="logo" style="color:#fff" aria-label="کافه دانش — صفحه اصلی">
+          <Logo variant="full" />
+        </a>
+        <p>{SITE.tagline}؛ طراحی سایت، سئو و راهکارهای هوشمند برای رشد واقعی کسب‌وکار شما.</p>
+        <a href="/consult" class="btn btn--sm">درخواست مشاوره رایگان</a>
       </div>
 
-      <!-- خدمات -->
-      <nav class="footer__widget" aria-label="خدمات ما">
-        <h4 class="footer__title">خدمات ما</h4>
-        <ul class="footer__links">
-          {f.colServices.map((l: { label: string; href: string }) => (
-            <li><a href={l.href}>{l.label}</a></li>
-          ))}
-          <li><a href="/services">همهٔ خدمات</a></li>
-        </ul>
-      </nav>
-
-      <!-- دسترسی سریع -->
-      <nav class="footer__widget" aria-label="لینک‌های مفید">
-        <h4 class="footer__title">دسترسی سریع</h4>
-        <ul class="footer__links">
-          {f.colQuick.map((l: { label: string; href: string }) => (
-            <li><a href={l.href}>{l.label}</a></li>
+      <nav aria-label="خدمات">
+        <h4>خدمات</h4>
+        <ul class="footer__list">
+          {FOOTER_LINKS.services.map((l) => (
+            <li>
+              <a href={l.href}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" /></svg>
+                {l.t}
+              </a>
+            </li>
           ))}
         </ul>
       </nav>
 
-      <!-- راه‌های ارتباطی -->
-      <div class="footer__widget">
-        <h4 class="footer__title">راه‌های ارتباطی</h4>
-        <ul class="footer__contact">
-          <li>
-            <Icon name="phone" size={17} stroke={1.9} />
-            <a href={phoneHref} dir="ltr">{c.phoneDisplay}</a>
-          </li>
-          <li>
-            <Icon name="mail" size={17} stroke={1.9} />
-            <a href={`mailto:${c.email}`} dir="ltr">{c.email}</a>
-          </li>
-          <li>
-            <Icon name="pin" size={17} stroke={1.9} />
-            <span>{c.address}</span>
-          </li>
+      <nav aria-label="دسترسی سریع">
+        <h4>دسترسی سریع</h4>
+        <ul class="footer__list">
+          {FOOTER_LINKS.quick.map((l) => (
+            <li>
+              <a href={l.href}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" /></svg>
+                {l.t}
+              </a>
+            </li>
+          ))}
         </ul>
-        <div class="footer__hours">
-          <Icon name="clock" size={15} stroke={1.9} />
-          <span>{c.hours}</span>
-        </div>
+      </nav>
+
+      <div>
+        <h4>راه‌های ارتباطی</h4>
+        <ul class="footer__list">
+          <li><a href="/contact"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" /></svg> فرم تماس و اطلاعات تماس</a></li>
+          <li><a href="/consult"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" /></svg> درخواست مشاوره رایگان</a></li>
+          <li><a href={`mailto:${SITE.email}`}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5" /><path d="m4 7 8 6 8-6" /></svg> {SITE.email}</a></li>
+          <li><a href={`tel:${SITE.phoneIntl}`} dir="ltr"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2" /></svg> {SITE.phoneFa}</a></li>
+          <li><a href={SITE.github} target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.1.39-1.99 1.03-2.69-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02a9.6 9.6 0 0 1 5 0c1.9-1.3 2.74-1.02 2.74-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.6 1.03 2.69 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10 10 0 0 0 12 2Z" /></svg> GitHub</a></li>
+        </ul>
       </div>
     </div>
-  </div>
 
-  <!-- کپی‌رایت + امضای طراح -->
-  <div class="footer__copy">
-    <div class="container footer__copy-row">
-      <p class="footer__copyright">{f.copyright}</p>
-      <p class="footer__designer">
-        طراحی و توسعه وب‌سایت توسط
-        <a href="https://www.cdanesh.ir/" target="_blank" rel="noopener">رسول بهادران | طراح سایت</a>
-        <span class="footer__sep" aria-hidden="true">|</span>
-        <a href="https://www.cdanesh.ir/" target="_blank" rel="noopener">کافه دانش</a>
-      </p>
+    <div class="footer__bottom">
+      <span>© {SITE.year} کافه‌دانش — تمامی حقوق محفوظ است. طراحی و اجرا: <a href="https://github.com/rasoolbahadran-stack" target="_blank" rel="noopener">{SITE.designer}</a></span>
+      <span style="display:inline-flex;gap:18px">
+        <a href="/privacy">حریم خصوصی</a>
+        <a href="/terms">شرایط استفاده</a>
+      </span>
     </div>
   </div>
 </footer>
+<button type="button" class="to-top" aria-label="بازگشت به بالای صفحه">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5m0 0-6 6m6-6 6 6" /></svg>
+</button>

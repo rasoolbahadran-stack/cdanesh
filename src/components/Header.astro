@@ -1,190 +1,158 @@
 ---
-/* هدر کافه دانش — تاپ‌بار شیشه‌ای + ناوبری شناور روی گرادیان + زیرمنو + منوی موبایل */
+// هدر کافه دانش — به سبک ساسمیکس: نوار قرصی شناور روی Hero + چسبیدن هنگام اسکرول
 import Logo from './Logo.astro';
-import Icon from './Icon.astro';
-import type { SiteSettings } from '../lib/seed/settings-data';
+import { NAV, MEGA_GROUPS } from '../lib/content';
 
-interface Props {
-  settings: SiteSettings;
-  activePath?: string;
-}
-const { settings, activePath = '' } = Astro.props;
-const c = settings.contact;
-const m = settings.menu;
-const phoneHref = 'tel:+98' + String(c.phone).replace(/\D/g, '').slice(1);
+interface Props { current?: string }
+const { current = '' } = Astro.props;
 
-const isActive = (href: string) => {
-  const clean = href.split('#')[0];
-  if (clean === '/' ) return activePath === '/';
-  return clean !== '' && activePath.startsWith(clean);
-};
-
-type MenuItem = { label: string; href: string };
-type MenuGroup = { title: string; items: { label: string; href: string; desc: string }[] };
-
-/* آیتم‌های اصلی: خانه + خدمات (زیرمنو) + لینک‌های تنظیمات */
-const serviceGroups: MenuGroup[] = m.megaGroups || [];
-const mainItems: { label: string; href: string; groups?: MenuGroup[] }[] = [
-  { label: 'خانه', href: '/' },
-  { label: 'خدمات', href: '/services', groups: serviceGroups },
-  ...m.main.map((it: MenuItem) => ({ label: it.label, href: it.href })),
-];
+const isActive = (href: string) =>
+  href === '/' ? current === '/' : current === href || current.startsWith(href + '/');
 ---
-
-<div class="topbar">
-  <div class="container topbar__row">
-    <div class="topbar__group">
-      <a href={phoneHref}>
-        <Icon name="phone" size={14} stroke={2} />
-        <span dir="ltr">{c.phoneDisplay}</span>
-      </a>
-      <span class="topbar__sep" aria-hidden="true"></span>
-      <span class="topbar__note">{c.hours}</span>
-    </div>
-    <div class="topbar__group">
-      <a href={`mailto:${c.email}`}>
-        <Icon name="mail" size={14} stroke={2} />
-        <span dir="ltr">{c.email}</span>
-      </a>
-    </div>
-  </div>
-</div>
-
-<header id="header" class="header" data-sticky>
+<header id="header" class="header">
   <div class="container header__wrap">
-    <Logo variant="light" class="header__logo" />
+    <a href="/" class="logo" aria-label="کافه دانش (Cafe Danesh) — صفحه اصلی" style="color:var(--navy)">
+      <Logo variant="full" />
+    </a>
 
     <nav class="header__nav" aria-label="ناوبری اصلی">
-      <ul class="header__menu">
-        {
-          mainItems.map((item) => {
-            const hasDrop = !!item.groups && item.groups.length > 0;
-            const active = isActive(item.href) || (item.groups || []).some((g: MenuGroup) => g.items.some((s: { href: string }) => isActive(s.href)));
-            return (
-              <li class:list={['header__item', { 'has-drop': hasDrop, 'is-active': active }]}>
-                <a href={item.href} class="header__link" aria-haspopup={hasDrop ? 'true' : undefined}>
-                  {item.label}
-                  {hasDrop && <Icon name="chevron-down" size={13} stroke={2.4} class="header__caret" />}
-                </a>
-                {hasDrop && (
-                  <ul class="header__drop">
-                    {item.groups!.map((g: MenuGroup) => (
-                      <>
-                        <li class="drop-title" role="presentation">{g.title}</li>
-                        {g.items.map((sub: { label: string; href: string }) => (
-                          <li>
-                            <a href={sub.href}>{sub.label}</a>
-                          </li>
-                        ))}
-                      </>
+      {NAV.map((item) =>
+        item.mega ? (
+          <div class="mega-wrap">
+            <button type="button" class="header__link" aria-expanded="false" aria-haspopup="true" data-mega-btn>
+              {item.label}
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+            </button>
+            <div class="mega" role="menu" aria-label="خدمات کافه دانش">
+              {MEGA_GROUPS.map((g) => (
+                <div>
+                  <p class="mega__col-title">{g.title}</p>
+                  <ul class="mega__list">
+                    {g.items.map((it) => (
+                      <li><a href={it.href}>{it.t}<small>{it.d}</small></a></li>
                     ))}
-                    <li class="drop-title" role="presentation">دسترسی سریع</li>
-                    <li><a href="/portfolio">نمونه‌کارها</a></li>
-                    <li><a href="/pricing">تعرفه‌ها</a></li>
-                    <li><a href="/faq">سؤالات متداول</a></li>
                   </ul>
-                )}
-              </li>
-            );
-          })
-        }
-      </ul>
+                </div>
+              ))}
+              <div class="mega__aside">
+                <div>
+                  <h4>مشاوره اولیه رایگان</h4>
+                  <p>در یک جلسه کوتاه، مسیر رشد دیجیتال کسب‌وکارتان را بررسی می‌کنیم.</p>
+                </div>
+                <a href="/consult" class="btn btn--sm" style="justify-content:center">شروع پروژه</a>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <a href={item.href} class:list={['header__link', { 'is-active': isActive(item.href) }]} aria-current={isActive(item.href) ? 'page' : undefined}>
+            {item.label}
+          </a>
+        )
+      )}
     </nav>
 
-    <div class="header__actions">
-      <a href={m.ctaHref} class="btn btn--sm">{m.ctaLabel}</a>
-      <button
-        class="header__burger"
-        type="button"
-        aria-label="باز کردن منو"
-        aria-expanded="false"
-        aria-controls="mobileMenu"
-        data-menu-open
-      >
-        <Icon name="menu" size={26} stroke={2.2} />
+    <div class="header__cta">
+      <a href="/consult" class="btn btn--sm">درخواست مشاوره</a>
+      <button type="button" class="burger" aria-label="بازکردن منو" aria-expanded="false" data-burger>
+        <span></span>
       </button>
     </div>
   </div>
 </header>
 
-<!-- منوی موبایل -->
-<div class="sidebar" id="mobileMenu" data-sidebar hidden>
-  <div class="sidebar__backdrop" data-menu-close></div>
-  <aside class="sidebar__panel" role="dialog" aria-modal="true" aria-label="منوی موبایل">
-    <div class="sidebar__head">
-      <Logo variant="dark" />
-      <button class="sidebar__close" type="button" aria-label="بستن منو" data-menu-close>
-        <Icon name="close" size={22} stroke={2.2} />
+<div class="mobile-menu" data-mobile-menu aria-hidden="true">
+  <div class="mobile-menu__panel" role="dialog" aria-modal="true" aria-label="منوی موبایل">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <a href="/" class="logo" style="color:var(--navy)"><Logo variant="full" /></a>
+      <button type="button" class="burger" aria-label="بستن منو" aria-expanded="true" data-menu-close style="display:block">
+        <span></span>
       </button>
     </div>
-    <div class="sidebar__body">
-      <nav aria-label="منوی موبایل">
-        <ul class="sidebar__menu">
-        {
-          mainItems.map((item) => {
-            const hasDrop = !!item.groups && item.groups.length > 0;
-            return (
-              <li class="sidebar__item">
-                <a href={item.href} data-menu-nav>
-                  {item.label}
-                </a>
-                {hasDrop && (
-                  <>
-                    <button
-                      class="sidebar__toggle"
-                      type="button"
-                      aria-label={`باز کردن زیرمنوی ${item.label}`}
-                      data-sub-toggle
-                      aria-expanded="false"
-                    >
-                      <Icon name="plus" size={15} stroke={2.6} />
-                    </button>
-                    <ul class="sidebar__sub">
-                      {item.groups!.map((g: MenuGroup) =>
-                        g.items.map((sub: { label: string; href: string }) => (
-                          <li>
-                            <a href={sub.href} data-menu-nav>
-                              {sub.label}
-                            </a>
-                          </li>
-                        ))
-                      )}
-                      <li><a href="/services" data-menu-nav>همهٔ خدمات</a></li>
-                    </ul>
-                  </>
-                )}
-              </li>
-            );
-          })
-        }
-      </ul>
-    </nav>
+    <ul class="mobile-menu__list">
+      {NAV.map((item) =>
+        item.mega ? (
+          <li>
+            <button type="button" class="mobile-menu__group-btn" aria-expanded="false" data-mobile-group>
+              {item.label}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+            </button>
+            <div class="mobile-menu__group-panel">
+              {MEGA_GROUPS.flatMap((g) => g.items).map((it) => (
+                <a href={it.href}>{it.t}</a>
+              ))}
+            </div>
+          </li>
+        ) : (
+          <li><a href={item.href} class:list={[{ 'is-active': isActive(item.href) }]} style={isActive(item.href) ? 'color:var(--pink)' : ''}>{item.label}</a></li>
+        )
+      )}
+    </ul>
+    <div class="mobile-menu__cta">
+      <a href="/consult" class="btn">درخواست مشاوره رایگان</a>
+      <a href="tel:+989165806207" class="btn btn--outline">۰۹۱۶ ۵۸۰ ۶۲۰۷</a>
     </div>
-    <div class="sidebar__foot">
-      <a href={m.ctaHref} class="btn btn--full" data-menu-nav>{m.ctaLabel}</a>
-      <div class="sidebar__meta">
-        <a href={phoneHref} dir="ltr">{c.phoneDisplay}</a>
-        <span> | </span>
-        <a href={`mailto:${c.email}`} dir="ltr">{c.email}</a>
-      </div>
-    </div>
-  </aside>
+  </div>
 </div>
 
-<style>
-  /* فاصلهٔ هدر از تاپ‌بار */
-  .header {
-    top: 42px;
-  }
-
-  .header.is-sticky,
-  .header:global(.is-sticky) {
-    top: 0;
-  }
-
-  @media (max-width: 1023px) {
-    .header {
-      top: 0;
+<script>
+  // ── رفتار هدر: قرصی شناور → چسبیدن پس از اسکرول ──
+  const header = document.getElementById('header');
+  let lastY = window.scrollY;
+  const onScroll = () => {
+    const y = window.scrollY;
+    if (!header) return;
+    if (y > 60 && y > lastY + 4) {
+      header.classList.add('header--sticky');
+    } else if (y <= 60 || y < lastY - 4) {
+      header.classList.remove('header--sticky');
     }
-  }
-</style>
+    lastY = y;
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // ── منوی مگا: دسترس‌پذیری با کلیک/کیبورد ──
+  document.querySelectorAll('[data-mega-btn]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!open));
+      btn.closest('.mega-wrap')?.querySelector('.mega')?.classList.toggle('is-open', !open);
+    });
+  });
+  document.addEventListener('click', (e) => {
+    const t = e.target as Node;
+    document.querySelectorAll('.mega.is-open').forEach((m) => {
+      if (!m.parentElement?.contains(t)) {
+        m.classList.remove('is-open');
+        m.parentElement?.querySelector('[data-mega-btn]')?.setAttribute('aria-expanded', 'false');
+      }
+    });
+  });
+
+  // ── منوی موبایل ──
+  const menu = document.querySelector('[data-mobile-menu]');
+  const burger = document.querySelector('[data-burger]');
+  const openMenu = (open: boolean) => {
+    menu?.classList.toggle('is-open', open);
+    menu?.setAttribute('aria-hidden', String(!open));
+    burger?.setAttribute('aria-expanded', String(open));
+    document.body.style.overflow = open ? 'hidden' : '';
+  };
+  burger?.addEventListener('click', () => openMenu(true));
+  menu?.querySelector('[data-menu-close]')?.addEventListener('click', () => openMenu(false));
+  menu?.addEventListener('click', (e) => {
+    if (e.target === menu) openMenu(false);
+  });
+  document.querySelectorAll('[data-mobile-group]').forEach((b) => {
+    b.addEventListener('click', () => {
+      b.setAttribute('aria-expanded', String(b.getAttribute('aria-expanded') !== 'true'));
+    });
+  });
+  menu?.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => openMenu(false)));
+
+  // ── دکمه بازگشت بالا ──
+  const toTop = document.querySelector('.to-top');
+  window.addEventListener('scroll', () => {
+    toTop?.classList.toggle('is-show', window.scrollY > 600);
+  }, { passive: true });
+  toTop?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+</script>

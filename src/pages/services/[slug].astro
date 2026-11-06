@@ -1,192 +1,69 @@
 ---
+// صفحه اختصاصی هر خدمت — محتوای کامل از سایت فعلی
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
-import Icon from '../../components/Icon.astro';
-import { q } from '../../lib/db';
-import { siteUrl } from '../../lib/seo';
+import CtaBand from '../../components/CtaBand.astro';
+import Blocks from '../../components/Blocks.astro';
+import { getServices, getService, SERVICE_CARDS, svcImg } from '../../lib/content';
+import { jsonLdService, jsonLdBreadcrumb } from '../../lib/seo';
 
-interface ServiceRow {
-  id: number;
-  title: string;
-  slug: string;
-  short_desc: string;
-  content: string;
-  features: unknown;
-  image: string;
-  seo_title: string;
-  seo_description: string;
-  canonical_url?: string;
-  og_title?: string;
-  og_description?: string;
-  og_image?: string;
-  noindex?: boolean;
-}
+export const prerender = false;
 
-const { slug } = Astro.params;
+const slug = Astro.params.slug ?? '';
+const svc = getService(slug);
+if (!svc) return Astro.redirect('/404');
 
-/* بیلد استاتیک: prerender همهٔ خدمات منتشرشده | بیلد سرور: SSR */
-export const prerender = !!process.env.STATIC_BUILD;
-export async function getStaticPaths() {
-  const rows = await q<{ slug: string }>(`SELECT slug FROM services WHERE status='published'`);
-  return rows.map((r) => ({ params: { slug: String(r.slug) } }));
-}
+const others = SERVICE_CARDS.filter((s) => s.slug !== slug).slice(0, 3);
+const cover = svcImg(svc.slug);
 
-const service = await q<ServiceRow>(
-  'SELECT id, title, slug, short_desc, content, features, image, seo_title, seo_description, canonical_url, og_title, og_description, og_image, noindex FROM services WHERE slug = $1 AND status = $2',
-  [String(slug), 'published'],
-).then((r) => r[0] ?? null);
-
-if (!service) return Astro.redirect('/404', 302);
-
-/* سؤالات متداول اختصاصی این خدمت از پنل مدیریت */
-const serviceFaqs = await q<{ question: string; answer: string }>(
-  `SELECT question, answer FROM faqs WHERE service_slug = $1 AND status = 'published' ORDER BY sort_order`,
-  [service.slug],
-);
-
-const others = await q<ServiceRow>(
-  `SELECT slug, title, short_desc FROM services WHERE status = $1 AND slug IN ('company-website', 'content', 'seo') AND slug != $2 ORDER BY CASE slug WHEN 'company-website' THEN 1 WHEN 'content' THEN 2 WHEN 'seo' THEN 3 END LIMIT 2`,
-  ['published', service.slug],
-);
-const features = Array.isArray(service.features) ? (service.features as string[]) : [];
-
-const schema = [
-  {
-    '@context': 'https://schema.org',
-    '@type': 'Service',
-    name: service.title,
-    description: service.short_desc,
-    image: siteUrl(service.image),
-    provider: { '@type': 'Organization', name: 'کافه دانش', url: siteUrl('/') },
-    areaServed: 'ایران',
-    url: service.canonical_url ? String(service.canonical_url) : siteUrl(`/services/${service.slug}`),
-  },
-  ...(serviceFaqs.length
-    ? [{
-        '@context': 'https://schema.org',
-        '@type': 'FAQPage',
-        mainEntity: serviceFaqs.map((f) => ({
-          '@type': 'Question',
-          name: f.question,
-          acceptedAnswer: { '@type': 'Answer', text: f.answer },
-        })),
-      }]
-    : []),
-  {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'خانه', item: '/' },
-      { '@type': 'ListItem', position: 2, name: 'خدمات', item: '/services' },
-      { '@type': 'ListItem', position: 3, name: service.title, item: siteUrl(`/services/${service.slug}`) },
-    ],
-  },
-];
+const meta = {
+  title: `${svc.title} | خدمات کافه دانش`,
+  description: svc.excerpt,
+  path: `/services/${svc.slug}`,
+  image: cover,
+};
 ---
-<BaseLayout
-  title={service.seo_title || service.title}
-  description={service.seo_description || service.short_desc}
-  activePath="/services"
-  schema={schema}
->
+<BaseLayout meta={meta} current="/services" extraJsonLd={[jsonLdService(svc.title, svc.excerpt, meta.path), jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'خدمات', url: '/services' }, { name: svc.title, url: meta.path }])]}>
   <PageHero
-    title={service.title}
-    sub={service.short_desc}
-    crumbs={[{ label: 'خدمات', href: '/services' }, { label: service.title, href: '' }]}
+    title={svc.title}
+    sub={svc.excerpt}
+    crumbs={[{ label: 'خانه', href: '/' }, { label: 'خدمات', href: '/services' }, { label: svc.title }]}
   />
 
-  <section class="section pad-half">
-    <div class="container">
-      <div class="detail-head-img" data-reveal="zoom">
-        <img
-          src={service.image}
-          alt={`تصویر خدمت ${service.title} — کافه دانش`}
-          width="1152"
-          height="768"
-          fetchpriority="high"
-          decoding="async"
-        />
-      </div>
-    </div>
-  </section>
-
-  <section class="section pad-half">
-    <div class="container contact-grid">
-      <div class="prose-fa" data-reveal="right" set:html={service.content} />
-
-      <aside data-reveal="left">
-        <div class="aside-card" style="position:sticky;top:110px">
-          <h3>
-            <span style="display:inline-grid;place-items:center;color:#0c9d74;vertical-align:-4px">
-              <Icon name="check" size={19} stroke={2.4} />
-            </span>
-            امکانات این خدمت
-          </h3>
-          <ul class="duo-points mt-1 mb-2">
-            {features.map((f) => (
+  <section class="section">
+    <div class="container svc-detail">
+      <Blocks blocks={svc.blocks} />
+      <aside class="svc-aside">
+        <img src={cover} alt={`${svc.title} — کافه دانش`} width="480" height="360" loading="lazy" decoding="async" style="border-radius:var(--r-lg);box-shadow:var(--shadow-card);width:100%;aspect-ratio:4/3;object-fit:cover" />
+        <div class="card" style="padding:22px">
+          <h3 style="font-size:1.05rem">این خدمت را سفارش می‌دهید؟</h3>
+          <p style="font-size:.92rem;color:var(--mut)">جلسه اول مشاوره رایگان است؛ دامنه کار و برآورد شفاف پیش از هر تعهدی اعلام می‌شود.</p>
+          <a href={`/consult?service=${svc.slug}`} class="btn" style="width:100%;justify-content:center">درخواست مشاوره رایگان</a>
+        </div>
+        <div class="card" style="padding:22px">
+          <h3 style="font-size:1.05rem">سایر خدمات</h3>
+          <ul style="list-style:none;padding:0;margin:0;display:grid;gap:8px;font-size:.94rem">
+            {others.map((o) => (
               <li>
-                <Icon name="check" size={19} stroke={2.4} />
-                <span>{f}</span>
+                <a href={`/services/${o.slug}`} style="display:flex;align-items:center;gap:8px">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--pink)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" /></svg>
+                  {o.t}
+                </a>
               </li>
             ))}
           </ul>
-          <a href={`/consult?service=${encodeURIComponent(service.title)}`} class="btn btn--full">
-            <Icon name="send" size={16} stroke={2} />
-            درخواست این خدمت
-          </a>
-          <a href="/pricing" class="btn btn--ghost btn--full mt-1">مشاهده تعرفه‌ها</a>
         </div>
       </aside>
     </div>
   </section>
 
-  {serviceFaqs.length > 0 && (
-    <section class="section pad-half bg-lavender">
-      <div class="container" style="max-width:860px">
-        <div class="section-head section-head--center" data-reveal="up">
-          <span class="sub-title">
-            <Icon name="doc" size={20} stroke={2} class="sub-ico" />
-            سؤالات متداول
-          </span>
-          <h2 class="sec-title" style="font-size:clamp(22px,3vw,32px)">پرسش‌های پرتکرار دربارهٔ {service.title}</h2>
-        </div>
-        <div data-reveal="up">
-          {serviceFaqs.map((f) => (
-            <div class="faq-item">
-              <button class="faq-q" aria-expanded="false">{f.question}
-                <span class="fx" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>
-              </button>
-              <div class="faq-a"><div>{f.answer}</div></div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )}
-
-  <section class="section pad-half bg-lavender">
-    <div class="container">
-      <div class="section-head section-head--center" data-reveal="up">
-        <span class="sub-title">
-          <Icon name="layers" size={20} stroke={2} class="sub-ico" />
-          خدمات مرتبط
-        </span>
-        <h2 class="sec-title" style="font-size:clamp(22px,3vw,32px)">ممکن است به این‌ها هم نیاز داشته باشید</h2>
-      </div>
-      <div class="grid-3" style="grid-template-columns:repeat(2,1fr);max-width:840px;margin-inline:auto">
-        {
-          others.map((s, i) => (
-            <a href={`/services/${s.slug}`} class="svc-card" data-reveal="up" data-delay={String(i * 90)}>
-              <h3>{s.title}</h3>
-              <p>{s.short_desc}</p>
-              <span class="svc-card__more">
-                جزئیات خدمت
-                <Icon name="arrow-left" size={17} stroke={2.2} />
-              </span>
-            </a>
-          ))
-        }
-      </div>
-    </div>
-  </section>
+  <CtaBand />
 </BaseLayout>
+
+<style is:global>
+  .svc-detail { display: grid; grid-template-columns: 1fr; gap: 34px; }
+  @media (min-width: 1000px) {
+    .svc-detail { grid-template-columns: 1.15fr .85fr; }
+    .svc-aside { position: sticky; top: 110px; display: grid; gap: 18px; align-self: start; }
+  }
+</style>
