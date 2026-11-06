@@ -1335,3 +1335,54 @@ main {
     overflow: hidden;
   }
 }
+
+
+/* ── بخش مزیت‌های همکاری: تیتر مستقل و چینش پایدار موبایل ── */
+.pros-section__head {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto 28px;
+  text-align: center;
+}
+.pros-section__body {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: start;
+  gap: clamp(24px, 4vw, 52px);
+}
+.pros-section__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 7 / 4;
+  object-fit: cover;
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+}
+.pros-section__body .pro-list {
+  min-width: 0;
+  margin: 0;
+}
+@media (max-width: 760px) {
+  .pros-section__head {
+    margin-bottom: 22px;
+    text-align: right;
+  }
+  .pros-section__body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+  .pros-section__image {
+    width: 100%;
+    max-height: 250px;
+    object-position: center;
+  }
+  .pros-section__body .pro-list {
+    width: 100%;
+    padding-inline: 0;
+  }
+  .pros-section__body .pro {
+    width: 100%;
+    min-width: 0;
+  }
+}
