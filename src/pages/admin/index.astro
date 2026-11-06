@@ -1,10 +1,9 @@
 export const prerender = false;
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
-import { getSession } from '../../lib/auth';
-import { adminStats } from '../../lib/db';
+import { adminStats } from '../../lib/cms-db';
 
-const session = await getSession(Astro.cookies);
+const session = Astro.locals.admin;
 let stats = { posts: 0, portfolio: 0, messages: 0, unread: 0 };
 let dbOk = true;
 try {
@@ -37,7 +36,7 @@ try {
       </aside>
 
       <main class="admin-main">
-        <h1>سلام {session?.name ?? 'مدیر'} 👋</h1>
+        <h1>سلام {session?.u ?? 'مدیر'} 👋</h1>
         <p style="color:var(--mut)">وضعیت کلی محتوای سایت در یک نگاه</p>
 
         {!dbOk && (
