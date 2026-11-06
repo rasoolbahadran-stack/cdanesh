@@ -35,8 +35,8 @@ const services = ['طراحی سایت', 'فروشگاه اینترنتی', 'س�
     </div>
   )}
   <div class="field field--full">
-    <label for={`${kind}-message`}>توضیحات</label>
-    <textarea id={`${kind}-message`} name="message" placeholder="کمی از کسب‌وکارتان و هدفتان بنویسید؛ هرچه دقیق‌تر، مشاوره کاربردی‌تر."></textarea>
+    <label for={`${kind}-message`}>توضیحات پیام <span aria-hidden="true" style="color:var(--pink)">*</span></label>
+    <textarea id={`${kind}-message`} name="message" required minlength="10" maxlength="3000" placeholder="کمی از کسب‌وکارتان و هدفتان بنویسید؛ هرچه دقیق‌تر، مشاوره کاربردی‌تر."></textarea>
   </div>
   <div class="field--full" style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
     <button type="submit" class="btn btn--lg">
