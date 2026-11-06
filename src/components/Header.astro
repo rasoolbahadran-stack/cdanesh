@@ -53,18 +53,18 @@ const isActive = (href: string) =>
 
     <div class="header__cta">
       <a href="/consult" class="btn btn--sm">درخواست مشاوره</a>
-      <button type="button" class="burger" aria-label="بازکردن منو" aria-expanded="false" data-burger>
+      <button type="button" class="burger" aria-label="بازکردن منو" aria-expanded="false" aria-controls="mobile-menu" data-burger>
         <span></span>
       </button>
     </div>
   </div>
 </header>
 
-<div class="mobile-menu" data-mobile-menu aria-hidden="true">
+<div id="mobile-menu" class="mobile-menu" data-mobile-menu aria-hidden="true">
   <div class="mobile-menu__panel" role="dialog" aria-modal="true" aria-label="منوی موبایل">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <a href="/" class="logo" style="color:var(--navy)"><Logo variant="full" /></a>
-      <button type="button" class="burger" aria-label="بستن منو" aria-expanded="true" data-menu-close style="display:block">
+      <button type="button" class="burger" aria-label="بستن منو" data-menu-close style="display:block">
         <span></span>
       </button>
     </div>
@@ -131,14 +131,20 @@ const isActive = (href: string) =>
   // ── منوی موبایل ──
   const menu = document.querySelector('[data-mobile-menu]');
   const burger = document.querySelector('[data-burger]');
+  const closeButton = menu?.querySelector<HTMLButtonElement>('[data-menu-close]');
   const openMenu = (open: boolean) => {
     menu?.classList.toggle('is-open', open);
     menu?.setAttribute('aria-hidden', String(!open));
     burger?.setAttribute('aria-expanded', String(open));
     document.body.style.overflow = open ? 'hidden' : '';
+    if (open) window.setTimeout(() => closeButton?.focus(), 30);
+    else burger?.focus();
   };
   burger?.addEventListener('click', () => openMenu(true));
-  menu?.querySelector('[data-menu-close]')?.addEventListener('click', () => openMenu(false));
+  closeButton?.addEventListener('click', () => openMenu(false));
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && menu?.classList.contains('is-open')) openMenu(false);
+  });
   menu?.addEventListener('click', (e) => {
     if (e.target === menu) openMenu(false);
   });
