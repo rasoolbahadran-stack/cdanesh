@@ -78,6 +78,21 @@ async function listProjects(token: string, teamId: string): Promise<VercelProjec
   return projects;
 }
 
+async function listProjectDomains(
+  projectId: string,
+  token: string,
+  teamId: string,
+): Promise<string[]> {
+  const url = new URL(`https://api.vercel.com/v9/projects/${encodeURIComponent(projectId)}/domains`);
+  url.searchParams.set('production', 'true');
+  url.searchParams.set('verified', 'true');
+  url.searchParams.set('limit', '100');
+  url.searchParams.set('teamId', teamId);
+
+  const data = await vercelGet<{ domains?: Array<{ name?: string }> }>(url, token);
+  return (data.domains || []).map((domain) => domain.name || '').filter(Boolean);
+}
+
 async function latestReadyProduction(
   projectId: string,
   token: string,
@@ -175,16 +190,17 @@ async function fetchPortfolioFromVercel(
   );
 
   const checked = await Promise.all(astroProjects.map(async (project) => {
-    const [details, deployment] = await Promise.all([
+    const [details, deployment, domains] = await Promise.all([
       (async () => {
         const url = new URL(`https://api.vercel.com/v9/projects/${encodeURIComponent(project.id)}`);
         url.searchParams.set('teamId', teamId);
         return vercelGet<VercelProject>(url, token).catch(() => project);
       })(),
       latestReadyProduction(project.id, token, teamId),
+      listProjectDomains(project.id, token, teamId).catch(() => []),
     ]);
 
-    const fullProject = { ...project, ...details };
+    const fullProject = { ...project, ...details, domains };
     if (!deployment || !isPublicProject(fullProject)) return null;
 
     const liveUrl = makeLiveUrl(fullProject, deployment);
@@ -193,8 +209,11 @@ async function fetchPortfolioFromVercel(
     return { project: fullProject, sort: deployment.createdAt || fullProject.updatedAt || 0, liveUrl };
   }));
 
-  return checked
-    .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry))
+  const visible = checked.filter(
+    (entry): entry is { project: VercelProject; sort: number; liveUrl: string } => entry !== null,
+  );
+
+  return visible
     .map((entry, index) => ({
       ...metadataFor(entry.project, localItems, databaseItems, index + 1),
       liveUrl: entry.liveUrl,
