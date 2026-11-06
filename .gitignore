@@ -1,32 +1,17 @@
-# build output
-dist/
-dist-static/
-Cafe-Danesh-Static/
-# generated types
-.astro/
-
-# local embedded database (فقط پیش‌نمایش محلی)
-.pgdata/
-
-# static build stash
-.static-stash/
-
-# dependencies
+# وابستگی‌ها
 node_modules/
 
-# logs
-dev.log
-npm-debug.log*
-
-# environment variables
-.env
-.env.production
-.env.local
-.env*
-
-# macOS
-.DS_Store
-
-# vercel build output (should never be committed)
+# خروجی بیلد
+dist/
+dist-static/
+.astro/
 .vercel/
-*.astro.bak
+
+# محیط
+.env
+.env.local
+.env.*.local
+
+# سیستم
+.DS_Store
+*.log

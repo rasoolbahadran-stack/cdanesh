@@ -1,0 +1,20 @@
+---
+interface Props { delay?: number; title?: string; sub?: string }
+const {
+  delay = 0,
+  title = 'برای شروع دیجیتال کسب‌وکارتان آماده‌اید؟',
+  sub = 'جلسه اول مشاوره رایگان است: اهداف‌تان را می‌شنویم، نیازها را مشخص می‌کنیم و مسیر پیشنهادی را برای شناخت دقیق و تعیین مسیر همکاری با هم می‌چینیم.',
+} = Astro.props;
+---
+<section class="section--tight">
+  <div class="container">
+    <div class="cta-band" data-reveal="zoom" data-delay={delay}>
+      <h2>{title}</h2>
+      <p>{sub}</p>
+      <div class="cta-band__btns">
+        <a href="/consult" class="btn btn--lg">درخواست مشاوره رایگان</a>
+        <a href="/portfolio" class="btn btn--ghost btn--lg">مشاهده نمونه‌کارها</a>
+      </div>
+    </div>
+  </div>
+</section>

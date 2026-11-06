@@ -1,0 +1,39 @@
+---
+// رندر بلوک‌های محتوایی استخراج‌شده از سایت فعلی
+import type { Block } from '../lib/types';
+
+interface Props { blocks: Block[]; proseClass?: string }
+const { blocks, proseClass = 'prose' } = Astro.props;
+const fa = (s: string | number) => new Intl.NumberFormat('fa-IR').format(Number(String(s).replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))));
+---
+<div class={proseClass}>
+  {blocks.map((b) => {
+    if (b.t === 'h2') return <h2>{b.x}</h2>;
+    if (b.t === 'h3') return <h3>{b.x}</h3>;
+    if (b.t === 'h4') return <h4>{b.x}</h4>;
+    if (b.t === 'p') return <p set:html={b.x} />;
+    if (b.t === 'blockquote') return <blockquote set:html={b.x} />;
+    if (b.t === 'ul') return <ul>{b.items.map((it) => <li set:html={it} />)}</ul>;
+    if (b.t === 'ol') return <ol>{b.items.map((it) => <li set:html={it} />)}</ol>;
+    if (b.t === 'table') {
+      const [head, ...rows] = b.rows;
+      return (
+        <div style="overflow-x:auto">
+          <table>
+            {head && <thead><tr>{head.map((c) => <th set:html={c} />)}</tr></thead>}
+            <tbody>{rows.map((r) => <tr>{r.map((c) => <td set:html={c} />)}</tr>)}</tbody>
+          </table>
+        </div>
+      );
+    }
+    if (b.t === 'img') {
+      return (
+        <figure style="margin:1.4em 0">
+          <img src={b.src} alt={b.alt || ''} loading="lazy" decoding="async" width="800" height="450" />
+          {b.alt && <figcaption style="text-align:center;color:var(--mut);font-size:.84rem;margin-top:6px">{b.alt}</figcaption>}
+        </figure>
+      );
+    }
+    return null;
+  })}
+</div>

@@ -1,0 +1,56 @@
+---
+// کارت نمونه‌کار — پیش‌نمایش واقعی سایت با اسکرول عمودی نرم هنگام Hover
+import type { PortfolioItem } from '../lib/types';
+import { pfStatusLabel } from '../lib/types';
+
+interface Props { item: PortfolioItem; delay?: number }
+const { item, delay = 0 } = Astro.props;
+
+const badgeClass =
+  item.status === 'published' ? 'pf-card__badge--live' : item.status === 'soon' ? 'pf-card__badge--soon' : '';
+---
+<article class="pf-card" data-pf-item data-cat={item.category} data-reveal="up" data-delay={delay}>
+  <div class="pf-card__thumb">
+    <img
+      src={item.preview}
+      alt={`${item.title} — نمونه‌کار کافه دانش`}
+      class="pf-card__shot"
+      width="900"
+      height="1200"
+      loading="lazy"
+      decoding="async"
+      style="object-fit:cover;object-position:top"
+    />
+    <span class="pf-card__grad" aria-hidden="true"></span>
+    <span class:list={['pf-card__badge', badgeClass]}>
+      <span class="pf-card__badge-dot" aria-hidden="true"></span>
+      {pfStatusLabel[item.status]}
+    </span>
+    {item.liveUrl && (
+      <a
+        href={item.liveUrl}
+        target="_blank"
+        rel="noopener"
+        class="pf-card__live"
+        aria-label={`مشاهده نسخه زنده ${item.title}`}
+        onclick="event.stopPropagation()"
+      >
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" /></svg>
+        مشاهده نسخه زنده
+      </a>
+    )}
+  </div>
+  <div class="pf-card__body">
+    <h3>{item.title}</h3>
+    <p>{item.excerpt}</p>
+    <div class="pf-card__foot">
+      <div class="pf-card__tags">
+        {item.tags.slice(0, 3).map((t) => <span>{t}</span>)}
+      </div>
+      <a href={`/portfolio/${item.slug}`} class="pf-card__visit">
+        جزئیات پروژه
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" /></svg>
+      </a>
+    </div>
+  </div>
+</article>

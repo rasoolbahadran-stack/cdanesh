@@ -1,0 +1,62 @@
+---
+// فهرست خدمات — گروه‌بندی مطابق سایت فعلی
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import SectionHead from '../components/SectionHead.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { SERVICE_CARDS, SITE, svcImg } from '../lib/content';
+import { jsonLdBreadcrumb } from '../lib/seo';
+
+const groups = [
+  { key: 'طراحی و توسعه وب', d: 'از سایت شرکتی و فروشگاهی تا تجربه کاربری؛ زیرساخت اصلی حضور آنلاین شما.' },
+  { key: 'سئو و تولید محتوا', d: 'دیده‌شدن در گوگل و محتوایی که مخاطب را به مشتری تبدیل می‌کند.' },
+  { key: 'هوش مصنوعی و پشتیبانی', d: 'ابزارهای هوشمند و همراهی مداوم پس از تحویل.' },
+];
+
+const meta = {
+  title: 'خدمات طراحی سایت، سئو و تولید محتوا | کافه دانش',
+  description: 'تمرکز اصلی ما طراحی سایت و تولید محتواست؛ سئو نیز در صورت نیاز، به‌عنوان مسیر مکمل به کار گرفته می‌شود. فروشگاه اینترنتی، UI/UX، سرعت و پشتیبانی.',
+  path: '/services',
+};
+---
+<BaseLayout meta={meta} current="/services" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'خدمات', url: '/services' }])]}>
+  <PageHero
+    title="خدمات کافه دانش"
+    sub="تمرکز اصلی ما طراحی سایت و تولید محتواست؛ سئو نیز در صورت نیاز، به‌عنوان مسیر مکمل به کار گرفته می‌شود."
+    crumbs={[{ label: 'خانه', href: '/' }, { label: 'خدمات' }]}
+  />
+
+  {groups.map((g, gi) => (
+    <section class:list={['section', gi % 2 ? 'bg-soft' : '']}>
+      <div class="container">
+        <SectionHead tag={g.key} title={g.key} sub={g.d} />
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px" class="svc-list">
+          {SERVICE_CARDS.filter((s) => s.cat === g.key).map((s, i) => (
+            <a href={`/services/${s.slug}`} class="svc-card" style="color:inherit" data-reveal="up" data-delay={String(i * 90)}>
+              <div class="svc-card__media">
+                <img src={svcImg(s.slug)} alt={`${s.t} — خدمت کافه دانش`} width="480" height="300" loading="lazy" decoding="async" />
+                <span class="svc-card__cat">{s.cat}</span>
+              </div>
+              <div class="svc-card__body">
+                <h3>{s.t}</h3>
+                <p>{s.d}</p>
+                <span class="svc-card__more">
+                  جزئیات خدمت
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" /></svg>
+                </span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  ))}
+
+  <CtaBand title="کدام خدمت برای کسب‌وکار شما مناسب است؟" sub="در جلسه مشاوره رایگان بررسی می‌کنیم؛ بدون فروش فوری، فقط مسیر درست." />
+</BaseLayout>
+
+<style is:global>
+  .svc-list { grid-template-columns: 1fr; }
+  @media (min-width: 760px) { .svc-list { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1060px) { .svc-list { grid-template-columns: repeat(3, 1fr); } }
+</style>

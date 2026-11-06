@@ -1,108 +1,22 @@
 ---
-/* چیدمان پنل مدیریت: سایدبار + تاپ‌بار + اعلان‌ها + محتوا */
-import '../styles/admin.css';
+// چیدمان پنل مدیریت — بدون هدر/فوتر عمومی سایت
+import '../styles/global.css';
 
-interface Props {
-  title: string;
-  crumb?: string;
-  actionsHtml?: string;
-  newMessages?: number;
-}
-const { title, crumb = 'پنل مدیریت', newMessages = 0 } = Astro.props;
-const user = Astro.locals.admin;
+interface Props { title: string }
+const { title } = Astro.props;
 ---
 <!doctype html>
 <html lang="fa" dir="rtl">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{title} | پنل کافه‌دانش</title>
+    <title>{title}</title>
     <meta name="robots" content="noindex, nofollow" />
     <link rel="icon" type="image/svg+xml" href="/img/logo.svg" />
     <link rel="preload" as="font" type="font/woff2" href="/fonts/Vazirmatn-Regular.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/Vazirmatn-Bold.woff2" crossorigin />
   </head>
-  <body class="admin-body">
-    <div class="admin-layout">
-      <aside class="admin-side">
-        <div class="side-brand">
-          <span class="brand-mark">ک<i></i></span>
-          <span class="side-brand-txt">
-            <span class="b-cap">CDANESH STUDIO</span>
-            <b>پنل مدیریت</b>
-            <small>کافه‌دانش</small>
-          </span>
-        </div>
-        <div class="side-label">مدیریت محتوا</div>
-        <a class="side-link" href="/admin"><span class="ico">🏠</span><span class="txt">داشبورد</span></a>
-        <a class="side-link" href="/admin/pages"><span class="ico">📄</span><span class="txt">صفحات</span></a>
-        <a class="side-link" href="/admin/posts"><span class="ico">📝</span><span class="txt">مقالات مجله</span></a>
-        <a class="side-link" href="/admin/categories"><span class="ico">🏷</span><span class="txt">دسته‌بندی‌ها</span></a>
-        <a class="side-link" href="/admin/media"><span class="ico">🖼</span><span class="txt">رسانه‌ها</span></a>
-        <div class="side-label">بخش‌های سایت</div>
-        <a class="side-link" href="/admin/services"><span class="ico">🛠</span><span class="txt">خدمات</span></a>
-        <a class="side-link" href="/admin/portfolio"><span class="ico">💼</span><span class="txt">نمونه‌کارها</span></a>
-        <a class="side-link" href="/admin/pricing"><span class="ico">💰</span><span class="txt">تعرفه‌ها</span></a>
-        <a class="side-link" href="/admin/faq"><span class="ico">❓</span><span class="txt">سؤالات متداول</span></a>
-        <a class="side-link" href="/admin/testimonials"><span class="ico">⭐</span><span class="txt">نظرات مشتریان</span></a>
-        <div class="side-label">ارتباط و تنظیمات</div>
-        <a class="side-link" href="/admin/messages"><span class="ico">📥</span><span class="txt">پیام‌ها و مشاوره</span>{newMessages ? <span class="side-badge">{newMessages}</span> : null}</a>
-        <a class="side-link" href="/admin/settings"><span class="ico">⚙️</span><span class="txt">تنظیمات سایت</span></a>
-        <div class="side-foot">
-          <div class="side-user">
-            <span class="avatar">{user?.u?.charAt(0)?.toUpperCase() || 'A'}</span>
-            <div><b>{user?.u || 'admin'}</b><small>مدیر کل</small></div>
-          </div>
-          <a class="side-link" href="/" target="_blank" rel="noopener"><span class="ico">🌐</span><span class="txt">مشاهده سایت</span></a>
-          <button class="side-link" id="btn-logout" type="button"><span class="ico">🚪</span><span class="txt">خروج</span></button>
-        </div>
-        <button class="side-collapse" type="button" aria-label="جمع/باز کردن منو">
-          <span class="sc-ico">→</span><span class="txt">جمع کردن منو</span>
-        </button>
-      </aside>
-      <div class="side-scrim"></div>
-      <div class="admin-main">
-        <div class="admin-topbar">
-          <button class="side-open-m" type="button">☰ منو</button>
-          <div>
-            <h1>{title}</h1>
-            <span class="crumb">{crumb}</span>
-          </div>
-          <div class="actions">
-            <button class="notif-bell" id="notif-bell" aria-label="اعلان‌ها">🔔{newMessages ? <span class="notif-dot"></span> : null}</button>
-            <div class="notif-dd" id="notif-dd">
-              <b>اعلان‌های جدید</b>
-              {newMessages ? (
-                <a href="/admin/messages"><i>📥</i><span>{newMessages} پیام و درخواست مشاوره جدید دارید</span></a>
-              ) : (
-                <div class="notif-empty">فعلاً اعلان تازه‌ای ندارید ✨</div>
-              )}
-            </div>
-            <slot name="actions" />
-          </div>
-        </div>
-        <div class="admin-content">
-          <slot />
-        </div>
-      </div>
-    </div>
-    <div class="toast-wrap"></div>
-    <script>
-      import '../scripts/admin';
-    </script>
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        const { api, toast, confirmDlg } = window.CDA;
-        document.getElementById('btn-logout')?.addEventListener('click', () => {
-          confirmDlg('از پنل مدیریت خارج می‌شوید؟', async () => {
-            await api('/api/auth/logout', 'POST');
-            window.location.href = '/admin/login';
-          });
-        });
-        const bell = document.getElementById('notif-bell');
-        const dd = document.getElementById('notif-dd');
-        bell?.addEventListener('click', (e) => { e.stopPropagation(); dd?.classList.toggle('open'); });
-        document.addEventListener('click', (e) => { if (dd && !dd.contains(e.target as Node)) dd.classList.remove('open'); });
-      });
-    </script>
+  <body>
+    <slot />
   </body>
 </html>

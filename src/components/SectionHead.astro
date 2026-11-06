@@ -1,0 +1,15 @@
+---
+interface Props {
+  tag: string;
+  title: string;
+  sub?: string;
+  center?: boolean;
+  white?: boolean;
+}
+const { tag, title, sub, center = false, white = false } = Astro.props;
+---
+<div class:list={['section-head', { 'section-head--center': center }]}>
+  <span class="section-head__tag" style={white ? 'color:#ffd7e8' : ''}>{tag}</span>
+  <h2 class="section-head__title" style={white ? 'color:#fff' : ''}>{title}</h2>
+  {sub && <p class="section-head__sub" style={white ? 'color:rgba(255,255,255,.9)' : ''}>{sub}</p>}
+</div>

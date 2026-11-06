@@ -1,52 +1,64 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
-import ContactForm from '../components/ContactForm.astro';
-import Icon from '../components/Icon.astro';
-import { q } from '../lib/db';
+import FormBlock from '../components/FormBlock.astro';
+import { jsonLdBreadcrumb } from '../lib/seo';
 
-const page = await q(`SELECT * FROM pages WHERE system_key='consult' AND status='published'`).then((r) => r[0] ?? null);
-if (!page) return Astro.redirect('/404', 302);
-const plan = Astro.url.searchParams.get('plan') || '';
-const service = Astro.url.searchParams.get('service') || '';
-const defaultPlan = plan || service;
+const meta = {
+  title: 'درخواست مشاوره رایگان | کافه دانش',
+  description: 'جلسه اول مشاوره رایگان است؛ اهداف‌تان را می‌شنویم، نیازها را مشخص می‌کنیم و مسیر پیشنهادی را با هم می‌چینیم.',
+  path: '/consult',
+};
 ---
-<BaseLayout
-  title={String(page.seo_title) || String(page.title)}
-  description={String(page.seo_description) || String(page.excerpt)}
-  activePath="/consult"
->
-  <PageHero title="درخواست مشاوره" sub={String(page.excerpt)} crumbs={[{ label: 'درخواست مشاوره', href: '' }]} />
+<BaseLayout meta={meta} current="/consult" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'درخواست مشاوره', url: '/consult' }])]}>
+  <PageHero
+    title="درخواست مشاوره"
+    sub="جلسه اول مشاوره رایگان است: اهداف‌تان را می‌شنویم، نیازها را مشخص می‌کنیم و مسیر پیشنهادی را با هم می‌چینیم."
+    crumbs={[{ label: 'خانه', href: '/' }, { label: 'درخواست مشاوره' }]}
+  />
 
   <section class="section">
-    <div class="container contact-grid">
-      <div data-reveal="right">
-        <ContactForm type="consult" defaultPlan={defaultPlan} />
-        {page.content ? <div class="prose-fa mt-3" data-reveal="up" set:html={String(page.content)} /> : null}
+    <div class="container consult-grid">
+      <div class="card" style="padding:clamp(22px,4vw,36px)">
+        <h2 style="font-size:1.3rem">فرم درخواست مشاوره</h2>
+        <p style="color:var(--mut);font-size:.94rem">لازم نیست چیز خاصی آماده کنید؛ فقط صادقانه بنویسید چه دارید و چه می‌خواهید.</p>
+        <FormBlock kind="consult" />
       </div>
 
-      <aside class="contact-side" data-reveal="left">
-        <h2>در جلسه مشاوره چه اتفاقی می‌افتد؟</h2>
-        <p>مشاوره یعنی شنیدن و پیشنهاد؛ نه فروش فوری پکیج.</p>
-        <ul class="contact-side__list">
-          <li>
-            <Icon name="check" size={19} stroke={2.2} />
-            <span>گوش می‌دهیم: کسب‌وکار، مخاطب و وضعیت فعلی شما.</span>
-          </li>
-          <li>
-            <Icon name="check" size={19} stroke={2.2} />
-            <span>سؤال می‌پرسیم: انتظار واقعی‌تان از سایت و محتوا چیست.</span>
-          </li>
-          <li>
-            <Icon name="check" size={19} stroke={2.2} />
-            <span>گزینه‌ها را می‌گوییم: چه راه‌حلی به درد شما می‌خورد و چه چیزی نمی‌خورد.</span>
-          </li>
-          <li>
-            <Icon name="check" size={19} stroke={2.2} />
-            <span>برآورد اولیه می‌دهیم: دامنهٔ زمانی و هزینه، بدون پنهان‌کاری.</span>
-          </li>
-        </ul>
+      <aside class="consult-aside">
+        <div class="card" style="padding:24px;background:var(--grad-hero);color:#fff;border:0">
+          <h3 style="color:#fff;font-size:1.1rem">در جلسه مشاوره چه اتفاقی می‌افتد؟</h3>
+          <ul style="list-style:none;padding:0;margin:12px 0 0;display:grid;gap:10px;font-size:.93rem">
+            {[
+              'گوش می‌دهیم: کسب‌وکار، مخاطب و هدف شما را می‌شنویم',
+              'وضعیت فعلی را بررسی می‌کنیم: سایت، محتوا و رقبا',
+              'گزینه‌های واقعی را می‌گوییم: چه چیزی، با چه هزینه و زمانی',
+              'اگر مسیر درستِ شما کاری نیست که ما انجام می‌دهیم، صادقانه می‌گوییم',
+            ].map((t) => (
+              <li style="display:flex;gap:9px;align-items:flex-start">
+                <svg style="flex:none;margin-top:5px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7ef0bd" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg>
+                {t}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <figure style="margin:0;border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-card)">
+          <img src="/img/ai/consult.webp" alt="مشاور کافه دانش در حال گفت‌وگوی آنلاین با کارفرما" width="576" height="432" loading="lazy" decoding="async" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block" />
+        </figure>
+
+        <blockquote style="margin:0;padding:18px 22px;background:var(--peach);border-right:4px solid var(--pink);border-radius:var(--r-sm);font-weight:600;color:#43304b">
+          مشاوره یعنی شنیدن و پیشنهاد؛ نه فروش فوری پکیج. اگر راه‌حلی به درد شما نمی‌خورد، همان اول می‌گوییم.
+        </blockquote>
       </aside>
     </div>
   </section>
 </BaseLayout>
+
+<style is:global>
+  .consult-grid { display: grid; grid-template-columns: 1fr; gap: 30px; }
+  @media (min-width: 1000px) {
+    .consult-grid { grid-template-columns: 1.15fr .85fr; align-items: start; }
+    .consult-aside { position: sticky; top: 100px; display: grid; gap: 20px; }
+  }
+</style>

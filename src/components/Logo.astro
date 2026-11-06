@@ -1,54 +1,44 @@
 ---
-// لوگوی کافه دانش — نشان فنجان دانش + واژه‌نگار فارسی (SVG برداری)
-interface Props {
-  variant?: 'dark' | 'light';
-  class?: string;
-}
-const { variant = 'dark', class: className = '' } = Astro.props;
-const textColor = variant === 'dark' ? '#001f3f' : '#ffffff';
-const subColor = variant === 'dark' ? '#f4257b' : '#ffd7e8';
-const uid = `cd-g-${variant}`;
+// لوگوی کافه دانش — نسخه کامل (نشان فنجان + واژه‌نگار)
+interface Props { variant?: 'full' | 'mark'; class?: string }
+const { variant = 'full', class: cls } = Astro.props;
 ---
-
-<a href="/" class={`logo ${className}`} aria-label="کافه دانش (Cafe Danesh) — صفحه اصلی">
-  <svg width="196" height="48" viewBox="0 0 196 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
-    <defs>
-      <linearGradient id={uid} x1="152" y1="44" x2="194" y2="4" gradientUnits="userSpaceOnUse">
-        <stop stop-color="#F4257B"></stop>
-        <stop offset="1" stop-color="#A35EEC"></stop>
-      </linearGradient>
-    </defs>
-
-    <!-- نشان: فنجان دانش در قاب گرادیانی -->
-    <g>
-      <rect x="152" y="2" width="44" height="44" rx="12.5" fill={`url(#${uid})`}></rect>
-      <g stroke="#ffffff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" fill="none">
-        <path d="M160 20.5h17.5v9.5a6.5 6.5 0 0 1-6.5 6.5h-4.5a6.5 6.5 0 0 1-6.5-6.5v-9.5Z"></path>
-        <path d="M177.5 23h2.8a4 4 0 0 1 0 8h-2.8"></path>
-        <path d="M164 16c0-2 1.7-2 1.7-4M170.5 16c0-2 1.7-2 1.7-4"></path>
+{
+  variant === 'full' ? (
+    <svg width="168" height="42" viewBox="0 0 196 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="کافه دانش — Cafe Danesh" class={cls}>
+      <defs>
+        <linearGradient id={`cd-g-${variant}`} x1="152" y1="44" x2="194" y2="4" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#F4257B" />
+          <stop offset="1" stop-color="#A35EEC" />
+        </linearGradient>
+      </defs>
+      <g>
+        <rect x="152" y="2" width="44" height="44" rx="12.5" fill={`url(#cd-g-${variant})`} />
+        <g stroke="#ffffff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" fill="none">
+          <path d="M160 20.5h17.5v9.5a6.5 6.5 0 0 1-6.5 6.5h-4.5a6.5 6.5 0 0 1-6.5-6.5v-9.5Z" />
+          <path d="M177.5 23h2.8a4 4 0 0 1 0 8h-2.8" />
+          <path d="M164 16c0-2 1.7-2 1.7-4M170.5 16c0-2 1.7-2 1.7-4" />
+        </g>
+        <path d="M186 7.4c.3 2 1.3 3 3.3 3.3-2 .3-3 1.3-3.3 3.3-.3-2-1.3-3-3.3-3.3 2-.3 3-1.3 3.3-3.3Z" fill="#FFD7E8" />
       </g>
-      <path d="M186 7.4c.3 2 1.3 3 3.3 3.3-2 .3-3 1.3-3.3 3.3-.3-2-1.3-3-3.3-3.3 2-.3 3-1.3 3.3-3.3Z" fill="#FFD7E8"></path>
-    </g>
-
-    <!-- واژه‌نگار (وسط‌چین برای مقاومت در برابر جهت RTL) -->
-    <text x="84" y="28" font-size="25" font-weight="800" fill={textColor} font-family="Vazirmatn, Tahoma, sans-serif" text-anchor="middle" class="logo-word">کافه دانش</text>
-    <text x="84" y="42" font-size="7.5" font-weight="600" letter-spacing="2.8" fill={subColor} font-family="Vazirmatn, Tahoma, sans-serif" text-anchor="middle">CAFE DANESH</text>
-  </svg>
-</a>
-
-<style>
-  .logo {
-    display: inline-flex;
-    align-items: center;
-    flex: none;
-  }
-  .logo svg {
-    width: 186px;
-    height: auto;
-  }
-  @media (max-width: 575px) {
-    .logo svg {
-      width: 152px;
-    }
-  }
-</style>
+      <text x="70" y="28" font-size="25" font-weight="800" fill="currentColor" font-family="Vazirmatn, Tahoma, sans-serif" text-anchor="middle">کافه دانش</text>
+      <text x="70" y="42" font-size="7.5" font-weight="600" letter-spacing="2.8" fill="#F4257B" font-family="Vazirmatn, Tahoma, sans-serif" text-anchor="middle">CDANESH STUDIO</text>
+    </svg>
+  ) : (
+    <svg width="42" height="42" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="کافه دانش" class={cls}>
+      <defs>
+        <linearGradient id={`cd-g-${variant}`} x1="8" y1="56" x2="56" y2="8" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#F4257B" />
+          <stop offset="1" stop-color="#A35EEC" />
+        </linearGradient>
+      </defs>
+      <rect x="2" y="2" width="60" height="60" rx="17" fill={`url(#cd-g-${variant})`} />
+      <g stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+        <path d="M18 30h24v13a9 9 0 0 1-9 9h-6a9 9 0 0 1-9-9V30Z" />
+        <path d="M42 34h4a5.5 5.5 0 0 1 0 11h-4" />
+        <path d="M24 24c0-2.7 2.3-2.7 2.3-5.4M33 24c0-2.7 2.3-2.7 2.3-5.4" />
+      </g>
+      <path d="M52 10.5c.5 2.7 1.8 4 4.5 4.5-2.7.5-4 1.8-4.5 4.5-.5-2.7-1.8-4-4.5-4.5 2.7-.5 4-1.8 4.5-4.5Z" fill="#FFD7E8" />
+    </svg>
+  )
+}

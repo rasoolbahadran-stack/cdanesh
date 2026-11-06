@@ -1,34 +1,27 @@
-/* ورود ادمین — /api/auth/login */
-import type { APIRoute } from 'astro';
-import { login, isSecureRequest, loginThrottle, clientIp } from '../../../lib/auth';
-import { ok, fail, serverError, readJson } from '../../../lib/http';
-import { logActivity } from '../../../lib/seed';
-
 export const prerender = false;
+import type { APIRoute } from 'astro';
+import { verifyCredentials, createSession } from '../../../lib/auth';
 
-export const POST: APIRoute = async (ctx) => {
+export const POST: APIRoute = async ({ request, cookies }) => {
   try {
-    const ip = clientIp(ctx.request);
-    const throttle = loginThrottle(ip);
-    if (!throttle.allowed) {
-      await logActivity('security', 'auth', null, 'تلاش ورود بیش از حد مجاز (مسدودسازی موقت)');
-      return fail(`تلاش‌های ناموفق زیاد؛ ${throttle.retryAfter} ثانیه دیگر تلاش کنید`, 'RATE_LIMITED', 429);
+    const body = await request.json().catch(() => ({}));
+    const email = String(body.email || '');
+    const password = String(body.password || '');
+    const session = verifyCredentials(email, password);
+    if (!session) {
+      return new Response(JSON.stringify({ ok: false, error: 'ایمیل یا رمز عبور درست نیست' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
-    const body = await readJson(ctx.request);
-    const result = login(String(body.username || ''), String(body.password || ''), isSecureRequest(ctx.request));
-    if (!result.ok || !result.cookie) {
-      await logActivity('security', 'auth', null, 'تلاش ناموفق ورود به پنل مدیریت');
-      return fail(result.message || 'ورود ناموفق بود', result.error || 'BAD_CREDENTIALS', 401);
-    }
-    await logActivity('login', 'auth', null, 'ورود موفق به پنل مدیریت');
-    return new Response(JSON.stringify({ ok: true, message: 'خوش آمدید! در حال انتقال به پنل…', data: { username: String(body.username) } }), {
-      status: 200,
-      headers: {
-        'content-type': 'application/json; charset=utf-8',
-        'set-cookie': result.cookie,
-      },
+    await createSession(cookies, session);
+    return new Response(JSON.stringify({ ok: true }), {
+      headers: { 'Content-Type': 'application/json' },
     });
-  } catch (e) {
-    return serverError(e);
+  } catch {
+    return new Response(JSON.stringify({ ok: false, error: 'خطای سرور' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 };

@@ -1,109 +1,146 @@
-/* ==========================================================================
-   کافه‌دانش — لایهٔ دیتابیس (قاعدهٔ حیاتی پروژه)
-   ---------------------------------------------------------------------------
-   دو درایور با یک رابط یکسان:
-   • اگر DATABASE_URL تنظیم شده باشد → Postgres واقعی (Neon / Vercel Postgres)
-     — همان قراردادی که پروژهٔ فعلی روی Vercel دارد.
-   • در غیر این صورت → PGlite (پستگرس امبدد) فقط برای پیش‌نمایش محلی.
-   مایگریشن‌ها idempotent هستند و در اولین اجرا خودکار اعمال می‌شوند.
-   هرگز داده‌های موجود بازنویسی یا حذف نمی‌شوند.
-   ========================================================================== */
-import { env, hasEnv } from './env';
+// لایه دیتابیس Neon — در نبود DATABASE_URL غیرفعال است و سایت از داده‌های محلی استفاده می‌کند.
+// نکته: اگر ساختار دیتابیس فعلی کافه دانش متفاوت است، کوئری‌های این فایل را مطابق همان تطبیق دهید.
+import { neon } from '@neondatabase/serverless';
 
-type Row = Record<string, unknown>;
+let sql: ReturnType<typeof neon> | null = null;
 
-interface DbDriver {
-  kind: 'postgres' | 'pglite';
-  sql(text: string, params?: unknown[]): Promise<Row[]>;
-  exec(text: string): Promise<void>;
+function client() {
+  const url = process.env.DATABASE_URL;
+  if (!url) return null;
+  if (!sql) {
+    try {
+      sql = neon(url);
+    } catch {
+      sql = null;
+    }
+  }
+  return sql;
 }
 
-const g = globalThis as unknown as {
-  __cd_db?: DbDriver;
-  __cd_db_ready?: Promise<DbDriver>;
-};
+export function dbAvailable(): boolean {
+  return Boolean(client());
+}
 
-async function createDriver(): Promise<DbDriver> {
-  /* ─── حالت تولید: Postgres واقعی با DATABASE_URL ───
-     فقط URL معتبرِ postgresql:// یا postgres:// پذیرفته می‌شود؛
-     مقادیر ناسازگار محیط (مثل file:) به حالت پیش‌نمایش محلی می‌روند. */
-  const dbUrl = env('DATABASE_URL') || '';
-  const isPgUrl = /^postgres(ql)?:\/\//i.test(dbUrl);
-  if (dbUrl && isPgUrl) {
-    const { Pool } = await import('pg');
-    const pool = new Pool({
-      connectionString: env('DATABASE_URL'),
-      ssl: { rejectUnauthorized: false },
-      max: 5,
-    });
-    return {
-      kind: 'postgres',
-      async sql(text, params = []) {
-        const r = await pool.query(text, params as never[]);
-        return r.rows as Row[];
-      },
-      async exec(text) {
-        await pool.query(text);
-      },
-    };
-  }
+export interface DbPost {
+  slug: string; title: string; excerpt: string; content: string;
+  category: string; cover: string; read_minutes: number;
+  published: boolean; published_at: string; blocks?: unknown[];
+}
 
-  /* ─── حالت پیش‌نمایش: PGlite امبدد ─── */
-  const { PGlite } = await import('@electric-sql/pglite');
-  const lite = new PGlite('./.pgdata');
+export async function getPosts(): Promise<DbPost[]> {
+  const c = client();
+  if (!c) return [];
+  const rows = await c`
+    SELECT slug, title, excerpt, content, category, cover, read_minutes, published, published_at
+    FROM posts WHERE published = true ORDER BY published_at DESC`;
+  return rows as unknown as DbPost[];
+}
+
+export interface DbPortfolio {
+  slug: string; title: string; excerpt: string; description: string;
+  category: string; tags: string[]; cover: string; preview_webp: string;
+  live_url: string; status: string; sort_order: number; published: boolean;
+}
+
+export async function getPortfolio(): Promise<DbPortfolio[]> {
+  const c = client();
+  if (!c) return [];
+  const rows = await c`
+    SELECT slug, title, excerpt, description, category, tags, cover,
+           preview_webp, live_url, status, sort_order, published
+    FROM portfolio WHERE published = true ORDER BY sort_order ASC`;
+  return rows as unknown as DbPortfolio[];
+}
+
+export async function insertMessage(kind: string, data: {
+  name: string; phone?: string; email?: string; service?: string; message?: string; meta?: object;
+}): Promise<boolean> {
+  const c = client();
+  if (!c) return false;
+  await c`
+    INSERT INTO messages (kind, name, phone, email, service, message, meta)
+    VALUES (${kind}, ${data.name}, ${data.phone ?? ''}, ${data.email ?? ''}, ${data.service ?? ''}, ${data.message ?? ''},
+            ${JSON.stringify(data.meta ?? {})}::jsonb)`;
+  return true;
+}
+
+export async function listMessages() {
+  const c = client();
+  if (!c) return [];
+  const rows = await c`SELECT * FROM messages ORDER BY created_at DESC LIMIT 200`;
+  return rows as unknown as Array<Record<string, unknown>>;
+}
+
+export async function markMessageRead(id: number) {
+  const c = client();
+  if (!c) return;
+  await c`UPDATE messages SET is_read = true WHERE id = ${id}`;
+}
+
+// CRUD مقالات — پنل مدیریت
+export async function upsertPost(p: {
+  slug: string; title: string; excerpt: string; content: string;
+  category: string; cover: string; read_minutes: number; published: boolean;
+}) {
+  const c = client();
+  if (!c) throw new Error('DATABASE_URL تنظیم نشده است');
+  await c`
+    INSERT INTO posts (slug, title, excerpt, content, category, cover, read_minutes, published, published_at)
+    VALUES (${p.slug}, ${p.title}, ${p.excerpt}, ${p.content}, ${p.category}, ${p.cover},
+            ${p.read_minutes}, ${p.published}, now())
+    ON CONFLICT (slug) DO UPDATE SET
+      title = EXCLUDED.title, excerpt = EXCLUDED.excerpt, content = EXCLUDED.content,
+      category = EXCLUDED.category, cover = EXCLUDED.cover,
+      read_minutes = EXCLUDED.read_minutes, published = EXCLUDED.published,
+      updated_at = now()`;
+}
+
+export async function deletePost(slug: string) {
+  const c = client();
+  if (!c) throw new Error('DATABASE_URL تنظیم نشده است');
+  await c`DELETE FROM posts WHERE slug = ${slug}`;
+}
+
+// CRUD نمونه‌کار — پنل مدیریت
+export async function upsertPortfolio(p: {
+  slug: string; title: string; excerpt: string; description: string;
+  category: string; tags: string[]; cover: string; preview_webp: string;
+  live_url: string; status: string; sort_order: number; published: boolean;
+}) {
+  const c = client();
+  if (!c) throw new Error('DATABASE_URL تنظیم نشده است');
+  await c`
+    INSERT INTO portfolio (slug, title, excerpt, description, category, tags, cover, preview_webp, live_url, status, sort_order, published)
+    VALUES (${p.slug}, ${p.title}, ${p.excerpt}, ${p.description}, ${p.category}, ${p.tags}, ${p.cover},
+            ${p.preview_webp}, ${p.live_url}, ${p.status}, ${p.sort_order}, ${p.published})
+    ON CONFLICT (slug) DO UPDATE SET
+      title = EXCLUDED.title, excerpt = EXCLUDED.excerpt, description = EXCLUDED.description,
+      category = EXCLUDED.category, tags = EXCLUDED.tags, cover = EXCLUDED.cover,
+      preview_webp = EXCLUDED.preview_webp, live_url = EXCLUDED.live_url,
+      status = EXCLUDED.status, sort_order = EXCLUDED.sort_order,
+      published = EXCLUDED.published, updated_at = now()`;
+}
+
+export async function deletePortfolio(slug: string) {
+  const c = client();
+  if (!c) throw new Error('DATABASE_URL تنظیم نشده است');
+  await c`DELETE FROM portfolio WHERE slug = ${slug}`;
+}
+
+export async function adminStats() {
+  const c = client();
+  if (!c) return { posts: 0, portfolio: 0, messages: 0, unread: 0 };
+  const r = await c`
+    SELECT
+      (SELECT COUNT(*) FROM posts) AS posts,
+      (SELECT COUNT(*) FROM portfolio) AS portfolio,
+      (SELECT COUNT(*) FROM messages) AS messages,
+      (SELECT COUNT(*) FROM messages WHERE is_read = false) AS unread`;
+  const row = (r[0] ?? {}) as Record<string, string>;
   return {
-    kind: 'pglite',
-    async sql(text, params = []) {
-      const r = await lite.query(text, params as never[]);
-      return r.rows as Row[];
-    },
-    async exec(text) {
-      await lite.exec(text);
-    },
+    posts: Number(row.posts || 0),
+    portfolio: Number(row.portfolio || 0),
+    messages: Number(row.messages || 0),
+    unread: Number(row.unread || 0),
   };
-}
-
-export function db(): Promise<DbDriver> {
-  if (!g.__cd_db_ready) {
-    g.__cd_db_ready = createDriver().then((d) => {
-      g.__cd_db = d;
-      return d;
-    });
-  }
-  return g.__cd_db_ready;
-}
-
-/* ---------- کوئری‌های کمکی ---------- */
-export async function q<T = Row>(text: string, params: unknown[] = []): Promise<T[]> {
-  const d = await db();
-  return (await d.sql(text, params)) as T[];
-}
-
-export async function q1<T = Row>(text: string, params: unknown[] = []): Promise<T | null> {
-  const rows = await q<T>(text, params);
-  return rows[0] ?? null;
-}
-
-/* ---------- مایگریشن (idempotent) ---------- */
-const MIGRATIONS: string[] = [];
-
-export async function migrate(): Promise<void> {
-  const d = await db();
-  await d.exec(`CREATE TABLE IF NOT EXISTS _migrations (
-    name text PRIMARY KEY,
-    applied_at timestamptz NOT NULL DEFAULT now()
-  )`);
-  const applied = new Set(
-    (await q<{ name: string }>('SELECT name FROM _migrations')).map((r) => r.name),
-  );
-  for (let i = 0; i < MIGRATIONS.length; i++) {
-    const name = `m${String(i + 1).padStart(3, '_')}`;
-    if (applied.has(name)) continue;
-    await d.exec(MIGRATIONS[i]);
-    await d.sql('INSERT INTO _migrations (name) VALUES ($1)', [name]);
-  }
-}
-
-export function registerMigration(sqlText: string): void {
-  MIGRATIONS.push(sqlText);
 }

@@ -1,0 +1,27 @@
+---
+import type { Post } from '../lib/types';
+
+interface Props { post: Post; delay?: number }
+const { post, delay = 0 } = Astro.props;
+const href = `/blog/${post.slug}`;
+---
+<article class="post-card" data-reveal="up" data-delay={delay}>
+  <a href={href} class="post-card__media" aria-label={post.title}>
+    <img src={post.cover} alt={`تصویر مقاله: ${post.title}`} width="640" height="360" loading="lazy" decoding="async" />
+    <span class="post-card__cat">{post.category}</span>
+  </a>
+  <div class="post-card__body">
+    <h3><a href={href} style="color:inherit">{post.title}</a></h3>
+    <p>{post.excerpt.slice(0, 130)}{post.excerpt.length > 130 ? '…' : ''}</p>
+    <div class="post-card__meta">
+      <span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3" /><path d="M8 3v4m8-4v4M3 10h18" /></svg>
+        {post.dateFa || '—'}
+      </span>
+      <span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 3" /></svg>
+        {new Intl.NumberFormat('fa-IR').format(post.readMinutes)} دقیقه مطالعه
+      </span>
+    </div>
+  </div>
+</article>

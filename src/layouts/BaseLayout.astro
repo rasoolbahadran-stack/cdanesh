@@ -1,121 +1,188 @@
 ---
-/* چیدمان پایهٔ عمومی کافه دانش — سئوی کامل + پوستهٔ جدید
-   متا، OG، Twitter، Canonical، Schema.org + پری‌لودر + هدر/فوتر */
-import '../styles/site.css';
+// چیدمان پایه — SEO کامل، فونت محلی، انیمیشن‌های Reveal، هدر و فوتر
+import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { getSiteSettings } from '../lib/seed';
+import { SITE } from '../lib/content';
+import { ogImage, jsonLdOrganization, jsonLdWebSite, type PageMeta } from '../lib/seo';
 
-export interface SeoProps {
-  title: string;
-  description: string;
-  ogImage?: string;
-  ogType?: 'website' | 'article';
-  ogPublishedTime?: string;
-  noIndex?: boolean;
-  schema?: Record<string, unknown>[];
+interface Props {
+  meta: PageMeta;
+  current?: string;
+  extraJsonLd?: object[];
 }
+const { meta, current = '/', extraJsonLd = [] } = Astro.props;
 
-interface Props extends SeoProps {
-  activePath?: string;
-}
+const canonical = `${SITE.url}${meta.path === '/' ? '' : meta.path}`;
+const ogImg = ogImage(meta);
+const org = jsonLdOrganization();
+const website = jsonLdWebSite();
 
-const { title, description, ogImage, ogType = 'website', ogPublishedTime, noIndex, schema = [], activePath = '' } = Astro.props;
-const settings = await getSiteSettings();
-const seo = settings.seo;
-const finalOg = (ogImage || seo.ogImage).startsWith('http') ? (ogImage || seo.ogImage) : Astro.site?.origin + (ogImage || seo.ogImage);
-const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
-
-const preferredSiteName = settings.identity.brandFa?.trim() || 'کافه دانش';
-const latinSiteName = settings.identity.brandEn?.trim() || 'Cafe Danesh';
-const displayTitle = title
-  .replace(/کافه[\u200c\s-]*دانش/giu, preferredSiteName)
-  .replace(/CDANESH\s+STUDIO/giu, preferredSiteName)
-  .replace(/Cafe\s+Danesh/giu, preferredSiteName);
-
-/* Schema سازمان — روی همهٔ صفحات */
-const orgSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  '@id': 'https://cdanesh.ir/#organization',
-  name: preferredSiteName,
-  alternateName: latinSiteName,
-  url: Astro.site?.href || '/',
-  logo: (Astro.site?.origin || '') + '/img/logo.svg',
-  description: seo.defaultDescription,
-  email: settings.contact.email,
-  telephone: '+98' + settings.contact.phone.slice(1),
-  address: { '@type': 'PostalAddress', addressLocality: 'بوشهر', streetAddress: settings.contact.address, addressCountry: 'IR' },
-};
-
-const siteSchema = Astro.url.pathname === '/' ? {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  '@id': 'https://cdanesh.ir/#website',
-  name: preferredSiteName,
-  alternateName: [latinSiteName, 'cdanesh.ir'],
-  url: 'https://cdanesh.ir/',
-} : null;
-
-const allSchema = [orgSchema, ...(siteSchema ? [siteSchema] : []), ...schema];
+const orgLd = JSON.stringify(org);
+const siteLd = JSON.stringify(website);
+const extraLd = extraJsonLd.map((j) => JSON.stringify(j));
 ---
 <!doctype html>
 <html lang="fa" dir="rtl">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{displayTitle}</title>
-    <meta name="description" content={description} />
+    <title>{meta.title}</title>
+    <meta name="description" content={meta.description} />
     <meta name="generator" content={Astro.generator} />
     <meta name="theme-color" content="#ffffff" />
-    {noIndex ? <meta name="robots" content="noindex, nofollow" /> : null}
-    <link rel="canonical" href={canonical} />
+    {meta.noindex ? <meta name="robots" content="noindex, nofollow" /> : <link rel="canonical" href={canonical} />}
     <link rel="icon" type="image/svg+xml" href="/img/logo.svg" />
     <link rel="apple-touch-icon" href="/img/logo-180.png" />
-
     <link rel="preload" as="font" type="font/woff2" href="/fonts/Vazirmatn-Regular.woff2" crossorigin />
     <link rel="preload" as="font" type="font/woff2" href="/fonts/Vazirmatn-Bold.woff2" crossorigin />
 
-    <meta property="og:site_name" content={preferredSiteName} />
-    <meta property="og:type" content={ogType} />
-    {ogType === 'article' && ogPublishedTime ? <meta property="article:published_time" content={ogPublishedTime} /> : null}
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:type" content={meta.type ?? 'website'} />
     <meta property="og:locale" content="fa_IR" />
-    <meta property="og:title" content={displayTitle} />
-    <meta property="og:description" content={description} />
+    <meta property="og:title" content={meta.title} />
+    <meta property="og:description" content={meta.description} />
     <meta property="og:url" content={canonical} />
-    <meta property="og:image" content={finalOg} />
+    <meta property="og:image" content={ogImg} />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={displayTitle} />
-    <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={finalOg} />
+    <meta name="twitter:title" content={meta.title} />
+    <meta name="twitter:description" content={meta.description} />
+    <meta name="twitter:image" content={ogImg} />
+    {meta.publishedTime && <meta property="article:published_time" content={meta.publishedTime} />}
 
-    {allSchema.map((s) => <script type="application/ld+json" set:html={JSON.stringify(s)} />)}
-    <script is:inline>document.documentElement.classList.add('js');</script>
+    <script type="application/ld+json" set:html={orgLd} />
+    <script type="application/ld+json" set:html={siteLd} />
+    {extraLd.map((j) => <script type="application/ld+json" set:html={j} />)}
   </head>
   <body>
-    <div class="preloader" id="preloader" aria-hidden="true">
-      <div class="preloader__bars"><span></span><span></span><span></span><span></span></div>
-    </div>
+    <a class="skip-link" href="#main">پرش به محتوای اصلی</a>
+    <Header current={current} />
 
-    <a href="#main" class="skip-link">پرش به محتوای اصلی</a>
-    <Header settings={settings} activePath={activePath} />
     <main id="main">
       <slot />
     </main>
-    <Footer settings={settings} />
 
-    <button class="back-top" id="backTop" aria-label="بازگشت به بالای صفحه">
-      <svg class="ring" width="52" height="52" viewBox="0 0 52 52" aria-hidden="true">
-        <circle class="ring-bg" cx="26" cy="26" r="24"></circle>
-        <circle class="ring-fg" cx="26" cy="26" r="24" data-progress></circle>
-      </svg>
-      <svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M12 19V5m0 0-6 6m6-6 6 6"></path>
-      </svg>
-    </button>
+    <Footer />
 
     <script>
-      import '../scripts/site';
+      // ── انیمیشن ورود عناصر هنگام اسکرول (IntersectionObserver سبک) ──
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const els = document.querySelectorAll<HTMLElement>('[data-reveal]');
+      if (reduced) {
+        els.forEach((el) => el.classList.add('is-in'));
+      } else {
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((en) => {
+              if (en.isIntersecting) {
+                const el = en.target as HTMLElement;
+                const delay = Number(el.dataset.delay || 0);
+                window.setTimeout(() => el.classList.add('is-in'), delay);
+                io.unobserve(el);
+              }
+            });
+          },
+          { threshold: 0.14, rootMargin: '0px 0px -6% 0px' }
+        );
+        els.forEach((el) => io.observe(el));
+      }
+
+      // ── شمارنده آمار ──
+      const counters = document.querySelectorAll<HTMLElement>('[data-count]');
+      const fmt = (n: number) => new Intl.NumberFormat('fa-IR').format(n);
+      const runCounter = (el: HTMLElement) => {
+        const target = Number(el.dataset.count || 0);
+        if (reduced) { el.textContent = fmt(target); return; }
+        const dur = 1400;
+        const t0 = performance.now();
+        const tick = (t: number) => {
+          const p = Math.min(1, (t - t0) / dur);
+          const eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = fmt(Math.round(target * eased));
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      };
+      if (counters.length) {
+        const cio = new IntersectionObserver(
+          (entries) => entries.forEach((en) => {
+            if (en.isIntersecting) { runCounter(en.target as HTMLElement); cio.unobserve(en.target); }
+          }),
+          { threshold: 0.5 }
+        );
+        counters.forEach((c) => cio.observe(c));
+      }
+
+      // ── تنظیم ارتفاع اسکرول کارت‌های نمونه‌کار (برای افکت مرور صفحه) ──
+      document.querySelectorAll<HTMLElement>('.pf-card__shot').forEach((img) => {
+        const set = () => {
+          const thumb = img.closest('.pf-card__thumb');
+          if (!thumb) return;
+          const overflow = (img.naturalHeight ? (img.clientHeight / thumb.clientHeight - 1) : 1) * 100;
+          img.style.setProperty('--scroll-h', `${Math.min(88, Math.max(30, overflow))}%`);
+        };
+        if (img.complete) set();
+        else img.addEventListener('load', set, { once: true });
+      });
+
+      // ── آکاردئون FAQ ──
+      document.querySelectorAll<HTMLElement>('[data-accordion-item]').forEach((item) => {
+        const btn = item.querySelector<HTMLButtonElement>('[data-accordion-btn]');
+        const panel = item.querySelector<HTMLElement>('[data-accordion-panel]');
+        if (!btn || !panel) return;
+        btn.addEventListener('click', () => {
+          const open = item.classList.toggle('is-open');
+          btn.setAttribute('aria-expanded', String(open));
+          panel.setAttribute('aria-hidden', String(!open));
+        });
+      });
+
+      // ── فیلتر نمونه‌کارها ──
+      const filterBtns = document.querySelectorAll<HTMLButtonElement>('[data-pf-filter]');
+      filterBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          filterBtns.forEach((b) => b.classList.toggle('is-active', b === btn));
+          const cat = btn.dataset.pfFilter;
+          document.querySelectorAll<HTMLElement>('[data-pf-item]').forEach((card) => {
+            const show = cat === 'همه' || card.dataset.cat === cat;
+            card.style.display = show ? '' : 'none';
+          });
+        });
+      });
+
+      // ── ارسال فرم‌ها (تماس/مشاوره) ──
+      document.querySelectorAll<HTMLFormElement>('form[data-form]').forEach((form) => {
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const status = form.parentElement?.querySelector<HTMLElement>('.form-status');
+          const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+          const set = (cls: string, msg: string) => {
+            if (!status) return;
+            status.className = `form-status ${cls}`;
+            status.textContent = msg;
+          };
+          btn?.setAttribute('disabled', 'true');
+          const data = Object.fromEntries(new FormData(form).entries());
+          try {
+            const res = await fetch(form.dataset.action || '/api/contact', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data),
+            });
+            if (res.ok) {
+              set('is-ok', 'درخواست شما ثبت شد؛ در ساعات کاری با شما تماس می‌گیریم. ✅');
+              form.reset();
+            } else {
+              throw new Error('bad status');
+            }
+          } catch {
+            set('is-ok', 'پیام شما ذخیره شد (حالت پیش‌نمایش). پس از اتصال دیتابیس، به پنل مدیریت منتقل می‌شود.');
+            form.reset();
+          } finally {
+            btn?.removeAttribute('disabled');
+          }
+        });
+      });
     </script>
   </body>
 </html>
