@@ -1,26 +1,30 @@
 {
-  "name": "cdanesh-site",
-  "type": "module",
+  "name": "cafe-danesh",
   "version": "2.0.0",
   "private": true,
-  "description": "کافه دانش — استودیو دیجیتال | Astro + Vercel + Neon",
+  "type": "module",
+  "description": "کافه دانش (Cafe Danesh) — وب‌سایت و پنل مدیریت با Astro SSR + Postgres",
   "scripts": {
-    "dev": "astro dev",
+    "dev": "astro dev --port 3000 --host 2>&1 | tee dev.log",
+    "dev:nextport": "astro dev --host 2>&1 | tee dev.log",
     "build": "astro build",
-    "preview": "astro preview",
     "build:static": "node scripts/build-static.mjs",
-    "astro": "astro",
-    "check": "astro check"
+    "preview": "astro preview",
+    "start": "node ./dist/server/entry.mjs",
+    "check": "astro check",
+    "db:studio": "echo 'PGlite local — use /admin panel'"
   },
   "dependencies": {
-    "@astrojs/sitemap": "^3.2.1",
-    "@astrojs/vercel": "^8.1.3",
-    "@neondatabase/serverless": "^0.10.4",
-    "astro": "^5.18.2",
-    "jose": "^5.9.6"
+    "@astrojs/node": "^9.2.2",
+    "@astrojs/vercel": "^8.2.0",
+    "@electric-sql/pglite": "^0.3.5",
+    "@vercel/blob": "^2.0.0",
+    "astro": "^5.14.0",
+    "pg": "^8.16.0"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.4",
-    "typescript": "^5.6.3"
+    "@astrojs/check": "^0.9.12",
+    "@types/pg": "^8.15.0",
+    "typescript": "^5.8.0"
   }
 }
