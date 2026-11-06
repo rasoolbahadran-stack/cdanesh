@@ -55,13 +55,47 @@ export function getService(slug: string): Service | undefined {
   return localServices.find((s) => s.slug === slug);
 }
 
+// فقط پروژه‌های واقعیِ منتشرشده و دارای نشانی عمومی در صفحات سایت نمایش داده شوند.
+const isPublicPortfolioItem = (item: PortfolioItem) =>
+  item.status === 'published' && Boolean(item.liveUrl?.trim());
+
 export async function getPortfolio(): Promise<PortfolioItem[]> {
-  if (!useDb()) return localPortfolio;
+  const localItems = localPortfolio.filter(isPublicPortfolioItem);
+  if (!useDb()) return localItems;
+
   const rows = await dbPortfolio().catch(() => null);
-  if (!rows || !rows.length) return localPortfolio;
-  const merged = new Map(localPortfolio.map((item) => [item.slug, item]));
-  rows.forEach((item) => merged.set(item.slug, item as unknown as PortfolioItem));
-  return [...merged.values()].sort((a, b) => a.sort - b.sort);
+  if (!rows || !rows.length) return localItems;
+
+  const merged = new Map(localItems.map((item) => [item.slug, item]));
+
+  rows.forEach((row) => {
+    const remote = row as unknown as PortfolioItem;
+    const local = localPortfolio.find((item) => item.slug === remote.slug);
+    const liveUrl = remote.liveUrl?.trim() || local?.liveUrl || '';
+
+    // برای پروژه‌های شناخته‌شده، داده‌های نمایشی (عنوان، متن، دسته، برچسب،
+    // ترتیب و تصویر) دقیقاً از محتوای نسخه استاتیک نگه داشته می‌شوند.
+    // وضعیت انتشار و نشانی زنده همچنان از CMS خوانده می‌شوند.
+    merged.set(remote.slug, local ? {
+      ...remote,
+      title: local.title,
+      excerpt: local.excerpt,
+      description: local.description,
+      category: local.category,
+      tags: local.tags,
+      cover: local.cover,
+      preview: local.preview,
+      sort: local.sort,
+      liveUrl,
+    } : {
+      ...remote,
+      liveUrl,
+    });
+  });
+
+  return [...merged.values()]
+    .filter(isPublicPortfolioItem)
+    .sort((a, b) => a.sort - b.sort);
 }
 export async function getPortfolioItem(slug: string): Promise<PortfolioItem | undefined> {
   const all = await getPortfolio();
