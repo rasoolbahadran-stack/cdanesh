@@ -1,55 +1,84 @@
 ---
-export const prerender = false;
-import AdminLayout from '../../layouts/AdminLayout.astro';
+/* ورود به پنل مدیریت */
+import '../../styles/admin.css';
 ---
-<AdminLayout title="پنل مدیریت کافه دانش">
-  <div class="admin-login-wrap">
-    <div class="admin-login">
-      <div style="text-align:center;margin-bottom:22px">
-        <img src="/img/logo.svg" alt="کافه دانش" width="56" height="56" style="border-radius:14px" />
-        <h1 style="font-size:1.3rem;margin-top:14px">پنل مدیریت کافه دانش</h1>
-        <p style="color:var(--mut);font-size:.9rem;margin:0">برای ادامه وارد شوید</p>
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ورود | پنل مدیریت کافه‌دانش</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/svg+xml" href="/img/logo.svg" />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/Vazirmatn-Regular.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/Vazirmatn-ExtraBold.woff2" crossorigin />
+  </head>
+  <body class="admin-body">
+    <div class="login-wrap">
+      <div class="login-card">
+        <div class="brand-mini">
+          <span class="brand-mark">ک<i></i></span>
+        </div>
+        <h1>پنل مدیریت کافه‌دانش</h1>
+        <div class="sub">برای ادامه، با حساب مدیریتی وارد شوید</div>
+        <form id="login-form">
+          <div class="form-field" style="margin-bottom:14px">
+            <label for="username">نام کاربری</label>
+            <input id="username" name="username" type="text" autocomplete="username" required placeholder="admin" />
+          </div>
+          <div class="form-field">
+            <label for="password">رمز عبور</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="••••••••" />
+          </div>
+          <div class="form-msg" style="display:none;margin-top:12px"></div>
+          <button type="submit" class="btn btn-gold btn-block" style="margin-top:18px" id="login-btn">ورود به پنل</button>
+        </form>
+        <div class="login-creds">
+          🔐 ورود فقط با اعتبارنامهٔ مدیریتی تنظیم‌شده در محیط امن سرور امکان‌پذیر است. از رمز آزمایشی یا محلی برای ورود به سایت اصلی استفاده نکنید.
+        </div>
+        <a href="/" style="display:block;text-align:center;margin-top:16px;font-size:12px;color:var(--a-muted)">← بازگشت به سایت</a>
       </div>
-      <form id="login-form" style="display:grid;gap:14px">
-        <div class="field">
-          <label for="username">نام کاربری</label>
-          <input id="username" name="username" type="text" required autocomplete="username" dir="ltr" />
-        </div>
-        <div class="field">
-          <label for="password">رمز عبور</label>
-          <input id="password" name="password" type="password" required autocomplete="current-password" dir="ltr" />
-        </div>
-        <button type="submit" class="btn" style="width:100%;justify-content:center">ورود</button>
-        <p class="form-status" role="alert"></p>
-      </form>
     </div>
-  </div>
-
-  <script>
-    const form = document.getElementById('login-form') as HTMLFormElement;
-    const status = form.querySelector('.form-status') as HTMLElement;
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const data = Object.fromEntries(new FormData(form).entries());
-      try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('login-form') as HTMLFormElement;
+        const msg = form.querySelector('.form-msg') as HTMLElement;
+        const btn = document.getElementById('login-btn') as HTMLButtonElement;
+        const params = new URLSearchParams(window.location.search);
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          btn.disabled = true;
+          btn.textContent = 'در حال بررسی…';
+          msg.style.display = 'none';
+          try {
+            const res = await fetch('/api/auth/login', {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({
+                username: (document.getElementById('username') as HTMLInputElement).value.trim(),
+                password: (document.getElementById('password') as HTMLInputElement).value,
+              }),
+            });
+            const j = await res.json();
+            if (j.ok) {
+              msg.className = 'form-msg';
+              msg.style.cssText = 'display:block;margin-top:12px;background:var(--a-green-soft);color:var(--a-green);border-radius:10px;padding:10px 14px';
+              msg.textContent = j.message || 'ورود موفق؛ در حال انتقال…';
+              window.location.href = params.get('next') || '/admin';
+            } else {
+              msg.className = 'form-msg';
+              msg.style.cssText = 'display:block;margin-top:12px;background:var(--a-red-soft);color:var(--a-red);border-radius:10px;padding:10px 14px';
+              msg.textContent = j.message || 'ورود ناموفق بود';
+            }
+          } catch {
+            msg.textContent = 'خطای شبکه؛ دوباره تلاش کنید';
+            msg.style.display = 'block';
+          } finally {
+            btn.disabled = false;
+            btn.textContent = 'ورود به پنل';
+          }
         });
-        const j = await res.json();
-        if (res.ok && j.ok) {
-          const next = new URLSearchParams(window.location.search).get('next');
-          window.location.href = next && next.startsWith('/') && !next.startsWith('//') ? next : '/admin';
-        }
-        else {
-          status.className = 'form-status is-err';
-          status.textContent = j.message || j.error || 'ورود ناموفق بود';
-        }
-      } catch {
-        status.className = 'form-status is-err';
-        status.textContent = 'ارتباط با سرور برقرار نشد';
-      }
-    });
-  </script>
-</AdminLayout>
+      });
+    </script>
+  </body>
+</html>
