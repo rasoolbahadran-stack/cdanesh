@@ -7,14 +7,14 @@ import { jsonLdBreadcrumb } from '../lib/seo';
 
 const meta = {
   title: 'تعرفه‌ها و پکیج‌های طراحی سایت | کافه دانش',
-  description: 'قیمت شفاف و ثابت پکیج‌های طراحی سایت کافه دانش: استارتر، حرفه‌ای، فروشگاهی و اختصاصی — بدون هزینه پنهان.',
+  description: 'تعرفه و محدوده خدمات طراحی سایت کافه دانش؛ از سایت معرفی و شرکتی تا فروشگاه اینترنتی و سامانه اختصاصی.',
   path: '/pricing',
 };
 ---
 <BaseLayout meta={meta} current="/pricing" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'تعرفه‌ها', url: '/pricing' }])]}>
   <PageHero
     title="تعرفه‌ها و پکیج‌های خدمات"
-    sub="قیمت شفاف و ثابت؛ بدون هزینهٔ پنهان. دامنهٔ کار هر پکیج دقیقاً مشخص است: تعداد صفحات، زمان تحویل و مدت پشتیبانی رایگان."
+    sub="قیمت پایه و محدودهٔ هر پکیج روشن است؛ امکانات، تعداد صفحات، زمان تحویل و مدت پشتیبانی پیش از شروع مشخص می‌شوند."
     crumbs={[{ label: 'خانه', href: '/' }, { label: 'تعرفه‌ها' }]}
   />
 
@@ -38,7 +38,7 @@ const meta = {
             </ul>
             <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:auto;padding-top:8px">
               <a href={`/consult?package=${p.key}`} class="btn">درخواست این پکیج</a>
-              <a href="/contact" class="btn btn--outline">پرداخت آنلاین این پکیج</a>
+              <a href={`/contact?package=${p.key}`} class="btn btn--outline">سؤال درباره این پکیج</a>
             </div>
             <small style="color:var(--mut)">{p.foot}</small>
           </article>
