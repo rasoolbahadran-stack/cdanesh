@@ -23,9 +23,11 @@ export function unauthorized(message = 'برای این عملیات باید ب
 }
 
 export function serverError(e: unknown): Response {
-  const msg = (e as Error)?.message || 'خطای غیرمنتظرهٔ سرور';
   console.error('[API]', e);
-  return fail(msg, 'SERVER_ERROR', 500);
+  const message = process.env.NODE_ENV === 'development'
+    ? ((e as Error)?.message || 'خطای غیرمنتظرهٔ سرور')
+    : 'خطای داخلی سرور رخ داده است؛ لطفاً دوباره تلاش کنید.';
+  return fail(message, 'SERVER_ERROR', 500);
 }
 
 export async function readJson(request: Request): Promise<Record<string, unknown>> {
