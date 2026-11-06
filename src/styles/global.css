@@ -199,13 +199,16 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
   padding: 26px 28px;
   display: grid; grid-template-columns: repeat(3, 1fr) 0.9fr; gap: 24px;
   opacity: 0; visibility: hidden; pointer-events: none;
-  transition: opacity 0.18s var(--ease), transform 0.18s var(--ease), visibility 0.18s;
+  transition: opacity 0.28s var(--ease), transform 0.28s var(--ease), visibility 0s linear 0.28s;
 }
 .mega-wrap { position: relative; }
 .mega-wrap::after { content: ""; position: absolute; top: 100%; right: -8px; left: -8px; height: 12px; }
 .mega-wrap:hover .mega,
 .mega-wrap:focus-within .mega,
-.mega.is-open { opacity: 1; visibility: visible; pointer-events: auto; transform: translateX(50%) translateY(0); }
+.mega.is-open {
+  opacity: 1; visibility: visible; pointer-events: auto; transform: translateX(50%) translateY(0);
+  transition-delay: 0s;
+}
 .mega__col-title { font-size: 0.86rem; font-weight: 800; color: var(--purple); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
 .mega__col-title::before { content: ""; width: 8px; height: 8px; border-radius: 3px; background: var(--grad-btn-hover); }
 .mega__list { list-style: none; padding: 0; margin: 0 0 18px; display: grid; gap: 4px; }
