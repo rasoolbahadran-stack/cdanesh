@@ -1,6 +1,6 @@
 export const prerender = false;
 import type { APIRoute } from 'astro';
-import { upsertPost, deletePost, getPosts } from '../../../lib/db';
+import { upsertPost, deletePost, listAdminPosts } from '../../../lib/cms-db';
 
 function clean(v: unknown, max = 5000): string {
   return String(v ?? '').trim().slice(0, max);
@@ -9,7 +9,7 @@ function clean(v: unknown, max = 5000): string {
 /** لیست مقالات (برای پنل) */
 export const GET: APIRoute = async () => {
   try {
-    const rows = await getPosts();
+    const rows = await listAdminPosts();
     return new Response(JSON.stringify({ ok: true, rows }), {
       headers: { 'Content-Type': 'application/json' },
     });
