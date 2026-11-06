@@ -7,6 +7,7 @@ import faqJson from '../data/content/faq.json';
 import pagesJson from '../data/content/pages.json';
 import type { Post, Service, PortfolioItem, FaqItem, PageDoc, Block } from './types';
 import { getPosts as dbPosts, getPortfolio as dbPortfolio, dbAvailable } from './cms-db';
+import { getVercelPortfolio, hasVercelPortfolioConfig } from './vercel-portfolio';
 
 const localPosts = postsJson as Post[];
 const localServices = servicesJson as Service[];
@@ -55,12 +56,13 @@ export function getService(slug: string): Service | undefined {
   return localServices.find((s) => s.slug === slug);
 }
 
-// فقط پروژه‌های واقعیِ منتشرشده و دارای نشانی عمومی در صفحات سایت نمایش داده شوند.
+// پروژه‌های Astro از Vercel کشف می‌شوند؛ اطلاعات تصویری/توضیحی از محتوای محلی و CMS حفظ می‌شود.
 const isPublicPortfolioItem = (item: PortfolioItem) =>
   item.slug !== 'cdanesh-galaxe' &&
-  item.status === 'published' && Boolean(item.liveUrl?.trim());
+  item.status === 'published' &&
+  Boolean(item.liveUrl?.trim());
 
-export async function getPortfolio(): Promise<PortfolioItem[]> {
+async function getLegacyPortfolio(): Promise<PortfolioItem[]> {
   const localItems = localPortfolio.filter(isPublicPortfolioItem);
   if (!useDb()) return localItems;
 
@@ -68,15 +70,11 @@ export async function getPortfolio(): Promise<PortfolioItem[]> {
   if (!rows || !rows.length) return localItems;
 
   const merged = new Map(localItems.map((item) => [item.slug, item]));
-
   rows.forEach((row) => {
     const remote = row as unknown as PortfolioItem;
     const local = localPortfolio.find((item) => item.slug === remote.slug);
     const liveUrl = remote.liveUrl?.trim() || local?.liveUrl || '';
 
-    // برای پروژه‌های شناخته‌شده، داده‌های نمایشی (عنوان، متن، دسته، برچسب،
-    // ترتیب و تصویر) دقیقاً از محتوای نسخه استاتیک نگه داشته می‌شوند.
-    // وضعیت انتشار و نشانی زنده همچنان از CMS خوانده می‌شوند.
     merged.set(remote.slug, local ? {
       ...remote,
       title: local.title,
@@ -88,15 +86,32 @@ export async function getPortfolio(): Promise<PortfolioItem[]> {
       preview: local.preview,
       sort: local.sort,
       liveUrl,
-    } : {
-      ...remote,
-      liveUrl,
-    });
+    } : { ...remote, liveUrl });
   });
 
   return [...merged.values()]
     .filter(isPublicPortfolioItem)
     .sort((a, b) => a.sort - b.sort);
+}
+
+export async function getPortfolio(): Promise<PortfolioItem[]> {
+  if (hasVercelPortfolioConfig()) {
+    const databaseItems = useDb()
+      ? await dbPortfolio().catch(() => [])
+      : [];
+
+    try {
+      return await getVercelPortfolio(
+        localPortfolio as PortfolioItem[],
+        databaseItems as unknown as PortfolioItem[],
+      );
+    } catch {
+      // تا پیش از افزودن توکن یا هنگام اختلال موقت Vercel، سایت از کار نمی‌افتد.
+      return getLegacyPortfolio();
+    }
+  }
+
+  return getLegacyPortfolio();
 }
 export async function getPortfolioItem(slug: string): Promise<PortfolioItem | undefined> {
   const all = await getPortfolio();
