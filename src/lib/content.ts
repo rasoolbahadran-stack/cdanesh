@@ -19,21 +19,21 @@ const useDb = () => {
 };
 
 export async function getPosts(): Promise<Post[]> {
-  if (useDb()) {
-    const rows = await dbPosts().catch(() => null);
-    if (rows && rows.length) return rows as unknown as Post[];
-  }
-  return localPosts;
+  if (!useDb()) return localPosts;
+  const rows = await dbPosts().catch(() => null);
+  if (!rows || !rows.length) return localPosts;
+  const merged = new Map(localPosts.map((post) => [post.slug, post]));
+  rows.forEach((post) => merged.set(post.slug, post as unknown as Post));
+  return [...merged.values()].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 }
 
 export async function getPost(slug: string): Promise<Post | undefined> {
   if (useDb()) {
     const rows = await dbPosts().catch(() => null);
-    if (rows && rows.length) {
-      return (rows as unknown as Post[]).find((p) => p.slug === slug);
-    }
+    const fromDb = rows?.find((post) => post.slug === slug);
+    if (fromDb) return fromDb as unknown as Post;
   }
-  return localPosts.find((p) => p.slug === slug);
+  return localPosts.find((post) => post.slug === slug);
 }
 
 export function getPostCategories(): string[] {
@@ -56,11 +56,12 @@ export function getService(slug: string): Service | undefined {
 }
 
 export async function getPortfolio(): Promise<PortfolioItem[]> {
-  if (useDb()) {
-    const rows = await dbPortfolio().catch(() => null);
-    if (rows && rows.length) return rows as unknown as PortfolioItem[];
-  }
-  return localPortfolio;
+  if (!useDb()) return localPortfolio;
+  const rows = await dbPortfolio().catch(() => null);
+  if (!rows || !rows.length) return localPortfolio;
+  const merged = new Map(localPortfolio.map((item) => [item.slug, item]));
+  rows.forEach((item) => merged.set(item.slug, item as unknown as PortfolioItem));
+  return [...merged.values()].sort((a, b) => a.sort - b.sort);
 }
 export async function getPortfolioItem(slug: string): Promise<PortfolioItem | undefined> {
   const all = await getPortfolio();
