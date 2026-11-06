@@ -37,7 +37,7 @@ export interface PortfolioItem {
 export interface FaqItem { q: string; a: string; }
 
 export type Block =
-  | { t: 'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'blockquote'; x: string }
+  | { t: 'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'blockquote' | 'html'; x: string }
   | { t: 'ul' | 'ol'; items: string[] }
   | { t: 'table'; rows: string[][] }
   | { t: 'img'; src: string; alt: string };
