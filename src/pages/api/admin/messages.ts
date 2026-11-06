@@ -1,6 +1,6 @@
 export const prerender = false;
 import type { APIRoute } from 'astro';
-import { listMessages, markMessageRead } from '../../../lib/db';
+import { listMessages, markMessageRead } from '../../../lib/cms-db';
 
 export const GET: APIRoute = async () => {
   try {
