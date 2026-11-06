@@ -36,7 +36,14 @@ const meta = {
     <div class="container pf-detail">
       <div>
         <figure style="margin:0;border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-float)">
-          <img src={item.preview} alt={`${item.title} — پیش‌نمایش کامل صفحه نمونه‌کار کافه دانش`} width="900" height="1200" loading="lazy" decoding="async" style="width:100%;display:block" />
+          {item.preview ? (
+            <img src={item.preview} alt={`${item.title} — پیش‌نمایش کامل صفحه نمونه‌کار کافه دانش`} width="900" height="1200" loading="lazy" decoding="async" style="width:100%;display:block" />
+          ) : (
+            <div role="img" aria-label={`${item.title} — پیش‌نمایش در انتظار تصویر`} style="aspect-ratio:3/4;min-height:320px;display:grid;place-content:center;gap:12px;text-align:center;padding:28px;background:linear-gradient(145deg,#17152b,#33245b);color:#fff">
+              <strong style="font-size:1.5rem">{item.title}</strong>
+              <span style="opacity:.75">پروژه منتشرشده با Astro روی Vercel</span>
+            </div>
+          )}
         </figure>
 
         <div style="display:grid;gap:14px;margin-top:26px" data-reveal="up">
