@@ -1,10 +1,8 @@
 export const prerender = false;
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
-import { getSession } from '../../lib/auth';
-import { listMessages, dbAvailable } from '../../lib/db';
+import { listMessages, dbAvailable } from '../../lib/cms-db';
 
-const session = await getSession(Astro.cookies);
 const useDb = dbAvailable();
 let rows: Array<Record<string, unknown>> = [];
 if (useDb) {
