@@ -13,9 +13,7 @@ const posts = await getPosts();
 const portfolio = await getPortfolio();
 const faq = getFaq();
 const latestPosts = posts.slice(0, 3);
-const featuredPf = portfolio.filter((p) => p.status === 'published').slice(0, 6);
-const conceptPf = portfolio.filter((p) => p.status === 'conceptual').slice(0, 3);
-const showPf = [...featuredPf, ...conceptPf].slice(0, 6);
+const showPf = portfolio.filter((p) => p.status === 'published').slice(0, 6);
 
 const marqueeItems = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
 
@@ -298,7 +296,7 @@ const meta = {
   <!-- ═══════════ نمونه‌کارها ═══════════ -->
   <section class="section" aria-labelledby="pf-title">
     <div class="container">
-      <SectionHead tag="نمونه‌کارها" title="موس را روی کارت نگه دارید؛ کل صفحه مرور می‌شود" sub="پروژه‌های منتشرشده روی Vercel با نسخهٔ زندهٔ قابل مشاهده — و نمونه‌های مفهومیِ ساختهٔ خودمان برای نمایش کیفیت اجرا." />
+      <SectionHead tag="نمونه‌کارها" title="موس را روی کارت نگه دارید؛ کل صفحه مرور می‌شود" sub="در این بخش فقط پروژه‌هایی را می‌بینید که نسخه آنلاین و منتشرشده دارند؛ برای مشاهده جزئیات و نمونه کامل، هر کارت را باز کنید." />
       <div class="pf-grid">
         {showPf.map((p, i) => (
           <PortfolioCard item={p} delay={String((i % 3) * 90)} />
