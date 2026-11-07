@@ -39,6 +39,16 @@ export function jsonLdOrganization() {
       streetAddress: SITE.address,
       addressCountry: 'IR',
     },
+    areaServed: [
+      { '@type': 'City', name: 'بوشهر' },
+      { '@type': 'Country', name: 'ایران' },
+    ],
+    knowsAbout: [
+      'طراحی سایت شرکتی و فروشگاهی',
+      'تولید محتوای تخصصی وب‌سایت',
+      'سئوی فنی و محتوایی',
+      'بهینه‌سازی سرعت وب‌سایت',
+    ],
   };
 }
 
