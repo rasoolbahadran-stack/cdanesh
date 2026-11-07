@@ -10,7 +10,7 @@ const badgeClass =
   item.status === 'published' ? 'pf-card__badge--live' : item.status === 'soon' ? 'pf-card__badge--soon' : '';
 
 const screenshotPreview = item.liveUrl?.trim()
-  ? `https://v1.screenshot.11ty.dev/${encodeURIComponent(item.liveUrl.trim())}/large/9:16/bigger/`
+  ? `https://v1.screenshot.11ty.dev/${encodeURIComponent(item.liveUrl.trim())}/medium/9:16/bigger/`
   : '';
 const previewSrc = item.preview?.trim() || screenshotPreview;
 const fallbackPreview = item.preview?.trim() ? screenshotPreview : '';
