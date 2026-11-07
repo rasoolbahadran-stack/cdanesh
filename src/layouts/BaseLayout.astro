@@ -120,16 +120,30 @@ const extraLd = extraJsonLd.map((j) => JSON.stringify(j));
         counters.forEach((c) => cio.observe(c));
       }
 
-      // ── تنظیم ارتفاع اسکرول کارت‌های نمونه‌کار (برای افکت مرور صفحه) ──
-      document.querySelectorAll<HTMLElement>('.pf-card__shot').forEach((img) => {
-        const set = () => {
-          const thumb = img.closest('.pf-card__thumb');
-          if (!thumb) return;
-          const overflow = (img.naturalHeight ? (img.clientHeight / thumb.clientHeight - 1) : 1) * 100;
-          img.style.setProperty('--scroll-h', `${Math.min(88, Math.max(30, overflow))}%`);
+      // ── اندازه‌گیری دقیق اسکرول پیش‌نمایش نمونه‌کارها ──
+      document.querySelectorAll<HTMLElement>('[data-pf-item]').forEach((card) => {
+        const thumb = card.querySelector<HTMLElement>('.pf-card__thumb');
+        const image = card.querySelector<HTMLImageElement>('.pf-card__shot');
+        if (!thumb || !image) return;
+
+        const measurePreview = () => {
+          if (!image.naturalWidth || !image.naturalHeight) return;
+          const overflow = Math.max(0, image.getBoundingClientRect().height - thumb.clientHeight);
+          card.style.setProperty('--pf-scroll-offset', `-${Math.round(overflow)}px`);
+          card.classList.toggle('pf-card--scrollable', overflow > 8);
         };
-        if (img.complete) set();
-        else img.addEventListener('load', set, { once: true });
+
+        if (image.complete) measurePreview();
+        else image.addEventListener('load', measurePreview, { once: true });
+
+        if ('ResizeObserver' in window) {
+          const observer = new ResizeObserver(measurePreview);
+          observer.observe(thumb);
+          observer.observe(image);
+        } else {
+          window.addEventListener('resize', measurePreview, { passive: true });
+        }
+        requestAnimationFrame(measurePreview);
       });
 
       // ── آکاردئون FAQ ──

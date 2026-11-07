@@ -530,7 +530,7 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 }
 .pf-card:hover .pf-card__shot,
 .pf-card:focus-within .pf-card__shot {
-  transform: translate3d(0, calc(-1 * var(--pf-scroll-distance, 0px)), 0);
+  transform: translate3d(0, var(--pf-scroll-offset, 0px), 0);
 }
 .pf-card__grad {
   position: absolute; inset: 0; z-index: 1; pointer-events: none;
@@ -573,7 +573,7 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
   .pf-card:hover .pf-card__shot, .pf-card:focus-within .pf-card__shot { transform: none; }
   @keyframes pf-auto {
     0%, 12% { transform: translate3d(0, 0, 0); }
-    88%, 100% { transform: translate3d(0, calc(-1 * var(--pf-scroll-distance, 0px)), 0); }
+    88%, 100% { transform: translate3d(0, var(--pf-scroll-offset, 0px), 0); }
   }
 }
 @media (prefers-reduced-motion: reduce) {

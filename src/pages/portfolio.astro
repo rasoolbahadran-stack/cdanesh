@@ -1,7 +1,6 @@
 ---
 // نمونه‌کارها — فیلتر دسته‌بندی + کارت‌های اسکرول هنگام Hover
 import BaseLayout from '../layouts/BaseLayout.astro';
-import PageHero from '../components/PageHero.astro';
 import PortfolioCard from '../components/PortfolioCard.astro';
 import CtaBand from '../components/CtaBand.astro';
 import { getPortfolio } from '../lib/content';
@@ -18,11 +17,7 @@ const meta = {
 };
 ---
 <BaseLayout meta={meta} current="/portfolio" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'نمونه‌کارها', url: '/portfolio' }])]}>
-  <PageHero
-    title="نمونه‌کارها"
-    sub="در این صفحه فقط پروژه‌هایی نمایش داده می‌شوند که نسخه آنلاین و منتشرشده دارند؛ برای آشنایی با هر پروژه، جزئیات آن را باز کنید."
-    crumbs={[{ label: 'خانه', href: '/' }, { label: 'نمونه‌کارها' }]}
-  />
+  <h1 class="sr-only">نمونه‌کارها</h1>
 
   <section class="section">
     <div class="container">
