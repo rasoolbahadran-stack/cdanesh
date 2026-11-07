@@ -12,8 +12,11 @@ const badgeClass =
 const screenshotPreview = item.liveUrl?.trim()
   ? `https://v1.screenshot.11ty.dev/${encodeURIComponent(item.liveUrl.trim())}/medium/9:16/bigger/`
   : '';
-const previewSrc = item.preview?.trim() || screenshotPreview;
-const fallbackPreview = item.preview?.trim() ? screenshotPreview : '';
+// این دو تصویر قدیمی ناقص/خالی بودند؛ همیشه از نسخه زنده تصویر می‌گیریم.
+const replaceBrokenPreview = ['novinroshd-agency', 'cdanesh-galaxy-source'].includes(item.slug);
+const storedPreview = replaceBrokenPreview ? '' : item.preview?.trim() || '';
+const previewSrc = storedPreview || screenshotPreview;
+const fallbackPreview = storedPreview ? screenshotPreview : '';
 ---
 <article class="pf-card" data-pf-item data-cat={item.category} data-reveal="up" data-delay={delay}>
   <div class="pf-card__thumb">
