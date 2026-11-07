@@ -1,7 +1,6 @@
 ---
 // صفحه جزئیات نمونه‌کار — با پیش‌نمایش تمام‌صفحه، وضعیت واقعی انتشار و لینک نسخه زنده
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import PageHero from '../../components/PageHero.astro';
 import PortfolioCard from '../../components/PortfolioCard.astro';
 import CtaBand from '../../components/CtaBand.astro';
 import { getPortfolio, getPortfolioItem } from '../../lib/content';
@@ -18,6 +17,12 @@ const all = await getPortfolio();
 const others = all.filter((p) => p.slug !== slug).slice(0, 3);
 const isLive = item.status === 'published' && item.liveUrl;
 
+const screenshotPreview = item.liveUrl?.trim()
+  ? `https://v1.screenshot.11ty.dev/${encodeURIComponent(item.liveUrl.trim())}/large/9:16/bigger/`
+  : '';
+const previewSrc = item.preview?.trim() || screenshotPreview;
+const fallbackPreview = item.preview?.trim() ? screenshotPreview : '';
+
 const meta = {
   title: `${item.title} | نمونه‌کار کافه دانش`,
   description: item.excerpt,
@@ -26,27 +31,33 @@ const meta = {
 };
 ---
 <BaseLayout meta={meta} current="/portfolio" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'نمونه‌کارها', url: '/portfolio' }, { name: item.title, url: meta.path }])]}>
-  <PageHero
-    title={item.title}
-    sub={item.excerpt}
-    crumbs={[{ label: 'خانه', href: '/' }, { label: 'نمونه‌کارها', href: '/portfolio' }, { label: item.title }]}
-  />
+
 
   <section class="section">
     <div class="container pf-detail">
       <div>
         <figure style="margin:0;border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-float)">
-          {item.preview ? (
-            <img src={item.preview} alt={`${item.title} — پیش‌نمایش کامل صفحه نمونه‌کار کافه دانش`} width="900" height="1200" loading="lazy" decoding="async" style="width:100%;display:block" />
-          ) : (
-            <div role="img" aria-label={`${item.title} — پیش‌نمایش در انتظار تصویر`} style="aspect-ratio:3/4;min-height:320px;display:grid;place-content:center;gap:12px;text-align:center;padding:28px;background:linear-gradient(145deg,#17152b,#33245b);color:#fff">
-              <strong style="font-size:1.5rem">{item.title}</strong>
-              <span style="opacity:.75">پروژه منتشرشده با Astro روی Vercel</span>
-            </div>
+          {previewSrc && (
+            <img
+              src={previewSrc}
+              data-fallback={fallbackPreview}
+              onerror="if(this.dataset.fallback){const fallback=this.dataset.fallback;this.dataset.fallback='';this.src=fallback;}else{this.style.display='none';this.nextElementSibling.hidden=false;}"
+              alt={`${item.title} — پیش‌نمایش کامل صفحه نمونه‌کار کافه دانش`}
+              width="900"
+              height="1200"
+              loading="lazy"
+              decoding="async"
+              style="width:100%;display:block"
+            />
           )}
+          <div hidden={Boolean(previewSrc)} role="img" aria-label={`${item.title} — پیش‌نمایش در انتظار تصویر`} style="aspect-ratio:3/4;min-height:320px;display:grid;place-content:center;gap:12px;text-align:center;padding:28px;background:linear-gradient(145deg,#17152b,#33245b);color:#fff">
+            <strong style="font-size:1.5rem">{item.title}</strong>
+            <span style="opacity:.75">پروژه منتشرشده با Astro روی Vercel</span>
+          </div>
         </figure>
 
         <div style="display:grid;gap:14px;margin-top:26px" data-reveal="up">
+          <h1 style="font-size:clamp(1.6rem,3vw,2.1rem);margin:0">{item.title}</h1>
           <h2 style="font-size:1.35rem">درباره این پروژه</h2>
           <p style="color:var(--body);max-width:70ch">{item.description || item.excerpt}</p>
           <p style="color:var(--mut);font-size:.94rem;max-width:70ch">
