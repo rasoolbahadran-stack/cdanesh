@@ -8,12 +8,20 @@ const { item, delay = 0 } = Astro.props;
 
 const badgeClass =
   item.status === 'published' ? 'pf-card__badge--live' : item.status === 'soon' ? 'pf-card__badge--soon' : '';
+
+const screenshotPreview = item.liveUrl?.trim()
+  ? `https://v1.screenshot.11ty.dev/${encodeURIComponent(item.liveUrl.trim())}/large/9:16/bigger/`
+  : '';
+const previewSrc = item.preview?.trim() || screenshotPreview;
+const fallbackPreview = item.preview?.trim() ? screenshotPreview : '';
 ---
 <article class="pf-card" data-pf-item data-cat={item.category} data-reveal="up" data-delay={delay}>
   <div class="pf-card__thumb">
-    {item.preview ? (
+    {previewSrc && (
       <img
-        src={item.preview}
+        src={previewSrc}
+        data-fallback={fallbackPreview}
+        onerror="if(this.dataset.fallback){const fallback=this.dataset.fallback;this.dataset.fallback='';this.src=fallback;}else{this.style.display='none';this.nextElementSibling.hidden=false;}"
         alt={`${item.title} — نمونه‌کار کافه دانش`}
         class="pf-card__shot"
         width="900"
@@ -22,12 +30,11 @@ const badgeClass =
         decoding="async"
         style="object-fit:cover;object-position:top"
       />
-    ) : (
-      <div class="pf-card__placeholder" role="img" aria-label={`${item.title} — پیش‌نمایش در انتظار تصویر`}>
-        <span>{item.title}</span>
-        <small>پروژه منتشرشده با Astro</small>
-      </div>
     )}
+    <div class="pf-card__placeholder" hidden={Boolean(previewSrc)} role="img" aria-label={`${item.title} — پیش‌نمایش در انتظار تصویر`}>
+      <span>{item.title}</span>
+      <small>پروژه منتشرشده با Astro</small>
+    </div>
     <span class="pf-card__grad" aria-hidden="true"></span>
     <span class:list={['pf-card__badge', badgeClass]}>
       <span class="pf-card__badge-dot" aria-hidden="true"></span>
@@ -62,6 +69,7 @@ const badgeClass =
 </article>
 
 <style>
+  .pf-card__placeholder[hidden] { display: none !important; }
   .pf-card__placeholder {
     width: 100%;
     min-height: 300px;
