@@ -18,7 +18,7 @@ const others = all.filter((p) => p.slug !== slug).slice(0, 3);
 const isLive = item.status === 'published' && item.liveUrl;
 
 const screenshotPreview = item.liveUrl?.trim()
-  ? `https://v1.screenshot.11ty.dev/${encodeURIComponent(item.liveUrl.trim())}/large/9:16/bigger/`
+  ? `https://v1.screenshot.11ty.dev/${encodeURIComponent(item.liveUrl.trim())}/medium/9:16/bigger/`
   : '';
 const previewSrc = item.preview?.trim() || screenshotPreview;
 const fallbackPreview = item.preview?.trim() ? screenshotPreview : '';
