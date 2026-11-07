@@ -540,5 +540,33 @@
         }
       }
     });
+  /* ---------- اسکرول دقیق پیش‌نمایش نمونه‌کارها ---------- */
+  const portfolioCards = document.querySelectorAll<HTMLElement>('[data-pf-item]');
+  portfolioCards.forEach((card) => {
+    const thumb = card.querySelector<HTMLElement>('.pf-card__thumb');
+    const image = card.querySelector<HTMLImageElement>('.pf-card__shot');
+    if (!thumb || !image) return;
+
+    const measurePreview = () => {
+      // فاصله اسکرول دقیقاً برابر بخش اضافه تصویر است؛ از خالی/سیاه‌شدن کارت جلوگیری می‌کند.
+      const overflow = Math.max(0, image.getBoundingClientRect().height - thumb.clientHeight);
+      card.style.setProperty('--pf-scroll-distance', `${Math.round(overflow)}px`);
+      card.classList.toggle('pf-card--scrollable', overflow > 8);
+    };
+
+    image.addEventListener('load', measurePreview, { passive: true });
+    if (image.complete) measurePreview();
+    else image.addEventListener('error', () => card.classList.add('pf-card--image-error'), { once: true });
+
+    if ('ResizeObserver' in window) {
+      const observer = new ResizeObserver(measurePreview);
+      observer.observe(thumb);
+      observer.observe(image);
+    } else {
+      window.addEventListener('resize', measurePreview, { passive: true });
+    }
+    requestAnimationFrame(measurePreview);
+  });
+
   });
 })();
