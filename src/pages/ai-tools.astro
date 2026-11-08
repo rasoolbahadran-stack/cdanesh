@@ -1,0 +1,129 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { jsonLdBreadcrumb } from '../lib/seo';
+
+const meta = {
+  title: 'ابزارهای هوشمند محتوا | کافه دانش',
+  description: 'فضای ابزارهای کمکی کافه دانش برای آماده‌سازی ایده محتوا، عنوان و توضیحات متا، ساختار مقاله و بازنویسی متن؛ آماده اتصال به سرویس هوش مصنوعی.',
+  path: '/ai-tools',
+};
+---
+<BaseLayout meta={meta} current="/ai-tools" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'ابزارهای هوشمند', url: '/ai-tools' }])]}>
+  <PageHero title="ابزارهای هوشمند محتوا" sub="ابزارهایی برای منظم‌ترکردن فرایند تولید محتوا؛ از ایده‌پردازی تا آماده‌سازی ساختار مقاله. این نسخه، رابط و خروجی درخواست را آماده می‌کند و هنوز به مدل هوش مصنوعی متصل نیست." crumbs={[{ label: 'خانه', href: '/' }, { label: 'ابزارهای هوشمند' }]} />
+  <section class="section">
+    <div class="container ai-workspace">
+      <div class="ai-intro">
+        <span class="ai-kicker">CONTENT WORKSPACE</span>
+        <h2>از یک موضوع خام، یک درخواست دقیق بسازید</h2>
+        <p>نوع ابزار را انتخاب کنید، اطلاعات لازم را بنویسید و درخواست استانداردشده را برای استفاده در سرویس هوش مصنوعی کپی کنید. هیچ متن ساختگی به‌عنوان پاسخ هوش مصنوعی نمایش داده نمی‌شود.</p>
+        <div class="ai-points">
+          <span>۵ ابزار محتوایی</span><span>خروجی قابل کپی</span><span>آماده اتصال API</span>
+        </div>
+      </div>
+      <div class="ai-panel card">
+        <div class="ai-panel__head"><div><span class="ai-kicker">ابزار انتخابی</span><h2>ساخت درخواست محتوا</h2></div><span class="ai-status">نسخه آماده اتصال</span></div>
+        <form id="ai-prompt-form">
+          <label for="ai-tool">نوع ابزار</label>
+          <select id="ai-tool" name="tool">
+            <option value="assistant">دستیار تولید محتوا</option>
+            <option value="meta">پیشنهاد عنوان و توضیحات متا</option>
+            <option value="ideas">ایده‌پردازی محتوا</option>
+            <option value="outline">ساخت ساختار مقاله</option>
+            <option value="rewrite">بازنویسی و بهبود متن</option>
+          </select>
+          <label for="ai-topic">موضوع یا متن ورودی</label>
+          <textarea id="ai-topic" name="topic" rows="5" required placeholder="موضوع، مخاطب یا متنی را که می‌خواهید روی آن کار شود بنویسید..."></textarea>
+          <div class="ai-fields">
+            <div><label for="ai-audience">مخاطب هدف</label><input id="ai-audience" name="audience" placeholder="مثلاً مدیران کسب‌وکارهای کوچک" /></div>
+            <div><label for="ai-tone">لحن خروجی</label><select id="ai-tone" name="tone"><option>حرفه‌ای و روان</option><option>رسمی و تخصصی</option><option>ساده و آموزشی</option><option>صمیمی و ترغیب‌کننده</option></select></div>
+          </div>
+          <button class="btn btn--lg" type="submit">آماده‌سازی درخواست</button>
+        </form>
+        <div class="ai-result" id="ai-result" hidden aria-live="polite">
+          <div class="ai-result__head"><h3>درخواست آماده‌شده</h3><button type="button" class="btn btn--outline btn--sm" id="ai-copy">کپی متن</button></div>
+          <textarea id="ai-output" rows="9" readonly aria-label="متن درخواست آماده‌شده"></textarea>
+          <p id="ai-copy-status" class="ai-note">این متن، دستور آماده برای ارسال به سرویس هوش مصنوعی است؛ پاسخ تولیدشده محسوب نمی‌شود.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="section bg-soft">
+    <div class="container">
+      <div class="section-head"><span class="section-head__tag">مسیر توسعه</span><h2>ابزارها چطور کامل می‌شوند؟</h2><p>اتصال واقعی پس از انتخاب سرویس‌دهنده، تعریف کلید API در متغیرهای محیطی سرور و پیاده‌سازی محدودیت مصرف انجام می‌شود.</p></div>
+      <div class="ai-roadmap">
+        <article class="card"><span>۰۱</span><h3>رابط کاربری</h3><p>فرم‌ها، ورودی‌ها و قالب درخواست‌ها در این نسخه آماده شده‌اند.</p></article>
+        <article class="card"><span>۰۲</span><h3>اتصال امن</h3><p>کلید API فقط در سمت سرور نگهداری می‌شود و در مرورگر قرار نمی‌گیرد.</p></article>
+        <article class="card"><span>۰۳</span><h3>کنترل و تاریخچه</h3><p>سهمیه مصرف، ثبت درخواست‌ها و امکان مدیریت ابزارها از پنل اضافه می‌شود.</p></article>
+      </div>
+    </div>
+  </section>
+  <CtaBand title="برای تولید محتوای حرفه‌ای به همراهی نیاز دارید؟" sub="اگر می‌خواهید تحقیق، نگارش و بهینه‌سازی محتوا با نظارت انسانی انجام شود، جزئیات خدمات را ببینید." />
+</BaseLayout>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('#ai-prompt-form');
+  const result = document.querySelector<HTMLElement>('#ai-result');
+  const output = document.querySelector<HTMLTextAreaElement>('#ai-output');
+  const copy = document.querySelector<HTMLButtonElement>('#ai-copy');
+  const status = document.querySelector<HTMLElement>('#ai-copy-status');
+  const templates: Record<string, string> = {
+    assistant: 'به‌عنوان دستیار تولید محتوای فارسی عمل کن. ابتدا هدف و نیاز مخاطب را تحلیل کن، سپس محتوایی دقیق، کاربردی و بدون ادعای تأییدنشده پیشنهاد بده.',
+    meta: 'برای صفحه یا محتوای زیر ۵ عنوان سئویی طبیعی و ۵ توضیحات متای مستقل پیشنهاد بده. از تکرار افراطی کلمه کلیدی و وعده غیرواقعی پرهیز کن.',
+    ideas: 'برای موضوع زیر ۱۵ ایده محتوایی غیرتکراری ارائه کن. برای هر ایده، نیت جست‌وجو، مخاطب و زاویه پرداخت را مشخص کن.',
+    outline: 'برای موضوع زیر ساختار یک مقاله جامع طراحی کن. عنوان H1، بخش‌های H2 و H3، پرسش‌های متداول و پیشنهاد لینک داخلی را ارائه بده.',
+    rewrite: 'متن زیر را بدون تغییر معنای اصلی بازنویسی کن. خوانایی، انسجام، دستور زبان فارسی و لحن حرفه‌ای را بهبود بده و اطلاعات جدید یا ساختگی اضافه نکن.',
+  };
+  form?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!form.reportValidity() || !output || !result) return;
+    const data = new FormData(form);
+    const tool = String(data.get('tool') || 'assistant');
+    const topic = String(data.get('topic') || '').trim();
+    const audience = String(data.get('audience') || '').trim() || 'مخاطب عمومی مرتبط با موضوع';
+    const tone = String(data.get('tone') || 'حرفه‌ای و روان');
+    output.value = [templates[tool] || templates.assistant, '', 'موضوع / متن ورودی:', topic, '', 'مخاطب هدف: ' + audience, 'لحن: ' + tone, '', 'قواعد: فارسی روان بنویس؛ واقعیت و فرض را از هم جدا کن؛ از آمار، منبع و تجربه ساختگی استفاده نکن؛ خروجی را با تیترهای روشن و قابل استفاده ارائه بده.'].join('\n');
+    result.hidden = false;
+    status.textContent = 'درخواست آماده شد؛ برای دریافت پاسخ باید آن را به یک سرویس هوش مصنوعی متصل یا در آن ارسال کنید.';
+    result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+  copy?.addEventListener('click', async () => {
+    if (!output || !status) return;
+    try {
+      await navigator.clipboard.writeText(output.value);
+      status.textContent = 'متن درخواست کپی شد.';
+    } catch {
+      output.select();
+      status.textContent = 'متن انتخاب شد؛ با Ctrl+C آن را کپی کنید.';
+    }
+  });
+</script>
+
+<style>
+  .ai-workspace{display:grid;gap:30px;align-items:start}
+  .ai-intro{max-width:620px}
+  .ai-kicker{display:inline-block;color:var(--purple);font-size:.76rem;font-weight:800;letter-spacing:.08em}
+  .ai-intro h2,.ai-panel h2{color:var(--navy);font-size:clamp(1.45rem,3vw,2rem);line-height:1.55;margin:10px 0}
+  .ai-intro p,.ai-roadmap p{color:var(--mut);line-height:2}
+  .ai-points{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}
+  .ai-points span,.ai-status{border:1px solid var(--line);border-radius:99px;padding:7px 12px;color:var(--navy);font-size:.8rem;background:#fff}
+  .ai-panel{padding:clamp(18px,3vw,30px);border:1px solid var(--line);box-shadow:var(--shadow-card)}
+  .ai-panel__head,.ai-result__head{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+  .ai-panel__head h2{font-size:1.25rem;margin:4px 0}
+  #ai-prompt-form{display:grid;gap:10px}
+  #ai-prompt-form label{font-size:.88rem;font-weight:700;color:var(--navy);margin-top:7px}
+  #ai-prompt-form input,#ai-prompt-form select,#ai-prompt-form textarea,.ai-result textarea{width:100%;border:1px solid var(--line);border-radius:var(--r-md);padding:12px 14px;background:#fff;color:var(--navy);font:inherit;line-height:1.9;min-width:0}
+  #ai-prompt-form textarea,.ai-result textarea{resize:vertical}
+  .ai-fields{display:grid;gap:12px}
+  .ai-fields>div{display:grid;gap:8px}
+  #ai-prompt-form .btn{justify-self:start;margin-top:12px}
+  .ai-result{margin-top:25px;padding-top:22px;border-top:1px solid var(--line)}
+  .ai-result h3{margin:0;color:var(--navy)}
+  .ai-note{font-size:.82rem;color:var(--mut);line-height:1.9}
+  .ai-roadmap{display:grid;gap:16px}
+  .ai-roadmap .card{padding:22px}
+  .ai-roadmap .card>span{color:var(--purple);font-weight:900}
+  .ai-roadmap h3{color:var(--navy);margin:8px 0}
+  @media(min-width:900px){.ai-workspace{grid-template-columns:.8fr 1.2fr;gap:48px}.ai-intro{position:sticky;top:120px}.ai-fields{grid-template-columns:1fr 1fr}.ai-roadmap{grid-template-columns:repeat(3,1fr)}}
+</style>
