@@ -183,6 +183,13 @@ export const MEGA_GROUPS = [
       { href: '/services/support', t: 'پشتیبانی فنی سایت', d: 'نگهداری، به‌روزرسانی و رفع خطاها' },
     ],
   },
+  {
+    title: 'هوش مصنوعی',
+    items: [
+      { href: '/services/ai', t: 'راهکارهای هوش مصنوعی', d: 'دستیارهای محتوایی و خودکارسازی فرایندها' },
+      { href: '/ai-tools', t: 'ابزارهای هوشمند محتوا', d: 'ابزارهای کمکی برای ایده، عنوان و ساختار مقاله' },
+    ],
+  },
 ];
 
 export const FOOTER_LINKS = {
@@ -191,6 +198,7 @@ export const FOOTER_LINKS = {
     { href: '/services/company-website', t: 'طراحی وب‌سایت' },
     { href: '/services/content', t: 'تولید محتوای مقالات سایت' },
     { href: '/services/seo', t: 'سئوی سایت' },
+    { href: '/services/ai', t: 'راهکارهای هوش مصنوعی' },
   ],
   quick: [
     { href: '/portfolio', t: 'نمونه‌کارها' },
@@ -200,6 +208,7 @@ export const FOOTER_LINKS = {
     { href: '/about', t: 'درباره ما' },
     { href: '/contact', t: 'تماس با ما' },
     { href: '/consult', t: 'ثبت درخواست خدمات' },
+    { href: '/ai-tools', t: 'ابزارهای هوشمند محتوا' },
   ],
 };
 
