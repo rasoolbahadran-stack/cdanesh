@@ -277,6 +277,7 @@ export const SERVICE_CARDS = [
   { slug: 'seo', cat: 'سئوی سایت', t: 'سئوی تکنیکال و محتوایی', d: 'زیرساخت فنی استاندارد و انتخاب هوشمندانه کلمات کلیدی.' },
   { slug: 'speed-optimization', cat: 'سئوی سایت', t: 'بهینه‌سازی سرعت و عملکرد', d: 'Core Web Vitals، تصاویر و زیرساخت؛ سایتی که سریع جواب می‌دهد.' },
   { slug: 'support', cat: 'سئوی سایت', t: 'پشتیبانی فنی و نگهداری سایت', d: 'به‌روزرسانی امنیتی، پشتیبان‌گیری و توسعه مستمر پس از انتشار.' },
+  { slug: 'ai', cat: 'هوش مصنوعی', t: 'راهکارهای هوش مصنوعی', d: 'دستیارهای محتوایی و خودکارسازی فرایندهای تکراری با نظارت انسانی.' },
 ];
 
 // تصویر یکدست انسانی برای هر خدمت (WebP بهینه)
@@ -289,6 +290,7 @@ export const SVC_IMG: Record<string, string> = {
   'content': '/img/ai/svc-content.webp',
   'content-strategy': '/img/ai/svc-content.webp',
   'support': '/img/ai/svc-support.webp',
+  'ai': '/img/ai/svc-ai.webp',
 };
 
 export const svcImg = (slug: string): string => SVC_IMG[slug] ?? `/img/svc-${slug}.webp`;
