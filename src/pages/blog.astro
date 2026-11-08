@@ -26,6 +26,10 @@ const meta = {
 
   <section class="section">
     <div class="container">
+      <div class="blog-search">
+        <label for="blog-search-input">جست‌وجو در مجله</label>
+        <input id="blog-search-input" type="search" placeholder="عنوان، موضوع یا عبارت موردنظر..." autocomplete="off" />
+      </div>
       <div class="pf-filters" role="group" aria-label="فیلتر دسته‌بندی مقالات">
         {categories.map((c, i) => (
           <button type="button" class:list={[{ 'is-active': i === 0 }]} data-pf-filter={c}>{c}</button>
@@ -33,7 +37,7 @@ const meta = {
       </div>
       <div class="pf-grid" id="blog-grid" style="margin-top:8px">
         {posts.map((p, i) => (
-          <div data-pf-item data-cat={p.category} style={i >= 9 ? 'display:none' : ''} class="blog-cell">
+          <div data-pf-item data-cat={p.category} data-search={p.title + ' ' + p.excerpt + ' ' + p.category} style={i >= 9 ? 'display:none' : ''} class="blog-cell">
             <PostCard post={p} delay={String((i % 3) * 80)} />
           </div>
         ))}
@@ -51,26 +55,39 @@ const meta = {
 </BaseLayout>
 
 <script>
-  const btn = document.getElementById('blog-more');
-  const cells = document.querySelectorAll<HTMLElement>('#blog-grid .blog-cell');
-  const shown = 9;
-  let visible = shown;
-  btn?.addEventListener('click', () => {
-    visible = Math.min(cells.length, visible + 9);
-    cells.forEach((c, i) => { if (i < visible) c.style.display = ''; });
-    // re-trigger reveal for newly shown
-    cells.forEach((c, i) => { if (i < visible) c.querySelector('[data-reveal]')?.classList.add('is-in'); });
-    if (visible >= cells.length) btn.style.display = 'none';
-  });
-  // با فیلتر دسته، همه آیتم‌های همان دسته نمایش داده شود
-  const filterBtns = document.querySelectorAll<HTMLButtonElement>('[data-pf-filter]');
-  filterBtns.forEach((b) => b.addEventListener('click', () => {
-    const cat = b.dataset.pfFilter;
-    cells.forEach((c) => {
-      const show = cat === 'همه' || c.dataset.cat === cat;
-      c.style.display = show ? '' : 'none';
-      c.querySelector('[data-reveal]')?.classList.add('is-in');
+  const btn = document.getElementById('blog-more') as HTMLButtonElement | null;
+  const cells = [...document.querySelectorAll<HTMLElement>('#blog-grid .blog-cell')];
+  const search = document.getElementById('blog-search-input') as HTMLInputElement | null;
+  const filterBtns = [...document.querySelectorAll<HTMLButtonElement>('[data-pf-filter]')];
+  let visible = 9;
+  let activeCategory = 'همه';
+  const applyFilters = () => {
+    const query = (search?.value || '').trim().toLocaleLowerCase('fa');
+    let matchingCount = 0;
+    cells.forEach((cell) => {
+      const categoryMatch = activeCategory === 'همه' || cell.dataset.cat === activeCategory;
+      const searchMatch = !query || (cell.dataset.search || '').toLocaleLowerCase('fa').includes(query);
+      const match = categoryMatch && searchMatch;
+      const show = match && (query || activeCategory !== 'همه' || matchingCount < visible);
+      cell.style.display = show ? '' : 'none';
+      if (match) matchingCount++;
+      if (show) cell.querySelector('[data-reveal]')?.classList.add('is-in');
     });
-    btn.style.display = cat === 'همه' && cells.length > visible ? '' : 'none';
+    if (btn) btn.style.display = !query && activeCategory === 'همه' && matchingCount > visible ? '' : 'none';
+  };
+  btn?.addEventListener('click', () => { visible += 9; applyFilters(); });
+  filterBtns.forEach((button) => button.addEventListener('click', () => {
+    activeCategory = button.dataset.pfFilter || 'همه';
+    filterBtns.forEach((item) => item.classList.toggle('is-active', item === button));
+    applyFilters();
   }));
+  search?.addEventListener('input', applyFilters);
+  applyFilters();
 </script>
+
+<style is:global>
+  .blog-search{display:grid;gap:8px;max-width:520px;margin:0 auto 22px}
+  .blog-search label{font-size:.88rem;font-weight:700;color:var(--navy)}
+  .blog-search input{width:100%;min-width:0;padding:13px 16px;border:1px solid var(--line);border-radius:var(--r-md);background:#fff;color:var(--navy);font:inherit;outline-offset:3px}
+  .blog-search input:focus{border-color:var(--purple)}
+</style>
