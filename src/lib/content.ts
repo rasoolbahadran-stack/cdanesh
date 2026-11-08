@@ -183,13 +183,6 @@ export const MEGA_GROUPS = [
       { href: '/services/support', t: 'پشتیبانی فنی سایت', d: 'نگهداری، به‌روزرسانی و رفع خطاها' },
     ],
   },
-  {
-    title: 'هوش مصنوعی',
-    items: [
-      { href: '/services/ai', t: 'راهکارهای هوش مصنوعی', d: 'دستیارهای محتوایی و خودکارسازی فرایندها' },
-      { href: '/ai-tools', t: 'ابزارهای هوشمند محتوا', d: 'ابزارهای کمکی برای ایده، عنوان و ساختار مقاله' },
-    ],
-  },
 ];
 
 export const FOOTER_LINKS = {
@@ -198,7 +191,6 @@ export const FOOTER_LINKS = {
     { href: '/services/company-website', t: 'طراحی وب‌سایت' },
     { href: '/services/content', t: 'تولید محتوای مقالات سایت' },
     { href: '/services/seo', t: 'سئوی سایت' },
-    { href: '/services/ai', t: 'راهکارهای هوش مصنوعی' },
   ],
   quick: [
     { href: '/portfolio', t: 'نمونه‌کارها' },
@@ -208,7 +200,6 @@ export const FOOTER_LINKS = {
     { href: '/about', t: 'درباره ما' },
     { href: '/contact', t: 'تماس با ما' },
     { href: '/consult', t: 'ثبت درخواست خدمات' },
-    { href: '/ai-tools', t: 'ابزارهای هوشمند محتوا' },
   ],
 };
 
@@ -281,12 +272,13 @@ export const SERVICE_CARDS = [
   { slug: 'company-website', cat: 'طراحی وب‌سایت', t: 'طراحی سایت شرکتی', d: 'حضور حرفه‌ای برای معرفی خدمات، پروژه‌ها و تیم شرکت شما.' },
   { slug: 'ecommerce', cat: 'طراحی وب‌سایت', t: 'طراحی فروشگاه اینترنتی', d: 'تجربه خرید روان، درگاه پرداخت و صفحه محصول تبدیل‌محور.' },
   { slug: 'ui-ux', cat: 'طراحی وب‌سایت', t: 'طراحی رابط و تجربه کاربری', d: 'مسیر کاربر مهندسی می‌شود تا هر صفحه به هدف خودش برسد.' },
+  { slug: 'landing-page', cat: 'طراحی وب‌سایت', t: 'طراحی لندینگ پیج و صفحات فرود', d: 'صفحات هدفمند برای معرفی کمپین، جذب سرنخ و تبدیل بازدیدکننده به مشتری.' },
+  { slug: 'personal-website', cat: 'طراحی وب‌سایت', t: 'طراحی سایت شخصی و رزومه آنلاین', d: 'وب‌سایتی حرفه‌ای برای معرفی تخصص، سوابق، نمونه‌کارها و برند شخصی.' },
   { slug: 'content', cat: 'تولید محتوای مقالات سایت', t: 'تولید مقالات تخصصی سایت', d: 'مقالات تخصصی با تحقیق واقعی و ساختار استاندارد انتشار.' },
   { slug: 'content-strategy', cat: 'تولید محتوای مقالات سایت', t: 'استراتژی و تقویم محتوایی', d: 'برنامه‌ریزی موضوع‌ها و انتشار منظم مقالات متناسب با نیاز مخاطب.' },
   { slug: 'seo', cat: 'سئوی سایت', t: 'سئوی تکنیکال و محتوایی', d: 'زیرساخت فنی استاندارد و انتخاب هوشمندانه کلمات کلیدی.' },
   { slug: 'speed-optimization', cat: 'سئوی سایت', t: 'بهینه‌سازی سرعت و عملکرد', d: 'Core Web Vitals، تصاویر و زیرساخت؛ سایتی که سریع جواب می‌دهد.' },
   { slug: 'support', cat: 'سئوی سایت', t: 'پشتیبانی فنی و نگهداری سایت', d: 'به‌روزرسانی امنیتی، پشتیبان‌گیری و توسعه مستمر پس از انتشار.' },
-  { slug: 'ai', cat: 'هوش مصنوعی', t: 'راهکارهای هوش مصنوعی', d: 'دستیارهای محتوایی و خودکارسازی فرایندهای تکراری با نظارت انسانی.' },
 ];
 
 // تصویر یکدست انسانی برای هر خدمت (WebP بهینه)
@@ -295,11 +287,12 @@ export const SVC_IMG: Record<string, string> = {
   'ecommerce': '/img/ai/svc-ecommerce.webp',
   'speed-optimization': '/img/ai/svc-speed.webp',
   'ui-ux': '/img/ai/svc-uiux.webp',
+  'landing-page': '/img/ai/svc-company.webp',
+  'personal-website': '/img/ai/svc-company.webp',
   'seo': '/img/ai/svc-seo.webp',
   'content': '/img/ai/svc-content.webp',
   'content-strategy': '/img/ai/svc-content.webp',
   'support': '/img/ai/svc-support.webp',
-  'ai': '/img/ai/svc-ai.webp',
 };
 
 export const svcImg = (slug: string): string => SVC_IMG[slug] ?? `/img/svc-${slug}.webp`;
