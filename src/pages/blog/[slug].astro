@@ -15,6 +15,7 @@ const post = await getPost(slug) as Post | undefined;
 if (!post) return Astro.redirect('/404');
 
 const related = getRelatedPosts(slug, 3);
+const toc = post.blocks.map((block, index) => ({ block, index })).filter(({ block }) => block.t === 'h2' || block.t === 'h3');
 const fa = (n: number | string) => new Intl.NumberFormat('fa-IR').format(Number(n));
 
 const meta = {
@@ -70,6 +71,12 @@ const meta = {
           <img src={post.cover} alt={`تصویر شاخص مقاله: ${post.title}`} width="800" height="450" decoding="async" style="width:100%;display:block;aspect-ratio:16/9;object-fit:cover" fetchpriority="high" />
         </figure>
       )}
+      {toc.length > 2 && (
+        <nav class="article-toc" aria-label="فهرست مطالب">
+          <strong>در این مقاله می‌خوانید</strong>
+          <ul>{toc.map(({ block, index }) => <li class:list={[block.t === 'h3' ? 'is-sub' : '']}><a href={`#content-heading-${index + 1}`}>{block.x}</a></li>)}</ul>
+        </nav>
+      )}
       <Blocks blocks={post.blocks} />
 
       <div class="article-actions">
@@ -119,4 +126,14 @@ const meta = {
   .article-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;margin-top:44px;padding-top:22px;border-top:1px solid var(--line)}
   .article-actions>div{display:flex;flex-wrap:wrap;gap:10px}
   .article-actions p{width:100%;margin:0;color:var(--mut);font-size:.84rem}
+</style>
+
+<style>
+  .article-toc{max-width:900px;margin:0 auto 28px;padding:20px 24px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--bg-soft,#faf9fd)}
+  .article-toc strong{display:block;color:var(--navy);margin-bottom:10px}
+  .article-toc ul{margin:0;padding-right:20px;display:grid;gap:8px;line-height:1.9}
+  .article-toc li{color:var(--purple)}
+  .article-toc li.is-sub{padding-right:16px;font-size:.92rem}
+  .article-toc a{color:var(--navy);text-decoration:none}
+  .article-toc a:hover{color:var(--purple)}
 </style>
