@@ -1,4 +1,5 @@
 ---
-// مسیر قدیمیِ خدمت هوش مصنوعی؛ هدایت دائمی به خدمت مرتبط فعلی
-return Astro.redirect('/services/content-strategy', 301);
+/* آدرس قدیمی خدمت هوش مصنوعی به صفحه اختصاصی جدید هدایت می‌شود. */
+export const prerender = false;
+return Astro.redirect('/services/ai', 301);
 ---
