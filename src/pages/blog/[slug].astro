@@ -15,7 +15,7 @@ const post = await getPost(slug) as Post | undefined;
 if (!post) return Astro.redirect('/404');
 
 const related = getRelatedPosts(slug, 3);
-const toc = post.blocks.map((block, index) => ({ block, index })).filter(({ block }) => block.t === 'h2' || block.t === 'h3');
+const toc = post.blocks.flatMap((block, index) => block.t === 'h2' || block.t === 'h3' ? [{ text: block.x, level: block.t, index }] : []);
 const fa = (n: number | string) => new Intl.NumberFormat('fa-IR').format(Number(n));
 
 const meta = {
@@ -74,7 +74,7 @@ const meta = {
       {toc.length > 2 && (
         <nav class="article-toc" aria-label="فهرست مطالب">
           <strong>در این مقاله می‌خوانید</strong>
-          <ul>{toc.map(({ block, index }) => <li class:list={[block.t === 'h3' ? 'is-sub' : '']}><a href={`#content-heading-${index + 1}`}>{block.x}</a></li>)}</ul>
+          <ul>{toc.map((item) => <li class:list={[item.level === 'h3' ? 'is-sub' : '']}><a href={`#content-heading-${item.index + 1}`}>{item.text}</a></li>)}</ul>
         </nav>
       )}
       <Blocks blocks={post.blocks} />
