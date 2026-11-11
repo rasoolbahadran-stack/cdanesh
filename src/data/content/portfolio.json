@@ -274,5 +274,22 @@
   "liveUrl": "https://simba.cdanesh.ir",
   "status": "published",
   "sort": 15
+ },
+ {
+  "slug": "cdanesh-studio",
+  "title": "کافه‌دانش — نسخه استودیو",
+  "excerpt": "نسخه استودیویی وب‌سایت کافه‌دانش با تمرکز بر طراحی اختصاصی و سئوی محلی بوشهر.",
+  "description": "نسخه استودیویی وب‌سایت کافه‌دانش؛ طراحی اختصاصی با معماری محتوایی دقیق، ساختار سئوی محلی برای جست‌وجوهای بوشهر و تجربه کاربری ساده و سریع.",
+  "category": "سایت شرکتی",
+  "tags": [
+   "طراحی اختصاصی",
+   "Astro",
+   "سئو محلی"
+  ],
+  "cover": "/img/pf/cdanesh-studio.webp",
+  "preview": "/img/pf/cdanesh-studio.webp",
+  "liveUrl": "https://studio.cdanesh.ir",
+  "status": "published",
+  "sort": 16
  }
 ]
