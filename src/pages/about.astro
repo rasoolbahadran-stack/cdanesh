@@ -7,17 +7,20 @@ import { getPage } from '../lib/content';
 import { jsonLdBreadcrumb } from '../lib/seo';
 
 const page = getPage('about')!;
-const bodyBlocks = page.blocks.filter((b) => !(b.t === 'h1' || (b.t === 'img' && b.src.includes('about-studio')) || (b.t === 'p' && b.x.startsWith('استودیو دیجیتال کافه'))));
+const bodyBlocks = page.blocks.filter((b) => !(b.t === 'h1'
+  || (b.t === 'img' && b.src.includes('about-studio'))
+  || (b.t === 'p' && b.x.startsWith('استودیو دیجیتال کافه'))
+  || (b.t === 'p' && b.x.startsWith('کافه‌دانش؛ استودیو تخصصی طراحی و توسعه وب‌سایت در بوشهر.'))));
 
 const meta = {
-  title: 'درباره کافه دانش | استودیو دیجیتال در بوشهر',
+  title: 'درباره کافه دانش | استودیو طراحی و توسعه وب‌سایت در بوشهر',
   description: page.meta,
   path: '/about',
   image: '/img/about-studio.webp',
 };
 ---
 <BaseLayout meta={meta} current="/about" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'درباره ما', url: '/about' }])]}>
-  <PageHero title="درباره کافه دانش" sub="کافه‌دانش؛ همراه کسب‌وکار شما در طراحی وب‌سایت، تولید محتوای تخصصی و سئوی اصولی." crumbs={[{ label: 'خانه', href: '/' }, { label: 'درباره ما' }]} />
+  <PageHero title="درباره کافه دانش" sub="کافه‌دانش؛ استودیو تخصصی طراحی و توسعه وب‌سایت در بوشهر — شرکتی، فروشگاهی و اختصاصی." crumbs={[{ label: 'خانه', href: '/' }, { label: 'درباره ما' }]} />
 
   <section class="section--tight">
     <div class="container">
