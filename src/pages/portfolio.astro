@@ -8,11 +8,14 @@ import { jsonLdBreadcrumb } from '../lib/seo';
 
 const items = (await getPortfolio()).filter((item) => item.status === 'published');
 Astro.response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=900');
-const categories = ['همه', ...new Set(items.map((i) => i.category))];
+// ترتیب دسته‌ها با اولویت تخصص اصلی برند
+const preferredPf = ['سایت شرکتی', 'فروشگاه اینترنتی', 'پورتال و سامانه'];
+const foundPf = [...new Set(items.map((i) => i.category))];
+const categories = ['همه', ...preferredPf.filter((c) => foundPf.includes(c)), ...foundPf.filter((c) => !preferredPf.includes(c))];
 
 const meta = {
-  title: 'نمونه‌کارهای واقعی Astro | پروژه‌های کافه دانش',
-  description: 'مشاهده وب‌سایت‌ها و سامانه‌های منتشرشده کافه دانش، همراه پیش‌نمایش پروژه و پیوند مشاهده نسخه آنلاین.',
+  title: 'نمونه‌کارهای طراحی سایت و فروشگاه اینترنتی | کافه دانش',
+  description: 'نمونه‌کارهای طراحی سایت شرکتی، فروشگاه اینترنتی و سامانه‌های تحت وب کافه دانش؛ با پیش‌نمایش زنده و جزئیات هر پروژه.',
   path: '/portfolio',
 };
 ---

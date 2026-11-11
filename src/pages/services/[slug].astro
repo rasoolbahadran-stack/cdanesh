@@ -17,7 +17,7 @@ const others = SERVICE_CARDS.filter((s) => s.slug !== slug).slice(0, 3);
 const cover = svcImg(svc.slug);
 
 const meta = {
-  title: `${svc.title} | خدمات کافه دانش`,
+  title: svc.seoTitle ?? `${svc.title} | خدمات کافه دانش`,
   description: svc.excerpt,
   path: `/services/${svc.slug}`,
   image: cover,

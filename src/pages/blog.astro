@@ -8,19 +8,22 @@ import { getPosts } from '../lib/content';
 import { jsonLdBreadcrumb } from '../lib/seo';
 
 const posts = await getPosts();
-const categories = ['همه', ...new Set(posts.map((p) => p.category))];
+// ترتیب دسته‌ها با اولویت تخصص اصلی برند (طراحی سایت و UI/UX)
+const preferredCats = ['طراحی سایت', 'طراحی UI/UX', 'سئو', 'تولید محتوا', 'هوش مصنوعی', 'کسب‌وکار و رشد آنلاین'];
+const foundCats = [...new Set(posts.map((p) => p.category))];
+const categories = ['همه', ...preferredCats.filter((c) => foundCats.includes(c)), ...foundCats.filter((c) => !preferredCats.includes(c))];
 const fa = (n: number) => new Intl.NumberFormat('fa-IR').format(n);
 
 const meta = {
-  title: 'مجله کافه دانش | مقالات طراحی سایت، سئو و هوش مصنوعی',
-  description: 'مقالات تخصصی و سئوشده درباره طراحی سایت، سئو، تولید محتوا، فروشگاه اینترنتی و هوش مصنوعی — به زبان ساده و کاربردی.',
+  title: 'وبلاگ کافه دانش | مقالات طراحی سایت، سئو و تولید محتوا',
+  description: 'مقالات تخصصی درباره طراحی سایت، فروشگاه اینترنتی، UI/UX، سئو و تولید محتوا — به زبان ساده و کاربردی.',
   path: '/blog',
 };
 ---
 <BaseLayout meta={meta} current="/blog" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'مجله', url: '/blog' }])]}>
   <PageHero
     title="مجله کافه دانش"
-    sub={`${fa(posts.length)} مقالهٔ تخصصی درباره طراحی سایت، سئو، محتوا و هوش مصنوعی — هر هفته یک مطلب کاربردی تازه.`}
+    sub={`${fa(posts.length)} مقالهٔ تخصصی درباره طراحی سایت، فروشگاه اینترنتی، سئو و تولید محتوا — هر هفته یک مطلب کاربردی تازه.`}
     crumbs={[{ label: 'خانه', href: '/' }, { label: 'مجله' }]}
   />
 
