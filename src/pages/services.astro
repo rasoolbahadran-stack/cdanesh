@@ -1,37 +1,52 @@
 ---
-// فهرست خدمات — گروه‌بندی مطابق سایت فعلی
+// فهرست خدمات — تخصص اصلی (طراحی و توسعه وب‌سایت) ابتدا، خدمات مکمل و پس از راه‌اندازی در ادامه
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
 import SectionHead from '../components/SectionHead.astro';
 import CtaBand from '../components/CtaBand.astro';
-import { SERVICE_CARDS, SITE, svcImg } from '../lib/content';
+import { SERVICE_CARDS, svcImg, CAPS } from '../lib/content';
 import { jsonLdBreadcrumb } from '../lib/seo';
 
 const groups = [
-  { key: 'طراحی وب‌سایت', d: 'از وب‌سایت شرکتی و فروشگاهی تا طراحی تجربه کاربری؛ زیرساخت حضور حرفه‌ای برند شما.' },
-  { key: 'تولید محتوای مقالات سایت', d: 'مقالات تخصصی و برنامه‌ریزی محتوایی برای پاسخ‌گویی به نیاز مخاطب.' },
-  { key: 'سئوی سایت', d: 'بهبود ساختار فنی، سرعت و محتوای سایت برای دیده‌شدن پایدار در جست‌وجو.' },
+  {
+    tag: 'تخصص اصلی',
+    title: 'طراحی و توسعه وب‌سایت',
+    d: 'تخصص اصلی کافه‌دانش: از وب‌سایت شرکتی و فروشگاه اینترنتی تا وب‌اپلیکیشن‌های اختصاصی و طراحی تجربه کاربری؛ زیرساخت حرفه‌ای حضور آنلاین برند شما.',
+    slugs: ['company-website', 'ecommerce', 'custom-web', 'ui-ux'],
+  },
+  {
+    tag: 'خدمات مکمل',
+    title: 'سئو و تولید محتوا',
+    d: 'خدمات مکمل برای اینکه وب‌سایتی که ساخته می‌شود دیده شود و رشد کند؛ دقیقاً در راستای تکمیل پروژه‌های طراحی کافه‌دانش.',
+    slugs: ['seo', 'content', 'content-strategy'],
+  },
+  {
+    tag: 'پس از راه‌اندازی',
+    title: 'مدیریت، پشتیبانی و سلامت سایت',
+    d: 'خدمات پس از طراحی و توسعه: نگهداری فنی، به‌روزرسانی و بهینه‌سازی مداوم تا سایت همیشه در بهترین وضعیت باشد.',
+    slugs: ['support', 'speed-optimization'],
+  },
 ];
 
 const meta = {
-  title: 'خدمات طراحی سایت، سئو و تولید محتوا | کافه دانش',
-  description: 'خدمات کافه‌دانش در سه حوزه اصلی ارائه می‌شود: طراحی وب‌سایت، تولید محتوای مقالات سایت و سئوی سایت.',
+  title: 'خدمات طراحی و توسعه وب‌سایت | کافه دانش',
+  description: 'تخصص کافه‌دانش طراحی و توسعه وب‌سایت است: طراحی سایت شرکتی، فروشگاه اینترنتی، وب‌سایت اختصاصی و UI/UX؛ در کنار خدمات مکمل سئو، تولید محتوا و پشتیبانی سایت.',
   path: '/services',
 };
 ---
 <BaseLayout meta={meta} current="/services" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'خدمات', url: '/services' }])]}>
   <PageHero
     title="خدمات کافه دانش"
-    sub="سه حوزه تخصصی ما طراحی وب‌سایت، تولید محتوای مقالات سایت و سئوی سایت است؛ خدمات مکمل هر حوزه نیز در ادامه آمده‌اند."
+    sub="تخصص اصلی کافه‌دانش طراحی و توسعه وب‌سایت است؛ سئو، تولید محتوا و پشتیبانی نیز به‌عنوان خدمات مکمل برای رشد و نگهداشت سایت شما ارائه می‌شوند."
     crumbs={[{ label: 'خانه', href: '/' }, { label: 'خدمات' }]}
   />
 
   {groups.map((g, gi) => (
-    <section class:list={['section', gi % 2 ? 'bg-soft' : '']}>
+    <section class:list={['section', gi % 2 ? '' : 'bg-soft']}>
       <div class="container">
-        <SectionHead tag={g.key} title={g.key} sub={g.d} />
+        <SectionHead tag={g.tag} title={g.title} sub={g.d} />
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px" class="svc-list">
-          {SERVICE_CARDS.filter((s) => s.cat === g.key).map((s, i) => (
+          {SERVICE_CARDS.filter((s) => g.slugs.includes(s.slug)).map((s, i) => (
             <a href={`/services/${s.slug}`} class="svc-card" style="color:inherit" data-reveal="up" data-delay={String(i * 90)}>
               <div class="svc-card__media">
                 <img src={svcImg(s.slug)} alt={`${s.t} — خدمت کافه دانش`} width="480" height="300" loading="lazy" decoding="async" />
@@ -51,6 +66,24 @@ const meta = {
       </div>
     </section>
   ))}
+
+  <!-- توانمندی‌ها در یک نگاه -->
+  <section class="section" aria-labelledby="caps-title">
+    <div class="container">
+      <SectionHead tag="توانمندی‌ها" title="تمام توانمندی‌های فنی ما، در یک نگاه" sub="هر چیزی که برای ساخت، رشد و نگهداشت یک وب‌سایت حرفه‌ای لازم است — همه در یک تیم." />
+      <div class="cap-grid">
+        {CAPS.map((c, i) => (
+          <div class="cap" data-reveal="up" data-delay={String(i * 70)}>
+            <span class="cap__num" aria-hidden="true">{new Intl.NumberFormat('fa-IR').format(i + 1).padStart(2, '۰')}</span>
+            <div>
+              <h3>{c.t}</h3>
+              <p>{c.d}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
 
   <CtaBand title="کدام خدمت برای کسب‌وکار شما مناسب است؟" sub="در جلسه مشاوره رایگان بررسی می‌کنیم؛ بدون فروش فوری، فقط مسیر درست." />
 </BaseLayout>
