@@ -1,6 +1,7 @@
 ---
 // رندر بلوک‌های محتوایی استخراج‌شده از سایت فعلی
 import type { Block } from '../lib/types';
+import { injectHtmlHeadingIds } from '../lib/content';
 
 interface Props { blocks: Block[]; proseClass?: string }
 const { blocks, proseClass = 'prose' } = Astro.props;
@@ -12,7 +13,11 @@ const fa = (s: string | number) => new Intl.NumberFormat('fa-IR').format(Number(
     if (b.t === 'h3') return <h3 id={`content-heading-${i + 1}`}>{b.x}</h3>;
     if (b.t === 'h4') return <h4 id={`content-heading-${i + 1}`}>{b.x}</h4>;
     if (b.t === 'p') return <p set:html={b.x} />;
-    if (b.t === 'html') return <div set:html={b.x} />;
+    if (b.t === 'html') {
+      // مقالات قدیمی دیتابیس: HTML یکپارچه — تیترها لنگر می‌گیرند تا فهرست و پرش عمودی کار کند
+      const { html } = injectHtmlHeadingIds(b.x, i);
+      return <div set:html={html} />;
+    }
     if (b.t === 'blockquote') return <blockquote set:html={b.x} />;
     if (b.t === 'ul') return <ul>{b.items.map((it) => <li set:html={it} />)}</ul>;
     if (b.t === 'ol') return <ol>{b.items.map((it) => <li set:html={it} />)}</ol>;

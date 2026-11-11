@@ -70,12 +70,19 @@ async function getLegacyPortfolio(): Promise<PortfolioItem[]> {
   if (!rows || !rows.length) return localItems;
 
   const merged = new Map(localItems.map((item) => [item.slug, item]));
+  // برخی ردیف‌های قدیمی دیتابیس بدون پسوند «-astro» ذخیره شده‌اند (bazarino در برابر bazarino-astro)؛
+  // بدون این تطبیق، همان پروژه دو بار با دو تصویر متفاوت نمایش داده می‌شود.
+  const findLocal = (slug: string) =>
+    localPortfolio.find((item) => item.slug === slug) ??
+    localPortfolio.find((item) => item.slug === `${slug}-astro`);
   rows.forEach((row) => {
     const remote = row as unknown as PortfolioItem;
-    const local = localPortfolio.find((item) => item.slug === remote.slug);
+    const local = findLocal(remote.slug);
+    if (!local && merged.has(remote.slug)) return;
     const liveUrl = remote.liveUrl?.trim() || local?.liveUrl || '';
 
-    merged.set(remote.slug, local ? {
+    // وقتی ردیف دیتابیس به آیتم محلی می‌چسبد، با کلید اسلاگ محلی جایگزین می‌شود تا پروژه تکراری ساخته نشود
+    merged.set(local ? local.slug : remote.slug, local ? {
       ...remote,
       title: local.title,
       excerpt: local.excerpt,
@@ -124,6 +131,40 @@ export function getFaq(): FaqItem[] {
 
 export function getPage(key: string): PageDoc | undefined {
   return localPages[key];
+}
+
+// ── محتوای مقاله: شمارش واژه، زمان مطالعه صادقانه و لنگر تیترها ──
+const stripTags = (s: unknown) => String(s || '').replace(/<[^>]+>/g, ' ');
+const countWords = (s: unknown) => stripTags(s).split(/\s+/).filter(Boolean).length;
+
+export function postWordCount(p: Post): number {
+  return (p.blocks || []).reduce((sum, b) => {
+    const blk = b as unknown as { t?: string; x?: string; items?: string[] };
+    if (blk.t === 'ul' || blk.t === 'ol') {
+      return sum + (blk.items || []).reduce((s2, it) => s2 + countWords(it), 0);
+    }
+    return sum + countWords(blk.x);
+  }, 0);
+}
+
+export function postReadMinutes(p: Post): number {
+  return Math.max(3, Math.round(postWordCount(p) / 190));
+}
+
+/** برای بلوک‌های HTML یکپارچه (مقالات قدیمی دیتابیس) به تیترها id لنگر می‌دهد و فهرست آن‌ها را برمی‌گرداند. */
+export function injectHtmlHeadingIds(
+  html: string,
+  blockIndex: number,
+): { html: string; headings: Array<{ text: string; level: string; id: string }> } {
+  const headings: Array<{ text: string; level: string; id: string }> = [];
+  let k = 0;
+  const out = String(html || '').replace(/<h([234])>([\s\S]*?)<\/h\1>/g, (_m, lvl: string, inner: string) => {
+    k += 1;
+    const id = `content-heading-${blockIndex + 1}-${k}`;
+    headings.push({ text: String(inner).replace(/<[^>]+>/g, '').trim(), level: `h${lvl}`, id });
+    return `<h${lvl} id="${id}">${inner}</h${lvl}>`;
+  });
+  return { html: out, headings };
 }
 
 export function blocksToPlain(blocks: Block[], limit = 2): string {
