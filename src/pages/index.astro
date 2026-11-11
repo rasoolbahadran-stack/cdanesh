@@ -1,11 +1,11 @@
 ---
-// صفحه اصلی کافه دانش — Hero با خط منحنی، عکس انسان و داشبورد + تمام بخش‌های سایت فعلی
+// صفحه اصلی کافه دانش — Hero با خط منحنی، عکس انسان و داشبورد + جایگاه برند: تخصص طراحی و توسعه وب‌سایت
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHead from '../components/SectionHead.astro';
 import PortfolioCard from '../components/PortfolioCard.astro';
 import PostCard from '../components/PostCard.astro';
 import CtaBand from '../components/CtaBand.astro';
-import { getPosts, getPortfolio, CAPS, PROS, SERVICE_CARDS, STEPS, PRICING, HOME_FOUR, MARQUEE_ITEMS, SITE, svcImg } from '../lib/content';
+import { getPosts, getPortfolio, PROS, SERVICE_CARDS, STEPS, PRICING, HOME_FOUR, MARQUEE_ITEMS, SITE, svcImg } from '../lib/content';
 import { jsonLdFaq, jsonLdBreadcrumb } from '../lib/seo';
 import { getFaq } from '../lib/content';
 
@@ -15,15 +15,21 @@ const faq = getFaq();
 const latestPosts = posts.slice(0, 3);
 const showPf = portfolio.filter((p) => p.status === 'published').slice(0, 3);
 
+// کارت‌های خدمات: تخصص اصلی در ابتدای صفحه، خدمات مکمل در ادامه
+const MAIN_SLUGS = ['company-website', 'ecommerce', 'custom-web', 'ui-ux'];
+const COMPL_SLUGS = ['seo', 'content', 'support'];
+const mainCards = SERVICE_CARDS.filter((s) => MAIN_SLUGS.includes(s.slug));
+const complCards = SERVICE_CARDS.filter((s) => COMPL_SLUGS.includes(s.slug));
+
 const marqueeItems = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
 
 const meta = {
-  title: 'طراحی سایت در بوشهر و سراسر ایران | کافه دانش',
-  description: 'کافه دانش در بوشهر خدمات طراحی سایت شرکتی و فروشگاهی، تولید محتوای تخصصی و سئوی فنی ارائه می‌دهد. برای راه‌اندازی یا بهبود حضور آنلاین کسب‌وکارتان مشاوره بگیرید.',
+  title: 'طراحی سایت در بوشهر | کافه دانش؛ طراحی و توسعه وب‌سایت',
+  description: 'کافه دانش استودیو تخصصی طراحی و توسعه وب‌سایت در بوشهر است؛ طراحی سایت شرکتی، فروشگاه اینترنتی و وب‌سایت اختصاصی با زیرساخت فنی و سئوی اصولی از روز اول. درخواست مشاوره و سفارش پروژه.',
   path: '/',
 };
 ---
-<BaseLayout meta={meta} current="/" extraJsonLd={[jsonLdFaq(faq), jsonLdBreadcrumb([{ name: 'خانه', url: '/' }])]}>
+<BaseLayout meta={meta} current="/" extraJsonLd={[jsonLdFaq(faq.slice(0, 6)), jsonLdBreadcrumb([{ name: 'خانه', url: '/' }])]}>
   <!-- ═══════════ HERO ═══════════ -->
   <section class="hero" id="top" aria-label="معرفی کافه دانش">
     <!-- خط منحنی عبوری از وسط Hero — به سبک ساسمیکس -->
@@ -40,14 +46,14 @@ const meta = {
     <div class="container hero__grid">
       <div class="hero__content">
         <h1 class="hero__title" data-reveal="up">
-          طراحی سایت، تولید محتوا و سئو؛<br />
-          <span class="hero__mark">سه موتور رشد</span> کسب‌وکار شما
+          طراحی و توسعه وب‌سایت‌های شرکتی، فروشگاهی و اختصاصی؛<br />
+          <span class="hero__mark">زیرساخت حرفه‌ای رشد</span> کسب‌وکار شما
         </h1>
         <p class="hero__text" data-reveal="up" data-delay="120">
-          از طراحی وب‌سایت اختصاصی تا نگارش مقالات تخصصی و سئوی اصولی؛ سه خدمت مکمل را با یک برنامه روشن و تحویل مرحله‌به‌مرحله ارائه می‌کنیم.
+          کافه دانش استودیو تخصصی طراحی و توسعه وب‌سایت است؛ از سایت شرکتی و فروشگاه اینترنتی تا وب‌اپلیکیشن‌های اختصاصی. هر پروژه از نیازسنجی شروع می‌شود، با معماری اطلاعات و طراحی UI/UX پیش می‌رود و با کدنویسی تمیز و قابل توسعه تحویل داده می‌شود.
         </p>
         <div class="hero__btns" data-reveal="up" data-delay="240">
-          <a href="/consult" class="btn btn--lg">درخواست مشاوره رایگان</a>
+          <a href="/consult" class="btn btn--lg">درخواست مشاوره و سفارش پروژه</a>
           <a href="/portfolio" class="btn btn--ghost btn--lg">
             مشاهده نمونه‌کارها
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" /></svg>
@@ -55,8 +61,8 @@ const meta = {
         </div>
         <ul class="hero__points" data-reveal="up" data-delay="340">
           <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg> طراحی اختصاصی، نه قالب آماده</li>
-          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg> سئوی اصولی و قابل توضیح</li>
-          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg> پشتیبانی واقعی پس از تحویل</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg> زیرساخت فنی و سئوی اصولی از روز اول</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg> تحویل مرحله‌ای و پشتیبانی واقعی</li>
         </ul>
       </div>
 
@@ -94,7 +100,7 @@ const meta = {
             </div>
             <div style="margin-top:12px;display:grid;gap:7px">
               <div style="display:flex;align-items:center;justify-content:space-between;font-size:.72rem;color:var(--navy);background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 10px">
-                <span>مقاله جدید منتشر شد</span><span class="badge badge--ok">انجام شد</span>
+                <span>پروژه در مرحلهٔ طراحی</span><span class="badge badge--ok">در جریان</span>
               </div>
               <div style="display:flex;align-items:center;justify-content:space-between;font-size:.72rem;color:var(--navy);background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 10px">
                 <span>درخواست مشاوره جدید</span><span class="badge badge--soon">در انتظار</span>
@@ -118,7 +124,7 @@ const meta = {
           <span class="hero__chip-ico">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z" /><path d="m2 17 10 5 10-5M2 12l10 5 10-5" /></svg>
           </span>
-          <span>طراحی <b>UI/UX</b>، سئو <b>تکنیکال</b>، محتوای <b>تخصصی</b><small>سه تخصص، یک تیم واحد</small></span>
+          <span>طراحی <b>اختصاصی</b>، توسعه <b>فنی</b>، تجربه کاربری <b>UI/UX</b><small>تخصص اصلی کافه دانش</small></span>
         </div>
         <div class="hero__chip hero__chip--b" aria-hidden="true">
           <span class="hero__chip-ico" style="background:var(--mint);color:var(--mint-ink)">
@@ -132,7 +138,7 @@ const meta = {
     <div class="hero__trust">
       <div class="container hero__trust-inner" data-reveal="up" data-delay="420">
         <span>✳ <b>تحویل مرحله‌ای</b> — پیشرفت پروژه شفاف و قابل پیگیری</span>
-        <span>✳ <b>محتوای هدفمند</b> — مقاله‌های تخصصی متناسب با مخاطب</span>
+        <span>✳ <b>زیرساخت استاندارد</b> — سرعت، سئو و موبایل از روز اول</span>
         <span>✳ <b>مالکیت کامل</b> — کد، محتوا و دسترسی‌ها متعلق به شماست</span>
       </div>
     </div>
@@ -151,40 +157,90 @@ const meta = {
   </div>
 
   <!-- ═══════════ نوار آمار ═══════════ -->
-  <section class="section--tight" aria-label="آمار کافه دانش در یک نگاه">
+  <section class="section--tight" aria-label="کافه دانش در یک نگاه">
     <div class="container">
       <div class="stats">
         <div class="stat" data-reveal="up">
           <span class="stat__ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5-10-5Z" /><path d="m2 17 10 5 10-5M2 12l10 5 10-5" /></svg></span>
-          <p class="stat__num"><span data-count="8">۰</span></p>
-          <p class="stat__label">خدمت تخصصی در یک تیم واحد</p>
+          <p class="stat__num"><span data-count="10">۰</span></p>
+          <p class="stat__label">وب‌سایت ساخته و منتشرشده</p>
         </div>
         <div class="stat" data-reveal="up" data-delay="120">
           <span class="stat__ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4.5" /><circle cx="12" cy="12" r="1" /></svg></span>
-          <p class="stat__num"><span data-count="3">۰</span></p>
-          <p class="stat__label">حوزه اصلی خدمات</p>
+          <p class="stat__num"><span data-count="4">۰</span></p>
+          <p class="stat__label">پکیج طراحی سایت با قیمت شفاف</p>
         </div>
         <div class="stat" data-reveal="up" data-delay="240">
           <span class="stat__ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" /></svg></span>
           <p class="stat__num"><span data-count="6">۰</span></p>
-          <p class="stat__label">مرحلهٔ شروع همکاری</p>
+          <p class="stat__label">مرحله از درخواست تا تحویل</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ═══════════ توانمندی‌ها ═══════════ -->
-  <section class="section bg-soft" aria-labelledby="caps-title">
+  <!-- ═══════════ تخصص اصلی: طراحی و توسعه وب‌سایت ═══════════ -->
+  <section class="section bg-lavender" aria-labelledby="svc-title">
     <div class="container">
-      <SectionHead tag="توانمندی‌ها" title="تمام حلقه‌های حضور دیجیتال، در یک تیم" sub="به‌جای هماهنگ‌کردن چند پیمانکار جدا، کل مسیر از طراحی وب‌سایت تا تولید محتوا و بهینه‌سازی فنی را یک تیم و با برنامه‌ای هماهنگ پیش می‌برد." />
-      <div class="cap-grid">
-        {CAPS.map((c, i) => (
-          <div class="cap" data-reveal="up" data-delay={String(i * 70)}>
-            <span class="cap__num" aria-hidden="true">{new Intl.NumberFormat('fa-IR').format(i + 1).padStart(2, '۰')}</span>
-            <div>
-              <h3>{c.t}</h3>
-              <p>{c.d}</p>
+      <SectionHead tag="تخصص اصلی ما" title="تخصص ما: طراحی و توسعه وب‌سایت" sub="از معرفی حرفه‌ای برند تا فروش آنلاین و سامانه‌های اختصاصی؛ هر پروژه با معماری اطلاعات درست، تجربه کاربری دقیق و زیرساخت فنی قابل توسعه ساخته می‌شود." center />
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:22px" class="svc-grid">
+        {mainCards.map((s, i) => (
+          <a href={`/services/${s.slug}`} class="svc-card" data-reveal="up" data-delay={String((i % 4) * 80)} style="color:inherit">
+            <div class="svc-card__media">
+              <img src={svcImg(s.slug)} alt={`${s.t} — خدمت کافه دانش`} width="480" height="300" loading="lazy" decoding="async" />
+              <span class="svc-card__cat">{s.cat}</span>
             </div>
+            <div class="svc-card__body">
+              <h3>{s.t}</h3>
+              <p>{s.d}</p>
+              <span class="svc-card__more">
+                جزئیات خدمت
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" /></svg>
+              </span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ نمونه‌کارهای منتخب ═══════════ -->
+  <section class="section" aria-labelledby="pf-title">
+    <div class="container">
+      <SectionHead tag="نمونه‌کارها" title="نمونه‌کارهای منتخب؛ سایت‌هایی که همین حالا زنده‌اند" sub="فقط پروژه‌هایی را می‌بینید که نسخه آنلاین و منتشرشده دارند؛ برای مشاهده جزئیات و نمونه کامل، هر کارت را باز کنید." />
+      <div class="pf-grid">
+        {showPf.map((p, i) => (
+          <PortfolioCard item={p} delay={String((i % 3) * 90)} />
+        ))}
+      </div>
+      <div style="text-align:center;margin-top:36px" data-reveal="up">
+        <a href="/portfolio" class="btn btn--outline btn--lg">مشاهده همه نمونه‌کارها (با فیلتر دسته‌بندی)</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ طراحی سایت، از نزدیک ═══════════ -->
+  <section class="section bg-soft" aria-labelledby="svc4-title">
+    <div class="container">
+      <SectionHead tag="تخصص ما، از نزدیک" title="طراحی سایت دقیقاً چه تغییری در کسب‌وکار شما می‌سازد؟" sub="سه مسیر اصلی پروژه‌های ما — با نگاه کاربردی به نتیجه هر کدام برای کسب‌وکار شما." />
+      <div style="display:grid;gap:clamp(22px,3vw,34px)">
+        {HOME_FOUR.map((h, i) => (
+          <div style={`display:grid;grid-template-columns:${i % 2 ? '1.1fr 0.9fr' : '0.9fr 1.1fr'};gap:clamp(20px,4vw,48px);align-items:center`} class="home-four-row" data-reveal="up">
+            <div style={`order:${i % 2 ? 2 : 1}`}>
+              <span class="section-head__tag" style="font-size:.85rem">{h.chip}</span>
+              <h2 style="font-size:clamp(1.2rem,2.4vw,1.7rem)">{h.h}</h2>
+              <p style="color:var(--mut)">{h.d}</p>
+              <ul style="list-style:none;padding:0;margin:14px 0 20px;display:grid;gap:8px">
+                {h.items.map((it) => (
+                  <li style="display:flex;gap:9px;align-items:flex-start;font-size:.94rem">
+                    <svg style="flex:none;margin-top:6px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--mint-ink)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg>
+                    {it}
+                  </li>
+                ))}
+              </ul>
+              <a href={h.href} class="btn">{h.cta}</a>
+            </div>
+            <img src={h.cover} alt={`${h.chip} در کافه دانش — تصویر تیم در حال کار`} width="576" height="432" loading="lazy" decoding="async" style={`border-radius:var(--r-lg);box-shadow:var(--shadow-float);order:${i % 2 ? 1 : 2};aspect-ratio:4/3;object-fit:cover;width:100%`} />
           </div>
         ))}
       </div>
@@ -214,13 +270,29 @@ const meta = {
     </div>
   </section>
 
-  <!-- ═══════════ خدمات ═══════════ -->
-  <section class="section bg-lavender" aria-labelledby="svc-title">
+  <!-- ═══════════ مراحل همکاری ═══════════ -->
+  <section class="section bg-lavender" aria-labelledby="steps-title">
     <div class="container">
-      <SectionHead tag="خدمات ما" title="هشت خدمت تخصصی در سه حوزه اصلی" sub="خدمات ما در سه حوزه طراحی وب‌سایت، تولید مقالات تخصصی و سئوی سایت ارائه می‌شود؛ هر کدام را می‌توانید مستقل یا در قالب یک برنامه یکپارچه سفارش دهید." center />
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:22px" class="svc-grid">
-        {SERVICE_CARDS.map((s, i) => (
-          <a href={`/services/${s.slug}`} class="svc-card" data-reveal="up" data-delay={String((i % 4) * 80)} style="color:inherit">
+      <SectionHead tag="مسیر شروع همکاری" title="شش مرحله شفاف، از درخواست تا تحویل" sub="در هر گام می‌دانید کجا هستید، چه چیزی تحویل می‌گیرید و گام بعدی چیست." center />
+      <div class="steps">
+        {STEPS.map((s, i) => (
+          <div class="step" data-reveal="up" data-delay={String((i % 3) * 90)}>
+            <span class="step__line" aria-hidden="true"></span>
+            <h3>{s.t}</h3>
+            <p>{s.d}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ خدمات مکمل: سئو، تولید محتوا و پشتیبانی ═══════════ -->
+  <section class="section" aria-labelledby="compl-title">
+    <div class="container">
+      <SectionHead tag="خدمات مکمل" title="پس از راه‌اندازی: خدمات مکمل برای رشد و نگهداشت سایت" sub="سایتی خوب ساخته‌شدن کافی نیست؛ باید دیده شود و سالم بماند. سئو و تولید محتوا برای رشد جست‌وجو و مدیریت و پشتیبانی برای سلامت بلندمدت سایت — دقیقاً در ادامه پروژه‌های طراحی کافه‌دانش." center />
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px" class="compl-grid">
+        {complCards.map((s, i) => (
+          <a href={`/services/${s.slug}`} class="svc-card" data-reveal="up" data-delay={String((i % 3) * 80)} style="color:inherit">
             <div class="svc-card__media">
               <img src={svcImg(s.slug)} alt={`${s.t} — خدمت کافه دانش`} width="480" height="300" loading="lazy" decoding="async" />
               <span class="svc-card__cat">{s.cat}</span>
@@ -234,34 +306,6 @@ const meta = {
               </span>
             </div>
           </a>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════════ خدمات از نزدیک ═══════════ -->
-  <section class="section" aria-labelledby="svc4-title">
-    <div class="container">
-      <SectionHead tag="خدمات، از نزدیک" title="هر خدمت دقیقاً چه تغییری در کسب‌وکار شما می‌سازد؟" sub="سه حوزه اصلی کار ما — با نگاه کاربردی به نتیجه هر خدمت برای کسب‌وکار شما." />
-      <div style="display:grid;gap:clamp(22px,3vw,34px)">
-        {HOME_FOUR.map((h, i) => (
-          <div style={`display:grid;grid-template-columns:${i % 2 ? '1.1fr 0.9fr' : '0.9fr 1.1fr'};gap:clamp(20px,4vw,48px);align-items:center`} class="home-four-row" data-reveal="up">
-            <div style={`order:${i % 2 ? 2 : 1}`}>
-              <span class="section-head__tag" style="font-size:.85rem">{h.chip}</span>
-              <h2 style="font-size:clamp(1.2rem,2.4vw,1.7rem)">{h.h}</h2>
-              <p style="color:var(--mut)">{h.d}</p>
-              <ul style="list-style:none;padding:0;margin:14px 0 20px;display:grid;gap:8px">
-                {h.items.map((it) => (
-                  <li style="display:flex;gap:9px;align-items:flex-start;font-size:.94rem">
-                    <svg style="flex:none;margin-top:6px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--mint-ink)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg>
-                    {it}
-                  </li>
-                ))}
-              </ul>
-              <a href={h.href} class="btn">{h.cta}</a>
-            </div>
-            <img src={h.cover} alt={`${h.chip} در کافه دانش — تصویر تیم در حال کار`} width="576" height="432" loading="lazy" decoding="async" style={`border-radius:var(--r-lg);box-shadow:var(--shadow-float);order:${i % 2 ? 1 : 2};aspect-ratio:4/3;object-fit:cover;width:100%`} />
-          </div>
         ))}
       </div>
     </div>
@@ -295,58 +339,12 @@ const meta = {
     </div>
   </section>
 
-  <!-- ═══════════ نمونه‌کارها ═══════════ -->
-  <section class="section" aria-labelledby="pf-title">
-    <div class="container">
-      <SectionHead tag="نمونه‌کارها" title="موس را روی کارت نگه دارید؛ کل صفحه مرور می‌شود" sub="در این بخش فقط پروژه‌هایی را می‌بینید که نسخه آنلاین و منتشرشده دارند؛ برای مشاهده جزئیات و نمونه کامل، هر کارت را باز کنید." />
-      <div class="pf-grid">
-        {showPf.map((p, i) => (
-          <PortfolioCard item={p} delay={String((i % 3) * 90)} />
-        ))}
-      </div>
-      <div style="text-align:center;margin-top:36px" data-reveal="up">
-        <a href="/portfolio" class="btn btn--outline btn--lg">مشاهده همه نمونه‌کارها (با فیلتر دسته‌بندی)</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════════ مراحل همکاری ═══════════ -->
-  <section class="section bg-lavender" aria-labelledby="steps-title">
-    <div class="container">
-      <SectionHead tag="مسیر شروع همکاری" title="شش مرحله شفاف، از درخواست تا تحویل" sub="در هر گام می‌دانید کجا هستید، چه چیزی تحویل می‌گیرید و گام بعدی چیست." center />
-      <div class="steps">
-        {STEPS.map((s, i) => (
-          <div class="step" data-reveal="up" data-delay={String((i % 3) * 90)}>
-            <span class="step__line" aria-hidden="true"></span>
-            <h3>{s.t}</h3>
-            <p>{s.d}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════════ مجله ═══════════ -->
-  <section class="section" aria-labelledby="blog-title">
-    <div class="container">
-      <SectionHead tag="مجله کافه‌دانش" title="خواندنی‌های تخصصی دیجیتال" sub="هر هفته یک مطلب کاربردی درباره طراحی وب‌سایت، سئو و تولید محتوای تخصصی — به زبان ساده." />
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px" class="blog-grid">
-        {latestPosts.map((p, i) => (
-          <PostCard post={p} delay={String(i * 90)} />
-        ))}
-      </div>
-      <div style="text-align:center;margin-top:34px" data-reveal="up">
-        <a href="/blog" class="btn btn--outline btn--lg">مشاهده همه مقالات</a>
-      </div>
-    </div>
-  </section>
-
   <!-- ═══════════ FAQ ═══════════ -->
-  <section class="section bg-soft" aria-labelledby="faq-title">
+  <section class="section" aria-labelledby="faq-title">
     <div class="container">
       <SectionHead tag="سؤالات متداول" title="قبل از شروع پروژه بهتر است بدانید" center />
       <div class="faq-wrap">
-        {faq.map((f, i) => (
+        {faq.slice(0, 6).map((f, i) => (
           <div class:list={['faq-item', { 'is-open': i === 0 }]} data-accordion-item data-reveal="up" data-delay={String(i * 60)}>
             <button class="faq-item__btn" type="button" data-accordion-btn aria-expanded={i === 0 ? 'true' : 'false'}>
               {f.q}
@@ -366,15 +364,31 @@ const meta = {
     </div>
   </section>
 
+  <!-- ═══════════ مجله ═══════════ -->
+  <section class="section bg-lavender" aria-labelledby="blog-title">
+    <div class="container">
+      <SectionHead tag="مجله کافه‌دانش" title="خواندنی‌های تخصصی دیجیتال" sub="هر هفته یک مطلب کاربردی درباره طراحی وب‌سایت، توسعه وب، سئو و تولید محتوا — به زبان ساده." />
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px" class="blog-grid">
+        {latestPosts.map((p, i) => (
+          <PostCard post={p} delay={String(i * 90)} />
+        ))}
+      </div>
+      <div style="text-align:center;margin-top:34px" data-reveal="up">
+        <a href="/blog" class="btn btn--outline btn--lg">مشاهده همه مقالات</a>
+      </div>
+    </div>
+  </section>
+
   <CtaBand />
 </BaseLayout>
 
 <style is:global>
-  .svc-grid, .price-grid, .blog-grid, .home-four-row { grid-template-columns: 1fr; }
+  .svc-grid, .price-grid, .blog-grid, .compl-grid, .home-four-row { grid-template-columns: 1fr; }
   @media (min-width: 700px) {
     .svc-grid { grid-template-columns: repeat(2, 1fr); }
     .price-grid { grid-template-columns: repeat(2, 1fr); }
     .blog-grid { grid-template-columns: repeat(2, 1fr); }
+    .compl-grid { grid-template-columns: repeat(2, 1fr); }
     .home-four-row { grid-template-columns: 1fr !important; }
     .home-four-row img, .home-four-row > div { order: initial !important; }
   }
@@ -382,6 +396,7 @@ const meta = {
     .svc-grid { grid-template-columns: repeat(4, 1fr); }
     .price-grid { grid-template-columns: repeat(4, 1fr); }
     .blog-grid { grid-template-columns: repeat(3, 1fr); }
+    .compl-grid { grid-template-columns: repeat(3, 1fr); }
     .home-four-row { grid-template-columns: inherit !important; }
   }
 </style>

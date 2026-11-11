@@ -30,7 +30,7 @@ export function jsonLdOrganization() {
     alternateName: 'Cafe Danesh',
     url: SITE.url,
     logo: `${SITE.url}/img/logo.svg`,
-    description: 'کافه دانش (Cafe Danesh) با تمرکز بر طراحی سایت اختصاصی و تولید محتوای تخصصی فعالیت می‌کند؛ خدمات سئو نیز برای بهبود دیده‌شدن سایت ارائه می‌شود.',
+    description: 'کافه دانش (Cafe Danesh) استودیو تخصصی طراحی و توسعه وب‌سایت است؛ طراحی سایت شرکتی، فروشگاه اینترنتی و وب‌سایت اختصاصی. خدمات سئو و تولید محتوا نیز به‌عنوان خدمات مکمل برای رشد و نگهداشت سایت ارائه می‌شوند.',
     email: SITE.email,
     telephone: SITE.phoneIntl,
     address: {
@@ -44,10 +44,10 @@ export function jsonLdOrganization() {
       { '@type': 'Country', name: 'ایران' },
     ],
     knowsAbout: [
+      'طراحی و توسعه وب‌سایت',
       'طراحی سایت شرکتی و فروشگاهی',
-      'تولید محتوای تخصصی وب‌سایت',
+      'توسعه وب‌اپلیکیشن و سامانه‌های تحت وب',
       'سئوی فنی و محتوایی',
-      'بهینه‌سازی سرعت وب‌سایت',
     ],
   };
 }
