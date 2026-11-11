@@ -1,19 +1,39 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
+import SectionHead from '../components/SectionHead.astro';
 import CtaBand from '../components/CtaBand.astro';
 import { PRICING } from '../lib/content';
 import { jsonLdBreadcrumb } from '../lib/seo';
 
 const meta = {
-  title: 'تعرفه‌ها و پکیج‌های طراحی سایت | کافه دانش',
-  description: 'تعرفه و محدوده خدمات طراحی سایت کافه دانش؛ از سایت معرفی و شرکتی تا فروشگاه اینترنتی و سامانه اختصاصی.',
+  title: 'تعرفه طراحی سایت | پکیج‌ها و قیمت‌ها — کافه دانش',
+  description: 'تعرفه شفاف پکیج‌های طراحی سایت کافه دانش؛ استارتر، حرفه‌ای، فروشگاهی و اختصاصی — از سایت معرفی و شرکتی تا فروشگاه اینترنتی و وب‌اپلیکیشن.',
   path: '/pricing',
 };
+
+// خدمات مکمل و پس از راه‌اندازی — برآورد پس از نیازسنجی (بدون قیمت ثابت)
+const complementary = [
+  {
+    t: 'خدمات سئو سایت',
+    d: 'بررسی و اصلاح ساختار فنی، سرعت و محتوای سایت برای دیده‌شدن پایدار در جست‌وجو؛ با گزارش شفاف کار انجام‌شده.',
+    href: '/services/seo', cta: 'مشاهده خدمات سئو',
+  },
+  {
+    t: 'تولید محتوای سایت',
+    d: 'مقالات تخصصی و تقویم انتشار منظم برای جذب مخاطب و پشتیبانی از استراتژی سئو.',
+    href: '/services/content', cta: 'مشاهده خدمات تولید محتوا',
+  },
+  {
+    t: 'مدیریت و پشتیبانی سایت',
+    d: 'نگهداری فنی، به‌روزرسانی، مدیریت محتوا و رفع مشکلات پس از انتشار؛ با پاسخ‌گویی مشخص.',
+    href: '/services/support', cta: 'مشاهده خدمات پشتیبانی',
+  },
+];
 ---
 <BaseLayout meta={meta} current="/pricing" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'تعرفه‌ها', url: '/pricing' }])]}>
   <PageHero
-    title="تعرفه‌ها و پکیج‌های خدمات"
+    title="تعرفه‌ها و پکیج‌های طراحی سایت"
     sub="قیمت پایه و محدودهٔ هر پکیج روشن است؛ امکانات، تعداد صفحات، زمان تحویل و مدت پشتیبانی پیش از شروع مشخص می‌شوند."
     crumbs={[{ label: 'خانه', href: '/' }, { label: 'تعرفه‌ها' }]}
   />
@@ -47,9 +67,28 @@ const meta = {
     </div>
   </section>
 
+  <!-- خدمات مکمل و پس از راه‌اندازی -->
+  <section class="section bg-soft">
+    <div class="container">
+      <SectionHead tag="خدمات مکمل و پشتیبانی" title="بعد از ساخت سایت: سئو، تولید محتوا و پشتیبانی" sub="تخصص اصلی ما طراحی و توسعه وب‌سایت است؛ این خدمات مکمل، رشد و سلامت بلندمدت سایت را پوشش می‌دهند. برآورد دقیق هر یک پس از نیازسنجی رایگان ارائه می‌شود." center />
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px" class="compl-price-grid">
+        {complementary.map((c, i) => (
+          <article class="card" style="padding:clamp(22px,3vw,30px);display:flex;flex-direction:column;gap:10px" data-reveal="up" data-delay={String(i * 90)}>
+            <h3 style="font-size:1.15rem;margin:0">{c.t}</h3>
+            <p style="color:var(--mut);font-size:.92rem;margin:0;flex:1">{c.d}</p>
+            <p style="margin:0"><b style="color:var(--navy)">برآورد پس از نیازسنجی رایگان</b></p>
+            <a href={c.href} class="btn btn--outline" style="justify-content:center">{c.cta}</a>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
   <CtaBand title="مطمئن نیستید کدام پکیج مناسب شماست؟" sub="در جلسه مشاوره رایگان، نیازتان را بررسی می‌کنیم و پکیج درست را پیشنهاد می‌دهیم — حتی اگر هیچ‌کدام دقیقاً مناسب نباشد، برآورد شفاف می‌دهیم." />
 </BaseLayout>
 
 <style is:global>
+  .compl-price-grid { grid-template-columns: 1fr; }
+  @media (min-width: 760px) { .compl-price-grid { grid-template-columns: repeat(3, 1fr); } }
   @media (max-width: 860px) { .price-grid { grid-template-columns: 1fr !important; } }
 </style>
