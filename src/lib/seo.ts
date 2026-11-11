@@ -80,6 +80,7 @@ export function jsonLdBreadcrumb(items: Array<{ name: string; url: string }>) {
 export function jsonLdArticle(p: {
   title: string; description: string; path: string; image: string;
   datePublished: string; dateFa: string; readMinutes: number; category: string;
+  wordCount?: number; keywords?: string[];
 }) {
   return {
     '@context': 'https://schema.org',
@@ -88,9 +89,12 @@ export function jsonLdArticle(p: {
     description: p.description,
     image: p.image.startsWith('http') ? p.image : SITE.url + p.image,
     datePublished: p.datePublished || undefined,
+    dateModified: p.datePublished || undefined,
     inLanguage: 'fa-IR',
     articleSection: p.category,
     timeRequired: `PT${p.readMinutes}M`,
+    ...(p.wordCount ? { wordCount: p.wordCount } : {}),
+    ...(p.keywords?.length ? { keywords: p.keywords.join('، ') } : {}),
     author: { '@type': 'Organization', name: 'کافه دانش', url: SITE.url },
     publisher: { '@id': `${SITE.url}/#organization` },
     mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE.url}${p.path}` },

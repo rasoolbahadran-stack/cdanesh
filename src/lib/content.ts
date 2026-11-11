@@ -70,12 +70,19 @@ async function getLegacyPortfolio(): Promise<PortfolioItem[]> {
   if (!rows || !rows.length) return localItems;
 
   const merged = new Map(localItems.map((item) => [item.slug, item]));
+  // برخی ردیف‌های قدیمی دیتابیس بدون پسوند «-astro» ذخیره شده‌اند (bazarino در برابر bazarino-astro)؛
+  // بدون این تطبیق، همان پروژه دو بار با دو تصویر متفاوت نمایش داده می‌شود.
+  const findLocal = (slug: string) =>
+    localPortfolio.find((item) => item.slug === slug) ??
+    localPortfolio.find((item) => item.slug === `${slug}-astro`);
   rows.forEach((row) => {
     const remote = row as unknown as PortfolioItem;
-    const local = localPortfolio.find((item) => item.slug === remote.slug);
+    const local = findLocal(remote.slug);
+    if (!local && merged.has(remote.slug)) return;
     const liveUrl = remote.liveUrl?.trim() || local?.liveUrl || '';
 
-    merged.set(remote.slug, local ? {
+    // وقتی ردیف دیتابیس به آیتم محلی می‌چسبد، با کلید اسلاگ محلی جایگزین می‌شود تا پروژه تکراری ساخته نشود
+    merged.set(local ? local.slug : remote.slug, local ? {
       ...remote,
       title: local.title,
       excerpt: local.excerpt,
@@ -126,6 +133,40 @@ export function getPage(key: string): PageDoc | undefined {
   return localPages[key];
 }
 
+// ── محتوای مقاله: شمارش واژه، زمان مطالعه صادقانه و لنگر تیترها ──
+const stripTags = (s: unknown) => String(s || '').replace(/<[^>]+>/g, ' ');
+const countWords = (s: unknown) => stripTags(s).split(/\s+/).filter(Boolean).length;
+
+export function postWordCount(p: Post): number {
+  return (p.blocks || []).reduce((sum, b) => {
+    const blk = b as unknown as { t?: string; x?: string; items?: string[] };
+    if (blk.t === 'ul' || blk.t === 'ol') {
+      return sum + (blk.items || []).reduce((s2, it) => s2 + countWords(it), 0);
+    }
+    return sum + countWords(blk.x);
+  }, 0);
+}
+
+export function postReadMinutes(p: Post): number {
+  return Math.max(3, Math.round(postWordCount(p) / 190));
+}
+
+/** برای بلوک‌های HTML یکپارچه (مقالات قدیمی دیتابیس) به تیترها id لنگر می‌دهد و فهرست آن‌ها را برمی‌گرداند. */
+export function injectHtmlHeadingIds(
+  html: string,
+  blockIndex: number,
+): { html: string; headings: Array<{ text: string; level: string; id: string }> } {
+  const headings: Array<{ text: string; level: string; id: string }> = [];
+  let k = 0;
+  const out = String(html || '').replace(/<h([234])>([\s\S]*?)<\/h\1>/g, (_m, lvl: string, inner: string) => {
+    k += 1;
+    const id = `content-heading-${blockIndex + 1}-${k}`;
+    headings.push({ text: String(inner).replace(/<[^>]+>/g, '').trim(), level: `h${lvl}`, id });
+    return `<h${lvl} id="${id}">${inner}</h${lvl}>`;
+  });
+  return { html: out, headings };
+}
+
 export function blocksToPlain(blocks: Block[], limit = 2): string {
   return blocks
     .filter((b) => b.t === 'p')
@@ -159,29 +200,30 @@ export const NAV = [
   { href: '/contact', label: 'تماس' },
 ];
 
+// توضیح هر آیتم مگا منو حداکثر یک خط کوتاه — مگا منو باید اسکن‌پذیر باشد
 export const MEGA_GROUPS = [
   {
     title: 'طراحی و توسعه وب‌سایت',
     items: [
-      { href: '/services/company-website', t: 'طراحی سایت شرکتی', d: 'وب‌سایتی اختصاصی برای معرفی برند و خدمات شما' },
-      { href: '/services/ecommerce', t: 'طراحی فروشگاه اینترنتی', d: 'فروش آنلاین با تجربه خرید روان و پنل مدیریت' },
-      { href: '/services/custom-web', t: 'طراحی وب‌سایت اختصاصی', d: 'وب‌اپلیکیشن و سامانه‌های تحت وب با معماری قابل توسعه' },
-      { href: '/services/ui-ux', t: 'طراحی رابط و تجربه کاربری', d: 'ساختار و مسیر کاربری ساده و هدفمند' },
+      { href: '/services/company-website', t: 'طراحی سایت شرکتی', d: 'معرفی برند و خدمات' },
+      { href: '/services/ecommerce', t: 'طراحی فروشگاه اینترنتی', d: 'فروش آنلاین محصولات' },
+      { href: '/services/custom-web', t: 'طراحی وب‌سایت اختصاصی', d: 'وب‌اپلیکیشن اختصاصی' },
+      { href: '/services/ui-ux', t: 'طراحی رابط و تجربه کاربری', d: 'مسیر کاربری هدفمند' },
     ],
   },
   {
     title: 'خدمات مکمل',
     items: [
-      { href: '/services/seo', t: 'سئو تکنیکال و محتوایی', d: 'بهبود ساختار فنی و دیده‌شدن در جست‌وجو' },
-      { href: '/services/content', t: 'تولید محتوا و مقالات تخصصی', d: 'محتوای هدفمند برای جذب مخاطب و پشتیبانی از سئو' },
-      { href: '/services/content-strategy', t: 'استراتژی و تقویم محتوایی', d: 'برنامه‌ریزی موضوع و انتشار منظم محتوا' },
+      { href: '/services/seo', t: 'سئو تکنیکال و محتوایی', d: 'دیده‌شدن در گوگل' },
+      { href: '/services/content', t: 'تولید محتوا و مقالات تخصصی', d: 'جذب مخاطب با محتوا' },
+      { href: '/services/content-strategy', t: 'استراتژی و تقویم محتوایی', d: 'تقویم انتشار محتوا' },
     ],
   },
   {
     title: 'پس از راه‌اندازی',
     items: [
-      { href: '/services/support', t: 'مدیریت و پشتیبانی سایت', d: 'نگهداری، به‌روزرسانی و رفع خطاها پس از انتشار' },
-      { href: '/services/speed-optimization', t: 'بهینه‌سازی سرعت سایت', d: 'بهبود سرعت و شاخص‌های تجربه کاربری' },
+      { href: '/services/support', t: 'مدیریت و پشتیبانی سایت', d: 'نگهداری پس از انتشار' },
+      { href: '/services/speed-optimization', t: 'بهینه‌سازی سرعت سایت', d: 'بهبود سرعت و عملکرد' },
     ],
   },
 ];
@@ -215,8 +257,8 @@ export const MARQUEE_ITEMS = [
 ];
 
 export const STEPS = [
-  { t: 'ثبت درخواست و نیازسنجی', d: 'فرم را پر می‌کنید یا تماس می‌گیرید؛ در جلسه اول کسب‌وکارتان را می‌شنویم.' },
-  { t: 'تحلیل و تعیین محدوده', d: 'دامنه کار، امکانات، زمان‌بندی و برآورد شفاف — پیش از هر تعهدی.' },
+  { t: 'ثبت درخواست و نیازسنجی', d: 'در جلسه اول، کسب‌وکار و هدف شما را می‌شنویم.' },
+  { t: 'تحلیل و تعیین محدوده', d: 'دامنه کار، زمان‌بندی و برآورد شفاف — پیش از هر تعهدی.' },
   { t: 'طراحی ساختار و رابط کاربری', d: 'معماری اطلاعات و طراحی UI/UX؛ با بازبینی و تأیید شما.' },
   { t: 'توسعه و پیاده‌سازی', d: 'کدنویسی استاندارد، پیاده‌سازی محتوا و اتصال قابلیت‌ها.' },
   { t: 'بررسی کیفیت، عملکرد و سئو', d: 'تست سرعت، ریسپانسیو و دسترس‌پذیری؛ بررسی ساختار سئو.' },
@@ -234,12 +276,13 @@ export const CAPS = [
   { t: 'پشتیبانی و نگهداری سایت', d: 'به‌روزرسانی، پشتیبان‌گیری و رسیدگی فنی پس از انتشار سایت.' },
 ];
 
+// هر مزیت با توضیح تک‌خطی — صفحه اصلی باید اسکن‌پذیر باشد
 export const PROS = [
-  { t: 'طراحی متناسب با نیاز کسب‌وکار شما', d: 'قبل از هر خط کد، کسب‌وکار، مخاطب و هدف شما تحلیل می‌شود؛ نتیجه سایتی است که برای «شما» ساخته شده، نه برای همه.' },
-  { t: 'تجربه کاربری و نمایش درست در موبایل', d: 'بیشتر بازدیدها از گوشی است؛ هر صفحه برای موبایل، تبلت و دسکتاپ جداگانه تست می‌شود، نه فقط «کوچک‌شده» است.' },
-  { t: 'زیرساخت فنی و سئوی اصولی از روز اول', d: 'سرعت، ساختار استاندارد و آماده‌بودن برای موتور جست‌وجو جزو تحویل اولیه است؛ بعداً هزینه اضافه برای «اصلاح زیرساخت» نمی‌پردازید.' },
-  { t: 'قابلیت توسعه و مدیریت محتوا', d: 'پنل مدیریتی کامل با آموزش؛ محتوای جدید خودتان منتشر کنید و قابلیت‌های جدید بدون بازسازی اضافه شوند.' },
-  { t: 'پشتیبانی و توسعه پس از تحویل', d: 'پس از انتشار نیز برای نگهداری، به‌روزرسانی و توسعه قابلیت‌های موردنیاز همراه شما می‌مانیم.' },
+  { t: 'طراحی متناسب با نیاز کسب‌وکار شما', d: 'قبل از هر خط کد، کسب‌وکار، مخاطب و هدف شما تحلیل می‌شود.' },
+  { t: 'تجربه کاربری و نمایش درست در موبایل', d: 'هر صفحه برای موبایل، تبلت و دسکتاپ جداگانه تست می‌شود.' },
+  { t: 'زیرساخت فنی و سئوی اصولی از روز اول', d: 'سرعت و ساختار استاندارد جزو تحویل اولیه است، نه هزینه بعدی.' },
+  { t: 'قابلیت توسعه و مدیریت محتوا', d: 'پنل مدیریتی کامل با آموزش؛ محتوای جدید را خودتان منتشر کنید.' },
+  { t: 'پشتیبانی و توسعه پس از تحویل', d: 'پس از انتشار، برای نگهداری و توسعه قابلیت‌ها همراه شما هستیم.' },
 ];
 
 export const PRICING = [

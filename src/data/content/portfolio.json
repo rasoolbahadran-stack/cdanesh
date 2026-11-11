@@ -10,7 +10,7 @@
   ],
   "cover": "/img/pf/bazarino-astro.webp",
   "preview": "/img/pf/bazarino-astro.webp",
-  "liveUrl": "https://bazarino-astro-lva12s6uw-rasoolbahadran-stacks-projects.vercel.app",
+  "liveUrl": "https://bazarino.cdanesh.ir",
   "status": "published",
   "sort": 1
  },
@@ -25,7 +25,7 @@
   ],
   "cover": "/img/pf/maison-mehr-astro.webp",
   "preview": "/img/pf/maison-mehr-astro.webp",
-  "liveUrl": "https://maison-mehr-astro-qh6eqe6i7-rasoolbahadran-stacks-projects.vercel.app",
+  "liveUrl": "https://maisonmehr.cdanesh.ir",
   "status": "published",
   "sort": 2
  },
@@ -40,7 +40,7 @@
   ],
   "cover": "/img/pf/shoes-store.webp",
   "preview": "/img/pf/shoes-store.webp",
-  "liveUrl": "https://shoes-store-l1jonvses-rasoolbahadran-stacks-projects.vercel.app",
+  "liveUrl": "https://shoes.cdanesh.ir",
   "status": "published",
   "sort": 3
  },
@@ -55,7 +55,7 @@
   ],
   "cover": "/img/pf/smart-gadget-store.webp",
   "preview": "/img/pf/smart-gadget-store.webp",
-  "liveUrl": "https://smart-gadget-store-7sumgyr27-rasoolbahadran-stacks-projects.vercel.app",
+  "liveUrl": "https://gadget.cdanesh.ir",
   "status": "published",
   "sort": 4
  },
@@ -70,7 +70,7 @@
   ],
   "cover": "/img/pf/mahpoosh-store.webp",
   "preview": "/img/pf/mahpoosh-store.webp",
-  "liveUrl": "https://mahpoosh-store-l7m677k0r-rasoolbahadran-stacks-projects.vercel.app",
+  "liveUrl": "https://mahpoosh.cdanesh.ir",
   "status": "published",
   "sort": 5
  },
@@ -85,7 +85,7 @@
   ],
   "cover": "/img/pf/simba-beauty-store.webp",
   "preview": "/img/pf/simba-beauty-store.webp",
-  "liveUrl": "https://simba-beauty-store-nsivjbi3o-rasoolbahadran-stacks-projects.vercel.app",
+  "liveUrl": "https://simbeauty.cdanesh.ir",
   "status": "published",
   "sort": 6
  },
@@ -100,7 +100,7 @@
   ],
   "cover": "/img/pf/smarto-astro.webp",
   "preview": "/img/pf/smarto-astro.webp",
-  "liveUrl": "https://smarto-astro-qwg6y7jgh-rasoolbahadran-stacks-projects.vercel.app",
+  "liveUrl": "https://smarto.cdanesh.ir",
   "status": "published",
   "sort": 7
  },
@@ -115,7 +115,7 @@
   ],
   "cover": "/img/pf/karino-job-portal-astro.webp",
   "preview": "/img/pf/karino-job-portal-astro.webp",
-  "liveUrl": "https://karino-job-portal-astro-rjzgu9cmo.vercel.app",
+  "liveUrl": "https://karino.cdanesh.ir",
   "status": "published",
   "sort": 8
  },
@@ -130,7 +130,7 @@
   ],
   "cover": "/img/pf/novinroshd-agency.webp",
   "preview": "/img/pf/novinroshd-agency.webp",
-  "liveUrl": "https://novinroshd-agency-l8g2njc35-rasoolbahadran-stacks-projects.vercel.app",
+  "liveUrl": "https://novinroshd.cdanesh.ir",
   "status": "published",
   "sort": 9
  },
@@ -145,7 +145,7 @@
   ],
   "cover": "/img/pf/cdanesh-galaxy-source.webp",
   "preview": "/img/pf/cdanesh-galaxy-source.webp",
-  "liveUrl": "https://cdanesh-galaxy-source-5z1xo3ipb-rasoolbahadran-stacks-projects.vercel.app",
+  "liveUrl": "https://galaxy.cdanesh.ir",
   "status": "published",
   "sort": 10
  },
@@ -193,5 +193,86 @@
   "liveUrl": "",
   "status": "conceptual",
   "sort": 14
+ },
+ {
+  "slug": "delicia-astro-showcase",
+  "title": "نوشانه — فروشگاه تغذیه سالم",
+  "excerpt": "فروشگاه آنلاین تغذیه سالم با ساختار محصول‌محور و تجربه خرید ساده و سریع.",
+  "description": "فروشگاه آنلاین نوشانه برای فروش محصولات تغذیه سالم ساخته شده است؛ ساختار دسته‌بندی دقیق، صفحه محصول استاندارد و تجربه خرید روان روی موبایل و دسکتاپ.",
+  "category": "فروشگاه اینترنتی",
+  "tags": [
+   "فروشگاه اینترنتی",
+   "Astro"
+  ],
+  "cover": "/img/pf/delicia-astro-showcase.webp",
+  "preview": "/img/pf/delicia-astro-showcase.webp",
+  "liveUrl": "https://delicia.cdanesh.ir",
+  "status": "published",
+  "sort": 11
+ },
+ {
+  "slug": "nexora-astro-showcase",
+  "title": "نکسورا — پلتفرم مدیریت کسب‌وکار",
+  "excerpt": "پلتفرم مدیریت هوشمند کسب‌وکار با رابط کاربری تمیز و ساختار داده‌محور.",
+  "description": "نکسورا پلتفرمی برای مدیریت هوشمند کسب‌وکار است؛ وب‌اپلیکیشنی با معماری قابل توسعه، پنل مدیریت و تمرکز بر سرعت و تجربه کاربری.",
+  "category": "وب‌سایت اختصاصی",
+  "tags": [
+   "وب‌اپلیکیشن",
+   "Astro"
+  ],
+  "cover": "/img/pf/nexora-astro-showcase.webp",
+  "preview": "/img/pf/nexora-astro-showcase.webp",
+  "liveUrl": "https://nexora.cdanesh.ir",
+  "status": "published",
+  "sort": 12
+ },
+ {
+  "slug": "elora-dental-astro",
+  "title": "کلینیک دندان‌پزشکی الورا",
+  "excerpt": "وب‌سایت معرفی کلینیک دندان‌پزشکی با تمرکز بر اعتمادسازی و تجربه کاربری آرام.",
+  "description": "وب‌سایت کلینیک دندان‌پزشکی الورا برای معرفی خدمات و ایجاد اعتماد مخاطب طراحی شده است؛ چیدمان آرام، فرم تماس ساده و نمایش درست در موبایل.",
+  "category": "سایت شرکتی",
+  "tags": [
+   "سایت شرکتی",
+   "Astro",
+   "UI/UX"
+  ],
+  "cover": "/img/pf/elora-dental-astro.webp",
+  "preview": "/img/pf/elora-dental-astro.webp",
+  "liveUrl": "https://elora.cdanesh.ir",
+  "status": "published",
+  "sort": 13
+ },
+ {
+  "slug": "nexa-web-studio-demo",
+  "title": "نکسا — استودیو طراحی وب",
+  "excerpt": "وب‌سایت معرفی استودیو طراحی وب با چیدمان مدرن و بخش نمونه‌کار.",
+  "description": "نکسا وب‌سایت معرفی یک استودیو طراحی وب است؛ ساختار سرمقاله‌ای، نمایش نمونه‌کارها و لحن برند منسجم در همه صفحات.",
+  "category": "سایت شرکتی",
+  "tags": [
+   "سایت شرکتی",
+   "Astro"
+  ],
+  "cover": "/img/pf/nexa-web-studio-demo.webp",
+  "preview": "/img/pf/nexa-web-studio-demo.webp",
+  "liveUrl": "https://nexa.cdanesh.ir",
+  "status": "published",
+  "sort": 14
+ },
+ {
+  "slug": "simba-colorful-astro-source",
+  "title": "رنگ‌نما — استودیو خلاق",
+  "excerpt": "وب‌سایت استودیو خلاق با هویت بصری رنگی و چیدمان سرمقاله‌ای.",
+  "description": "رنگ‌نما وب‌سایت یک استودیو خلاق طراحی و توسعه وب است؛ هویت بصری رنگی، تایپوگرافی مشخص و چیدمان مدرن محتوا.",
+  "category": "سایت شرکتی",
+  "tags": [
+   "طراحی اختصاصی",
+   "Astro"
+  ],
+  "cover": "/img/pf/simba-colorful-astro-source.webp",
+  "preview": "/img/pf/simba-colorful-astro-source.webp",
+  "liveUrl": "https://simba.cdanesh.ir",
+  "status": "published",
+  "sort": 15
  }
 ]

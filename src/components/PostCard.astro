@@ -1,5 +1,6 @@
 ---
 import type { Post } from '../lib/types';
+import { postReadMinutes } from '../lib/content';
 
 interface Props { post: Post; delay?: number }
 const { post, delay = 0 } = Astro.props;
@@ -20,7 +21,7 @@ const href = `/blog/${post.slug}`;
       </span>
       <span>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 3" /></svg>
-        {new Intl.NumberFormat('fa-IR').format(post.readMinutes)} دقیقه مطالعه
+        {new Intl.NumberFormat('fa-IR').format(postReadMinutes(post))} دقیقه مطالعه
       </span>
     </div>
   </div>
