@@ -14,6 +14,7 @@ export interface Post {
 export interface Service {
   slug: string;
   title: string;
+  seoTitle?: string;
   group: string;
   cover: string;
   excerpt: string;
