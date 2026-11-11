@@ -7,10 +7,10 @@ const { blocks, proseClass = 'prose' } = Astro.props;
 const fa = (s: string | number) => new Intl.NumberFormat('fa-IR').format(Number(String(s).replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))));
 ---
 <div class={proseClass}>
-  {blocks.map((b) => {
-    if (b.t === 'h2') return <h2>{b.x}</h2>;
-    if (b.t === 'h3') return <h3>{b.x}</h3>;
-    if (b.t === 'h4') return <h4>{b.x}</h4>;
+  {blocks.map((b, i) => {
+    if (b.t === 'h2') return <h2 id={`content-heading-${i + 1}`}>{b.x}</h2>;
+    if (b.t === 'h3') return <h3 id={`content-heading-${i + 1}`}>{b.x}</h3>;
+    if (b.t === 'h4') return <h4 id={`content-heading-${i + 1}`}>{b.x}</h4>;
     if (b.t === 'p') return <p set:html={b.x} />;
     if (b.t === 'html') return <div set:html={b.x} />;
     if (b.t === 'blockquote') return <blockquote set:html={b.x} />;

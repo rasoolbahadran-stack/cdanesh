@@ -15,6 +15,7 @@ const post = await getPost(slug) as Post | undefined;
 if (!post) return Astro.redirect('/404');
 
 const related = getRelatedPosts(slug, 3);
+const toc = post.blocks.flatMap((block, index) => block.t === 'h2' || block.t === 'h3' ? [{ text: block.x, level: block.t, index }] : []);
 const fa = (n: number | string) => new Intl.NumberFormat('fa-IR').format(Number(n));
 
 const meta = {
@@ -70,11 +71,21 @@ const meta = {
           <img src={post.cover} alt={`تصویر شاخص مقاله: ${post.title}`} width="800" height="450" decoding="async" style="width:100%;display:block;aspect-ratio:16/9;object-fit:cover" fetchpriority="high" />
         </figure>
       )}
+      {toc.length > 2 && (
+        <nav class="article-toc" aria-label="فهرست مطالب">
+          <strong>در این مقاله می‌خوانید</strong>
+          <ul>{toc.map((item) => <li class:list={[item.level === 'h3' ? 'is-sub' : '']}><a href={`#content-heading-${item.index + 1}`}>{item.text}</a></li>)}</ul>
+        </nav>
+      )}
       <Blocks blocks={post.blocks} />
 
-      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;margin-top:44px;padding-top:22px;border-top:1px solid var(--line)">
-        <span style="font-weight:700;color:var(--navy)">نوشتهٔ تیم {`کافه دانش`}</span>
-        <a href="/consult" class="btn btn--sm">مشاوره رایگان برای پروژه شما</a>
+      <div class="article-actions">
+        <span style="font-weight:700;color:var(--navy)">نوشتهٔ تیم کافه دانش</span>
+        <div>
+          <button type="button" class="btn btn--outline btn--sm" id="article-share">اشتراک‌گذاری مقاله</button>
+          <a href="/consult" class="btn btn--sm">مشاوره رایگان برای پروژه شما</a>
+        </div>
+        <p id="article-share-status" aria-live="polite"></p>
       </div>
     </div>
   </section>
@@ -93,3 +104,36 @@ const meta = {
 
   <CtaBand />
 </BaseLayout>
+
+<script>
+  const shareButton = document.getElementById('article-share') as HTMLButtonElement | null;
+  const shareStatus = document.getElementById('article-share-status');
+  shareButton?.addEventListener('click', async () => {
+    const shareData = { title: document.title, text: document.querySelector('meta[name="description"]')?.getAttribute('content') || document.title, url: window.location.href };
+    try {
+      if (navigator.share) await navigator.share(shareData);
+      else {
+        await navigator.clipboard.writeText(shareData.url);
+        if (shareStatus) shareStatus.textContent = 'پیوند مقاله کپی شد.';
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return;
+      if (shareStatus) shareStatus.textContent = 'اشتراک‌گذاری انجام نشد؛ نشانی صفحه را از نوار مرورگر کپی کنید.';
+    }
+  });
+</script>
+<style>
+  .article-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;margin-top:44px;padding-top:22px;border-top:1px solid var(--line)}
+  .article-actions>div{display:flex;flex-wrap:wrap;gap:10px}
+  .article-actions p{width:100%;margin:0;color:var(--mut);font-size:.84rem}
+</style>
+
+<style>
+  .article-toc{max-width:900px;margin:0 auto 28px;padding:20px 24px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--bg-soft,#faf9fd)}
+  .article-toc strong{display:block;color:var(--navy);margin-bottom:10px}
+  .article-toc ul{margin:0;padding-right:20px;display:grid;gap:8px;line-height:1.9}
+  .article-toc li{color:var(--purple)}
+  .article-toc li.is-sub{padding-right:16px;font-size:.92rem}
+  .article-toc a{color:var(--navy);text-decoration:none}
+  .article-toc a:hover{color:var(--purple)}
+</style>
