@@ -82,13 +82,12 @@ const hasSeo = config.fields.some((f) => SEO_KEYS.includes(f.key));
   </div>
 </div>
 
-<div class="modal-scrim" id="ent-modal">
-  <div class="modal" style="width:min(940px,100%)">
-    <div class="modal-head">
-      <h3 id="ent-modal-title">ویرایش</h3>
-      <button class="btn btn-ghost btn-sm" data-close type="button">بستن ✕</button>
-    </div>
-    <div class="modal-body">
+<section class="panel entity-editor-panel" id="ent-modal" hidden>
+  <div class="panel-head">
+    <h2 id="ent-modal-title">ایجاد یا ویرایش برگه</h2>
+    <button class="btn btn-ghost btn-sm" data-close type="button">بستن ✕</button>
+  </div>
+  <div class="panel-body">
       <form id="ent-form">
         <div class="form-grid" id="ent-fields"></div>
         {hasSeo && (
@@ -107,9 +106,8 @@ const hasSeo = config.fields.some((f) => SEO_KEYS.includes(f.key));
           <span id="ent-save-status" style="font-size:12px;color:var(--a-muted)"></span>
         </div>
       </form>
-    </div>
   </div>
-</div>
+</section>
 
 <script define:vars={{ fullConfig, SEO_KEYS }}>
   document.addEventListener('DOMContentLoaded', () => {
@@ -527,7 +525,7 @@ const hasSeo = config.fields.some((f) => SEO_KEYS.includes(f.key));
       buildForm(null);
       msgBox.style.display = 'none';
       saveStatus.textContent = '';
-      modal.classList.add('open');
+      modal.hidden = false; modal.scrollIntoView({behavior:'smooth',block:'start'});
     });
     function openEditor(item) {
       editingId = item.id;
@@ -536,10 +534,10 @@ const hasSeo = config.fields.some((f) => SEO_KEYS.includes(f.key));
       msgBox.style.display = 'none';
       saveStatus.textContent = '';
       dirty = false;
-      modal.classList.add('open');
+      modal.hidden = false; modal.scrollIntoView({behavior:'smooth',block:'start'});
     }
-    modal.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => modal.classList.remove('open')));
-    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
+    modal.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => modal.hidden = true));
+    
     form.addEventListener('submit', async (e) => { e.preventDefault(); await doSave(false); });
 
     let searchTimer = null;
