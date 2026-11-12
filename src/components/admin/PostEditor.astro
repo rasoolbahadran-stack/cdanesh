@@ -87,7 +87,7 @@ const status = value('status', 'draft');
             <h2 style="font-size:15px;margin:0 0 12px">تصویر شاخص</h2>
             <input type="hidden" name="cover_image" id="cover-image" value={value('cover_image', value('cover'))} />
             <img id="cover-preview" src={value('cover_image', value('cover'))} alt="" style={'width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;background:#f3f3f8;display:' + (value('cover_image', value('cover')) ? 'block' : 'none')} />
-            <div style="display:grid;gap:8px;margin-top:10px"><button type="button" class="btn btn-ghost" id="cover-pick">انتخاب از کتابخانه رسانه</button><button type="button" class="btn btn-ghost" id="cover-clear">حذف تصویر شاخص</button></div>
+            <div style="display:grid;gap:8px;margin-top:10px"><button type="button" class="btn btn-ghost" id="cover-pick">＋ انتخاب تصویر شاخص از رسانه‌ها</button><button type="button" class="btn btn-ghost" id="cover-clear">حذف تصویر شاخص</button></div>
           </section>
           <section class="post-panel">
             <h2 style="font-size:15px;margin:0 0 12px">وضعیت مقاله</h2>
