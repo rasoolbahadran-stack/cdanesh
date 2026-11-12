@@ -80,31 +80,7 @@ const entityLabel: Record<string, string> = { posts: 'مقاله', pages: 'صف�
     @media(max-width:900px){.dash-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-grid{grid-template-columns:1fr}}
     @media(max-width:520px){.dash-wrap{padding:16px}.dash-stats{gap:9px}.dash-stat{padding:13px}.dash-stat b{font-size:22px}.donut{width:160px;height:160px}.dash-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
   </style>
-  <div class="admin-body">
-    <div class="admin-shell">
-      <aside class="admin-side">
-        <div style="display:flex;align-items:center;gap:10px">
-          <img src="/img/logo.svg" alt="" width="38" height="38" style="border-radius:10px" />
-          <div><b style="color:#fff;display:block">کافه دانش</b><small style="opacity:.7">پنل مدیریت</small></div>
-        </div>
-        <nav class="admin-side__nav" aria-label="منوی مدیریت">
-          <a href="/admin" class="is-active">🏠 داشبورد</a>
-          <a href="/admin/posts">📝 مقاله‌ها</a>
-          <a href="/admin/pages">📄 صفحات</a>
-          <a href="/admin/categories">🗂 دسته‌بندی‌ها</a>
-          <a href="/admin/media">🖼 رسانه‌ها</a>
-          <a href="/admin/portfolio">🎨 نمونه‌کارها</a>
-          <a href="/admin/messages">💬 درخواست‌ها و پیام‌ها</a>
-          <a href="/admin/assistant">✨ دستیار هوشمند</a>
-          <a href="/admin/errors">🛠 گزارش خطاها</a>
-          <a href="/admin/settings">⚙️ تنظیمات</a>
-          <a href="/" target="_blank" rel="noopener">🌍 مشاهده سایت</a>
-        </nav>
-        <form id="logout-form" style="margin-top:26px">
-          <button type="submit" class="btn btn--sm btn--outline" style="width:100%;justify-content:center">خروج</button>
-        </form>
-      </aside>
-      <main class="admin-main">
+  
         <div class="dash-wrap">
           <header class="dash-head">
             <div><h1>سلام بهادران، خوش اومدی! 👋</h1><p>امروز چه محتوای تازه‌ای به کافه دانش اضافه می‌کنیم؟</p></div>
@@ -156,9 +132,7 @@ const entityLabel: Record<string, string> = { posts: 'مقاله', pages: 'صف�
             {activity.length ? <div class="activity-list">{activity.map((item) => <div class="activity-row"><div class="activity-icon">📝</div><div><b>{String(item.title || (typeLabel[String(item.type)] || 'فعالیت') + ' ' + (entityLabel[String(item.entity)] || 'محتوا'))}</b><small>{new Intl.DateTimeFormat('fa-IR-u-ca-persian', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(String(item.created_at)))}</small></div></div>)}</div> : <p style="margin:0;color:#85899b;font-size:13px">هنوز فعالیتی ثبت نشده است.</p>}
           </section>
         </div>
-      </main>
-    </div>
-  </div>
+      
   <script>
     document.getElementById('logout-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
