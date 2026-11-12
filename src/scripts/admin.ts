@@ -205,9 +205,29 @@ export function initEditor(containerId: string, initialHtml = ''): { getHtml: ()
           document.execCommand('insertHTML', false, `<a href="${url}">${txt || 'متن لینک'}</a>`);
         }
       } else if (t.action === 'image') {
+        area.focus();
+        const currentSelection = window.getSelection();
+        const savedRange = currentSelection && currentSelection.rangeCount
+          ? currentSelection.getRangeAt(0).cloneRange()
+          : null;
         openMediaPicker((url) => {
           const alt = window.prompt('متن جایگزین تصویر (Alt):', '') || 'تصویر';
-          document.execCommand('insertHTML', false, `<img src="${url}" alt="${alt}" loading="lazy" />`);
+          const safeUrl = url.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+          const safeAlt = alt.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+          const html = `<img src="${safeUrl}" alt="${safeAlt}" loading="lazy" />`;
+          if (sourceMode) {
+            const start = source.selectionStart;
+            source.setRangeText(html, start, source.selectionEnd, 'end');
+            markDirty();
+            return;
+          }
+          area.focus();
+          if (savedRange) {
+            const selection = window.getSelection();
+            selection?.removeAllRanges();
+            selection?.addRange(savedRange);
+          }
+          document.execCommand('insertHTML', false, html);
           markDirty();
         });
         return;
