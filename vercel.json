@@ -243,35 +243,5 @@
       "destination": "/portfolio-daneshvar",
       "permanent": true
     }
-  ],
-  "services": {
-    "astro": {
-      "root": "."
-    },
-    "php_admin": {
-      "root": "admin-php/",
-      "entrypoint": "Dockerfile",
-      "runtime": "container"
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/admin",
-      "destination": {
-        "service": "php_admin"
-      }
-    },
-    {
-      "source": "/admin/(.*)",
-      "destination": {
-        "service": "php_admin"
-      }
-    },
-    {
-      "source": "/(.*)",
-      "destination": {
-        "service": "astro"
-      }
-    }
   ]
 }
