@@ -18,5 +18,12 @@ const { title } = Astro.props;
   </head>
   <body>
     <slot />
+    <script is:inline>
+      (() => {
+        const send = (message) => { try { fetch('/api/errors', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({source:'browser',path:location.pathname,message:String(message || 'خطای پنل').slice(0,700)}), keepalive:true }); } catch {} };
+        window.addEventListener('error', e => send(e.message || 'خطای اجرای اسکریپت'));
+        window.addEventListener('unhandledrejection', e => send(e.reason?.message || e.reason || 'خطای promise'));
+      })();
+    </script>
   </body>
 </html>

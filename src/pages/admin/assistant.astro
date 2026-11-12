@@ -20,8 +20,7 @@ const config = await readAiConfig().catch(()=>({configured:false,provider:'OpenR
     <div class="ai-field"><label for="ai-key">کلید API</label><input id="ai-key" type="password" autocomplete="new-password" placeholder={config.configured?'کلید ثبت شده؛ برای جایگزینی کلید جدید وارد کنید':'کلید OpenRouter را وارد کنید'} /></div>
     <label class="perm"><input type="checkbox" id="perm-draft" checked={config.permissions.draft} /> اجازه پیشنهاد و آماده‌سازی پیش‌نویس</label>
     <label class="perm"><input type="checkbox" id="perm-seo" checked={config.permissions.seo} /> اجازه پیشنهادهای سئو</label>
-    <label class="perm"><input type="checkbox" id="perm-edit" checked={config.permissions.edit} /> مجوز ویرایش محتوای موجود (در این نسخه غیرفعال)</label>
-    <label class="perm"><input type="checkbox" id="perm-publish" checked={config.permissions.publish} /> مجوز انتشار (همیشه نیازمند تأیید مدیر)</label>
+    <div class="notice" style="margin:10px 0 0">در این نسخه دستیار می‌تواند محتوا و پیشنهاد سئو تولید کند؛ دسترسی مستقیم برای ویرایش پایگاه داده، حذف یا انتشار خودکار فعال نیست. این اقدامات فقط از طریق پنل و با تأیید مدیر انجام می‌شوند.</div>
     <button class="btn btn-gold" type="submit" style="width:100%;margin-top:12px">ذخیره اتصال</button>
     <p id="ai-config-status" style="font-size:11px;color:var(--a-muted)">{config.configured?'کلید API ثبت شده است.':'هنوز کلید API ثبت نشده است.'}</p>
    </form>
@@ -41,7 +40,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  settings.addEventListener('submit',async(e)=>{
   e.preventDefault();cfgStatus.textContent='در حال ذخیره…';
   const body={model:(document.getElementById('ai-model') as HTMLSelectElement).value,apiKey:(document.getElementById('ai-key') as HTMLInputElement).value,
-   permissions:{draft:(document.getElementById('perm-draft') as HTMLInputElement).checked,seo:(document.getElementById('perm-seo') as HTMLInputElement).checked,edit:(document.getElementById('perm-edit') as HTMLInputElement).checked,publish:(document.getElementById('perm-publish') as HTMLInputElement).checked}};
+   permissions:{draft:(document.getElementById('perm-draft') as HTMLInputElement).checked,seo:(document.getElementById('perm-seo') as HTMLInputElement).checked}};
   try{const r=await fetch('/api/admin/ai-config',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json();cfgStatus.textContent=r.ok&&j.ok?'تنظیمات ذخیره شد.':(j.message||'ذخیره ناموفق بود.');if(r.ok)(document.getElementById('ai-key') as HTMLInputElement).value='';}
   catch{cfgStatus.textContent='ارتباط با سرور برقرار نشد.';}
  });
