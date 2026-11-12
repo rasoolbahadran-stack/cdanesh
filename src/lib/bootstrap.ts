@@ -5,6 +5,7 @@
 import './schema'; // ثبت مایگریشن‌های پایه
 import './schema-v2';
 import './schema-v3'; // ثبت مایگریشن افزایشی (سئو، زمان‌بندی، گالری، پیام‌ها، رمز)
+import './schema-v4'; // گزارش خطا، ریدایرکت اسلاگ و تاریخچه محتوا
 import { migrate } from './db';
 import { runSeed } from './seed';
 import { runContentPatch } from './seed/content-patch';
