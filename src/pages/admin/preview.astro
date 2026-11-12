@@ -31,14 +31,20 @@ if (id > 0) {
 
 const statusLabel: Record<string, string> = { draft: 'پیش‌نویس', scheduled: 'زمان‌بندی‌شده', published: 'منتشرشده' };
 const st = String(row?.status || 'draft');
+const cover = String(row?.cover_image || row?.featured_image || row?.og_image || '');
 ---
 {row ? (
   <BaseLayout
-    title={String(row.seo_title || row.title || 'پیش‌نمایش')}
-    description={String(row.seo_description || row.excerpt || '')}
-    ogImage={String(row.cover_image || '')}
-    activePath="/admin"
-    noIndex={true}
+    meta={{
+      title: String(row.seo_title || row.title || 'پیش‌نمایش'),
+      description: String(row.seo_description || row.excerpt || ''),
+      path: publicUrl,
+      type: type === 'posts' ? 'article' : 'website',
+      image: cover || undefined,
+      noindex: true,
+      publishedTime: row.published_at ? new Date(String(row.published_at)).toISOString() : undefined,
+    }}
+    current="/admin"
   >
     <div style="position:sticky;top:0;z-index:60;background:#1d1233;color:#fff;padding:10px 20px;display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;font-size:13px">
       <b>🧪 پیش‌نمایش مدیریتی</b>
@@ -54,9 +60,9 @@ const st = String(row?.status || 'draft');
 
     <section class="section pad-half">
       <div class="container">
-        {String(row.cover_image || '') && (
+        {cover && (
           <div class="article-cover" data-reveal="zoom">
-            <img src={String(row.cover_image)} alt={String(row.title || '')} width="1344" height="768" fetchpriority="high" decoding="async" />
+            <img src={cover} alt={String(row.title || '')} width="1344" height="768" fetchpriority="high" decoding="async" />
           </div>
         )}
         <div class="article-body mt-2">
@@ -66,7 +72,15 @@ const st = String(row?.status || 'draft');
     </section>
   </BaseLayout>
 ) : (
-  <BaseLayout title="پیش‌نمایش یافت نشد" description="رکورد موردنظر پیدا نشد" activePath="/admin" noIndex={true}>
+  <BaseLayout
+    meta={{
+      title: 'پیش‌نمایش یافت نشد',
+      description: 'رکورد موردنظر پیدا نشد',
+      path: '/admin/preview',
+      noindex: true,
+    }}
+    current="/admin"
+  >
     <section class="section">
       <div class="container" style="text-align:center;padding:80px 0">
         <h1 style="font-size:28px;margin-bottom:14px">رکورد پیش‌نمایش پیدا نشد</h1>
