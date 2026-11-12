@@ -577,13 +577,13 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 }
 .pf-card__live:hover { color: var(--pink); }
 .pf-card:hover .pf-card__live { opacity: 1; transform: translateY(0); }
-/* موبایل: بدون Hover — پیش‌نمایش با اسکرول خودکار آرام */
+/* موبایل: بدون Hover — پیش‌نمایش با اسکرول خودکار آرام (۲۰ ثانیه؛ فرصت مشاهده و کلیک) */
 @media (hover: none) {
-  .pf-card__shot { animation: pf-auto 9s ease-in-out infinite alternate; }
+  .pf-card__shot { animation: pf-auto 20s ease-in-out infinite alternate; }
   .pf-card:hover .pf-card__shot, .pf-card:focus-within .pf-card__shot { transform: none; }
   @keyframes pf-auto {
-    0%, 12% { transform: translate3d(0, 0, 0); }
-    88%, 100% { transform: translate3d(0, var(--pf-scroll-offset, 0px), 0); }
+    0%, 16% { transform: translate3d(0, 0, 0); }
+    84%, 100% { transform: translate3d(0, var(--pf-scroll-offset, 0px), 0); }
   }
 }
 @media (prefers-reduced-motion: reduce) {
