@@ -3,6 +3,7 @@ import type { APIRoute } from 'astro';
 import { upsertPost, deletePost, listAdminPosts } from '../../../lib/cms-db';
 import { ENTITIES } from '../../../lib/entities';
 import { makeCreate } from '../../../lib/crud';
+import { bool } from '../../../lib/http';
 
 function clean(v: unknown, max = 5000): string {
   return String(v ?? '').trim().slice(0, max);
@@ -25,7 +26,7 @@ export const PUT: APIRoute = async ({ request }) => {
       slug, title: clean(b.title, 200), excerpt: clean(b.excerpt, 600),
       content: String(b.content ?? ''), category: clean(b.category, 80) || 'عمومی',
       cover: clean(b.cover, 300), read_minutes: Number(b.read_minutes) || 6,
-      published: Boolean(b.published),
+      published: bool(b.published),
     });
     return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
   } catch { return new Response(JSON.stringify({ ok: false, error: 'ذخیره مقاله ناموفق بود' }), { status: 500 }); }
