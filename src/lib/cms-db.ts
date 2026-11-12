@@ -234,16 +234,18 @@ export async function deletePortfolio(slug: string) {
 }
 
 /** پیام‌های جدول messages موجود در دیتابیس فعلی */
-export async function listMessages() {
+export async function listMessages(view: string = 'active') {
+  const allowedViews = ['active', 'new', 'read', 'replied', 'archived', 'all'];
+  const filter = allowedViews.includes(view) ? view : 'active';
   return q<Row>(
     `SELECT id, name, email, phone, company, plan_title AS service,
             type AS kind, message, status, admin_note, starred,
             (status <> 'new') AS is_read, created_at
        FROM messages
-      WHERE status <> 'archived'
-      ORDER BY created_at DESC
-      LIMIT 200`
-  );
+      WHERE ($1 = 'all' OR ($1 = 'active' AND status <> 'archived')
+        OR ($1 = 'archived' AND status = 'archived') OR ($1 = 'new' AND status = 'new')
+        OR ($1 = 'read' AND status = 'read') OR ($1 = 'replied' AND status = 'replied'))
+      ORDER BY created_at DESC LIMIT 200`,[filter]);
 }
 
 export async function markMessageRead(id: number) {
