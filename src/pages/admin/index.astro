@@ -4,7 +4,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 import { adminStats } from '../../lib/cms-db';
 
 const session = Astro.locals.admin;
-let stats = { posts: 0, portfolio: 0, messages: 0, unread: 0 };
+let stats = { posts: 0, draftPosts: 0, scheduledPosts: 0, publishedPages: 0, portfolio: 0, messages: 0, unread: 0 };
 let dbOk = true;
 try {
   stats = await adminStats();
@@ -28,6 +28,9 @@ try {
           <a href="/admin/posts">📝 مقالات</a>
           <a href="/admin/portfolio">🎨 نمونه‌کارها</a>
           <a href="/admin/messages">💬 پیام‌ها</a>
+          <a href="/admin/media">🖼 رسانه‌ها</a>
+          <a href="/admin/pages">📄 صفحات</a>
+          <a href="/admin/assistant">✨ دستیار هوشمند</a>
           <a href="/" target="_blank">🌍 مشاهده سایت</a>
         </nav>
         <form id="logout-form" style="margin-top:26px">
@@ -36,7 +39,7 @@ try {
       </aside>
 
       <main class="admin-main">
-        <h1>سلام {session?.u ?? 'مدیر'} 👋</h1>
+        <h1>سلام بهادران، خوش اومدی! 👋</h1>
         <p style="color:var(--mut)">وضعیت کلی محتوای سایت در یک نگاه</p>
 
         {!dbOk && (
@@ -47,10 +50,32 @@ try {
 
         <div class="admin-cards">
           <div class="admin-card"><b>{new Intl.NumberFormat('fa-IR').format(stats.posts)}</b><span>مقاله منتشرشده</span></div>
-          <div class="admin-card"><b>{new Intl.NumberFormat('fa-IR').format(stats.portfolio)}</b><span>نمونه‌کار</span></div>
+          <div class="admin-card"><b>{new Intl.NumberFormat('fa-IR').format(stats.draftPosts)}</b><span>پیش‌نویس مقاله</span></div>
+          <div class="admin-card"><b>{new Intl.NumberFormat('fa-IR').format(stats.portfolio)}</b><span>نمونه‌کار منتشرشده</span></div>
           <div class="admin-card"><b>{new Intl.NumberFormat('fa-IR').format(stats.messages)}</b><span>پیام دریافتی</span></div>
-          <div class="admin-card"><b>{new Intl.NumberFormat('fa-IR').format(stats.unread)}</b><span>پیام خوانده‌نشده</span></div>
         </div>
+        <section class="dash-analytics" aria-label="آمار محتوای سایت">
+          <div class="dash-chart-card">
+            <div class="dash-chart-head"><div><h2>وضعیت مقاله‌ها</h2><p>نمای کلی محتوای وبلاگ</p></div><span class="dash-chart-icon">◉</span></div>
+            <div class="dash-donut-wrap">
+              <div class="dash-donut" style={'--published:' + stats.posts + ';--draft:' + stats.draftPosts + ';--scheduled:' + stats.scheduledPosts + ';--total:' + Math.max(1,stats.posts+stats.draftPosts+stats.scheduledPosts)}><div><strong>{new Intl.NumberFormat('fa-IR').format(stats.posts+stats.draftPosts+stats.scheduledPosts)}</strong><span>مقاله</span></div></div>
+              <div class="dash-legend">
+                <div><i class="is-published"></i><span>منتشرشده</span><b>{new Intl.NumberFormat('fa-IR').format(stats.posts)}</b></div>
+                <div><i class="is-draft"></i><span>پیش‌نویس</span><b>{new Intl.NumberFormat('fa-IR').format(stats.draftPosts)}</b></div>
+                <div><i class="is-scheduled"></i><span>زمان‌بندی‌شده</span><b>{new Intl.NumberFormat('fa-IR').format(stats.scheduledPosts)}</b></div>
+              </div>
+            </div>
+          </div>
+          <div class="dash-chart-card">
+            <div class="dash-chart-head"><div><h2>خلاصه محتوای سایت</h2><p>آمار واقعی از پایگاه داده</p></div><span class="dash-chart-icon">▤</span></div>
+            <div class="dash-metric-list">
+              <div><span>صفحات منتشرشده</span><b>{new Intl.NumberFormat('fa-IR').format(stats.publishedPages)}</b></div>
+              <div><span>نمونه‌کارهای منتشرشده</span><b>{new Intl.NumberFormat('fa-IR').format(stats.portfolio)}</b></div>
+              <div><span>پیام‌های خوانده‌نشده</span><b>{new Intl.NumberFormat('fa-IR').format(stats.unread)}</b></div>
+              <div><span>کل پیام‌های دریافتی</span><b>{new Intl.NumberFormat('fa-IR').format(stats.messages)}</b></div>
+            </div>
+          </div>
+        </section>
 
         <div class="admin-card" style="margin-top:22px">
           <h2 style="font-size:1.05rem">دسترسی سریع</h2>
@@ -58,15 +83,27 @@ try {
             <a href="/admin/posts" class="btn btn--sm">مدیریت مقالات</a>
             <a href="/admin/portfolio" class="btn btn--sm btn--purple">مدیریت نمونه‌کارها</a>
             <a href="/admin/messages" class="btn btn--sm btn--outline">صندوق پیام‌ها</a>
+            <a href="/admin/media" class="btn btn--sm btn--outline">کتابخانه رسانه</a>
+            <a href="/admin/pages" class="btn btn--sm btn--outline">مدیریت صفحات</a>
+            <a href="/admin/assistant" class="btn btn--sm btn--outline">دستیار هوشمند</a>
           </div>
-          <p style="color:var(--mut);font-size:.85rem;margin-top:14px">
-            نکته: پس از تغییر محتوای دیتابیس، برای به‌روزرسانی صفحات عمومی می‌توانید Redeploy کنید (یا VERCEL_DEPLOY_HOOK_URL را در .env تنظیم کنید).
-          </p>
+          <p style="color:var(--mut);font-size:.85rem;margin-top:14px">محتوا پس از ذخیره از مسیر مدیریت به‌روزرسانی می‌شود؛ نیازی به اجرای دستی انتشار از این صفحه نیست.</p>
         </div>
       </main>
     </div>
   </div>
-
+  <style>
+    .dash-analytics{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}
+    .dash-chart-card{background:linear-gradient(145deg,#fff,#f6f5ff);border:1px solid #e8e3f6;border-radius:18px;padding:20px;box-shadow:0 10px 28px rgba(50,35,110,.06);color:#28233d}
+    .dash-chart-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.dash-chart-head h2{font-size:1.02rem;margin:0;color:#30274b}.dash-chart-head p{font-size:.82rem;color:#817b91;margin:3px 0 0}
+    .dash-chart-icon{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:#eee9ff;color:#7043c7;font-size:21px}
+    .dash-donut-wrap{display:flex;align-items:center;justify-content:center;gap:28px;min-height:200px;flex-wrap:wrap;padding-top:12px}
+    .dash-donut{width:164px;height:164px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#7048d8 0 calc(var(--published)/var(--total)*100%),#f3a5c9 calc(var(--published)/var(--total)*100%) calc((var(--published) + var(--draft))/var(--total)*100%),#f5bd54 0 100%);position:relative}
+    .dash-donut:before{content:"";position:absolute;inset:17px;background:#fff;border-radius:50%}.dash-donut>div{z-index:1;display:grid;text-align:center}.dash-donut strong{font-size:1.65rem;color:#30274b;line-height:1.35}.dash-donut span{font-size:.78rem;color:#847d91}
+    .dash-legend{display:grid;gap:11px;min-width:150px}.dash-legend>div{display:grid;grid-template-columns:12px 1fr auto;align-items:center;gap:8px;font-size:.82rem;color:#716b81}.dash-legend i{width:10px;height:10px;border-radius:50%}.dash-legend .is-published{background:#7048d8}.dash-legend .is-draft{background:#f3a5c9}.dash-legend .is-scheduled{background:#f5bd54}.dash-legend b{color:#30274b;font-variant-numeric:tabular-nums}
+    .dash-metric-list{display:grid;gap:0;margin-top:18px}.dash-metric-list>div{display:flex;justify-content:space-between;gap:14px;padding:13px 2px;border-bottom:1px solid #ece8f4;color:#716b81;font-size:.88rem}.dash-metric-list>div:last-child{border-bottom:0}.dash-metric-list b{color:#30274b;font-size:1rem}
+    @media(max-width:760px){.dash-analytics{grid-template-columns:1fr}.dash-donut-wrap{gap:18px}}
+  </style>
   <script>
     document.getElementById('logout-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();

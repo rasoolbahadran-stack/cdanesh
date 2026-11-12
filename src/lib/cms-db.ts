@@ -88,51 +88,38 @@ export async function listAdminPosts() {
 }
 
 export async function upsertPost(post: {
-  slug: string; title: string; excerpt: string; content: string;
+  id?: number; slug: string; title: string; excerpt: string; content: string;
   category: string; cover: string; read_minutes: number; published: boolean;
 }) {
   const category = textValue(post.category, 'عمومی').slice(0, 80);
   const categorySlug = slugify(category, 'category');
   const categoryRow = await q1<{ id: number }>(
-    `INSERT INTO categories (name, slug)
-     VALUES ($1, $2)
-     ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name
-     RETURNING id`,
+    `INSERT INTO categories (name, slug) VALUES ($1, $2)
+     ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name RETURNING id`,
     [category, categorySlug],
   );
   if (!categoryRow?.id) throw new Error('دسته‌بندی مقاله ذخیره نشد');
-
   const status = post.published ? 'published' : 'draft';
-  const safeContent = sanitizeHtml(textValue(post.content));
-  await q(
-    `INSERT INTO posts
-       (title, slug, excerpt, content, cover_image, category_id, status, reading_time, published_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8,
-       CASE WHEN $7 = 'published' THEN now() ELSE NULL END)
-     ON CONFLICT (slug) DO UPDATE SET
-       title = EXCLUDED.title,
-       excerpt = EXCLUDED.excerpt,
-       content = EXCLUDED.content,
-       cover_image = EXCLUDED.cover_image,
-       category_id = EXCLUDED.category_id,
-       status = EXCLUDED.status,
-       reading_time = EXCLUDED.reading_time,
-       published_at = CASE
-         WHEN EXCLUDED.status = 'published' THEN COALESCE(posts.published_at, now())
-         ELSE NULL
-       END,
-       updated_at = now()`,
-    [
-      textValue(post.title).slice(0, 200),
-      textValue(post.slug).slice(0, 120),
-      textValue(post.excerpt).slice(0, 600),
-      safeContent,
-      textValue(post.cover).slice(0, 300),
-      categoryRow.id,
-      status,
-      Math.max(1, Math.min(120, numberValue(post.read_minutes, 6))),
-    ],
-  );
+  const values = [
+    textValue(post.title).slice(0, 200), textValue(post.slug).slice(0, 120),
+    textValue(post.excerpt).slice(0, 600), sanitizeHtml(textValue(post.content)),
+    textValue(post.cover).slice(0, 300), categoryRow.id, status,
+    Math.max(1, Math.min(120, numberValue(post.read_minutes, 6))),
+  ];
+  if (post.id && post.id > 0) {
+    const updated = await q1<{ id: number }>(
+      `UPDATE posts SET title=$1, slug=$2, excerpt=$3, content=$4, cover_image=$5,
+       category_id=$6, status=$7, reading_time=$8,
+       published_at=CASE WHEN $7='published' THEN COALESCE(published_at, now()) ELSE NULL END,
+       updated_at=now() WHERE id=$9 RETURNING id`,
+      [...values, post.id],
+    );
+    if (!updated) throw new Error('مقاله موردنظر پیدا نشد');
+  } else {
+    await q(`INSERT INTO posts
+      (title, slug, excerpt, content, cover_image, category_id, status, reading_time, published_at)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,CASE WHEN $7='published' THEN now() ELSE NULL END)`, values);
+  }
 }
 
 export async function deletePost(slug: string) {
@@ -251,18 +238,18 @@ export async function markMessageRead(id: number) {
 }
 
 export async function adminStats() {
-  const rows = await q<Row>(
-    `SELECT
-       (SELECT COUNT(*) FROM posts WHERE status = 'published') AS posts,
-       (SELECT COUNT(*) FROM projects WHERE status = 'published') AS portfolio,
-       (SELECT COUNT(*) FROM messages WHERE status <> 'archived') AS messages,
-       (SELECT COUNT(*) FROM messages WHERE status = 'new') AS unread`
-  );
+  const rows = await q<Row>(`SELECT
+    (SELECT COUNT(*) FROM posts WHERE status='published') AS posts,
+    (SELECT COUNT(*) FROM posts WHERE status='draft') AS draft_posts,
+    (SELECT COUNT(*) FROM posts WHERE status='scheduled') AS scheduled_posts,
+    (SELECT COUNT(*) FROM pages WHERE status='published') AS published_pages,
+    (SELECT COUNT(*) FROM projects WHERE status='published') AS portfolio,
+    (SELECT COUNT(*) FROM messages WHERE status<>'archived') AS messages,
+    (SELECT COUNT(*) FROM messages WHERE status='new') AS unread`);
   const row = rows[0] || {};
   return {
-    posts: numberValue(row.posts),
-    portfolio: numberValue(row.portfolio),
-    messages: numberValue(row.messages),
-    unread: numberValue(row.unread),
+    posts:numberValue(row.posts), draftPosts:numberValue(row.draft_posts),
+    scheduledPosts:numberValue(row.scheduled_posts), publishedPages:numberValue(row.published_pages),
+    portfolio:numberValue(row.portfolio), messages:numberValue(row.messages), unread:numberValue(row.unread),
   };
 }

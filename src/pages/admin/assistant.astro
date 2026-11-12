@@ -1,0 +1,33 @@
+---
+export const prerender = false;
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="دستیار هوشمند کافه دانش">
+  <div style="max-width:920px;margin:auto">
+    <h1>دستیار هوشمند کافه دانش ✨</h1>
+    <p style="color:var(--mut)">برای ایده‌پردازی، نگارش و بهینه‌سازی محتوا به زبان فارسی</p>
+    <div class="panel" style="padding:18px">
+      <div class="info-strip" style="margin-bottom:16px">برای فعال‌سازی، کلید Gemini API را با نام GEMINI_API_KEY در متغیرهای Environment پروژه Vercel و محیط Production ثبت کن. کلید در مرورگر نمایش داده نمی‌شود.</div>
+      <div id="ai-chat" style="display:grid;gap:12px;min-height:220px;max-height:480px;overflow:auto;padding:10px;background:#f7f5fc;border-radius:12px">
+        <div class="ai-bubble">سلام! می‌توانم در نوشتن مقاله، عنوان‌سازی، خلاصه‌نویسی و پیشنهادهای سئو کمک کنم. پاسخ‌ها را بررسی کن و قبل از انتشار خودت تأیید کن.</div>
+      </div>
+      <form id="ai-form" style="display:grid;gap:10px;margin-top:14px">
+        <textarea id="ai-message" rows="3" maxlength="6000" placeholder="مثلاً: یک ساختار کامل مقاله درباره طراحی فروشگاه اینترنتی پیشنهاد بده…" required style="width:100%;padding:12px;border:1px solid var(--a-line);border-radius:10px;font:inherit"></textarea>
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><small id="ai-status" style="color:var(--mut)"></small><button class="btn btn--sm" type="submit">ارسال به دستیار</button></div>
+      </form>
+    </div>
+    <p style="font-size:.85rem;color:var(--mut);margin-top:14px">این دستیار از Gemini API استفاده می‌کند و همان نشست فعلی ChatGPT نیست. امکان استفاده رایگان به سهمیه و شرایط روز سرویس‌دهنده بستگی دارد.</p>
+  </div>
+  <style>.ai-bubble{background:#fff;border:1px solid #ebe6f4;border-radius:12px;padding:12px 14px;line-height:2;white-space:pre-wrap;color:#30274b;max-width:95%}.ai-bubble.user{margin-right:auto;background:#eee8fb}.ai-bubble.error{border-color:#f2c2c2;color:#a33}</style>
+  <script>
+    const form=document.querySelector('#ai-form') as HTMLFormElement;
+    const input=document.querySelector('#ai-message') as HTMLTextAreaElement;
+    const chat=document.querySelector('#ai-chat') as HTMLElement;
+    const status=document.querySelector('#ai-status') as HTMLElement;
+    function bubble(text:string,kind=''){const d=document.createElement('div');d.className='ai-bubble '+kind;d.textContent=text;chat.appendChild(d);chat.scrollTop=chat.scrollHeight;return d;}
+    form.addEventListener('submit',async(e)=>{e.preventDefault();const message=input.value.trim();if(!message)return;bubble(message,'user');input.value='';status.textContent='در حال دریافت پاسخ…';const pending=bubble('در حال فکر کردن…');
+      try{const r=await fetch('/api/admin/assistant',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({task:'chat',message})});const j=await r.json();pending.remove();if(!r.ok||!j.ok){bubble(j.error||'ارتباط با دستیار ناموفق بود.','error');status.textContent='';return;}bubble(j.text);status.textContent='پاسخ دریافت شد';}
+      catch{pending.remove();bubble('خطا در ارتباط با سرور.','error');status.textContent='';}
+    });
+  </script>
+</AdminLayout>
