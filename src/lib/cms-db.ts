@@ -45,7 +45,8 @@ async function queryPosts(onlyPublished: boolean): Promise<Row[]> {
   return q<Row>(
     `SELECT p.id, p.slug, p.title, p.excerpt, p.content,
             p.cover_image AS cover, COALESCE(c.name, 'عمومی') AS category,
-            p.reading_time AS read_minutes, p.status,
+            p.reading_time AS read_minutes, p.status, p.author, p.featured, p.noindex,
+            p.seo_title, p.seo_description,
             (p.status = 'published') AS published,
             p.published_at, p.created_at
        FROM posts p
@@ -65,6 +66,11 @@ function mapPost(row: Row) {
     excerpt: textValue(row.excerpt),
     content,
     category: textValue(row.category, 'عمومی'),
+    author: textValue(row.author, 'مدیر کافه‌دانش'),
+    featured: boolValue(row.featured),
+    noindex: boolValue(row.noindex),
+    seo_title: textValue(row.seo_title),
+    seo_description: textValue(row.seo_description),
     cover: textValue(row.cover),
     date: publishedAt?.toISOString() || '',
     dateFa: dateFa(publishedAt),

@@ -5,11 +5,11 @@ import { q } from '../../lib/db';
 
 const session = Astro.locals.admin;
 const fa = (n: unknown) => new Intl.NumberFormat('fa-IR').format(Number(n) || 0);
-let counts = { published: 0, draft: 0, scheduled: 0, pages: 0, messages: 0, unread: 0, portfolio: 0 };
+let counts = { published: 0, draft: 0, scheduled: 0, pages: 0, messages: 0, unread: 0, portfolio: 0, services: 0, categories: 0, plans: 0, faqs: 0, testimonials: 0, media: 0 };
 let activity: Array<Record<string, unknown>> = [];
 let dbOk = true;
 try {
-  const [p, pg, m, pr, a] = await Promise.all([
+  const [p, pg, m, pr, sv, ct, pl, fq, ts, md, a] = await Promise.all([
     q<{ published: number; draft: number; scheduled: number }>(`SELECT
       COUNT(*) FILTER (WHERE status='published')::int AS published,
       COUNT(*) FILTER (WHERE status='draft')::int AS draft,
@@ -19,6 +19,12 @@ try {
       COUNT(*) FILTER (WHERE status <> 'archived')::int AS messages,
       COUNT(*) FILTER (WHERE status = 'new')::int AS unread FROM messages`),
     q<{ portfolio: number }>(`SELECT COUNT(*)::int AS portfolio FROM projects WHERE status='published'`),
+    q<{ services: number }>(`SELECT COUNT(*)::int AS services FROM services`),
+    q<{ categories: number }>(`SELECT COUNT(*)::int AS categories FROM categories`),
+    q<{ plans: number }>(`SELECT COUNT(*)::int AS plans FROM plans`),
+    q<{ faqs: number }>(`SELECT COUNT(*)::int AS faqs FROM faqs`),
+    q<{ testimonials: number }>(`SELECT COUNT(*)::int AS testimonials FROM testimonials`),
+    q<{ media: number }>(`SELECT COUNT(*)::int AS media FROM media`),
     q<Record<string, unknown>>(`SELECT type, entity, title, created_at FROM activity ORDER BY created_at DESC LIMIT 7`)
   ]);
   counts = {
@@ -29,6 +35,9 @@ try {
     messages: Number(m[0]?.messages || 0),
     unread: Number(m[0]?.unread || 0),
     portfolio: Number(pr[0]?.portfolio || 0),
+    services: Number(sv[0]?.services || 0), categories: Number(ct[0]?.categories || 0),
+    plans: Number(pl[0]?.plans || 0), faqs: Number(fq[0]?.faqs || 0),
+    testimonials: Number(ts[0]?.testimonials || 0), media: Number(md[0]?.media || 0),
   };
   activity = a;
 } catch { dbOk = false; }
@@ -49,7 +58,7 @@ const entityLabel: Record<string, string> = { posts: 'مقاله', pages: 'صف�
     .dash-shortcuts{display:flex;flex-wrap:wrap;gap:8px}
     .dash-shortcuts a{padding:9px 14px;border-radius:11px;background:#fff;border:1px solid #e5e7ef;color:#454866;font-weight:700;font-size:13px}
     .dash-shortcuts a.primary{background:linear-gradient(120deg,#6a2bda,#a35eec);color:#fff;border:0}
-    .dash-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+    .dash-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:18px}
     .dash-stat{background:#fff;border:1px solid #e9eaf1;border-radius:17px;padding:18px;box-shadow:0 8px 24px rgba(34,35,80,.045)}
     .dash-stat span{color:#777b91;font-size:12px}.dash-stat b{display:block;font-size:27px;line-height:1.5;color:#272949}
     .dash-stat i{font-style:normal;font-size:22px;float:left}
@@ -83,7 +92,7 @@ const entityLabel: Record<string, string> = { posts: 'مقاله', pages: 'صف�
   
         <div class="dash-wrap">
           <header class="dash-head">
-            <div><h1>سلام بهادران، خوش اومدی! 👋</h1><p>امروز چه محتوای تازه‌ای به کافه دانش اضافه می‌کنیم؟</p></div>
+            <div><h1>به پنل مدیریت یکپارچه کافه دانش خوش آمدید 👋</h1><p>وضعیت محتوا، ارتباط با مشتریان و ابزارهای مدیریت سایت در یک نگاه</p></div>
             <div class="dash-shortcuts">
               <a class="primary" href="/admin/posts/new">＋ مقاله جدید</a>
               <a href="/admin/pages">مدیریت صفحات</a>
@@ -92,11 +101,12 @@ const entityLabel: Record<string, string> = { posts: 'مقاله', pages: 'صف�
           </header>
           {!dbOk && <div class="form-status is-err" style="display:flex;margin-bottom:16px">اتصال به پایگاه داده برقرار نیست. آمار داشبورد در دسترس نیست.</div>}
           <section class="dash-stats">
-            <div class="dash-stat"><i>📝</i><span>مقاله منتشرشده</span><b>{fa(counts.published)}</b></div>
-            <div class="dash-stat"><i>📄</i><span>صفحه منتشرشده</span><b>{fa(counts.pages)}</b></div>
-            <div class="dash-stat"><i>💬</i><span>درخواست و پیام</span><b>{fa(counts.messages)}</b></div>
-            <div class="dash-stat"><i>🔔</i><span>پیام خوانده‌نشده</span><b>{fa(counts.unread)}</b></div>
-          </section>
+<a class="dash-stat" href="/admin/posts"><i>📝</i><span>مقاله منتشرشده</span><b>{fa(counts.published)}</b></a>
+<a class="dash-stat" href="/admin/pages"><i>📄</i><span>صفحه منتشرشده</span><b>{fa(counts.pages)}</b></a>
+<a class="dash-stat" href="/admin/portfolio"><i>◇</i><span>نمونه‌کار منتشرشده</span><b>{fa(counts.portfolio)}</b></a>
+<a class="dash-stat" href="/admin/services"><i>⌘</i><span>خدمات</span><b>{fa(counts.services)}</b></a>
+<a class="dash-stat" href="/admin/messages"><i>💬</i><span>درخواست و پیام</span><b>{fa(counts.messages)}</b></a>
+<a class="dash-stat" href="/admin/media"><i>▧</i><span>رسانه‌ها</span><b>{fa(counts.media)}</b></a></section>
           <section class="dash-grid">
             <div class="dash-panel">
               <h2>وضعیت مقاله‌ها</h2>
@@ -111,11 +121,13 @@ const entityLabel: Record<string, string> = { posts: 'مقاله', pages: 'صف�
                 </div>
               </div>
               <div class="dash-tiles">
-                <div class="dash-tile"><b>{fa(counts.draft)}</b><span>پیش‌نویس</span></div>
-                <div class="dash-tile"><b>{fa(counts.scheduled)}</b><span>زمان‌بندی‌شده</span></div>
-                <div class="dash-tile"><b>{fa(counts.portfolio)}</b><span>نمونه‌کار منتشرشده</span></div>
-                <div class="dash-tile"><b>{fa(counts.messages)}</b><span>پیام ثبت‌شده</span></div>
-              </div>
+<a class="dash-tile" href="/admin/posts?status=draft"><b>{fa(counts.draft)}</b><span>پیش‌نویس مقاله</span></a>
+<a class="dash-tile" href="/admin/posts?status=scheduled"><b>{fa(counts.scheduled)}</b><span>انتشار زمان‌بندی‌شده</span></a>
+<a class="dash-tile" href="/admin/messages"><b>{fa(counts.unread)}</b><span>پیام خوانده‌نشده</span></a>
+<a class="dash-tile" href="/admin/categories"><b>{fa(counts.categories)}</b><span>دسته‌بندی</span></a>
+<a class="dash-tile" href="/admin/pricing"><b>{fa(counts.plans)}</b><span>پلن تعرفه</span></a>
+<a class="dash-tile" href="/admin/faq"><b>{fa(counts.faqs)}</b><span>سؤال متداول</span></a>
+<a class="dash-tile" href="/admin/testimonials"><b>{fa(counts.testimonials)}</b><span>نظر مشتریان</span></a></div>
             </div>
             <div class="dash-panel">
               <h2>نمای کلی محتوا</h2>

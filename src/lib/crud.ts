@@ -147,26 +147,21 @@ export function makeDelete(cfg: EntityConfig) {
     if (!admin(request)) return unauthorized();
     try {
       const id = num(new URL(request.url).pathname.split('/').pop(), 0);
-      const existing = await q1(`SELECT * FROM ${cfg.table} WHERE id = $1`, [id]);
-      if (!existing) return fail('رکورد موردنظر پیدا نشد', 'NOT_FOUND', 404);
+      if (!id) return fail('شناسه رکورد معتبر نیست', 'BAD_ID', 400);
       await q(`CREATE TABLE IF NOT EXISTS cdanesh_admin_trash (
-        id bigserial PRIMARY KEY,
-        entity text NOT NULL,
-        entity_id bigint NOT NULL,
-        snapshot jsonb NOT NULL,
-        deleted_at timestamptz NOT NULL DEFAULT now(),
-        restored_at timestamptz
+        id bigserial PRIMARY KEY, entity text NOT NULL, entity_id bigint NOT NULL,
+        snapshot jsonb NOT NULL, deleted_at timestamptz NOT NULL DEFAULT now(), restored_at timestamptz
       )`);
-      await q(
-        'INSERT INTO cdanesh_admin_trash(entity, entity_id, snapshot) VALUES($1, $2, $3::jsonb)',
-        [cfg.table, id, JSON.stringify(existing)],
+      const moved = await q(
+        `WITH deleted AS (DELETE FROM ${cfg.table} WHERE id = $1 RETURNING *)
+         INSERT INTO cdanesh_admin_trash(entity, entity_id, snapshot)
+         SELECT $2, $1, to_jsonb(deleted) FROM deleted RETURNING id`,
+        [id, cfg.table],
       );
-      await q(`DELETE FROM ${cfg.table} WHERE id = $1`, [id]);
+      if (!moved.length) return fail('رکورد پیدا نشد یا قابل حذف نیست', 'NOT_FOUND', 404);
       await logActivity('delete', cfg.table, id, `${cfg.label} به سطل زباله منتقل شد`);
-      return ok({ id }, `${cfg.label} به سطل زباله منتقل شد`);
-    } catch (e) {
-      return serverError(e);
-    }
+      return ok({ id }, `${cfg.label} به سطل زباله منتقل شد و قابل بازیابی است`);
+    } catch (e) { return serverError(e); }
   };
 }
 

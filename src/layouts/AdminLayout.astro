@@ -1,32 +1,51 @@
 ---
-import '../styles/global.css'; import '../styles/admin.css';
-interface Props {title:string;crumb?:string;newMessages?:number}
-const {title,crumb,newMessages=0}=Astro.props;const p=Astro.url.pathname;
-const menu=[
-['/admin','داشبورد','⌂','dashboard'],
-['/admin/posts','مقاله‌ها','✎','posts'],
-['/admin/pages','صفحات','▤','pages'],
-['/admin/categories','دسته‌بندی‌ها','▦','categories'],
-['/admin/media','رسانه‌ها','▧','media'],
-['/admin/portfolio','نمونه‌کارها','◇','portfolio'],
-['/admin/services','خدمات','⌘','services'],
-['/admin/pricing','تعرفه‌ها','＄','pricing'],
-['/admin/faq','سؤالات متداول','?','faq'],
-['/admin/testimonials','نظرات مشتریان','☆','testimonials'],
-['/admin/messages','درخواست‌ها و پیام‌ها','✉','messages'],
-['/admin/activity','گزارش فعالیت','◷','activity'],
-['/admin/trash','سطل زباله','▤','trash'],
-['/admin/assistant','دستیار هوشمند','✧','assistant'],
-['/admin/errors','گزارش خطاها','⚒','errors'],
-['/admin/settings','تنظیمات','⚙','settings'],
-['/admin/settings?tab=seo','تنظیمات سئو','◎','seo']
+import '../styles/global.css';
+import '../styles/admin.css';
+interface Props { title:string; crumb?:string; newMessages?:number }
+const {title,crumb,newMessages=0}=Astro.props;
+const path=Astro.url.pathname;
+const adminUser=String(Astro.locals.admin?.u||'مدیر سایت');
+const groups=[
+ {label:'مدیریت سایت',items:[
+ ['/admin','داشبورد','⌂','dashboard'],['/admin/posts','مقاله‌ها','✎','posts'],['/admin/pages','صفحات','▤','pages'],
+ ['/admin/categories','دسته‌بندی‌ها','▦','categories'],['/admin/portfolio','نمونه‌کارها','◇','portfolio'],['/admin/services','خدمات','⌘','services'],
+ ['/admin/pricing','تعرفه‌ها','＄','pricing'],['/admin/faq','سؤالات متداول','?','faq'],['/admin/testimonials','نظرات مشتریان','☆','testimonials'],['/admin/media','کتابخانه رسانه','▧','media']]},
+ {label:'ارتباط و ابزارها',items:[
+ ['/admin/messages','درخواست‌ها و پیام‌ها','✉','messages'],['/admin/assistant','دستیار هوشمند','✧','assistant'],
+ ['/admin/activity','گزارش فعالیت','◷','activity'],['/admin/trash','سطل زباله','♲','trash'],['/admin/errors','گزارش خطاها','⚒','errors'],
+ ['/admin/settings','تنظیمات عمومی','⚙','settings'],['/admin/settings?tab=seo','تنظیمات سئو','◎','seo']]}
 ];
-const active=p==='/admin'?'dashboard':p.startsWith('/admin/posts')||p.startsWith('/admin/history')?'posts':p.startsWith('/admin/pages')?'pages':p.startsWith('/admin/categories')?'categories':p.startsWith('/admin/media')?'media':p.startsWith('/admin/portfolio')?'portfolio':p.startsWith('/admin/services')?'services':p.startsWith('/admin/pricing')?'pricing':p.startsWith('/admin/faq')?'faq':p.startsWith('/admin/testimonials')?'testimonials':p.startsWith('/admin/messages')?'messages':p.startsWith('/admin/activity')?'activity':p.startsWith('/admin/trash')?'trash':p.startsWith('/admin/assistant')?'assistant':p.startsWith('/admin/errors')?'errors':p.startsWith('/admin/settings')?(Astro.url.searchParams.get('tab')==='seo'?'seo':'settings'):'';
+const active=path==='/admin'?'dashboard':path.startsWith('/admin/posts')||path.startsWith('/admin/history')?'posts':
+path.startsWith('/admin/pages')?'pages':path.startsWith('/admin/categories')?'categories':path.startsWith('/admin/media')?'media':
+path.startsWith('/admin/portfolio')?'portfolio':path.startsWith('/admin/services')?'services':path.startsWith('/admin/pricing')?'pricing':
+path.startsWith('/admin/faq')?'faq':path.startsWith('/admin/testimonials')?'testimonials':path.startsWith('/admin/messages')?'messages':
+path.startsWith('/admin/activity')?'activity':path.startsWith('/admin/trash')?'trash':path.startsWith('/admin/assistant')?'assistant':
+path.startsWith('/admin/errors')?'errors':path.startsWith('/admin/settings')?(Astro.url.searchParams.get('tab')==='seo'?'seo':'settings'):'';
 ---
-<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>{title} | کافه دانش</title><meta name="robots" content="noindex,nofollow"/><link rel="icon" type="image/svg+xml" href="/img/logo.svg"/><link rel="preload" as="font" type="font/woff2" href="/fonts/Vazirmatn-Regular.woff2" crossorigin/><link rel="preload" as="font" type="font/woff2" href="/fonts/Vazirmatn-Bold.woff2" crossorigin/></head>
-<body class="admin-body"><div class="admin-layout"><aside class="admin-side" aria-label="منوی اصلی پنل">
-<a class="side-brand" href="/admin"><img src="/img/logo.svg" alt="" width="38" height="38"/><span><b>کافه دانش</b><small>پنل مدیریت</small></span></a><div class="side-label">مدیریت محتوا</div>
-<nav class="admin-side__nav">{menu.map(([href,label,icon,key])=><a href={href} class:list={['side-link',active===key&&'active']} aria-current={active===key?'page':undefined}><i class="ico" aria-hidden="true">{icon}</i><span class="txt">{label}</span>{key==='messages'&&newMessages>0&&<span class="side-badge">{newMessages}</span>}</a>)}</nav>
-<div class="side-foot"><a class="side-link" href="/" target="_blank" rel="noopener"><i class="ico">↗</i><span class="txt">مشاهده سایت</span></a><form id="logout-form"><button class="side-link side-logout" type="submit"><i class="ico">⇥</i><span class="txt">خروج از پنل</span></button></form><button type="button" class="side-collapse" aria-label="جمع‌کردن منو"><i class="sc-ico">‹</i><span class="txt">جمع‌کردن منو</span></button></div>
-</aside><div class="side-scrim"></div><main class="admin-main"><header class="admin-topbar"><button type="button" class="side-open-m" aria-label="بازکردن منو">☰ <span>منو</span></button><div class="admin-topbar__heading"><h1>{title}</h1>{crumb&&<div class="crumb">{crumb}</div>}</div><div class="actions"><a class="btn btn-ghost btn-sm" href="/" target="_blank" rel="noopener">مشاهده سایت ↗</a></div></header><div class="admin-content"><slot/></div></main></div>
-<script>import '../scripts/admin.ts';document.getElementById('logout-form')?.addEventListener('submit',async(event)=>{event.preventDefault();const b=(event.currentTarget as HTMLFormElement).querySelector('button');if(b)b.setAttribute('disabled','true');try{await fetch('/api/auth/logout',{method:'POST'});}finally{window.location.href='/admin/login';}});</script></body></html>
+<!doctype html><html lang="fa" dir="rtl"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>{title} | کافه دانش</title><meta name="robots" content="noindex,nofollow,noarchive"/>
+<link rel="icon" type="image/svg+xml" href="/img/logo.svg"/>
+<link rel="preload" as="font" type="font/woff2" href="/fonts/Vazirmatn-Regular.woff2" crossorigin/>
+<link rel="preload" as="font" type="font/woff2" href="/fonts/Vazirmatn-Bold.woff2" crossorigin/>
+</head><body class="admin-body"><div class="admin-layout">
+<aside class="admin-side" aria-label="منوی اصلی پنل">
+<a class="side-brand" href="/admin"><img src="/img/logo.svg" alt="" width="40" height="40"/><span><b>کافه دانش</b><small>سامانه مدیریت یکپارچه</small></span></a>
+<div class="side-version"><i></i> نسخه Astro · متصل به CMS اصلی</div>
+{groups.map(group=><section class="side-group"><div class="side-label">{group.label}</div><nav class="admin-side__nav">
+{group.items.map(([href,label,icon,key])=><a href={href} class:list={['side-link',active===key&&'active']} aria-current={active===key?'page':undefined}>
+<i class="ico" aria-hidden="true">{icon}</i><span class="txt">{label}</span>{key==='messages'&&newMessages>0&&<span class="side-badge">{newMessages}</span>}</a>)}
+</nav></>)}
+<div class="side-foot">
+<a class="side-link" href="/" target="_blank" rel="noopener"><i class="ico">↗</i><span class="txt">مشاهده سایت</span></a>
+<div class="side-user"><span class="avatar">{adminUser.slice(0,1)}</span><span><b>{adminUser}</b><small>مدیر سامانه</small></span></div>
+<form id="logout-form"><button class="side-link side-logout" type="submit"><i class="ico">⇥</i><span class="txt">خروج امن از پنل</span></button></form>
+<button type="button" class="side-collapse" aria-label="جمع‌کردن منو"><i class="sc-ico">‹</i><span class="txt">جمع‌کردن منو</span></button>
+</div></aside><div class="side-scrim"></div>
+<main class="admin-main"><header class="admin-topbar"><button type="button" class="side-open-m" aria-label="بازکردن منو">☰ <span>منو</span></button>
+<div class="admin-topbar__heading"><h1>{title}</h1>{crumb&&<div class="crumb">{crumb}</div>}</div>
+<div class="actions"><span class="top-status"><i></i> اتصال مدیریت فعال</span><a class="btn btn-ghost btn-sm" href="/admin/assistant">دستیار هوشمند ✧</a><a class="btn btn-ghost btn-sm" href="/" target="_blank" rel="noopener">مشاهده سایت ↗</a></div>
+</header><div class="admin-content"><slot/></div><footer class="admin-footer"><span>کافه دانش · مدیریت یکپارچه محتوا</span><span>Astro + PostgreSQL</span></footer></main>
+</div><script>import '../scripts/admin.ts';
+document.getElementById('logout-form')?.addEventListener('submit',async(event)=>{event.preventDefault();const b=(event.currentTarget as HTMLFormElement).querySelector('button');if(b)b.setAttribute('disabled','true');try{await fetch('/api/auth/logout',{method:'POST'});}finally{window.location.href='/admin/login';}});</script>
+</body></html>

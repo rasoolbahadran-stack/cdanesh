@@ -65,7 +65,7 @@ const hasSeo = config.fields.some((f) => SEO_KEYS.includes(f.key));
     <b style="font-size:12.5px" id="ent-bulk-count"></b>
     <button class="btn btn-ghost btn-sm" id="ent-bulk-status" type="button" data-status="published">انتشار گروهی</button>
     <button class="btn btn-ghost btn-sm" id="ent-bulk-status-draft" type="button" data-status="draft">تبدیل به پیش‌نویس</button>
-    <button class="btn btn-danger btn-sm" id="ent-bulk-delete" type="button">حذف گروهی</button>
+    <button class="btn btn-danger btn-sm" id="ent-bulk-delete" type="button">انتقال گروهی به سطل زباله</button>
     <button class="btn btn-ghost btn-sm" id="ent-bulk-clear" type="button">لغو انتخاب</button>
   </div>
   <div class="table-scroll">
@@ -258,7 +258,7 @@ const hasSeo = config.fields.some((f) => SEO_KEYS.includes(f.key));
         act.querySelector('[data-view]').addEventListener('click', () => openPreview(item));
         act.querySelector('[data-copy]').addEventListener('click', () => duplicateItem(item));
         act.querySelector('[data-del]').addEventListener('click', () => {
-          confirmDlg('«' + (item.title || item.name || item.question || item.id) + '» برای همیشه حذف شود؟', async () => {
+          confirmDlg('«' + (item.title || item.name || item.question || item.id) + '» به سطل زباله منتقل شود؟ امکان بازیابی وجود دارد.', async () => {
             const r = await api(`/api/admin/${cfg.entity}/${item.id}`, 'DELETE');
             if (r.ok) { toast(r.message || 'حذف شد'); load(); } else toast(r.message || 'حذف ناموفق بود', 'err');
           });
@@ -306,6 +306,8 @@ const hasSeo = config.fields.some((f) => SEO_KEYS.includes(f.key));
       const full = f.full ? 'full' : '';
       const req = f.required ? '<span class="req">*</span>' : '';
       switch (f.type) {
+        case 'editor':
+          return '';
         case 'textarea':
           return `<div class="form-field ${full}"><label>${f.label} ${req}</label><textarea name="${f.key}" data-ft="${f.type}" placeholder="${f.placeholder || ''}">${value ?? ''}</textarea>${f.hint ? `<span class="hint">${f.hint}</span>` : ''}</div>`;
         case 'lines':
@@ -550,7 +552,7 @@ const hasSeo = config.fields.some((f) => SEO_KEYS.includes(f.key));
       if (r.ok) load();
     }
     document.getElementById('ent-bulk-delete').addEventListener('click', () => {
-      confirmDlg(`${faNum(selected.size)} مورد انتخاب‌شده برای همیشه حذف شود؟`, () => bulkRun('delete'));
+      confirmDlg(`${faNum(selected.size)} مورد انتخاب‌شده به سطل زباله منتقل شود؟ امکان بازیابی وجود دارد.`, () => bulkRun('delete'));
     });
     document.getElementById('ent-bulk-status').addEventListener('click', () => bulkRun('status', 'published'));
     document.getElementById('ent-bulk-status-draft').addEventListener('click', () => bulkRun('status', 'draft'));
