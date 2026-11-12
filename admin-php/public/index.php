@@ -101,6 +101,7 @@ function entity_config(): array {
         'plans' => ['label'=>'تعرفه‌ها','title'=>'title','summary'=>'description','cols'=>['title'=>'عنوان','price'=>'قیمت','status'=>'وضعیت'],'fields'=>['title'=>'عنوان','badge'=>'نشان','price'=>'قیمت','price_note'=>'توضیح قیمت','description'=>'توضیحات','features'=>'امکانات (JSON)','highlighted'=>'برجسته','cta_text'=>'متن دکمه','sort_order'=>'ترتیب','status'=>'وضعیت']],
         'testimonials' => ['label'=>'دیدگاه‌ها','title'=>'name','summary'=>'content','cols'=>['name'=>'نام','company'=>'شرکت','rating'=>'امتیاز','status'=>'وضعیت'],'fields'=>['name'=>'نام','role'=>'سمت','company'=>'شرکت','content'=>'متن دیدگاه','rating'=>'امتیاز','avatar'=>'آواتار','sort_order'=>'ترتیب','status'=>'وضعیت']],
         'messages' => ['label'=>'پیام‌ها','title'=>'name','summary'=>'message','cols'=>['name'=>'نام','email'=>'ایمیل','phone'=>'تلفن','status'=>'وضعیت','created_at'=>'تاریخ'],'fields'=>['status'=>'وضعیت','admin_note'=>'یادداشت مدیر','starred'=>'ستاره‌دار']],
+        'media' => ['label'=>'رسانه‌ها','title'=>'filename','summary'=>'alt','cols'=>['filename'=>'نام فایل','mime'=>'نوع فایل','size'=>'حجم','alt'=>'متن جایگزین','created_at'=>'تاریخ'],'fields'=>['alt'=>'متن جایگزین']],
     ];
 }
 function route_entity(string $table): ?array {
