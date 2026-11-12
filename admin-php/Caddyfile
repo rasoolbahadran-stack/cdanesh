@@ -1,16 +1,25 @@
-{
-  auto_https off
-  admin off
-}
-:{$PORT:8080} {
-  root * /app/public
-  encode gzip zstd
-  header {
-    X-Robots-Tag "noindex, nofollow, noarchive"
-    X-Content-Type-Options "nosniff"
-    Referrer-Policy "strict-origin-when-cross-origin"
-    Permissions-Policy "camera=(), microphone=(), geolocation=()"
-  }
-  php_server
-  file_server
+:{$PORT:80} {
+    root * /app/public
+    encode zstd gzip
+    header {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        X-Robots-Tag "noindex, nofollow, noarchive"
+        -Server
+    }
+
+    handle /admin {
+        rewrite * /index.php
+        php_server
+    }
+
+    handle_path /admin/* {
+        php_server
+    }
+
+    handle {
+        respond "Not Found" 404
+    }
 }

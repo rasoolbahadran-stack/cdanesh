@@ -1,6 +1,4 @@
-.git
-.github
-README-fa.md
-.env
-.env.*
+README.md
+.DS_Store
 *.log
+.env*
