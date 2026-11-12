@@ -275,3 +275,10 @@ body.admin-body img { max-width: 100%; display: block; }
 .message-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.message-meta-item{display:grid;gap:3px;padding:10px;border-radius:10px;background:var(--a-bg);min-width:0;overflow-wrap:anywhere}.message-meta-item small{color:var(--a-muted);font-size:10px}.message-meta-item b{font-size:12px}.message-meta-item a{color:var(--a-gold-3);font-size:11px}
 .message-full-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:2;margin:0;padding:14px;background:#fbfbfd;border:1px solid var(--a-line);border-radius:12px;min-height:100px}.message-note{width:100%;border:1px solid var(--a-line);border-radius:10px;padding:10px;font:inherit}.message-actions{display:flex;gap:8px;flex-wrap:wrap}
 @media(max-width:850px){.messages-layout{grid-template-columns:1fr}.message-list{max-height:45vh}.message-meta{grid-template-columns:1fr}}@media(max-width:560px){.admin-content{padding:14px 12px}.admin-topbar{padding:12px 14px}}
+
+/* تنظیمات تصویر داخل ویرایشگر */
+.image-style-modal{width:min(620px,100%)}.image-style-preview{width:100%;max-height:220px;object-fit:contain;border-radius:10px;background:var(--a-bg);border:1px solid var(--a-line);margin-bottom:14px}
+.image-style-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.image-style-fields label{display:grid;gap:5px;font-size:12px;font-weight:700}
+.image-style-fields input:not([type=checkbox]),.image-style-fields select{width:100%;min-width:0;border:1px solid var(--a-line);border-radius:9px;padding:9px;font:inherit}
+.image-style-fields .image-style-check{display:flex;align-items:center;gap:8px}.image-style-help{color:var(--a-muted);font-size:11px;line-height:1.9}
+@media(max-width:560px){.image-style-fields{grid-template-columns:1fr}}
