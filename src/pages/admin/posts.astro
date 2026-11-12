@@ -2,153 +2,59 @@
 export const prerender = false;
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { listAdminPosts, dbAvailable } from '../../lib/cms-db';
-import localPosts from '../../data/content/posts.json';
-
 const useDb = dbAvailable();
 let rows: Array<Record<string, unknown>> = [];
 if (useDb) {
-  try {
-    rows = (await listAdminPosts()) as unknown as Array<Record<string, unknown>>;
-  } catch { /* no db */ }
+  try { rows = (await listAdminPosts()) as unknown as Array<Record<string, unknown>>; } catch { rows = []; }
 }
-if (!rows.length) rows = localPosts as unknown as Array<Record<string, unknown>>;
 const fa = (n: number | string) => new Intl.NumberFormat('fa-IR').format(Number(n));
 ---
-<AdminLayout title="پنل مدیریت کافه دانش">
+<AdminLayout title="مدیریت مقاله‌ها">
   <div class="admin-body">
     <div class="admin-shell">
       <aside class="admin-side">
-        <div style="display:flex;align-items:center;gap:10px">
-          <img src="/img/logo.svg" alt="" width="38" height="38" style="border-radius:10px" />
-          <div><b style="color:#fff;display:block">کافه دانش</b><small style="opacity:.7">پنل مدیریت</small></div>
-        </div>
+        <div style="display:flex;align-items:center;gap:10px"><img src="/img/logo.svg" alt="" width="38" height="38" style="border-radius:10px" /><div><b style="color:#fff;display:block">کافه دانش</b><small style="opacity:.7">پنل مدیریت</small></div></div>
         <nav class="admin-side__nav" aria-label="منوی مدیریت">
-          <a href="/admin">🏠 داشبورد</a>
-          <a href="/admin/posts" class="is-active">📝 مقالات</a>
-          <a href="/admin/portfolio">🎨 نمونه‌کارها</a>
-          <a href="/admin/messages">💬 پیام‌ها</a>
-          <a href="/" target="_blank">🌍 مشاهده سایت</a>
+          <a href="/admin">🏠 داشبورد</a><a href="/admin/posts" class="is-active">📝 مقاله‌ها</a><a href="/admin/pages">📄 صفحات</a><a href="/admin/categories">🗂 دسته‌بندی‌ها</a><a href="/admin/media">🖼 رسانه‌ها</a><a href="/admin/messages">💬 پیام‌ها</a><a href="/admin/assistant">✨ دستیار هوشمند</a><a href="/admin/settings">⚙️ تنظیمات</a>
         </nav>
       </aside>
-
       <main class="admin-main">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
-          <h1 style="margin:0">مدیریت مقالات</h1>
-          <button type="button" class="btn btn--sm" data-new-post>+ مقاله جدید</button>
+        <div style="padding:28px;max-width:1400px;margin:auto;width:100%">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+            <div><h1 style="margin:0 0 4px">مدیریت مقاله‌ها</h1><p style="margin:0;color:var(--mut)">ساخت، ویرایش و مدیریت وضعیت انتشار مقاله‌ها</p></div>
+            <a href="/admin/posts/new" class="btn btn-gold">＋ مقاله جدید</a>
+          </div>
+          {!useDb && <div class="form-status is-err" style="display:flex;margin-top:18px">اتصال دیتابیس فعال نیست؛ برای مدیریت مقاله‌ها باید DATABASE_URL تنظیم شده باشد.</div>}
+          <div class="panel" style="margin-top:20px">
+            <div class="panel-head"><h2>فهرست مقاله‌ها ({fa(rows.length)})</h2><input id="post-search" type="search" placeholder="جست‌وجوی عنوان یا اسلاگ…" style="max-width:280px;border:1px solid var(--a-line);border-radius:10px;padding:8px 12px;font-family:inherit" /></div>
+            <div class="table-scroll">
+              <table class="admin-table" id="posts-table">
+                <thead><tr><th>عنوان مقاله</th><th>دسته‌بندی</th><th>آدرس</th><th>وضعیت</th><th>تاریخ</th><th>عملیات</th></tr></thead>
+                <tbody>
+                {rows.map((r) => <tr data-post-row data-search={(String(r.title || '') + ' ' + String(r.slug || '')).toLowerCase()}>
+                  <td><b>{String(r.title ?? '')}</b></td><td>{String(r.category ?? 'عمومی')}</td>
+                  <td dir="ltr" style="text-align:left;font-size:12px">/{String(r.slug ?? '')}</td>
+                  <td><span class="badge" class:list={{'badge--ok': r.published, 'badge--soon': !r.published}}>{r.published ? 'منتشرشده' : 'پیش‌نویس'}</span></td>
+                  <td>{String(r.dateFa ?? '—')}</td>
+                  <td><div class="admin-actions"><a href={'/admin/posts/' + encodeURIComponent(String(r.slug))}>ویرایش</a>{r.published ? <a href={'/blog/' + encodeURIComponent(String(r.slug))} target="_blank" rel="noopener">مشاهده</a> : <a href={'/admin/preview?type=posts&id=' + String(r.id)} target="_blank">پیش‌نمایش</a>}</div></td>
+                </tr>)}
+                </tbody>
+              </table>
+            </div>
+            {!rows.length && <div class="empty-state" style="padding:34px">هنوز مقاله‌ای ثبت نشده است. با دکمهٔ «مقاله جدید» اولین مقاله را بسازید.</div>}
+          </div>
         </div>
-
-        {rows.length > 0 && (
-          <div style="overflow-x:auto;margin-top:20px">
-            <table class="admin-table">
-              <thead>
-                <tr><th>عنوان</th><th>دسته</th><th>تاریخ</th><th>وضعیت</th><th>عملیات</th></tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => (
-                  <tr>
-                    <td><b>{String(r.title ?? '')}</b><br /><small style="color:var(--mut)" dir="ltr">/{String(r.slug ?? '')}</small></td>
-                    <td>{String(r.category ?? '—')}</td>
-                    <td>{String(r.dateFa ?? r.published_at ?? '—').slice(0, 12)}</td>
-                    <td><span class="badge" class:list={{ 'badge--ok': r.published, 'badge--soon': !r.published }}>{r.published ? 'منتشرشده' : 'پیش‌نویس'}</span></td>
-                    <td>
-                      <div class="admin-actions">
-                        <a href={`/blog/${r.slug}`} target="_blank">مشاهده</a>
-                        <button type="button" data-edit={JSON.stringify(r)}>ویرایش</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {useDb ? (
-          <div class="admin-card" style="margin-top:24px">
-            <h2 style="font-size:1.05rem" data-form-title>ویرایشگر مقاله</h2>
-            <form id="post-form" style="display:grid;gap:12px;margin-top:14px">
-              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px" class="form-grid">
-                <div class="field"><label>اسلاگ (انگلیسی)</label><input name="slug" required dir="ltr" /></div>
-                <div class="field"><label>عنوان</label><input name="title" required /></div>
-                <div class="field"><label>دسته‌بندی</label><input name="category" value="وب و سئو" /></div>
-                <div class="field"><label>دقیقه مطالعه</label><input name="read_minutes" type="number" min="1" value="6" /></div>
-                <div class="field field--full"><label>توضیح کوتاه (اکسپرت)</label><input name="excerpt" /></div>
-                <div class="field field--full"><label>تصویر شاخص (مسیر)</label><input name="cover" dir="ltr" placeholder="/img/blog/..." /></div>
-                <div class="field field--full"><label>محتوا (HTML)</label><textarea name="content" style="min-height:260px;direction:ltr;text-align:left;font-family:monospace"></textarea></div>
-              </div>
-              <label style="display:flex;gap:8px;align-items:center;font-weight:700;font-size:.92rem">
-                <input type="checkbox" name="published" checked /> انتشار
-              </label>
-              <div style="display:flex;gap:10px">
-                <button type="submit" class="btn btn--sm">ذخیره</button>
-                <button type="button" class="btn btn--sm btn--outline" data-delete>حذف مقاله</button>
-              </div>
-              <p class="form-status" role="status"></p>
-            </form>
-          </div>
-        ) : (
-          <p class="form-status is-err" style="display:flex;margin-top:20px">
-            برای ویرایش مقالات، DATABASE_URL را در متغیرهای محیطی تنظیم کنید. فهرست بالا از داده‌های محلی نمایش داده شده است.
-          </p>
-        )}
       </main>
     </div>
   </div>
-
   <script>
-    const form = document.getElementById('post-form') as HTMLFormElement | null;
-    const status = form?.querySelector('.form-status') as HTMLElement;
-    const title = document.querySelector('[data-form-title]') as HTMLElement;
-    document.querySelectorAll('[data-edit]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const r = JSON.parse((btn as HTMLElement).dataset.edit || '{}');
-        if (!form) return;
-        (form.querySelector('[name=slug]') as HTMLInputElement).value = String(r.slug ?? '');
-        (form.querySelector('[name=title]') as HTMLInputElement).value = String(r.title ?? '');
-        (form.querySelector('[name=category]') as HTMLInputElement).value = String(r.category ?? '');
-        (form.querySelector('[name=excerpt]') as HTMLInputElement).value = String(r.excerpt ?? '');
-        (form.querySelector('[name=read_minutes]') as HTMLInputElement).value = String(r.read_minutes ?? r.readMinutes ?? 6);
-        (form.querySelector('[name=content]') as HTMLTextAreaElement).value = String(r.content ?? '');
-        (form.querySelector('[name=published]') as HTMLInputElement).checked = Boolean(r.published);
-        (form.querySelector('[name=cover]') as HTMLInputElement).value = String(r.cover ?? '');
-        title.textContent = `ویرایش: ${r.title ?? ''}`;
-        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const search = document.getElementById('post-search');
+    search?.addEventListener('input', () => {
+      const q = (search as HTMLInputElement).value.trim().toLowerCase();
+      document.querySelectorAll('[data-post-row]').forEach((row) => {
+        const el = row as HTMLElement;
+        el.style.display = !q || (el.dataset.search || '').includes(q) ? '' : 'none';
       });
-    });
-    document.querySelector('[data-new-post]')?.addEventListener('click', () => {
-      if (!form) return;
-      form.reset();
-      (form.querySelector('[name=category]') as HTMLInputElement).value = 'وب و سئو';
-      title.textContent = 'مقاله جدید';
-      form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-    form?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const data = Object.fromEntries(new FormData(form).entries());
-      data.published = (form.querySelector('[name=published]') as HTMLInputElement).checked;
-      try {
-        const res = await fetch('/api/admin/posts', {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
-        });
-        const j = await res.json();
-        if (res.ok && j.ok) { status.className = 'form-status is-ok'; status.textContent = 'ذخیره شد ✅'; }
-        else { status.className = 'form-status is-err'; status.textContent = j.error || 'ذخیره ناموفق'; }
-      } catch {
-        status.className = 'form-status is-err'; status.textContent = 'ارتباط با سرور برقرار نشد';
-      }
-    });
-    document.querySelector('[data-delete]')?.addEventListener('click', async () => {
-      if (!form) return;
-      const slug = (form.querySelector('[name=slug]') as HTMLInputElement).value;
-      if (!slug || !confirm(`مقاله «${slug}» حذف شود؟`)) return;
-      const res = await fetch('/api/admin/posts', {
-        method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug }),
-      });
-      const j = await res.json();
-      if (status) {
-        status.className = 'form-status ' + (j.ok ? 'is-ok' : 'is-err');
-        status.textContent = j.ok ? 'حذف شد' : (j.error || 'حذف ناموفق');
-      }
     });
   </script>
 </AdminLayout>

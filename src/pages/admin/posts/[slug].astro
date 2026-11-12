@@ -1,0 +1,13 @@
+---
+export const prerender = false;
+import PostEditor from '../../../components/admin/PostEditor.astro';
+import { q1 } from '../../../lib/db';
+const slug = String(Astro.params.slug || '');
+const post = await q1<Record<string, unknown>>(
+  `SELECT p.*, COALESCE(c.name, 'عمومی') AS category
+     FROM posts p LEFT JOIN categories c ON c.id = p.category_id
+    WHERE p.slug = $1 LIMIT 1`, [slug]
+);
+if (!post) return Astro.redirect('/admin/posts');
+---
+<PostEditor post={post} isNew={false} />
