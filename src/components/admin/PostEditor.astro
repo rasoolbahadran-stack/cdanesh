@@ -178,7 +178,7 @@ const status = value('status', 'draft');
         const html = sourceMode ? (cm ? cm.getValue() : source.value) : visual.innerHTML;
         const data: Record<string, unknown> = {
           title: title.value.trim(), slug: slug.value.trim(), excerpt: (form.elements.namedItem('excerpt') as HTMLTextAreaElement).value,
-          category_id: Number((form.elements.namedItem('category_id') as HTMLSelectElement).value) || null,
+          category_id: (form.elements.namedItem('category_id') as HTMLSelectElement).value ? Number((form.elements.namedItem('category_id') as HTMLSelectElement).value) : undefined,
           content: html, cover_image: cover.value, status: nextStatus,
           reading_time: Number((form.elements.namedItem('reading_time') as HTMLInputElement).value || 6),
           seo_title: (form.elements.namedItem('seo_title') as HTMLInputElement).value,

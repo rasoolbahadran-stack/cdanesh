@@ -70,6 +70,15 @@ const extraLd = extraJsonLd.map((j) => JSON.stringify(j));
     </main>
 
     <Footer />
+    <script is:inline>
+      (() => {
+        const send = (message) => {
+          try { fetch('/api/errors', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source: 'browser', path: location.pathname, message: String(message || 'خطای مرورگر').slice(0, 700), severity: 'error' }), keepalive: true }); } catch {}
+        };
+        window.addEventListener('error', (event) => send(event.message || 'خطای اجرای اسکریپت'));
+        window.addEventListener('unhandledrejection', (event) => send(event.reason?.message || event.reason || 'خطای promise'));
+      })();
+    </script>
 
     <script>
       // ── انیمیشن ورود عناصر هنگام اسکرول (IntersectionObserver سبک) ──

@@ -7,6 +7,8 @@
 import { defineMiddleware } from 'astro:middleware';
 import { boot } from './lib/bootstrap';
 import { sessionFromCookies } from './lib/auth';
+import { q } from './lib/db';
+import crypto from 'node:crypto';
 
 export const onRequest = defineMiddleware(async (context, next) => {
   try {
@@ -66,7 +68,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
     });
   }
 
-  const response = await next();
+  let response: Response;
+  try { response = await next(); } catch (error) {
+    const traceId = crypto.randomUUID();
+    const message = String((error as Error)?.message || 'خطای غیرمنتظره سرور').replace(/[\\r\\n\\t]+/g, ' ').replace(/Bearer\\s+\\S+/gi, '[توکن حذف شد]').replace(/(password|token|secret|api[_-]?key)\\s*[:=]\\s*[^\\s,;]+/gi, '$1=[حذف شد]').slice(0, 700);
+    try { await q('INSERT INTO error_reports(trace_id,source,message,path,severity) VALUES($1,$2,$3,$4,$5)', [traceId, 'server', message, path.slice(0, 400), 'fatal']); } catch { /* ثبت خطا نباید خطای اصلی را مختل کند */ }
+    return new Response('سرویس موقتاً با خطا روبه‌رو شد. شناسه پیگیری: ' + traceId, { status: 500, headers: { 'content-type': 'text/plain; charset=utf-8' } });
+  }
 
   /* هدرهای امنیتی پایه */
   response.headers.set('X-Content-Type-Options', 'nosniff');

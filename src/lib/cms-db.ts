@@ -236,8 +236,8 @@ export async function deletePortfolio(slug: string) {
 /** پیام‌های جدول messages موجود در دیتابیس فعلی */
 export async function listMessages() {
   return q<Row>(
-    `SELECT id, name, email, phone, plan_title AS service,
-            type AS kind, message, status,
+    `SELECT id, name, email, phone, company, plan_title AS service,
+            type AS kind, message, status, admin_note, starred,
             (status <> 'new') AS is_read, created_at
        FROM messages
       WHERE status <> 'archived'
