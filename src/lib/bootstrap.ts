@@ -7,6 +7,7 @@ import './schema-v2';
 import './schema-v3'; // ثبت مایگریشن افزایشی (سئو، زمان‌بندی، گالری، پیام‌ها، رمز)
 import { migrate } from './db';
 import { runSeed } from './seed';
+import { runContentPatch } from './seed/content-patch';
 import { setDbPasswordHash } from './auth';
 import { q1 } from './db';
 
@@ -17,6 +18,8 @@ export function boot(): Promise<void> {
     g.__cd_boot = (async () => {
       await migrate();
       await runSeed();
+      // پچ محتوایی نسخه‌دار: به‌روزرسانی مقالات seed موجود در دیتابیس (idempotent)
+      await runContentPatch().catch((e) => console.warn('[cdanesh] content patch skipped:', e));
       /* هش رمز مدیر ذخیره‌شده در دیتابیس (تغییر رمز از پنل) را در حافظه می‌آورد؛
          اگر خالی باشد، ADMIN_PASSWORD_HASH مرجع ورود می‌ماند. */
       try {

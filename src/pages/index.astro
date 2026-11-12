@@ -5,6 +5,7 @@ import SectionHead from '../components/SectionHead.astro';
 import PortfolioCard from '../components/PortfolioCard.astro';
 import PostCard from '../components/PostCard.astro';
 import CtaBand from '../components/CtaBand.astro';
+import WaveSep from '../components/WaveSep.astro';
 import { getPosts, getPortfolio, PROS, SERVICE_CARDS, STEPS, PRICING, MARQUEE_ITEMS, SITE, svcImg } from '../lib/content';
 import { jsonLdFaq, jsonLdBreadcrumb } from '../lib/seo';
 import { getFaq } from '../lib/content';
@@ -146,20 +147,23 @@ const meta = {
     </div>
   </section>
 
-  <!-- نوار متحرک پروژه‌ها -->
-  <div class="marquee marquee--hero" style="background:var(--grad-hero);padding-bottom:22px;margin-top:-2px" aria-hidden="true">
-    <div class="marquee__track">
-      {marqueeItems.map((m) => (
-        <span class="marquee__item">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c.9 6.7 4.4 10.2 12 12-7.6 1.8-11.1 5.3-12 12-.9-6.7-4.4-10.2-12-12C7.6 10.2 11.1 6.7 12 0Z" /></svg>
-          {m}
-        </span>
-      ))}
+  <!-- نوار متحرک پروژه‌ها — باند گرادیانی با لبهٔ پایین موجی -->
+  <div class="marquee-band wave-host" style="background:var(--grad-hero);margin-top:-2px">
+    <div class="marquee marquee--hero">
+      <div class="marquee__track">
+        {marqueeItems.map((m) => (
+          <span class="marquee__item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c.9 6.7 4.4 10.2 12 12-7.6 1.8-11.1 5.3-12 12-.9-6.7-4.4-10.2-12-12C7.6 10.2 11.1 6.7 12 0Z" /></svg>
+            {m}
+          </span>
+        ))}
+      </div>
     </div>
+    <WaveSep fill="#ffffff" variant="a" />
   </div>
 
   <!-- ═══════════ نوار آمار ═══════════ -->
-  <section class="section--tight" aria-label="کافه دانش در یک نگاه">
+  <section class="section--tight wave-host" aria-label="کافه دانش در یک نگاه">
     <div class="container">
       <div class="stats">
         <div class="stat" data-reveal="up">
@@ -179,6 +183,7 @@ const meta = {
         </div>
       </div>
     </div>
+    <WaveSep fill="var(--lavender)" variant="b" />
   </section>
 
   <!-- ═══════════ تخصص اصلی: طراحی و توسعه وب‌سایت ═══════════ -->
@@ -212,6 +217,7 @@ const meta = {
         <a href="/services/support">مدیریت و پشتیبانی سایت</a>
       </p>
     </div>
+    <WaveSep fill="#ffffff" variant="a" />
   </section>
 
   <!-- ═══════════ نمونه‌کارهای منتخب ═══════════ -->
@@ -294,6 +300,7 @@ const meta = {
         ))}
       </div>
     </div>
+    <WaveSep fill="#ffffff" variant="b" />
   </section>
 
   <!-- ═══════════ FAQ ═══════════ -->
@@ -334,12 +341,14 @@ const meta = {
         <a href="/blog" class="btn btn--outline btn--lg">مشاهده همه مقالات</a>
       </div>
     </div>
+    <WaveSep fill="#ffffff" variant="a" />
   </section>
 
   <CtaBand />
 </BaseLayout>
 
 <style is:global>
+  .marquee-band { position: relative; padding-block: 16px clamp(46px, 5.6vw, 78px); }
   .svc-grid, .price-grid, .blog-grid, .compl-grid, .home-four-row { grid-template-columns: 1fr; }
   @media (min-width: 700px) {
     .svc-grid { grid-template-columns: repeat(2, 1fr); }

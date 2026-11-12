@@ -98,9 +98,14 @@ const meta = {
         </figure>
       )}
       {toc.length > 2 && (
-        <nav class="article-toc" aria-label="فهرست مطالب">
-          <strong>در این مقاله می‌خوانید</strong>
-          <ul>{toc.map((item) => <li class:list={[item.level === 'h3' ? 'is-sub' : '']}><a href={`#${item.id}`}>{item.text}</a></li>)}</ul>
+        <nav class="article-toc" aria-label="فهرست مطالب" data-toc>
+          <button type="button" class="article-toc__toggle" data-toc-toggle aria-expanded="false" aria-controls="article-toc-body">
+            <strong>در این مقاله می‌خوانید</strong>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+          </button>
+          <div class="article-toc__body" id="article-toc-body">
+            <ul>{toc.map((item) => <li class:list={[item.level === 'h3' ? 'is-sub' : '']}><a href={`#${item.id}`}>{item.text}</a></li>)}</ul>
+          </div>
         </nav>
       )}
       <Blocks blocks={post.blocks} />
@@ -145,6 +150,19 @@ const meta = {
 </BaseLayout>
 
 <script>
+  // فهرست مطالب: در موبایل جمع‌شونده است — با کلیک روی تیتر باز/بسته می‌شود
+  const toc = document.querySelector('[data-toc]');
+  const tocToggle = toc?.querySelector<HTMLButtonElement>('[data-toc-toggle]');
+  tocToggle?.addEventListener('click', () => {
+    const open = tocToggle.getAttribute('aria-expanded') === 'true';
+    tocToggle.setAttribute('aria-expanded', String(!open));
+    toc?.classList.toggle('is-open', !open);
+  });
+  toc?.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => {
+    tocToggle?.setAttribute('aria-expanded', 'false');
+    toc?.classList.remove('is-open');
+  }));
+
   const shareButton = document.getElementById('article-share') as HTMLButtonElement | null;
   const shareStatus = document.getElementById('article-share-status');
   shareButton?.addEventListener('click', async () => {
@@ -176,11 +194,25 @@ const meta = {
 </style>
 
 <style>
-  .article-toc{max-width:900px;margin:0 auto 28px;padding:20px 24px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--bg-soft,#faf9fd)}
-  .article-toc strong{display:block;color:var(--navy);margin-bottom:10px}
-  .article-toc ul{margin:0;padding-right:20px;display:grid;gap:8px;line-height:1.9}
+  .article-toc{max-width:900px;margin:0 auto 28px;padding:16px 22px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--bg-soft,#faf9fd)}
+  .article-toc__toggle{
+    width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:none;border:0;padding:0;cursor:default;
+  }
+  .article-toc__toggle strong{display:block;color:var(--navy);font-size:1rem}
+  .article-toc__toggle svg{color:var(--purple);transition:transform .25s var(--ease);display:none}
+  .article-toc ul{margin:12px 0 0;padding-right:20px;display:grid;gap:8px;line-height:1.9}
   .article-toc li{color:var(--purple)}
   .article-toc li.is-sub{padding-right:16px;font-size:.92rem}
   .article-toc a{color:var(--navy);text-decoration:none}
   .article-toc a:hover{color:var(--purple)}
+  /* موبایل: فهرست به‌صورت پیش‌فرض جمع است و با کلیک باز می‌شود */
+  @media (max-width: 760px){
+    .article-toc__toggle{cursor:pointer}
+    .article-toc__toggle svg{display:block}
+    .article-toc__toggle[aria-expanded="true"] svg{transform:rotate(180deg)}
+    .article-toc__body{display:none}
+    .article-toc.is-open .article-toc__body{display:block}
+    .article-toc.is-open ul{margin-top:12px}
+  }
 </style>

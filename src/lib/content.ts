@@ -208,14 +208,14 @@ export const MEGA_GROUPS = [
       { href: '/services/company-website', t: 'طراحی سایت شرکتی', d: 'معرفی برند و خدمات' },
       { href: '/services/ecommerce', t: 'طراحی فروشگاه اینترنتی', d: 'فروش آنلاین محصولات' },
       { href: '/services/custom-web', t: 'طراحی وب‌سایت اختصاصی', d: 'وب‌اپلیکیشن اختصاصی' },
-      { href: '/services/ui-ux', t: 'طراحی رابط و تجربه کاربری', d: 'مسیر کاربری هدفمند' },
+      { href: '/services/ui-ux', t: 'طراحی رابط کاربری', d: 'UI/UX؛ مسیر کاربری هدفمند' },
     ],
   },
   {
     title: 'خدمات مکمل',
     items: [
       { href: '/services/seo', t: 'سئو تکنیکال و محتوایی', d: 'دیده‌شدن در گوگل' },
-      { href: '/services/content', t: 'تولید محتوا و مقالات تخصصی', d: 'جذب مخاطب با محتوا' },
+      { href: '/services/content', t: 'تولید محتوای تخصصی', d: 'جذب مخاطب با محتوا' },
       { href: '/services/content-strategy', t: 'استراتژی و تقویم محتوایی', d: 'تقویم انتشار محتوا' },
     ],
   },
