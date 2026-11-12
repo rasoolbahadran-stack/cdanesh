@@ -51,7 +51,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   /* ریدایرکت دائمی اسلاگ قدیمی مقاله‌ها و صفحات */
-  const slugMatch = path.match(/^\\/(blog|page)\\/([^/]+)\\/?$/);
+  const slugMatch = path.match(/^\/(blog|page)\/([^/]+)\/?$/);
   if (slugMatch) {
     try {
       const entity = slugMatch[1] === 'blog' ? 'posts' : 'pages';
