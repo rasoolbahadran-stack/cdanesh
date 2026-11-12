@@ -22,6 +22,17 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   const path = context.url.pathname;
+  /* انتشار خودکار مقاله‌های زمان‌بندی‌شده؛ بررسی سبک در اولین درخواست هر ۳۰ ثانیه */
+  const scheduleRuntime = globalThis as unknown as { __cd_schedule_check?: number };
+  if (!scheduleRuntime.__cd_schedule_check || Date.now() - scheduleRuntime.__cd_schedule_check > 30_000) {
+    scheduleRuntime.__cd_schedule_check = Date.now();
+    try {
+      const due = await q<{ id: number; title: string }>(`UPDATE posts SET status='published', updated_at=now() WHERE status='scheduled' AND published_at IS NOT NULL AND published_at <= now() RETURNING id, title`);
+      for (const item of due) {
+        await q('INSERT INTO activity(type,entity,entity_id,title) VALUES($1,$2,$3,$4)', ['publish', 'posts', item.id, 'انتشار زمان‌بندی‌شده مقاله: ' + String(item.title || '').slice(0, 160)]);
+      }
+    } catch (error) { console.warn('[cdanesh] scheduled publishing check failed:', error); }
+  }
   const request = context.request;
   const session = sessionFromCookies(request.headers.get('cookie') || '');
   context.locals.admin = session;
