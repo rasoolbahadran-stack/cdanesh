@@ -3,12 +3,23 @@ import type { APIRoute } from 'astro';
 import { q, q1 } from '../../../lib/db';
 import { ok, fail, unauthorized, serverError, num, str } from '../../../lib/http';
 import { sessionFromCookies } from '../../../lib/auth';
-import { saveImage, deleteImage } from '../../../lib/storage';
+import { saveImage } from '../../../lib/storage';
 import { logActivity } from '../../../lib/seed';
 
 export const prerender = false;
 
 const admin = (request: Request) => !!sessionFromCookies(request.headers.get('cookie') || '');
+
+async function ensureTrashTable() {
+  await q(`CREATE TABLE IF NOT EXISTS cdanesh_admin_trash (
+    id bigserial PRIMARY KEY,
+    entity text NOT NULL,
+    entity_id bigint NOT NULL,
+    snapshot jsonb NOT NULL,
+    deleted_at timestamptz NOT NULL DEFAULT now(),
+    restored_at timestamptz
+  )`);
+}
 
 /* بررسی اینکه آیا فایل در محتوای سایت استفاده شده است */
 async function findUsage(url: string): Promise<string[]> {
@@ -115,10 +126,14 @@ export const DELETE: APIRoute = async (ctx) => {
       }
     }
 
-    await deleteImage(String(row.url));
+    await ensureTrashTable();
+    await q(
+      'INSERT INTO cdanesh_admin_trash(entity, entity_id, snapshot) VALUES($1, $2, $3::jsonb)',
+      ['media', id, JSON.stringify(row)],
+    );
     await q('DELETE FROM media WHERE id = $1', [id]);
-    await logActivity('delete', 'media', id, force ? 'تصویرِ درحال‌استفاده به‌صورت قطعی حذف شد' : 'تصویر حذف شد');
-    return ok({ id }, 'تصویر حذف شد');
+    await logActivity('delete', 'media', id, 'تصویر به سطل زباله منتقل شد');
+    return ok({ id }, 'تصویر به سطل زباله منتقل شد؛ فایل تا حذف قطعی قابل بازیابی است.');
   } catch (e) {
     return serverError(e);
   }
