@@ -1,0 +1,75 @@
+---
+export const prerender = false;
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="گزارش فعالیت" crumb="سیستم مدیریت › گزارش فعالیت">
+  <style>
+    .activity-wrap{max-width:1450px;margin:auto;padding:22px}
+    .activity-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+    .activity-head h2{margin:0;font-size:18px}.activity-head p{margin:5px 0 0;color:var(--a-muted);font-size:12px}
+    .activity-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .activity-tools select{border:1px solid var(--a-line);border-radius:9px;padding:8px 10px;font:inherit;background:#fff}
+    .activity-table{width:100%;border-collapse:collapse;min-width:650px}
+    .activity-table th,.activity-table td{padding:12px 10px;border-bottom:1px solid var(--a-line);text-align:right;font-size:12.5px;vertical-align:top}
+    .activity-table th{color:var(--a-muted);font-weight:700;background:#fafaff}
+    .activity-type{display:inline-flex;padding:3px 8px;border-radius:20px;background:#f0edff;color:#5940a2;font-size:11px}
+    @media(max-width:600px){.activity-wrap{padding:12px}}
+  </style>
+  <div class="activity-wrap">
+    <header class="activity-head">
+      <div><h2>گزارش فعالیت مدیران</h2><p>رویدادهای ایجاد، ویرایش، انتشار، ورود، حذف و بازیابی در پنل ثبت می‌شوند.</p></div>
+      <div class="activity-tools">
+        <select id="activity-entity">
+          <option value="">همه بخش‌ها</option>
+          <option value="posts">مقاله‌ها</option><option value="pages">صفحات</option><option value="media">رسانه‌ها</option>
+          <option value="projects">نمونه‌کارها</option><option value="messages">پیام‌ها</option><option value="auth">ورود و خروج</option>
+        </select>
+        <button type="button" class="btn btn-ghost btn-sm" id="activity-refresh">↻ تازه‌سازی</button>
+      </div>
+    </header>
+    <section class="panel">
+      <div class="table-scroll">
+        <table class="activity-table">
+          <thead><tr><th>زمان</th><th>عملیات</th><th>بخش</th><th>شرح رویداد</th></tr></thead>
+          <tbody id="activity-rows"><tr><td colspan="4">در حال بارگذاری…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const body = document.getElementById('activity-rows') as HTMLElement;
+      const filter = document.getElementById('activity-entity') as HTMLSelectElement;
+      const types: Record<string,string> = {create:'ایجاد',update:'ویرایش',delete:'حذف',publish:'انتشار',login:'ورود',logout:'خروج',security:'امنیت',upload:'بارگذاری',restore:'بازیابی',purge:'حذف قطعی'};
+      const entities: Record<string,string> = {posts:'مقاله‌ها',pages:'صفحات',categories:'دسته‌بندی‌ها',media:'رسانه‌ها',projects:'نمونه‌کارها',services:'خدمات',plans:'تعرفه‌ها',faqs:'سؤالات متداول',testimonials:'نظرات',messages:'پیام‌ها',settings:'تنظیمات',auth:'حساب مدیر'};
+      const dateFa = (value: string) => {
+        const d = new Date(value);
+        return Number.isNaN(d.getTime()) ? '—' : new Intl.DateTimeFormat('fa-IR-u-ca-persian',{dateStyle:'medium',timeStyle:'short'}).format(d);
+      };
+      async function load() {
+        body.innerHTML = '<tr><td colspan="4">در حال بارگذاری…</td></tr>';
+        try {
+          const r = await fetch('/api/admin/system?view=activity&limit=200&entity='+encodeURIComponent(filter.value),{cache:'no-store'});
+          const j = await r.json();
+          if (!r.ok || !j.ok) throw new Error(j.message || 'خطا در دریافت گزارش');
+          body.innerHTML = '';
+          if (!j.rows.length) { body.innerHTML = '<tr><td colspan="4">هنوز فعالیتی ثبت نشده است.</td></tr>'; return; }
+          j.rows.forEach((item: any) => {
+            const tr = document.createElement('tr');
+            const values = [dateFa(item.created_at), types[item.type] || item.type || '—', entities[item.entity] || item.entity || '—', item.title || '—'];
+            values.forEach((value, i) => {
+              const td = document.createElement('td');
+              td.textContent = String(value);
+              if (i === 1) { const badge = document.createElement('span'); badge.className='activity-type'; badge.textContent=String(value); td.textContent=''; td.appendChild(badge); }
+              tr.appendChild(td);
+            });
+            body.appendChild(tr);
+          });
+        } catch (error) { body.innerHTML = '<tr><td colspan="4">'+String((error as Error).message || 'دریافت گزارش ناموفق بود')+'</td></tr>'; }
+      }
+      filter.addEventListener('change',load);
+      document.getElementById('activity-refresh')?.addEventListener('click',load);
+      load();
+    });
+  </script>
+</AdminLayout>
