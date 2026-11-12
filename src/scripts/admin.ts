@@ -179,6 +179,8 @@ export function initEditor(containerId: string, initialHtml = ''): { getHtml: ()
   const status = root.querySelector('.ed-status') as HTMLElement;
   let changeCb: (() => void) | null = null;
   let sourceMode = false;
+  let pendingEditorRange: Range | null = null;
+  let pendingSourceSelection: { start: number; end: number } | null = null;
 
   ED_TOOLBAR.forEach((t) => {
     if (t.action === 'sep') {
@@ -205,9 +207,43 @@ export function initEditor(containerId: string, initialHtml = ''): { getHtml: ()
           document.execCommand('insertHTML', false, `<a href="${url}">${txt || 'متن لینک'}</a>`);
         }
       } else if (t.action === 'image') {
+        if (sourceMode) {
+          pendingSourceSelection = { start: source.selectionStart, end: source.selectionEnd };
+          pendingEditorRange = null;
+        } else {
+          const selection = window.getSelection();
+          pendingEditorRange = selection && selection.rangeCount && selection.anchorNode && area.contains(selection.anchorNode)
+            ? selection.getRangeAt(0).cloneRange()
+            : null;
+          pendingSourceSelection = null;
+        }
         openMediaPicker((url) => {
           const alt = window.prompt('متن جایگزین تصویر (Alt):', '') || 'تصویر';
-          document.execCommand('insertHTML', false, `<img src="${url}" alt="${alt}" loading="lazy" />`);
+          const safeUrl = url.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+          const safeAlt = alt.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+          const imageHtml = `<img src="${safeUrl}" alt="${safeAlt}" loading="lazy" />`;
+          if (sourceMode) {
+            const start = pendingSourceSelection?.start ?? source.value.length;
+            const end = pendingSourceSelection?.end ?? start;
+            source.value = source.value.slice(0, start) + imageHtml + source.value.slice(end);
+            source.setSelectionRange(start + imageHtml.length, start + imageHtml.length);
+          } else {
+            area.focus();
+            const selection = window.getSelection();
+            if (pendingEditorRange && area.contains(pendingEditorRange.commonAncestorContainer)) {
+              selection?.removeAllRanges();
+              selection?.addRange(pendingEditorRange);
+            } else {
+              const range = document.createRange();
+              range.selectNodeContents(area);
+              range.collapse(false);
+              selection?.removeAllRanges();
+              selection?.addRange(range);
+            }
+            document.execCommand('insertHTML', false, imageHtml);
+          }
+          pendingEditorRange = null;
+          pendingSourceSelection = null;
           markDirty();
         });
         return;
