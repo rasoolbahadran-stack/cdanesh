@@ -109,10 +109,28 @@ const hasSeo = config.fields.some((f) => SEO_KEYS.includes(f.key));
   </div>
 </section>
 
+<script>import '../../scripts/admin.ts';</script>
 <script define:vars={{ fullConfig, SEO_KEYS }}>
-  document.addEventListener('DOMContentLoaded', () => {
-    const { api, toast, confirmDlg, openMediaPicker, initEditor, linesToArray, arrayToLines, faNum } = window.CDA;
+  const initEntityAdmin = () => {
     const cfg = fullConfig;
+    const table = document.getElementById('ent-table');
+    const tbody = table?.querySelector('tbody');
+    if (!table || !tbody) {
+      console.error('[cdanesh] EntityAdmin: table is missing');
+      return;
+    }
+    const helpers = window.CDA;
+    if (!helpers) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = Math.max(1, cfg.columns.length + 2);
+      td.className = 'empty-state';
+      td.textContent = 'ابزارهای پنل بارگذاری نشدند؛ صفحه را تازه‌سازی کنید.';
+      tr.appendChild(td);
+      tbody.replaceChildren(tr);
+      return;
+    }
+    const { api, toast, confirmDlg, openMediaPicker, initEditor, linesToArray, arrayToLines, faNum } = helpers;
     let items = [];
     let editingId = null;
     let editingItem = null;
@@ -121,8 +139,16 @@ const hasSeo = config.fields.some((f) => SEO_KEYS.includes(f.key));
     let dirty = false;
     const selected = new Set();
 
-    const table = document.getElementById('ent-table');
-    const tbody = table.querySelector('tbody');
+    function showTableMessage(message) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = Math.max(1, cfg.columns.length + 2);
+      td.className = 'empty-state';
+      td.textContent = message;
+      tr.appendChild(td);
+      tbody.replaceChildren(tr);
+    }
+
     const modal = document.getElementById('ent-modal');
     const form = document.getElementById('ent-form');
     const fieldsWrap = document.getElementById('ent-fields');
@@ -142,10 +168,26 @@ const hasSeo = config.fields.some((f) => SEO_KEYS.includes(f.key));
       if (statusSelect.value) p.set('status', statusSelect.value);
       if (searchInput.value.trim()) p.set('q', searchInput.value.trim());
       if (sortSelect.value && sortSelect.value !== 'newest') p.set('sort', sortSelect.value);
-      const j = await api(`/api/admin/${cfg.entity}?${p.toString()}`);
-      if (!j.ok) { toast(j.message || 'بارگذاری ناموفق بود', 'err'); return; }
-      items = Array.isArray(j.data) ? j.data : [];
-      render(items);
+      showTableMessage('در حال بارگذاری…');
+      try {
+        const response = await fetch(`/api/admin/${encodeURIComponent(cfg.entity)}?${p.toString()}`, {
+          method: 'GET',
+          credentials: 'same-origin',
+          cache: 'no-store',
+          headers: { Accept: 'application/json' },
+        });
+        const result = await response.json().catch(() => ({ ok: false, message: 'پاسخ سرور JSON معتبر نیست' }));
+        if (!response.ok || !result.ok) {
+          throw new Error(result.message || `دریافت اطلاعات ناموفق بود (HTTP ${response.status})`);
+        }
+        items = Array.isArray(result.data) ? result.data : [];
+        render(items);
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : 'خطای ناشناخته';
+        console.error('[cdanesh] EntityAdmin list failed:', cfg.entity, error);
+        showTableMessage('بارگذاری فهرست ناموفق بود: ' + reason);
+        toast('بارگذاری ' + cfg.title + ' ناموفق بود؛ متن خطا در جدول نمایش داده شده است.', 'err');
+      }
     }
 
     function badgeClass(v) {
@@ -169,7 +211,7 @@ const hasSeo = config.fields.some((f) => SEO_KEYS.includes(f.key));
       selected.clear();
       updateBulkBar();
       if (!list.length) {
-        tbody.innerHTML = `<tr><td colspan="9" class="empty-state"><div class="big">🗂</div>هیچ موردی ثبت نشده است؛ با دکمهٔ «افزودن» اولین مورد را بسازید.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${cfg.columns.length + 2}" class="empty-state"><div class="big">🗂</div>هیچ موردی ثبت نشده است؛ با دکمهٔ «افزودن» اولین مورد را بسازید.</td></tr>`;
         return;
       }
       list.forEach((item) => {
@@ -549,5 +591,10 @@ const hasSeo = config.fields.some((f) => SEO_KEYS.includes(f.key));
     sortSelect.addEventListener('change', load);
 
     load();
-  });
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEntityAdmin, { once: true });
+  } else {
+    initEntityAdmin();
+  }
 </script>
