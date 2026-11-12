@@ -31,7 +31,7 @@ const ARTICLES: ArticleJson[] = [
 ];
 
 const PATCH_KEY = 'content_patch';
-const PATCH_VERSION = 1;
+const PATCH_VERSION = 2;
 
 interface PatchVersion { v?: number }
 
@@ -73,6 +73,28 @@ export async function runContentPatch(): Promise<void> {
       );
     }
     console.log(`[cdanesh] content patch v1 applied to ${ARTICLES.length} seeded articles`);
+  }
+
+  /* ---- نسخهٔ ۲: اصلاح قیمت پکیج شرکتی در متن مقالات (۱۵ → ۱۷ میلیون) ----
+     جایگزینی هدفمند فقط روی سه مقالهٔ seed که به قیمت پکیج شرکتی ارجاع
+     دارند؛ بقیهٔ متن و ویرایش‌های احتمالی ادمین دست‌نخورده می‌مانند. */
+  if (current < 2) {
+    const priceTargets = [
+      'guide-choosing-web-design-company',
+      'web-design-cost-iran',
+      'local-business-website',
+    ];
+    for (const slug of priceTargets) {
+      await q(
+        `UPDATE posts
+         SET content = replace(replace(content, '۱۵,۰۰۰,۰۰۰ تومان', '۱۷,۰۰۰,۰۰۰ تومان'),
+                               '۱۵ میلیون تومان', '۱۷ میلیون تومان'),
+             updated_at = now()
+         WHERE slug = $1`,
+        [slug],
+      );
+    }
+    console.log('[cdanesh] content patch v2 applied (قیمت شرکتی ۱۵ → ۱۷ میلیون در ۳ مقاله)');
   }
 
   await writePatchVersion(PATCH_VERSION);
