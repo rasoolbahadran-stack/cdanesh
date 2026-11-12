@@ -282,3 +282,38 @@ body.admin-body img { max-width: 100%; display: block; }
 .image-style-fields input:not([type=checkbox]),.image-style-fields select{width:100%;min-width:0;border:1px solid var(--a-line);border-radius:9px;padding:9px;font:inherit}
 .image-style-fields .image-style-check{display:flex;align-items:center;gap:8px}.image-style-help{color:var(--a-muted);font-size:11px;line-height:1.9}
 @media(max-width:560px){.image-style-fields{grid-template-columns:1fr}}
+
+/* سایدبار در بزرگ‌نمایی و عرض کم: کشویی ثابت از لبه راست، بدون ستون میانی */
+@media (max-width: 1080px) {
+  .admin-layout,
+  .admin-layout.side-collapsed {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .admin-side,
+  html[dir="rtl"] .admin-side {
+    position: fixed !important;
+    inset-block: 0 !important;
+    inset-inline-start: auto !important;
+    inset-inline-end: 0 !important;
+    right: 0 !important;
+    left: auto !important;
+    width: min(270px, 86vw) !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    z-index: 320 !important;
+    transform: translateX(105%) !important;
+    transition: transform .28s ease !important;
+  }
+  body.side-open .admin-side,
+  html[dir="rtl"] body.side-open .admin-side {
+    transform: translateX(0) !important;
+  }
+}
+.admin-side .side-brand b,
+.admin-side .side-brand span > b {
+  font-size: 17px !important;
+  line-height: 1.65;
+}
+.admin-side .side-brand small {
+  font-size: 11px !important;
+}
