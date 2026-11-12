@@ -58,7 +58,7 @@ body.admin-body img { max-width: 100%; display: block; }
 .admin-side .side-brand { display: flex; align-items: center; gap: 10px; padding: 6px 10px 18px; color: #fff; }
 .admin-side .side-brand .brand-mark { width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, var(--a-gold-2), var(--a-gold-3)); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; position: relative; flex: none; }
 .admin-side .side-brand .brand-mark i { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: var(--a-purple); bottom: -2px; left: -2px; border: 2px solid #171940; }
-.admin-side .side-brand b { font-size: 14px; line-height: 1.5; }
+.admin-side .side-brand b { font-size: 16px; line-height: 1.5; letter-spacing: -.15px; }
 .admin-side .side-brand small { display: block; font-size: 10px; color: #e75da1; font-weight: 400; }
 .admin-side .side-brand .b-cap { display: block; font-family: Arial, sans-serif; font-size: 7.5px; letter-spacing: 2.6px; color: #e75da1; font-weight: 700; direction: ltr; text-align: right; line-height: 1; margin-bottom: 3px; }
 .side-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; color: #9a8a60; padding: 14px 12px 4px; }
@@ -92,8 +92,9 @@ body.admin-body img { max-width: 100%; display: block; }
   .side-scrim { display: block; position: fixed; inset: 0; background: rgba(20, 12, 2, .5); backdrop-filter: blur(3px); z-index: 310; opacity: 0; pointer-events: none; transition: opacity .25s; }
   body.side-open .side-scrim { opacity: 1; pointer-events: auto; }
   .admin-layout, .admin-layout.side-collapsed { grid-template-columns: 1fr; }
-  .admin-side { position: fixed; inset-block: 0; inset-inline-start: 0; width: 252px; z-index: 320; transform: translateX(100%); transition: transform .3s; }
-  html[dir="rtl"] .admin-side { transform: translateX(-100%); }
+  .admin-side { position: fixed; inset-block: 0; inset-inline-start: 0; width: min(280px, 86vw); z-index: 320; transform: translateX(100%); transition: transform .3s; }
+  /* در RTL نیز منو از لبهٔ راست خارج می‌شود؛ translateX(-100%) آن را وسط صفحه می‌آورد. */
+  html[dir="rtl"] .admin-side { transform: translateX(100%); }
   body.side-open .admin-side { transform: translateX(0) !important; }
 }
 

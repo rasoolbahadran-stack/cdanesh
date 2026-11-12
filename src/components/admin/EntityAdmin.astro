@@ -109,10 +109,42 @@ const hasSeo = config.fields.some((f) => SEO_KEYS.includes(f.key));
   </div>
 </section>
 
+<script>
+  import '../../scripts/admin.ts';
+</script>
 <script define:vars={{ fullConfig, SEO_KEYS }}>
   document.addEventListener('DOMContentLoaded', () => {
-    const { api, toast, confirmDlg, openMediaPicker, initEditor, linesToArray, arrayToLines, faNum } = window.CDA;
     const cfg = fullConfig;
+    const table = document.getElementById('ent-table');
+    const tbody = table?.querySelector('tbody');
+    const shared = window.CDA;
+    if (!tbody) return;
+    const showLoadState = (message, retry = false) => {
+      tbody.innerHTML = '';
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = cfg.columns.length + 2;
+      td.className = 'empty-state';
+      const text = document.createElement('div');
+      text.textContent = message;
+      td.appendChild(text);
+      if (retry) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'btn btn-ghost btn-sm';
+        b.textContent = 'تلاش دوباره';
+        b.style.marginTop = '12px';
+        b.addEventListener('click', () => load());
+        td.appendChild(b);
+      }
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    };
+    if (!shared) {
+      showLoadState('اسکریپت مدیریت بارگذاری نشد. صفحه را تازه‌سازی کنید.', true);
+      return;
+    }
+    const { api, toast, confirmDlg, openMediaPicker, initEditor, linesToArray, arrayToLines, faNum } = shared;
     let items = [];
     let editingId = null;
     let editingItem = null;
@@ -121,8 +153,6 @@ const hasSeo = config.fields.some((f) => SEO_KEYS.includes(f.key));
     let dirty = false;
     const selected = new Set();
 
-    const table = document.getElementById('ent-table');
-    const tbody = table.querySelector('tbody');
     const modal = document.getElementById('ent-modal');
     const form = document.getElementById('ent-form');
     const fieldsWrap = document.getElementById('ent-fields');
@@ -142,10 +172,22 @@ const hasSeo = config.fields.some((f) => SEO_KEYS.includes(f.key));
       if (statusSelect.value) p.set('status', statusSelect.value);
       if (searchInput.value.trim()) p.set('q', searchInput.value.trim());
       if (sortSelect.value && sortSelect.value !== 'newest') p.set('sort', sortSelect.value);
-      const j = await api(`/api/admin/${cfg.entity}?${p.toString()}`);
-      if (!j.ok) { toast(j.message || 'بارگذاری ناموفق بود', 'err'); return; }
-      items = Array.isArray(j.data) ? j.data : [];
-      render(items);
+      showLoadState('در حال دریافت فهرست…');
+      try {
+        const j = await api(`/api/admin/${cfg.entity}?${p.toString()}`);
+        if (!j.ok) {
+          const message = j.message || j.error || 'سرور نتوانست فهرست را بارگذاری کند.';
+          showLoadState(message, true);
+          toast(message, 'err');
+          return;
+        }
+        items = Array.isArray(j.data) ? j.data : [];
+        render(items);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'خطای نامشخص هنگام دریافت فهرست';
+        showLoadState(message, true);
+        toast(message, 'err');
+      }
     }
 
     function badgeClass(v) {
