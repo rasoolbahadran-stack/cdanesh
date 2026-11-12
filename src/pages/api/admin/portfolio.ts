@@ -1,6 +1,7 @@
 export const prerender = false;
 import type { APIRoute } from 'astro';
 import { upsertPortfolio, deletePortfolio, listAdminPortfolio } from '../../../lib/cms-db';
+import { bool } from '../../../lib/http';
 
 function clean(v: unknown, max = 3000): string {
   return String(v ?? '').trim().slice(0, max);
@@ -36,7 +37,7 @@ export const PUT: APIRoute = async ({ request }) => {
       live_url: clean(b.live_url, 400),
       status: ['published', 'conceptual', 'soon'].includes(String(b.status)) ? String(b.status) : 'soon',
       sort_order: Number(b.sort_order) || 100,
-      published: Boolean(b.published),
+      published: bool(b.published),
     });
     return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
   } catch (e) {
