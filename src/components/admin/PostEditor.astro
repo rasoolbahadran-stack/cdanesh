@@ -93,7 +93,7 @@ const status = value('status', 'draft');
             <h2 style="font-size:15px;margin:0 0 12px">وضعیت مقاله</h2>
             <div class="post-field"><label for="post-status">وضعیت انتشار</label><select id="post-status" name="status"><option value="draft" selected={status === 'draft'}>پیش‌نویس</option><option value="published" selected={status === 'published'}>منتشرشده</option><option value="scheduled" selected={status === 'scheduled'}>زمان‌بندی‌شده</option></select></div>
             <div class="post-field" style="margin-top:10px"><label for="post-published-at">زمان انتشار (برای زمان‌بندی)</label><input id="post-published-at" name="published_at" type="datetime-local" value={value('published_at') ? new Date(value('published_at')).toISOString().slice(0,16) : ''} /></div>
-            <div class="save-actions"><button type="button" class="btn btn-gold" id="save-draft">ذخیره پیش‌نویس</button><button type="button" class="btn btn-primary" id="publish-post">{isNew ? 'انتشار مقاله' : 'به‌روزرسانی و انتشار'}</button></div>
+            <div class="save-actions"><button type="button" class="btn btn-gold" id="save-draft">ذخیره پیش‌نویس</button><button type="button" class="btn btn-primary" id="publish-post">{isNew ? 'انتشار مقاله' : 'به‌روزرسانی و انتشار'}</button><button type="button" class="btn btn-ghost" id="schedule-post">ذخیره زمان‌بندی</button>{!isNew && <a class="btn btn-ghost" href={'/admin/history?entity=posts&id=' + value('id')}>تاریخچه نسخه‌ها</a>}</div>
             <p id="save-message" role="status" style="font-size:12px;margin:10px 0 0;color:var(--a-muted)"></p>
           </section>
         </aside>
@@ -211,6 +211,7 @@ const status = value('status', 'draft');
       }
       document.getElementById('save-draft')?.addEventListener('click', () => save('draft'));
       document.getElementById('publish-post')?.addEventListener('click', () => save('published'));
+      document.getElementById('schedule-post')?.addEventListener('click', () => save('scheduled'));
     });
   </script>
 </AdminLayout>
