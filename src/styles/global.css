@@ -1622,3 +1622,9 @@ main {
     font-size: 0.75rem;
   }
 }
+
+/* نمایش تصاویر با اندازه و چینش انتخاب‌شده در ویرایشگر */
+.content-image{width:min(var(--content-image-width,100%),100%);max-width:100%;margin:1.25rem auto;text-align:center}
+.content-image--right{margin-inline-start:0;margin-inline-end:auto;text-align:right}.content-image--left{margin-inline-start:auto;margin-inline-end:0;text-align:left}
+.content-image img{display:block;width:100%;height:var(--content-image-height,auto);max-width:100%;object-fit:var(--content-image-fit,contain);border-radius:var(--content-image-radius,12px);margin:0 auto}
+.content-image figcaption{margin-top:.5rem;color:var(--mut);font-size:.85rem;text-align:center}
