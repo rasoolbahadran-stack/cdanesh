@@ -51,8 +51,15 @@ export function num(v: unknown, fallback = 0): number {
 
 export function bool(v: unknown, fallback = false): boolean {
   if (typeof v === 'boolean') return v;
-  if (v === 'true' || v === '1') return true;
-  if (v === 'false' || v === '0') return false;
+  if (typeof v === 'number') {
+    if (v === 1) return true;
+    if (v === 0) return false;
+  }
+  if (typeof v === 'string') {
+    const value = v.trim().toLowerCase();
+    if (['true', '1', 'on', 'yes', 't'].includes(value)) return true;
+    if (['false', '0', 'off', 'no', 'f', ''].includes(value)) return false;
+  }
   return fallback;
 }
 
