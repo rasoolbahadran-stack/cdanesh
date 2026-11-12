@@ -1,26 +1,27 @@
 export const prerender = false;
 import type { APIRoute } from 'astro';
-import { listMessages, markMessageRead } from '../../../lib/cms-db';
-
-export const GET: APIRoute = async () => {
-  try {
-    const rows = await listMessages();
-    return new Response(JSON.stringify({ ok: true, rows }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
-  } catch (e) {
-    return new Response(JSON.stringify({ ok: false, error: String(e) }), { status: 500 });
-  }
+import { listMessages } from '../../../lib/cms-db';
+import { q } from '../../../lib/db';
+import { sessionFromCookies } from '../../../lib/auth';
+import { logActivity } from '../../../lib/seed';
+const allowed=(r:Request)=>!!sessionFromCookies(r.headers.get('cookie')||'');
+const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}});
+export const GET:APIRoute=async({request})=>{
+ if(!allowed(request))return json({ok:false,message:'ابتدا وارد پنل شوید'},401);
+ try{return json({ok:true,rows:await listMessages()});}catch{return json({ok:false,message:'بارگذاری پیام‌ها ناموفق بود'},500);}
 };
-
-export const PATCH: APIRoute = async ({ request }) => {
-  try {
-    const b = await request.json().catch(() => ({}));
-    const id = Number(b.id);
-    if (!id) return new Response(JSON.stringify({ ok: false, error: 'id الزامی است' }), { status: 400 });
-    await markMessageRead(id);
-    return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
-  } catch (e) {
-    return new Response(JSON.stringify({ ok: false, error: String(e) }), { status: 500 });
-  }
+export const PATCH:APIRoute=async({request})=>{
+ if(!allowed(request))return json({ok:false,message:'ابتدا وارد پنل شوید'},401);
+ try{
+  const b=await request.json();const id=Number(b.id);if(!id)return json({ok:false,message:'شناسه پیام معتبر نیست'},400);
+  const sets:string[]=[];const values:unknown[]=[];
+  if(['new','read','replied','archived'].includes(String(b.status||''))){values.push(String(b.status));sets.push('status=$'+values.length);}
+  if(typeof b.admin_note==='string'){values.push(b.admin_note.slice(0,1000));sets.push('admin_note=$'+values.length);}
+  if(typeof b.starred==='boolean'){values.push(b.starred);sets.push('starred=$'+values.length);}
+  if(!sets.length)return json({ok:false,message:'تغییری ارسال نشده است'},400);
+  values.push(id);const rows=await q('UPDATE messages SET '+sets.join(', ')+' WHERE id=$'+values.length+' RETURNING id',values);
+  if(!rows.length)return json({ok:false,message:'پیام پیدا نشد'},404);
+  await logActivity('update','messages',id,'پیام سایت به‌روزرسانی شد');
+  return json({ok:true});
+ }catch{return json({ok:false,message:'به‌روزرسانی پیام ناموفق بود'},500);}
 };
