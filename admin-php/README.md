@@ -1,3 +1,6 @@
+> **Status: inactive / archived**  
+> This PHP implementation is no longer served by the live site. The active Cafe Danesh admin is the Astro panel under `src/pages/admin`. This directory is retained only as an archive; Vercel does not route any live path to this PHP service.
+
 # Cafe Danesh PHP Admin service
 
 Isolated FrankenPHP service. Public Astro source remains in the repository root and is not copied into this image.
