@@ -6,30 +6,45 @@ import PortfolioCard from '../components/PortfolioCard.astro';
 import PostCard from '../components/PostCard.astro';
 import CtaBand from '../components/CtaBand.astro';
 import WaveSep from '../components/WaveSep.astro';
-import { getPosts, getPortfolio, PROS, SERVICE_CARDS, STEPS, PRICING, MARQUEE_ITEMS, SITE, svcImg } from '../lib/content';
+import { getPosts, getPortfolio, PROS, STEPS, PRICING, MARQUEE_ITEMS, SITE, svcImg } from '../lib/content';
 import { jsonLdFaq, jsonLdBreadcrumb } from '../lib/seo';
-import { getFaq } from '../lib/content';
 
 const posts = await getPosts();
 const portfolio = await getPortfolio();
-const faq = getFaq();
-const latestPosts = posts.slice(0, 3);
 const showPf = portfolio.filter((p) => p.status === 'published').slice(0, 3);
 
-// صفحه اصلی فقط ۴ سؤال تصمیم‌گیرنده را نشان می‌دهد؛ بقیه در صفحه اختصاصی FAQ است
-const homeFaq = [faq[1], faq[2], faq[3], faq[5]].filter(Boolean);
+// سه مقالهٔ صفحهٔ اصلی ثابت است + توضیح به‌روزشدهٔ هر مقاله — عنوان، لینک، تاریخ و زمان مطالعه بدون تغییر می‌مانند
+const HOME_POST_EXCERPTS: Record<string, string> = {
+  'seo-content-guide': 'از انتخاب کلمه کلیدی و شناخت نیاز مخاطب تا ساختاردهی مقاله و انتشار؛ با مراحل تولید محتوایی آشنا شوید که هم برای کاربر ارزشمند است و هم ظرفیت دیده‌شدن در موتورهای جست‌وجو را تقویت می‌کند.',
+  'core-web-vitals-guide': 'با سه شاخص LCP، INP و CLS آشنا شوید و یاد بگیرید هرکدام چگونه تجربه بارگذاری، تعامل و پایداری بصری صفحات وب را ارزیابی می‌کنند.',
+  'site-speed-optimization': 'با راهکارهای عملی برای بهبود عملکرد سایت آشنا شوید؛ از بهینه‌سازی تصاویر و منابع صفحه تا بررسی هاست و کاهش عوامل مؤثر بر کندی بارگذاری.',
+};
 
-// کارت‌های خدمات: تخصص اصلی در ابتدای صفحه، خدمات مکمل در ادامه
-const MAIN_SLUGS = ['company-website', 'ecommerce', 'custom-web', 'ui-ux'];
-const COMPL_SLUGS = ['seo', 'content', 'support'];
-const mainCards = SERVICE_CARDS.filter((s) => MAIN_SLUGS.includes(s.slug));
-const complCards = SERVICE_CARDS.filter((s) => COMPL_SLUGS.includes(s.slug));
+const latestPosts = ['seo-content-guide', 'core-web-vitals-guide', 'site-speed-optimization']
+  .map((slug) => posts.find((p) => p.slug === slug))
+  .filter((p): p is NonNullable<typeof p> => Boolean(p))
+  .map((p) => ({ ...p, excerpt: HOME_POST_EXCERPTS[p.slug] || p.excerpt }));
+
+// چهار پرسش تصمیم‌گیرندهٔ صفحهٔ اصلی — صفحهٔ اختصاصی FAQ با همان داده‌های قبلی خودش باقی است
+const homeFaq = [
+  { q: 'هزینه طراحی سایت چگونه مشخص می‌شود؟', a: 'پکیج‌های پایه کافه دانش با تعرفه مشخص و محدوده خدمات از پیش تعریف‌شده ارائه می‌شوند. برای پروژه‌های اختصاصی یا امکانات خارج از محدوده پکیج‌ها، ابتدا نیازمندی‌ها بررسی و سپس هزینه نهایی بر اساس حجم طراحی، امکانات فنی، تعداد صفحات و محدوده اجرا اعلام می‌شود.' },
+  { q: 'مدت اجرای پروژه به چه عواملی بستگی دارد؟', a: 'زمان اجرا به نوع وب‌سایت، امکانات موردنیاز، حجم محتوا و پیچیدگی فنی پروژه بستگی دارد. برای پکیج‌های شرکتی و فروشگاهی، زمان‌بندی اعلام‌شده در بخش تعرفه‌ها مبنا قرار می‌گیرد. آماده‌بودن اطلاعات و محتوای موردنیاز و بازبینی به‌موقع مراحل طراحی نیز در حفظ زمان‌بندی مؤثر است.' },
+  { q: 'سئو از چه مرحله‌ای باید شروع شود و چه زمانی نتیجه می‌دهد؟', a: 'سئوی فنی و ساختار اصولی باید از مرحله طراحی و توسعه سایت در نظر گرفته شود. پس از انتشار نیز تولید محتوای هدفمند، بهینه‌سازی صفحات و بررسی عملکرد جست‌وجو به‌صورت مستمر اهمیت دارد. زمان دستیابی به نتایج به رقابت حوزه فعالیت، وضعیت سایت، کیفیت محتوا و عوامل متعدد دیگر بستگی دارد و رتبه مشخص یا نتیجه فوری قابل تضمین نیست.' },
+  { q: 'پس از تحویل چه چیزهایی دریافت می‌کنم و مالکیت کد با کیست؟', a: 'در زمان تحویل، دسترسی‌های مدیریتی و آموزش‌های موردتوافق ارائه می‌شوند. محدوده تحویل فایل‌ها، سورس‌کد، دسترسی‌ها، مجوز ابزارها و شرایط مالکیت پروژه باید پیش از شروع همکاری در قرارداد مشخص شود تا هر دو طرف درباره حقوق و تعهدات خود شفافیت داشته باشند.' },
+];
+
+// سه حوزهٔ تخصص اصلی — متن‌ها مخصوص صفحهٔ اصلی است؛ لینک هر حوزه به صفحهٔ خدمت ثابت می‌ماند
+const HOME_SERVICES = [
+  { slug: 'company-website', cat: 'سایت شرکتی', t: 'طراحی سایت شرکتی', d: 'برای معرفی حرفه‌ای کسب‌وکار، نمایش خدمات، معرفی توانمندی‌ها، ارائه نمونه‌کار و دریافت درخواست مشتریان.' },
+  { slug: 'ecommerce', cat: 'فروشگاه اینترنتی', t: 'طراحی فروشگاه اینترنتی', d: 'برای عرضه محصولات، مدیریت کالاها و سفارش‌ها، اتصال درگاه پرداخت و فراهم‌کردن تجربه خرید آسان و قابل اعتماد.' },
+  { slug: 'custom-web', cat: 'وب‌اپلیکیشن اختصاصی', t: 'طراحی سامانه و وب‌اپلیکیشن اختصاصی', d: 'برای کسب‌وکارهایی که به پنل‌های مدیریتی، فرایندهای اختصاصی و قابلیت‌هایی فراتر از یک وب‌سایت معمولی نیاز دارند.' },
+];
 
 const marqueeItems = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
 
 const meta = {
   title: 'طراحی سایت در بوشهر | کافه دانش؛ طراحی و توسعه وب‌سایت',
-  description: 'کافه دانش استودیو تخصصی طراحی و توسعه وب‌سایت در بوشهر است؛ طراحی سایت شرکتی، فروشگاه اینترنتی و وب‌سایت اختصاصی با زیرساخت فنی و سئوی اصولی از روز اول. درخواست مشاوره و سفارش پروژه.',
+  description: 'کافه دانش استودیو طراحی و توسعه وب‌سایت؛ طراحی سایت شرکتی، فروشگاه اینترنتی و وب‌اپلیکیشن اختصاصی با تجربه کاربری درست و ساختار فنی و سئوی اصولی از ابتدا. درخواست مشاوره و سفارش پروژه.',
   path: '/',
 };
 ---
@@ -50,10 +65,10 @@ const meta = {
     <div class="container hero__grid">
       <div class="hero__content">
         <h1 class="hero__title" data-reveal="up">
-          طراحی سایت شرکتی، فروشگاهی و <span class="hero__mark">اختصاصی</span>
+          طراحی سایت شرکتی و فروشگاهی؛ <span class="hero__mark">اختصاصی، حرفه‌ای و توسعه‌پذیر</span>
         </h1>
         <p class="hero__text" data-reveal="up" data-delay="120">
-          کافه دانش زیرساخت رشد کسب‌وکار شما را می‌سازد؛ از سایت شرکتی و فروشگاه اینترنتی تا وب‌اپلیکیشن اختصاصی — با معماری درست، کد تمیز و تحویل مرحله‌ای.
+          کافه دانش وب‌سایت کسب‌وکار شما را متناسب با اهداف و نیازهایتان طراحی و پیاده‌سازی می‌کند؛ از وب‌سایت شرکتی و فروشگاه اینترنتی تا وب‌اپلیکیشن‌های اختصاصی، با تمرکز بر تجربه کاربری، عملکرد فنی و زیرساخت مناسب برای رشد.
         </p>
         <div class="hero__btns" data-reveal="up" data-delay="240">
           <a href="/consult" class="btn btn--lg">درخواست مشاوره و سفارش پروژه</a>
@@ -63,9 +78,9 @@ const meta = {
           </a>
         </div>
         <ul class="hero__points" data-reveal="up" data-delay="340">
-          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg> طراحی اختصاصی، نه قالب آماده</li>
-          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg> زیرساخت فنی و سئوی اصولی از روز اول</li>
-          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg> تحویل مرحله‌ای و پشتیبانی واقعی</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg> طراحی متناسب با هویت برند و نیاز واقعی کسب‌وکار</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg> ساختار فنی استاندارد و سئوی اصولی از ابتدا</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg> تحویل مرحله‌ای، پشتیبانی و امکان توسعه و مدیریت سایت</li>
         </ul>
       </div>
 
@@ -116,7 +131,7 @@ const meta = {
         <figure class="hero__photo-ring" style="margin:0">
           <img
             src="/img/ai/hero-team.webp"
-            alt="تیم کافه دانش در حال بررسی طراحی سایت با لپ‌تاپ در استودیو"
+            alt="تصویر مفهومی از فضای طراحی و توسعه وب‌سایت در کافه دانش"
             width="480" height="571"
             fetchpriority="high" decoding="async"
           />
@@ -141,8 +156,8 @@ const meta = {
     <div class="hero__trust">
       <div class="container hero__trust-inner" data-reveal="up" data-delay="420">
         <span>✳ <b>تحویل مرحله‌ای</b> — پیشرفت پروژه شفاف و قابل پیگیری</span>
-        <span>✳ <b>زیرساخت استاندارد</b> — سرعت، سئو و موبایل از روز اول</span>
-        <span>✳ <b>مالکیت کامل</b> — کد، محتوا و دسترسی‌ها متعلق به شماست</span>
+        <span>✳ <b>استاندارد اجرا</b> — سرعت، سئو و موبایل از روز اول</span>
+        <span>✳ <b>تحویل مستند</b> — دسترسی‌ها و آموزش‌ها مطابق توافق پروژه</span>
       </div>
     </div>
   </section>
@@ -173,8 +188,8 @@ const meta = {
         </div>
         <div class="stat" data-reveal="up" data-delay="120">
           <span class="stat__ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4.5" /><circle cx="12" cy="12" r="1" /></svg></span>
-          <p class="stat__num"><span data-count="4">۰</span></p>
-          <p class="stat__label">پکیج طراحی سایت با قیمت شفاف</p>
+          <p class="stat__num"><span data-count="3">۰</span></p>
+          <p class="stat__label">پکیج طراحی سایت با تعرفه شفاف</p>
         </div>
         <div class="stat" data-reveal="up" data-delay="240">
           <span class="stat__ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" /></svg></span>
@@ -189,10 +204,10 @@ const meta = {
   <!-- ═══════════ تخصص اصلی: طراحی و توسعه وب‌سایت ═══════════ -->
   <section class="section bg-lavender" aria-labelledby="svc-title">
     <div class="container">
-      <SectionHead tag="تخصص اصلی ما" title="تخصص ما: طراحی و توسعه وب‌سایت" sub="از سایت شرکتی و فروشگاه اینترنتی تا سامانه اختصاصی؛ هر پروژه با معماری درست و زیرساخت قابل توسعه ساخته می‌شود." center />
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:22px" class="svc-grid">
-        {mainCards.map((s, i) => (
-          <a href={`/services/${s.slug}`} class="svc-card" data-reveal="up" data-delay={String((i % 4) * 80)} style="color:inherit">
+      <SectionHead tag="تخصص اصلی ما" title="تخصص ما: طراحی و توسعه وب‌سایت" sub="از معرفی حرفه‌ای کسب‌وکار تا فروش آنلاین و سامانه‌های اختصاصی، راهکار دیجیتال متناسب با نیاز واقعی شما طراحی و توسعه می‌دهیم؛ با توجه به تجربه کاربری، عملکرد فنی و امکانات موردنیاز هر پروژه." center />
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px" class="svc-grid">
+        {HOME_SERVICES.map((s, i) => (
+          <a href={`/services/${s.slug}`} class="svc-card" data-reveal="up" data-delay={String((i % 3) * 80)} style="color:inherit">
             <div class="svc-card__media">
               <img src={svcImg(s.slug)} alt={`${s.t} — خدمت کافه دانش`} width="480" height="300" loading="lazy" decoding="async" />
               <span class="svc-card__cat">{s.cat}</span>
@@ -223,7 +238,7 @@ const meta = {
   <!-- ═══════════ نمونه‌کارهای منتخب ═══════════ -->
   <section class="section" aria-labelledby="pf-title">
     <div class="container">
-      <SectionHead tag="نمونه‌کارها" title="نمونه‌کارهای منتخب؛ سایت‌هایی که همین حالا زنده‌اند" sub="فقط پروژه‌های منتشرشده و زنده؛ برای جزئیات کامل، هر کارت را باز کنید." />
+      <SectionHead tag="نمونه‌کارها" title="نمونه‌کارهای منتخب؛ پروژه‌های واقعی و منتشرشده" sub="در این بخش، بخشی از وب‌سایت‌هایی را می‌بینید که توسط کافه دانش طراحی و توسعه یافته و اکنون در دسترس هستند. برای مشاهده جزئیات و بررسی هر پروژه، کارت مربوط به آن را انتخاب کنید." />
       <div class="pf-grid">
         {showPf.map((p, i) => (
           <PortfolioCard item={p} delay={String((i % 3) * 90)} />
@@ -239,10 +254,10 @@ const meta = {
   <section class="section bg-soft" aria-labelledby="pros-title">
     <div class="container">
       <div class="pros-section__head">
-        <SectionHead tag="مزیت‌های همکاری با ما" title="پنج دلیل که نتیجه کار را متمایز می‌کند" />
+        <SectionHead tag="مزیت‌های همکاری با ما" title="مزیت‌های همکاری با کافه دانش" sub="پنج اصل که کیفیت پروژه را از نخستین تصمیم تا پشتیبانی پس از انتشار شکل می‌دهند." />
       </div>
       <div class="pros-section__body">
-        <img class="pros-section__image" src="/img/ai/about-team.webp" alt="تیم کافه دانش در استودیو هنگام جلسه طراحی" width="672" height="384" loading="lazy" decoding="async" />
+        <img class="pros-section__image" src="/img/ai/about-team.webp" alt="تصویر مفهومی: همکاری و بازبینی طراحی وب‌سایت در فضای کار کافه دانش" width="672" height="384" loading="lazy" decoding="async" />
         <ul class="pro-list">
           {PROS.map((p, i) => (
             <li class="pro" data-reveal="left" data-delay={String(i * 80)}>
@@ -261,7 +276,7 @@ const meta = {
   <!-- ═══════════ مراحل همکاری ═══════════ -->
   <section class="section" aria-labelledby="steps-title">
     <div class="container">
-      <SectionHead tag="مسیر شروع همکاری" title="شش مرحله شفاف، از درخواست تا تحویل" sub="در هر گام می‌دانید کجا هستید، چه چیزی تحویل می‌گیرید و گام بعدی چیست." center />
+      <SectionHead tag="مسیر شروع همکاری" title="مسیر شروع همکاری؛ شش مرحله شفاف از درخواست تا تحویل" sub="در تمام مراحل پروژه، از محدوده کار و زمان‌بندی تا خروجی هر مرحله مطلع خواهید بود." center />
       <div class="steps">
         {STEPS.map((s, i) => (
           <div class="step" data-reveal="up" data-delay={String((i % 3) * 90)}>
@@ -277,7 +292,7 @@ const meta = {
   <!-- ═══════════ پکیج‌ها ═══════════ -->
   <section class="section bg-soft" aria-labelledby="pricing-title">
     <div class="container">
-      <SectionHead tag="پکیج‌های طراحی سایت" title="قیمت شفاف و ثابت؛ بدون هزینه پنهان" sub="دامنهٔ کار هر پکیج مشخص است: صفحات، زمان تحویل و مدت پشتیبانی رایگان. برای پروژه‌های بزرگ‌تر، پکیج اختصاصی با برآورد شفاف." center />
+      <SectionHead tag="پکیج‌های طراحی سایت" title="پکیج‌های طراحی سایت با تعرفه‌های شفاف" sub="هر پکیج دارای محدوده خدمات، امکانات، زمان تحویل و مدت پشتیبانی مشخص است. برای پروژه‌های فراتر از پکیج‌های پایه، پس از نیازسنجی برآورد اختصاصی و شفاف ارائه می‌شود." center />
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px" class="price-grid">
         {PRICING.map((p, i) => (
           <article class="card" style={`padding:26px 22px;display:flex;flex-direction:column;gap:10px;${p.featured ? 'border:2px solid var(--pink);position:relative' : ''}`} data-reveal="up" data-delay={String(i * 90)}>
@@ -294,7 +309,7 @@ const meta = {
                 </li>
               ))}
             </ul>
-            <a href={`/consult?package=${p.key}`} class="btn" style="margin-top:auto;justify-content:center">درخواست این پکیج</a>
+            <a href={`/consult?package=${p.key}`} class="btn" style="margin-top:auto;justify-content:center">{p.btn}</a>
             <small style="color:var(--mut);text-align:center">{p.foot}</small>
           </article>
         ))}
@@ -306,7 +321,7 @@ const meta = {
   <!-- ═══════════ FAQ ═══════════ -->
   <section class="section" aria-labelledby="faq-title">
     <div class="container">
-      <SectionHead tag="سؤالات متداول" title="قبل از شروع پروژه بهتر است بدانید" center />
+      <SectionHead tag="سؤالات متداول" title="سؤالات متداول؛ پیش از شروع همکاری چه چیزهایی باید بدانید؟" center />
       <div class="faq-wrap">
         {homeFaq.map((f, i) => (
           <div class:list={['faq-item', { 'is-open': i === 0 }]} data-accordion-item data-reveal="up" data-delay={String(i * 60)}>
@@ -331,7 +346,7 @@ const meta = {
   <!-- ═══════════ مجله ═══════════ -->
   <section class="section bg-lavender" aria-labelledby="blog-title">
     <div class="container">
-      <SectionHead tag="مجله کافه‌دانش" title="خواندنی‌های تخصصی دیجیتال" sub="هر هفته یک مطلب کاربردی درباره طراحی سایت، سئو و تولید محتوا — به زبان ساده." />
+      <SectionHead tag="مجله کافه دانش" title="دانش کاربردی برای حضور بهتر در دنیای دیجیتال" sub="راهنماها و مطالب تخصصی درباره طراحی و توسعه وب‌سایت، سئو و تولید محتوای هدفمند؛ برای تصمیم‌گیری بهتر و تقویت حضور آنلاین کسب‌وکار شما." />
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px" class="blog-grid">
         {latestPosts.map((p, i) => (
           <PostCard post={p} delay={String(i * 90)} />
@@ -344,7 +359,7 @@ const meta = {
     <WaveSep fill="#ffffff" variant="a" />
   </section>
 
-  <CtaBand />
+  <CtaBand sub="در جلسه مشاوره اولیه، درباره اهداف، نیازها و امکانات موردنظر شما گفت‌وگو می‌کنیم و مسیر مناسب اجرای پروژه را همراه با برآورد اولیه و محدوده خدمات مشخص می‌کنیم." />
 </BaseLayout>
 
 <style is:global>
@@ -359,7 +374,7 @@ const meta = {
     .home-four-row img, .home-four-row > div { order: initial !important; }
   }
   @media (min-width: 1020px) {
-    .svc-grid { grid-template-columns: repeat(4, 1fr); }
+    .svc-grid { grid-template-columns: repeat(3, 1fr); }
     .price-grid { grid-template-columns: repeat(3, 1fr); }
     .blog-grid { grid-template-columns: repeat(3, 1fr); }
     .compl-grid { grid-template-columns: repeat(3, 1fr); }

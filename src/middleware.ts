@@ -72,5 +72,23 @@ export const onRequest = defineMiddleware(async (context, next) => {
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('X-Frame-Options', 'SAMEORIGIN');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+  /* ---------- کش لبهٔ Vercel برای صفحات محتوایی عمومی ----------
+     صفحه‌های HTML عمومی با s-maxage=60 + stale-while-revalidate کش لبه می‌شوند:
+     باز شدن صفحات از POP نزدیک کاربر و سریع؛ محتوای جدید پنل حداکثر پس از
+     یک دقیقه (با revalidate پس‌زمینه‌ای) دیده می‌شود.
+     پنل، API، پیش‌نمایش و صفحات فرم (که پارامتر query می‌خوانند) کش نمی‌شوند. */
+  const contentType = response.headers.get('content-type') || '';
+  const isFormish = path.startsWith('/consult') || path.startsWith('/contact');
+  if (
+    safeMethods.includes(request.method) &&
+    !isAdminPage && !isAdminPageLogin && !isAdminApi &&
+    !path.startsWith('/api') &&
+    !isFormish &&
+    response.status === 200 &&
+    contentType.includes('text/html')
+  ) {
+    response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate, s-maxage=60, stale-while-revalidate=86400');
+  }
   return response;
 });
