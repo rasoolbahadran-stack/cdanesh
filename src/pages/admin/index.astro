@@ -133,11 +133,4 @@ const entityLabel: Record<string, string> = { posts: 'مقاله', pages: 'صف�
           </section>
         </div>
       
-  <script>
-    document.getElementById('logout-form')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      await fetch('/api/auth/logout', { method: 'POST' });
-      window.location.href = '/admin/login';
-    });
-  </script>
 </AdminLayout>
