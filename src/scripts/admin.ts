@@ -151,7 +151,7 @@ const ED_TOOLBAR: { cmd?: string[]; val?: string; html: string; title: string; a
   { action: 'quote', html: '❝', title: 'نقل‌قول' },
   { html: '', title: '', cmd: undefined, action: 'sep' },
   { action: 'link', html: '🔗', title: 'درج لینک' },
-  { action: 'image', html: '🖼', title: 'درج تصویر از کتابخانه' },
+  { action: 'image', html: '🖼 تصویر', title: 'افزودن تصویر از کتابخانه رسانه' },
   { action: 'table', html: '▦', title: 'درج جدول' },
   { action: 'cta', html: '🔘', title: 'درج دکمه فراخوان (CTA)' },
   { cmd: ['insertHorizontalRule'], html: '―', title: 'خط جداکننده' },
