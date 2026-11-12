@@ -11,7 +11,7 @@ const bodyBlocks = page.blocks.filter((b) => b.t !== 'h1');
 const meta = { title: 'شرایط استفاده | کافه دانش', description: page.meta, path: '/terms' };
 ---
 <BaseLayout meta={meta} current="/terms" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'شرایط استفاده', url: '/terms' }])]}>
-  <PageHero title="شرایط استفاده" sub="قواعد استفاده از خدمات و محتوای کافه دانش." crumbs={[{ label: 'خانه', href: '/' }, { label: 'شرایط استفاده' }]} />
+  <PageHero title="شرایط استفاده" sub="قواعد استفاده از خدمات و محتوای کافه دانش." />
   <section class="section--tight">
     <div class="container"><Blocks blocks={bodyBlocks} /></div>
   </section>

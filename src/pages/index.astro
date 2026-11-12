@@ -272,7 +272,7 @@ const meta = {
   <section class="section bg-soft" aria-labelledby="pricing-title">
     <div class="container">
       <SectionHead tag="پکیج‌های طراحی سایت" title="قیمت شفاف و ثابت؛ بدون هزینه پنهان" sub="دامنهٔ کار هر پکیج مشخص است: صفحات، زمان تحویل و مدت پشتیبانی رایگان. برای پروژه‌های بزرگ‌تر، پکیج اختصاصی با برآورد شفاف." center />
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px" class="price-grid">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px" class="price-grid">
         {PRICING.map((p, i) => (
           <article class="card" style={`padding:26px 22px;display:flex;flex-direction:column;gap:10px;${p.featured ? 'border:2px solid var(--pink);position:relative' : ''}`} data-reveal="up" data-delay={String(i * 90)}>
             {p.featured && <span class="badge" style="position:absolute;top:-13px;right:20px;background:var(--pink);color:#fff">پیشنهاد ما</span>}
@@ -351,7 +351,7 @@ const meta = {
   }
   @media (min-width: 1020px) {
     .svc-grid { grid-template-columns: repeat(4, 1fr); }
-    .price-grid { grid-template-columns: repeat(4, 1fr); }
+    .price-grid { grid-template-columns: repeat(3, 1fr); }
     .blog-grid { grid-template-columns: repeat(3, 1fr); }
     .compl-grid { grid-template-columns: repeat(3, 1fr); }
   .compl-strip {

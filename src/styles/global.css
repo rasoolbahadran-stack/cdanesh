@@ -1269,13 +1269,15 @@ span {
 html {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden !important;
+  /* clip (به‌جای hidden): overflow افقی را می‌بُرد بدون ساخت scroll container —
+     با hidden، body می‌شد جعبهٔ اسکرول و position: sticky سایدبارها از کار می‌افتاد */
+  overflow-x: clip !important;
 }
 
 body {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden !important;
+  overflow-x: clip !important;
 }
 
 main {

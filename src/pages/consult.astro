@@ -14,7 +14,6 @@ const meta = {
   <PageHero
     title="درخواست مشاوره"
     sub="جلسه اول مشاوره رایگان است: اهداف‌تان را می‌شنویم، نیازها را مشخص می‌کنیم و مسیر پیشنهادی را با هم می‌چینیم."
-    crumbs={[{ label: 'خانه', href: '/' }, { label: 'درخواست مشاوره' }]}
   />
 
   <section class="section">
@@ -58,7 +57,7 @@ const meta = {
 <style is:global>
   .consult-grid { display: grid; grid-template-columns: 1fr; gap: 30px; }
   @media (min-width: 1000px) {
-    .consult-grid { grid-template-columns: 1.15fr .85fr; align-items: start; }
-    .consult-aside { position: sticky; top: 100px; display: grid; gap: 20px; }
+    .consult-grid { grid-template-columns: minmax(0, 1fr) 320px; align-items: start; }
+    .consult-aside { position: sticky; top: 92px; display: grid; gap: 20px; }
   }
 </style>

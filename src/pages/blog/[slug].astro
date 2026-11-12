@@ -75,9 +75,6 @@ const meta = {
       <path d="M-60 330 C 300 130, 700 380, 1080 240 S 1420 120, 1540 260" stroke="rgba(255,255,255,0.10)" stroke-width="72" fill="none" stroke-linecap="round" />
     </svg>
     <div class="container">
-      <nav class="page-hero__crumbs" aria-label="مسیر صفحه">
-        <a href="/">خانه</a><span aria-hidden="true">/</span><a href="/blog">مجله</a><span aria-hidden="true">/</span><span aria-current="page">{post.category}</span>
-      </nav>
       <h1 data-reveal="up" style="max-width:24ch;margin-inline:auto">{post.title}</h1>
       <div class="post-hero-meta" data-reveal="up" data-delay="120">
         <span>
@@ -124,6 +121,11 @@ const meta = {
         </div>
         <p id="article-share-status" aria-live="polite"></p>
       </div>
+
+      <!-- مسیر صفحه — کوچک و کم‌رنگ در انتهای مقاله (برای سئو؛ اسکیمای BreadcrumbList همان مسیر را پوشش می‌دهد) -->
+      <nav class="article-crumbs" aria-label="مسیر صفحه">
+        <a href="/">خانه</a><span aria-hidden="true">/</span><a href="/blog">مجله</a><span aria-hidden="true">/</span><span aria-current="page">{post.category}</span>
+      </nav>
     </div>
   </section>
 
@@ -168,6 +170,9 @@ const meta = {
   .article-services__links a:hover{color:#fff;background:var(--purple)}
   .article-actions>div{display:flex;flex-wrap:wrap;gap:10px}
   .article-actions p{width:100%;margin:0;color:var(--mut);font-size:.84rem}
+  .article-crumbs{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin-top:26px;padding-top:18px;border-top:1px solid var(--line);font-size:.78rem;color:var(--mut);opacity:.78}
+  .article-crumbs a{color:var(--mut);text-decoration:none}
+  .article-crumbs a:hover{color:var(--purple);opacity:1}
 </style>
 
 <style>

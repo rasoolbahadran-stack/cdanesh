@@ -11,7 +11,7 @@ const bodyBlocks = page.blocks.filter((b) => b.t !== 'h1');
 const meta = { title: 'حریم خصوصی | کافه دانش', description: page.meta, path: '/privacy' };
 ---
 <BaseLayout meta={meta} current="/privacy" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'حریم خصوصی', url: '/privacy' }])]}>
-  <PageHero title="حریم خصوصی" sub="شفافیت درباره اطلاعاتی که جمع‌آوری می‌کنیم و نحوه استفاده از آن‌ها." crumbs={[{ label: 'خانه', href: '/' }, { label: 'حریم خصوصی' }]} />
+  <PageHero title="حریم خصوصی" sub="شفافیت درباره اطلاعاتی که جمع‌آوری می‌کنیم و نحوه استفاده از آن‌ها." />
   <section class="section--tight">
     <div class="container"><Blocks blocks={bodyBlocks} /></div>
   </section>

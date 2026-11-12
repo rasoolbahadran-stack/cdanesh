@@ -42,7 +42,7 @@ const schema = [{
   activePath={`/page/${page.slug}`}
   schema={schema}
 >
-  <PageHero title={page.title} sub={page.excerpt} crumbs={[{ label: page.title, href: '' }]} />
+  <PageHero title={page.title} sub={page.excerpt} />
   <section class="sec">
     <div class="container" style="max-width:980px">
       <div class="prose-fa" data-reveal set:html={page.content} />
