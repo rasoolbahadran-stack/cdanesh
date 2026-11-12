@@ -1,8 +1,8 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import type { HTMLAttributes } from 'astro/types';
-interface Props { post?: Record<string, unknown>; isNew?: boolean }
-const { post = {}, isNew = false } = Astro.props as Props;
+interface Props { post?: Record<string, unknown>; isNew?: boolean; categories?: Array<{id:number;name:string}> }
+const { post = {}, isNew = false, categories = [] } = Astro.props as Props;
 const value = (key: string, fallback = '') => String(post[key] ?? fallback);
 const status = value('status', 'draft');
 ---
@@ -53,7 +53,7 @@ const status = value('status', 'draft');
             <div class="post-fields">
               <div class="post-field full"><label for="post-title">عنوان مقاله</label><input id="post-title" name="title" required maxlength="200" value={value('title')} placeholder="عنوان فارسی مقاله را بنویسید" /></div>
               <div class="post-field full"><label for="post-slug">آدرس انگلیسی مقاله (Slug)</label><div style="display:flex;gap:8px"><input id="post-slug" name="slug" dir="ltr" required maxlength="120" value={value('slug')} placeholder="ecommerce-design-principles" /><button type="button" id="slug-generate" class="btn btn-ghost">تولید خودکار</button></div><small>از عنوان فارسی پیشنهاد انگلیسی ساخته می‌شود؛ قبل از ذخیره می‌توانید آن را تغییر دهید.</small></div>
-              <div class="post-field"><label for="post-category">دسته‌بندی</label><input id="post-category" name="category" value={value('category','وب و سئو')} /></div>
+              <div class="post-field"><label for="post-category">دسته‌بندی</label><select id="post-category" name="category_id"><option value="">بدون دسته‌بندی</option>{categories.map((c) => <option value={c.id} selected={String(post.category_id || '') === String(c.id)}>{c.name}</option>)}</select></div>
               <div class="post-field"><label for="post-reading">زمان مطالعه (دقیقه)</label><input id="post-reading" name="reading_time" type="number" min="1" max="120" value={value('reading_time','6')} /></div>
               <div class="post-field full"><label for="post-excerpt">توضیح کوتاه مقاله</label><textarea id="post-excerpt" name="excerpt" rows="3" maxlength="600">{value('excerpt')}</textarea></div>
             </div>
@@ -65,7 +65,7 @@ const status = value('status', 'draft');
               <div class="editor-tools" id="visual-tools">
                 <button type="button" data-command="formatBlock" data-value="h2">تیتر اصلی</button><button type="button" data-command="formatBlock" data-value="h3">تیتر فرعی</button><button type="button" data-command="formatBlock" data-value="p">پاراگراف</button><button type="button" data-command="bold"><b>پررنگ</b></button><button type="button" data-command="italic"><i>مورب</i></button><button type="button" data-command="insertUnorderedList">فهرست</button><button type="button" data-command="insertOrderedList">فهرست شماره‌ای</button><button type="button" id="insert-quote">نقل‌قول</button><button type="button" id="insert-image">افزودن از رسانه</button><button type="button" id="insert-link">لینک</button>
               </div>
-              <div id="visual-editor" class="editor-visual" contenteditable="true">{value('content')}</div>
+              <div id="visual-editor" class="editor-visual" contenteditable="true" set:html={value('content')}></div>
               <textarea id="html-editor" class="editor-source" spellcheck="false">{value('content')}</textarea>
               <div class="editor-foot"><span>ویرایشگر راست‌چین با فونت فارسی سایت</span><span id="editor-state">آمادهٔ ویرایش</span></div>
             </div>
@@ -178,6 +178,7 @@ const status = value('status', 'draft');
         const html = sourceMode ? (cm ? cm.getValue() : source.value) : visual.innerHTML;
         const data: Record<string, unknown> = {
           title: title.value.trim(), slug: slug.value.trim(), excerpt: (form.elements.namedItem('excerpt') as HTMLTextAreaElement).value,
+          category_id: Number((form.elements.namedItem('category_id') as HTMLSelectElement).value) || null,
           content: html, cover_image: cover.value, status: nextStatus,
           reading_time: Number((form.elements.namedItem('reading_time') as HTMLInputElement).value || 6),
           seo_title: (form.elements.namedItem('seo_title') as HTMLInputElement).value,
@@ -186,9 +187,10 @@ const status = value('status', 'draft');
           og_title: (form.elements.namedItem('og_title') as HTMLInputElement).value,
           og_description: (form.elements.namedItem('og_description') as HTMLTextAreaElement).value,
           og_image: (form.elements.namedItem('og_image') as HTMLInputElement).value,
-          published_at: (form.elements.namedItem('post-published-at') as HTMLInputElement).value ? new Date((form.elements.namedItem('post-published-at') as HTMLInputElement).value).toISOString() : null
+          published_at: (form.elements.namedItem('published_at') as HTMLInputElement).value ? new Date((form.elements.namedItem('post-published-at') as HTMLInputElement).value).toISOString() : null
         };
         if (!data.title || !data.slug) return showNotice('عنوان و اسلاگ مقاله الزامی است.', false);
+        if (nextStatus === 'scheduled' && !data.published_at) return showNotice('برای زمان‌بندی، تاریخ و ساعت انتشار را تعیین کنید.', false);
         if (nextStatus === 'published' && !confirm('مقاله منتشر شود و در سایت عمومی نمایش داده شود؟')) return;
         const isNew = form.dataset.isNew === '1';
         showNotice('در حال ذخیره…');

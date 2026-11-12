@@ -1,7 +1,8 @@
 ---
 export const prerender = false;
 import PostEditor from '../../../components/admin/PostEditor.astro';
-import { q1 } from '../../../lib/db';
+import { q, q1 } from '../../../lib/db';
+const categories = await q<{id:number;name:string}>('SELECT id,name FROM categories ORDER BY sort_order,name').catch(()=>[]);
 const slug = String(Astro.params.slug || '');
 const post = await q1<Record<string, unknown>>(
   `SELECT p.*, COALESCE(c.name, 'عمومی') AS category
@@ -10,4 +11,4 @@ const post = await q1<Record<string, unknown>>(
 );
 if (!post) return Astro.redirect('/admin/posts');
 ---
-<PostEditor post={post} isNew={false} />
+<PostEditor post={post} isNew={false} categories={categories} />
