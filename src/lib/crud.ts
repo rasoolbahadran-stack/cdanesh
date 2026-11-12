@@ -107,7 +107,7 @@ export function makeUpdate(cfg: EntityConfig) {
     try {
       const id = num(new URL(request.url).pathname.split('/').pop(), 0);
       const body = await readJson(request);
-      const existing = await q1(`SELECT id FROM ${cfg.table} WHERE id = $1`, [id]);
+      const existing = await q1(`SELECT * FROM ${cfg.table} WHERE id = $1`, [id]);
       if (!existing) return fail('رکورد موردنظر پیدا نشد', 'NOT_FOUND', 404);
 
       const keys = Object.keys(cfg.fields).filter((k) => body[k] !== undefined);
@@ -121,7 +121,15 @@ export function makeUpdate(cfg: EntityConfig) {
         body[cfg.slugFrom.slugField] = slugVal;
       }
 
-      const sets = keys.map((k, i) => `${k} = $${i + 1}`).join(', ');
+      if ((cfg.table === 'posts' || cfg.table === 'pages') && existing) {
+        try {
+          await q('INSERT INTO content_revisions(entity, entity_id, snapshot) VALUES($1,$2,$3::jsonb)', [cfg.table, id, JSON.stringify(existing)]);
+        } catch { /* نگهداری نسخه نباید مانع ذخیره محتوا شود */ }
+        if (cfg.slugFrom && body[cfg.slugFrom.slugField] && String(existing.slug || '') !== String(body[cfg.slugFrom.slugField])) {
+          await q('INSERT INTO slug_redirects(entity,old_slug,new_slug) VALUES($1,$2,$3) ON CONFLICT(entity,old_slug) DO UPDATE SET new_slug=EXCLUDED.new_slug', [cfg.table, String(existing.slug), String(body[cfg.slugFrom.slugField])]);
+        }
+      }
+      const sets = keys.map((k, i) => `${k} = ${i + 1}`).join(', ');
       const values = keys.map((k) => cfg.fields[k](body[k], body));
       const hasUpdated = cfg.noTimestamp ? '' : ', updated_at = now()';
       const row = await q1(`UPDATE ${cfg.table} SET ${sets}${hasUpdated} WHERE id = $${keys.length + 1} RETURNING *`, [...values, id]);

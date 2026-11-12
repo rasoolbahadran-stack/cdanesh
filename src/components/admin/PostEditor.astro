@@ -1,0 +1,216 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+interface Props { post?: Record<string, unknown>; isNew?: boolean; categories?: Array<{id:number;name:string}> }
+const { post = {}, isNew = false, categories = [] } = Astro.props as Props;
+const value = (key: string, fallback = '') => String(post[key] ?? fallback);
+const status = value('status', 'draft');
+---
+<AdminLayout title={isNew ? 'مقاله جدید' : 'ویرایش مقاله'}>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" />
+  <style>
+    .post-editor-page{max-width:1500px;margin:auto;padding:24px}
+    .post-editor-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+    .post-editor-head h1{margin:0;font-size:22px}
+    .post-form-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px}
+    .post-panel{background:#fff;border:1px solid var(--a-line);border-radius:16px;padding:18px;box-shadow:0 8px 22px rgba(30,35,80,.04);min-width:0}
+    .post-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .post-field{display:grid;gap:6px;min-width:0}.post-field.full{grid-column:1/-1}
+    .post-field label{font-weight:700;font-size:12.5px;color:var(--a-ink)}
+    .post-field input,.post-field textarea,.post-field select{width:100%;border:1.5px solid var(--a-line);border-radius:10px;padding:10px 12px;font:inherit;background:#fff;color:var(--a-ink);min-width:0}
+    .post-field input:focus,.post-field textarea:focus{outline:2px solid rgba(106,43,218,.18);border-color:#8a60da}
+    .post-field small{font-size:11px;color:var(--a-muted)}
+    .post-image-row{display:flex;gap:8px}.post-image-row input{direction:ltr;text-align:left}
+    .post-image-row button{white-space:nowrap}
+    .editor-box{border:1.5px solid var(--a-line);border-radius:13px;overflow:hidden;background:#fff}
+    .editor-tabs,.editor-tools{display:flex;flex-wrap:wrap;gap:6px;padding:9px;border-bottom:1px solid var(--a-line);background:#f7f7fb}
+    .editor-tabs button,.editor-tools button{border:1px solid #e3e4ed;background:#fff;border-radius:8px;padding:6px 10px;font:inherit;font-size:12px;color:#484b67;cursor:pointer}
+    .editor-tabs button.active{background:#eee9ff;color:#5531aa;border-color:#d7cafa;font-weight:800}
+    .editor-tools{border-bottom:0;border-top:1px solid var(--a-line);background:#fff}
+    .editor-visual{min-height:420px;padding:18px;outline:0;line-height:2;color:#3e415b;direction:rtl;text-align:right}
+    .editor-visual:empty:before{content:"محتوای مقاله را اینجا بنویسید…";color:#a1a3b0}
+    .editor-visual h2{font-size:24px;margin:24px 0 10px}.editor-visual h3{font-size:19px;margin:20px 0 8px}
+    .editor-visual p{margin:0 0 14px}.editor-visual blockquote{border-right:4px solid #8a64df;padding:8px 14px;background:#f6f3ff;border-radius:8px}
+    .editor-visual img{max-width:100%;border-radius:12px}
+    .editor-visual table{border-collapse:collapse;width:100%;margin:16px 0}.editor-visual td,.editor-visual th{border:1px solid #ddd;padding:8px}
+    .editor-source{display:none}.CodeMirror{height:420px;direction:ltr;text-align:left;font-size:13px;font-family:Consolas,monospace}
+    .editor-foot{display:flex;justify-content:space-between;gap:8px;padding:8px 12px;border-top:1px solid var(--a-line);font-size:11px;color:var(--a-muted)}
+    .save-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+    .seo-details{margin-top:14px;border:1px solid var(--a-line);border-radius:12px;padding:12px}
+    .seo-details summary{font-weight:800;cursor:pointer}
+    @media(max-width:900px){.post-form-grid{grid-template-columns:1fr}.post-editor-page{padding:14px}}
+    @media(max-width:600px){.post-fields{grid-template-columns:1fr}.post-field.full{grid-column:auto}.editor-visual,.CodeMirror{min-height:340px;height:340px}}
+  </style>
+  <div class="post-editor-page">
+    <div class="post-editor-head">
+      <div><a href="/admin/posts" style="font-size:12px;color:var(--a-muted)">← بازگشت به فهرست مقاله‌ها</a><h1 style="margin-top:8px">{isNew ? 'ایجاد مقاله جدید' : 'ویرایش مقاله'}</h1><p style="color:var(--a-muted);font-size:12px;margin:4px 0 0">محتوا را در ویرایشگر بصری بنویسید یا کد HTML را مستقیماً ویرایش کنید.</p></div>
+      <a class="btn btn-ghost" href="/admin/assistant" target="_blank">✨ باز کردن دستیار هوشمند</a>
+    </div>
+    <form id="post-editor-form" data-id={value('id')} data-is-new={isNew ? '1' : '0'}>
+      <div class="post-form-grid">
+        <div style="display:grid;gap:14px;min-width:0">
+          <section class="post-panel">
+            <div class="post-fields">
+              <div class="post-field full"><label for="post-title">عنوان مقاله</label><input id="post-title" name="title" required maxlength="200" value={value('title')} placeholder="عنوان فارسی مقاله را بنویسید" /></div>
+              <div class="post-field full"><label for="post-slug">آدرس انگلیسی مقاله (Slug)</label><div style="display:flex;gap:8px"><input id="post-slug" name="slug" dir="ltr" required maxlength="120" value={value('slug')} placeholder="ecommerce-design-principles" /><button type="button" id="slug-generate" class="btn btn-ghost">تولید خودکار</button></div><small>از عنوان فارسی پیشنهاد انگلیسی ساخته می‌شود؛ قبل از ذخیره می‌توانید آن را تغییر دهید.</small></div>
+              <div class="post-field"><label for="post-category">دسته‌بندی</label><select id="post-category" name="category_id"><option value="">بدون دسته‌بندی</option>{categories.map((c) => <option value={c.id} selected={String(post.category_id || '') === String(c.id)}>{c.name}</option>)}</select></div>
+              <div class="post-field"><label for="post-reading">زمان مطالعه (دقیقه)</label><input id="post-reading" name="reading_time" type="number" min="1" max="120" value={value('reading_time','6')} /></div>
+              <div class="post-field full"><label for="post-tags">برچسب‌ها (با ویرگول جدا کنید)</label><input id="post-tags" name="tags" value={Array.isArray(post.tags) ? post.tags.join(', ') : value('tags')} placeholder="طراحی سایت، فروشگاه اینترنتی، سئو" /></div>
+              <div class="post-field full"><label for="post-excerpt">توضیح کوتاه مقاله</label><textarea id="post-excerpt" name="excerpt" rows="3" maxlength="600">{value('excerpt')}</textarea></div>
+            </div>
+          </section>
+          <section class="post-panel">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px"><h2 style="margin:0;font-size:16px">متن مقاله</h2><span id="word-count" style="font-size:11px;color:var(--a-muted)">۰ کلمه</span></div>
+            <div class="editor-box">
+              <div class="editor-tabs"><button type="button" id="tab-visual" class="active">ویرایش بصری</button><button type="button" id="tab-html">ویرایش کد HTML</button><span style="margin-inline-start:auto;font-size:11px;color:var(--a-muted);align-self:center">تغییرات دو حالت همگام می‌شود</span></div>
+              <div class="editor-tools" id="visual-tools">
+                <button type="button" data-command="formatBlock" data-value="h2">تیتر اصلی</button><button type="button" data-command="formatBlock" data-value="h3">تیتر فرعی</button><button type="button" data-command="formatBlock" data-value="p">پاراگراف</button><button type="button" data-command="bold"><b>پررنگ</b></button><button type="button" data-command="italic"><i>مورب</i></button><button type="button" data-command="insertUnorderedList">فهرست</button><button type="button" data-command="insertOrderedList">فهرست شماره‌ای</button><button type="button" id="insert-quote">نقل‌قول</button><button type="button" id="insert-image">افزودن از رسانه</button><button type="button" id="insert-link">لینک</button>
+              </div>
+              <div id="visual-editor" class="editor-visual" contenteditable="true" set:html={value('content')}></div>
+              <textarea id="html-editor" class="editor-source" spellcheck="false">{value('content')}</textarea>
+              <div class="editor-foot"><span>ویرایشگر راست‌چین با فونت فارسی سایت</span><span id="editor-state">آمادهٔ ویرایش</span></div>
+            </div>
+            <details class="seo-details">
+              <summary>تنظیمات سئو و اشتراک‌گذاری</summary>
+              <div class="post-fields" style="margin-top:12px">
+                <div class="post-field full"><label>عنوان سئو</label><input name="seo_title" value={value('seo_title')} maxlength="200" /></div>
+                <div class="post-field full"><label>توضیحات متا</label><textarea name="seo_description" rows="2" maxlength="400">{value('seo_description')}</textarea></div>
+                <div class="post-field full"><label>آدرس Canonical</label><input name="canonical_url" dir="ltr" value={value('canonical_url')} /></div>
+                <div class="post-field"><label>عنوان اشتراک‌گذاری</label><input name="og_title" value={value('og_title')} /></div>
+                <div class="post-field"><label>تصویر اشتراک‌گذاری</label><input name="og_image" dir="ltr" value={value('og_image')} /></div>
+                <div class="post-field full"><label>توضیحات اشتراک‌گذاری</label><textarea name="og_description" rows="2">{value('og_description')}</textarea></div>
+              </div>
+            </details>
+          </section>
+        </div>
+        <aside style="display:grid;gap:14px;align-content:start">
+          <section class="post-panel">
+            <h2 style="font-size:15px;margin:0 0 12px">تصویر شاخص</h2>
+            <input type="hidden" name="cover_image" id="cover-image" value={value('cover_image', value('cover'))} />
+            <img id="cover-preview" src={value('cover_image', value('cover'))} alt="" style={'width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;background:#f3f3f8;display:' + (value('cover_image', value('cover')) ? 'block' : 'none')} />
+            <div style="display:grid;gap:8px;margin-top:10px"><button type="button" class="btn btn-ghost" id="cover-pick">انتخاب از کتابخانه رسانه</button><button type="button" class="btn btn-ghost" id="cover-clear">حذف تصویر شاخص</button></div>
+          </section>
+          <section class="post-panel">
+            <h2 style="font-size:15px;margin:0 0 12px">وضعیت مقاله</h2>
+            <div class="post-field"><label for="post-status">وضعیت انتشار</label><select id="post-status" name="status"><option value="draft" selected={status === 'draft'}>پیش‌نویس</option><option value="published" selected={status === 'published'}>منتشرشده</option><option value="scheduled" selected={status === 'scheduled'}>زمان‌بندی‌شده</option></select></div>
+            <div class="post-field" style="margin-top:10px"><label for="post-published-at">زمان انتشار (برای زمان‌بندی)</label><input id="post-published-at" name="published_at" type="datetime-local" value={value('published_at') ? new Date(value('published_at')).toISOString().slice(0,16) : ''} /></div>
+            <div class="save-actions"><button type="button" class="btn btn-gold" id="save-draft">ذخیره پیش‌نویس</button><button type="button" class="btn btn-primary" id="publish-post">{isNew ? 'انتشار مقاله' : 'به‌روزرسانی و انتشار'}</button></div>
+            <p id="save-message" role="status" style="font-size:12px;margin:10px 0 0;color:var(--a-muted)"></p>
+          </section>
+        </aside>
+      </div>
+    </form>
+  </div>
+  <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+  <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+  <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+  <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+  <script>
+    import '../../scripts/admin.ts';
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('post-editor-form') as HTMLFormElement;
+      const visual = document.getElementById('visual-editor') as HTMLElement;
+      const source = document.getElementById('html-editor') as HTMLTextAreaElement;
+      const visualTab = document.getElementById('tab-visual') as HTMLButtonElement;
+      const htmlTab = document.getElementById('tab-html') as HTMLButtonElement;
+      const tools = document.getElementById('visual-tools') as HTMLElement;
+      const title = document.getElementById('post-title') as HTMLInputElement;
+      const slug = document.getElementById('post-slug') as HTMLInputElement;
+      const message = document.getElementById('save-message') as HTMLElement;
+      const state = document.getElementById('editor-state') as HTMLElement;
+      const wordCount = document.getElementById('word-count') as HTMLElement;
+      let cm: any = null;
+      let sourceMode = false;
+      let slugTouched = !!slug.value;
+      const countWords = () => { wordCount.textContent = new Intl.NumberFormat('fa-IR').format((visual.innerText || '').trim().split(/\s+/).filter(Boolean).length) + ' کلمه'; };
+      const showNotice = (txt: string, good = true) => { message.textContent = txt; message.style.color = good ? '#177a48' : '#b3261e'; };
+      const toSource = () => {
+        source.value = visual.innerHTML;
+        visual.style.display = 'none'; tools.style.display = 'none'; source.style.display = 'block';
+        htmlTab.classList.add('active'); visualTab.classList.remove('active'); sourceMode = true;
+        if ((window as any).CodeMirror) {
+          if (!cm) { cm = (window as any).CodeMirror.fromTextArea(source, { mode:'htmlmixed', lineNumbers:true, lineWrapping:true, direction:'ltr', indentUnit:2, tabSize:2, viewportMargin:Infinity }); }
+          cm.setValue(source.value); cm.refresh();
+        }
+        state.textContent = 'حالت ویرایش مستقیم HTML';
+      };
+      const toVisual = () => {
+        const html = cm ? cm.getValue() : source.value;
+        visual.innerHTML = html;
+        source.value = html;
+        if (cm) cm.save();
+        source.style.display = 'none'; visual.style.display = 'block'; tools.style.display = 'flex';
+        visualTab.classList.add('active'); htmlTab.classList.remove('active'); sourceMode = false;
+        countWords(); state.textContent = 'حالت بصری';
+      };
+      visualTab.addEventListener('click', toVisual);
+      htmlTab.addEventListener('click', toSource);
+      document.querySelectorAll('[data-command]').forEach((button) => button.addEventListener('click', () => {
+        const b = button as HTMLElement; visual.focus();
+        const cmd = b.dataset.command || ''; const val = b.dataset.value || null;
+        document.execCommand(cmd, false, val);
+        countWords();
+      }));
+      document.getElementById('insert-quote')?.addEventListener('click', () => { visual.focus(); document.execCommand('formatBlock', false, 'blockquote'); });
+      document.getElementById('insert-link')?.addEventListener('click', () => { const href = prompt('آدرس لینک را وارد کنید'); if (href) { visual.focus(); document.execCommand('createLink', false, href); } });
+      document.getElementById('insert-image')?.addEventListener('click', () => {
+        const api = (window as any).CDA;
+        if (!api?.openMediaPicker) return showNotice('کتابخانه رسانه بارگذاری نشد؛ صفحه را تازه‌سازی کنید.', false);
+        api.openMediaPicker((url: string) => { visual.focus(); document.execCommand('insertHTML', false, '<figure><img src="' + url + '" alt="" loading="lazy"><figcaption>توضیح تصویر</figcaption></figure>'); countWords(); });
+      });
+      const cover = document.getElementById('cover-image') as HTMLInputElement;
+      const preview = document.getElementById('cover-preview') as HTMLImageElement;
+      document.getElementById('cover-pick')?.addEventListener('click', () => (window as any).CDA?.openMediaPicker((url: string) => { cover.value = url; preview.src = url; preview.style.display = 'block'; }));
+      document.getElementById('cover-clear')?.addEventListener('click', () => { cover.value = ''; preview.removeAttribute('src'); preview.style.display = 'none'; });
+      title.addEventListener('blur', async () => {
+        if (!title.value.trim() || slugTouched) return;
+        try { const r = await fetch('/api/admin/slug', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({title:title.value}) }); const j=await r.json(); if (j.ok && j.slug) slug.value=j.slug; }
+        catch { /* پیشنهاد محلی بعداً قابل ویرایش است */ }
+      });
+      slug.addEventListener('input', () => { slugTouched = true; });
+      document.getElementById('slug-generate')?.addEventListener('click', async () => {
+        slugTouched = false;
+        try { const r=await fetch('/api/admin/slug',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:title.value})}); const j=await r.json(); if(j.ok){slug.value=j.slug;slugTouched=true;} else showNotice(j.message||'تولید اسلاگ ممکن نشد',false); }
+        catch { showNotice('ارتباط با سرویس برقرار نشد',false); }
+      });
+      visual.addEventListener('input', countWords); countWords();
+      async function save(nextStatus: string) {
+        const html = sourceMode ? (cm ? cm.getValue() : source.value) : visual.innerHTML;
+        const data: Record<string, unknown> = {
+          title: title.value.trim(), slug: slug.value.trim(), excerpt: (form.elements.namedItem('excerpt') as HTMLTextAreaElement).value,
+          category_id: (form.elements.namedItem('category_id') as HTMLSelectElement).value ? Number((form.elements.namedItem('category_id') as HTMLSelectElement).value) : undefined,
+          tags: (form.elements.namedItem('tags') as HTMLInputElement).value.split(/[،,]/).map((x) => x.trim()).filter(Boolean).slice(0, 10),
+          content: html, cover_image: cover.value, status: nextStatus,
+          reading_time: Number((form.elements.namedItem('reading_time') as HTMLInputElement).value || 6),
+          seo_title: (form.elements.namedItem('seo_title') as HTMLInputElement).value,
+          seo_description: (form.elements.namedItem('seo_description') as HTMLTextAreaElement).value,
+          canonical_url: (form.elements.namedItem('canonical_url') as HTMLInputElement).value,
+          og_title: (form.elements.namedItem('og_title') as HTMLInputElement).value,
+          og_description: (form.elements.namedItem('og_description') as HTMLTextAreaElement).value,
+          og_image: (form.elements.namedItem('og_image') as HTMLInputElement).value,
+          published_at: (form.elements.namedItem('published_at') as HTMLInputElement).value ? new Date((form.elements.namedItem('published_at') as HTMLInputElement).value).toISOString() : null
+        };
+        if (!data.title || !data.slug) return showNotice('عنوان و اسلاگ مقاله الزامی است.', false);
+        if (nextStatus === 'scheduled' && !data.published_at) return showNotice('برای زمان‌بندی، تاریخ و ساعت انتشار را تعیین کنید.', false);
+        if (nextStatus === 'published' && !confirm('مقاله منتشر شود و در سایت عمومی نمایش داده شود؟')) return;
+        const isNew = form.dataset.isNew === '1';
+        showNotice('در حال ذخیره…');
+        const url = isNew ? '/api/admin/posts' : '/api/admin/posts/' + form.dataset.id;
+        const method = isNew ? 'POST' : 'PUT';
+        try {
+          const response = await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+          const result = await response.json();
+          if (!response.ok || !result.ok) return showNotice(result.message || result.error || 'ذخیره ناموفق بود',false);
+          const saved = result.data || {};
+          showNotice(nextStatus === 'published' ? 'مقاله منتشر شد.' : 'پیش‌نویس ذخیره شد.');
+          if (isNew && saved.id) { window.location.href = '/admin/posts/' + encodeURIComponent(saved.slug || data.slug); return; }
+          form.dataset.isNew = '0'; form.dataset.id = String(saved.id || form.dataset.id);
+          const select = document.getElementById('post-status') as HTMLSelectElement; select.value = nextStatus;
+          state.textContent = 'ذخیره شد';
+        } catch { showNotice('ارتباط با سرور برقرار نشد.',false); }
+      }
+      document.getElementById('save-draft')?.addEventListener('click', () => save('draft'));
+      document.getElementById('publish-post')?.addEventListener('click', () => save('published'));
+    });
+  </script>
+</AdminLayout>

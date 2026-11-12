@@ -2,82 +2,32 @@
 export const prerender = false;
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { listMessages, dbAvailable } from '../../lib/cms-db';
-
-const useDb = dbAvailable();
-let rows: Array<Record<string, unknown>> = [];
-if (useDb) {
-  try {
-    rows = (await listMessages()) as unknown as Array<Record<string, unknown>>;
-  } catch { /* no db */ }
-}
-const fa = (n: number | string) => new Intl.NumberFormat('fa-IR').format(Number(n));
-const kindFa: Record<string, string> = { contact: 'تماس', consult: 'مشاوره' };
+const useDb=dbAvailable();
+let rows:Array<Record<string,unknown>>=[];
+if(useDb){try{rows=(await listMessages()) as unknown as Array<Record<string,unknown>>;}catch{}}
+const fa=(n:number|string)=>new Intl.NumberFormat('fa-IR').format(Number(n));
+const kindFa:Record<string,string>={contact:'تماس',consult:'مشاوره',plan:'درخواست پکیج'};
 ---
-<AdminLayout title="پنل مدیریت کافه دانش">
-  <div class="admin-body">
-    <div class="admin-shell">
-      <aside class="admin-side">
-        <div style="display:flex;align-items:center;gap:10px">
-          <img src="/img/logo.svg" alt="" width="38" height="38" style="border-radius:10px" />
-          <div><b style="color:#fff;display:block">کافه دانش</b><small style="opacity:.7">پنل مدیریت</small></div>
-        </div>
-        <nav class="admin-side__nav" aria-label="منوی مدیریت">
-          <a href="/admin">🏠 داشبورد</a>
-          <a href="/admin/posts">📝 مقالات</a>
-          <a href="/admin/portfolio">🎨 نمونه‌کارها</a>
-          <a href="/admin/messages" class="is-active">💬 پیام‌ها</a>
-          <a href="/" target="_blank">🌍 مشاهده سایت</a>
-        </nav>
-      </aside>
-
-      <main class="admin-main">
-        <h1 style="margin:0 0 6px">صندوق پیام‌ها</h1>
-        <p style="color:var(--mut)">پیام‌های فرم تماس و درخواست مشاوره</p>
-
-        {rows.length ? (
-          <div style="display:grid;gap:14px;margin-top:20px">
-            {rows.map((m) => (
-              <article class="admin-card" style:border-right={m.is_read ? 'none' : '4px solid var(--pink)'}>
-                <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center">
-                  <div>
-                    <b>{String(m.name ?? '')}</b>
-                    <span class="badge" style="margin-inline-start:8px;background:var(--lavender);color:var(--purple)">{kindFa[String(m.kind)] ?? String(m.kind)}</span>
-                    {m.is_read ? '' : <span class="badge badge--draft" style="margin-inline-start:6px">جدید</span>}
-                  </div>
-                  <small style="color:var(--mut)" dir="ltr">{String(m.created_at ?? '').slice(0, 16)}</small>
-                </div>
-                <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:.9rem">
-                  {m.phone ? <span dir="ltr">📞 {String(m.phone)}</span> : ''}
-                  {m.email ? <span dir="ltr">✉️ {String(m.email)}</span> : ''}
-                  {m.service ? <span>🧩 {String(m.service)}</span> : ''}
-                </div>
-                {m.message ? <p style="margin:10px 0 0;font-size:.92rem;color:var(--body)">{String(m.message)}</p> : ''}
-                {!m.is_read && (
-                  <button type="button" class="btn btn--sm btn--outline" style="margin-top:12px" data-mark-read={String(m.id)}>علامت‌گذاری به‌عنوان خوانده‌شده</button>
-                )}
-              </article>
-            ))}
-          </div>
-        ) : (
-          <div class="admin-card" style="margin-top:20px">
-            {useDb
-              ? <p style="margin:0;color:var(--mut)">هنوز پیامی ثبت نشده است.</p>
-              : <p style="margin:0;color:var(--mut)">برای مشاهده پیام‌ها، DATABASE_URL را تنظیم کنید. پیام‌های فرم‌ها در حالت بدون دیتابیس در لاگ سرور ثبت می‌شوند.</p>}
-          </div>
-        )}
-      </main>
-    </div>
-  </div>
-
-  <script>
-    document.querySelectorAll('[data-mark-read]').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const id = (btn as HTMLElement).dataset.markRead;
-        const res = await fetch('/api/admin/messages', {
-          method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }),
-        });
-        if (res.ok) window.location.reload();
-      });
-    });
-  </script>
+<AdminLayout title="صندوق درخواست‌ها و پیام‌ها">
+<div class="admin-body"><div class="admin-shell">
+<aside class="admin-side"><div style="display:flex;align-items:center;gap:10px"><img src="/img/logo.svg" alt="" width="38" height="38" style="border-radius:10px"/><div><b style="color:#fff;display:block">کافه دانش</b><small style="opacity:.7">پنل مدیریت</small></div></div>
+<nav class="admin-side__nav" aria-label="منوی مدیریت"><a href="/admin">🏠 داشبورد</a><a href="/admin/posts">📝 مقاله‌ها</a><a href="/admin/pages">📄 صفحات</a><a href="/admin/categories">🗂 دسته‌بندی‌ها</a><a href="/admin/media">🖼 رسانه‌ها</a><a href="/admin/messages" class="is-active">💬 درخواست‌ها و پیام‌ها</a><a href="/admin/assistant">✨ دستیار هوشمند</a><a href="/admin/errors">🛠 گزارش خطاها</a><a href="/admin/settings">⚙️ تنظیمات</a></nav></aside>
+<main class="admin-main"><div style="padding:26px;max-width:1300px;margin:auto;width:100%">
+<h1 style="margin:0">صندوق درخواست‌ها و پیام‌ها</h1><p style="color:var(--mut);margin-top:4px">پیام‌های فرم تماس، درخواست مشاوره و فرم‌های سفارش</p>
+{rows.length ? <div style="display:grid;gap:14px;margin-top:20px">{rows.map((m)=><article class="admin-card" style:border-right={m.is_read?'none':'4px solid var(--pink)'}>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><b>{String(m.name||'بدون نام')}</b><span class="badge" style="margin-inline-start:8px;background:var(--lavender);color:var(--purple)">{kindFa[String(m.kind)]||String(m.kind)}</span>{m.is_read?'':<span class="badge badge--draft" style="margin-inline-start:6px">جدید</span>}{m.starred?<span style="margin-inline-start:6px">⭐ مهم</span>:''}</div><small style="color:var(--mut)">{new Intl.DateTimeFormat('fa-IR-u-ca-persian',{dateStyle:'medium',timeStyle:'short'}).format(new Date(String(m.created_at)))}</small></div>
+<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:.9rem">{m.phone?<a href={'tel:'+String(m.phone)} dir="ltr">📞 {String(m.phone)}</a>:''}{m.email?<a href={'mailto:'+String(m.email)} dir="ltr">✉️ {String(m.email)}</a>:''}{m.service?<span>🧩 {String(m.service)}</span>:''}</div>
+{m.message?<p style="margin:10px 0 0;font-size:.92rem;color:var(--body);white-space:pre-wrap">{String(m.message)}</p>:''}
+<div style="display:grid;gap:7px;margin-top:12px"><label style="font-size:12px;font-weight:700">یادداشت داخلی مدیر</label><textarea data-note={String(m.id)} rows="2" style="width:100%;border:1px solid var(--a-line);border-radius:9px;padding:9px;font:inherit">{String(m.admin_note || '')}</textarea></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn btn--sm btn--outline" data-note-save={String(m.id)}>ذخیره یادداشت</button><button class="btn btn--sm btn--outline" data-star={String(m.id)} data-value={m.starred?'false':'true'}>{m.starred?'برداشتن علامت مهم':'⭐ علامت‌گذاری مهم'}</button>{!m.is_read&&<button class="btn btn--sm btn--outline" data-status={String(m.id)} data-next="read">علامت‌گذاری خوانده‌شده</button>}<button class="btn btn--sm btn--outline" data-status={String(m.id)} data-next="archived">بایگانی پیام</button></div>
+</article>)}</div>:<div class="admin-card" style="margin-top:20px"><p style="margin:0;color:var(--mut)">{useDb?'هنوز پیامی ثبت نشده است.':'برای مشاهده پیام‌ها، اتصال دیتابیس لازم است.'}</p></div>}
+</div></main></div></div>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ async function update(id:string,data:Record<string,unknown>,button?:HTMLElement){if(button){button.setAttribute('disabled','true');}try{const r=await fetch('/api/admin/messages',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,...data})});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j.message||'ذخیره ناموفق بود');location.reload();}catch(e){alert((e as Error).message);button?.removeAttribute('disabled');}}
+ document.querySelectorAll('[data-note-save]').forEach(b=>b.addEventListener('click',()=>{const el=b as HTMLElement,id=el.dataset.noteSave||'';const note=(document.querySelector('[data-note="'+id+'"]') as HTMLTextAreaElement)?.value||'';update(id,{admin_note:note},el);}));
+ document.querySelectorAll('[data-star]').forEach(b=>b.addEventListener('click',()=>{const el=b as HTMLElement;update(el.dataset.star||'',{starred:el.dataset.value==='true'},el);}));
+ document.querySelectorAll('[data-status]').forEach(b=>b.addEventListener('click',()=>{const el=b as HTMLElement;update(el.dataset.status||'',{status:el.dataset.next},el);}));
+});
+</script>
 </AdminLayout>

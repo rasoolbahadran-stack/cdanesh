@@ -1,109 +1,164 @@
 ---
 export const prerender = false;
 import AdminLayout from '../../layouts/AdminLayout.astro';
-import { adminStats } from '../../lib/cms-db';
+import { q } from '../../lib/db';
 
 const session = Astro.locals.admin;
-let stats = { posts: 0, draftPosts: 0, scheduledPosts: 0, publishedPages: 0, portfolio: 0, messages: 0, unread: 0 };
+const fa = (n: unknown) => new Intl.NumberFormat('fa-IR').format(Number(n) || 0);
+let counts = { published: 0, draft: 0, scheduled: 0, pages: 0, messages: 0, unread: 0, portfolio: 0 };
+let activity: Array<Record<string, unknown>> = [];
 let dbOk = true;
 try {
-  stats = await adminStats();
-} catch {
-  dbOk = false;
-}
+  const [p, pg, m, pr, a] = await Promise.all([
+    q<{ published: number; draft: number; scheduled: number }>(`SELECT
+      COUNT(*) FILTER (WHERE status='published')::int AS published,
+      COUNT(*) FILTER (WHERE status='draft')::int AS draft,
+      COUNT(*) FILTER (WHERE status='scheduled')::int AS scheduled FROM posts`),
+    q<{ pages: number }>(`SELECT COUNT(*)::int AS pages FROM pages WHERE status='published'`),
+    q<{ messages: number; unread: number }>(`SELECT
+      COUNT(*) FILTER (WHERE status <> 'archived')::int AS messages,
+      COUNT(*) FILTER (WHERE status = 'new')::int AS unread FROM messages`),
+    q<{ portfolio: number }>(`SELECT COUNT(*)::int AS portfolio FROM projects WHERE status='published'`),
+    q<Record<string, unknown>>(`SELECT type, entity, title, created_at FROM activity ORDER BY created_at DESC LIMIT 7`)
+  ]);
+  counts = {
+    published: Number(p[0]?.published || 0),
+    draft: Number(p[0]?.draft || 0),
+    scheduled: Number(p[0]?.scheduled || 0),
+    pages: Number(pg[0]?.pages || 0),
+    messages: Number(m[0]?.messages || 0),
+    unread: Number(m[0]?.unread || 0),
+    portfolio: Number(pr[0]?.portfolio || 0),
+  };
+  activity = a;
+} catch { dbOk = false; }
+const totalPosts = counts.published + counts.draft + counts.scheduled;
+const safeTotal = Math.max(1, totalPosts);
+const pubPct = Math.round(counts.published / safeTotal * 100);
+const draftPct = Math.round(counts.draft / safeTotal * 100);
+const scheduledPct = Math.max(0, 100 - pubPct - draftPct);
+const typeLabel: Record<string, string> = { create: 'ایجاد', update: 'ویرایش', delete: 'حذف', publish: 'انتشار' };
+const entityLabel: Record<string, string> = { posts: 'مقاله', pages: 'صفحه', media: 'رسانه', messages: 'پیام', settings: 'تنظیمات' };
 ---
-<AdminLayout title="پنل مدیریت کافه دانش">
+<AdminLayout title="داشبورد مدیریت کافه دانش">
+  <style>
+    .dash-wrap{padding:28px;max-width:1500px;margin:auto}
+    .dash-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+    .dash-head h1{font-size:clamp(21px,2.4vw,30px);margin:0;color:#202345}
+    .dash-head p{margin:4px 0 0;color:#777b91}
+    .dash-shortcuts{display:flex;flex-wrap:wrap;gap:8px}
+    .dash-shortcuts a{padding:9px 14px;border-radius:11px;background:#fff;border:1px solid #e5e7ef;color:#454866;font-weight:700;font-size:13px}
+    .dash-shortcuts a.primary{background:linear-gradient(120deg,#6a2bda,#a35eec);color:#fff;border:0}
+    .dash-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+    .dash-stat{background:#fff;border:1px solid #e9eaf1;border-radius:17px;padding:18px;box-shadow:0 8px 24px rgba(34,35,80,.045)}
+    .dash-stat span{color:#777b91;font-size:12px}.dash-stat b{display:block;font-size:27px;line-height:1.5;color:#272949}
+    .dash-stat i{font-style:normal;font-size:22px;float:left}
+    .dash-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:16px}
+    .dash-panel{background:#fff;border:1px solid #e8e9f1;border-radius:18px;padding:20px;box-shadow:0 8px 24px rgba(34,35,80,.045)}
+    .dash-panel h2{font-size:16px;margin:0 0 16px;color:#292b4d}
+    .donut-row{display:flex;align-items:center;gap:28px;flex-wrap:wrap}
+    .donut{width:190px;height:190px;border-radius:50%;display:grid;place-items:center;flex:none;position:relative}
+    .donut:after{content:"";position:absolute;inset:24px;background:#fff;border-radius:50%}
+    .donut-center{position:relative;z-index:1;text-align:center;color:#777b91;font-size:12px}
+    .donut-center b{display:block;font-size:28px;color:#272949}
+    .donut-legend{display:grid;gap:13px;min-width:180px;flex:1}
+    .legend-item{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#555a73;font-size:13px}
+    .legend-item span:first-child{display:flex;align-items:center;gap:9px}
+    .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+    .bar-list{display:grid;gap:14px}
+    .bar-head{display:flex;justify-content:space-between;font-size:12.5px;color:#646980;margin-bottom:5px}
+    .bar-track{height:9px;border-radius:20px;background:#f0f1f6;overflow:hidden}
+    .bar-fill{height:100%;border-radius:20px}
+    .activity-list{display:grid;gap:0}
+    .activity-row{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid #f0f1f5}
+    .activity-row:last-child{border:0}
+    .activity-icon{width:32px;height:32px;border-radius:10px;background:#f0edff;display:grid;place-items:center;flex:none}
+    .activity-row b{font-size:12.5px;color:#3d405e}.activity-row small{display:block;color:#888ca0;font-size:11px}
+    .dash-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:16px}
+    .dash-tile{padding:14px;border-radius:14px;background:#f6f5ff;border:1px solid #ebe8ff}
+    .dash-tile b{display:block;font-size:21px;color:#4b3d94}.dash-tile span{font-size:11.5px;color:#77728f}
+    @media(max-width:900px){.dash-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-grid{grid-template-columns:1fr}}
+    @media(max-width:520px){.dash-wrap{padding:16px}.dash-stats{gap:9px}.dash-stat{padding:13px}.dash-stat b{font-size:22px}.donut{width:160px;height:160px}.dash-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  </style>
   <div class="admin-body">
     <div class="admin-shell">
       <aside class="admin-side">
         <div style="display:flex;align-items:center;gap:10px">
           <img src="/img/logo.svg" alt="" width="38" height="38" style="border-radius:10px" />
-          <div>
-            <b style="color:#fff;display:block">کافه دانش</b>
-            <small style="opacity:.7">پنل مدیریت</small>
-          </div>
+          <div><b style="color:#fff;display:block">کافه دانش</b><small style="opacity:.7">پنل مدیریت</small></div>
         </div>
         <nav class="admin-side__nav" aria-label="منوی مدیریت">
           <a href="/admin" class="is-active">🏠 داشبورد</a>
-          <a href="/admin/posts">📝 مقالات</a>
-          <a href="/admin/portfolio">🎨 نمونه‌کارها</a>
-          <a href="/admin/messages">💬 پیام‌ها</a>
-          <a href="/admin/media">🖼 رسانه‌ها</a>
+          <a href="/admin/posts">📝 مقاله‌ها</a>
           <a href="/admin/pages">📄 صفحات</a>
+          <a href="/admin/categories">🗂 دسته‌بندی‌ها</a>
+          <a href="/admin/media">🖼 رسانه‌ها</a>
+          <a href="/admin/portfolio">🎨 نمونه‌کارها</a>
+          <a href="/admin/messages">💬 درخواست‌ها و پیام‌ها</a>
           <a href="/admin/assistant">✨ دستیار هوشمند</a>
-          <a href="/" target="_blank">🌍 مشاهده سایت</a>
+          <a href="/admin/errors">🛠 گزارش خطاها</a>
+          <a href="/admin/settings">⚙️ تنظیمات</a>
+          <a href="/" target="_blank" rel="noopener">🌍 مشاهده سایت</a>
         </nav>
         <form id="logout-form" style="margin-top:26px">
           <button type="submit" class="btn btn--sm btn--outline" style="width:100%;justify-content:center">خروج</button>
         </form>
       </aside>
-
       <main class="admin-main">
-        <h1>سلام بهادران، خوش اومدی! 👋</h1>
-        <p style="color:var(--mut)">وضعیت کلی محتوای سایت در یک نگاه</p>
-
-        {!dbOk && (
-          <div class="form-status is-err" style="display:flex;margin-bottom:16px">
-            اتصال به دیتابیس برقرار نیست (DATABASE_URL). سایت با داده‌های محلی کار می‌کند؛ پس از تنظیم متغیر محیطی، امکانات مدیریت فعال می‌شود.
-          </div>
-        )}
-
-        <div class="admin-cards">
-          <div class="admin-card"><b>{new Intl.NumberFormat('fa-IR').format(stats.posts)}</b><span>مقاله منتشرشده</span></div>
-          <div class="admin-card"><b>{new Intl.NumberFormat('fa-IR').format(stats.draftPosts)}</b><span>پیش‌نویس مقاله</span></div>
-          <div class="admin-card"><b>{new Intl.NumberFormat('fa-IR').format(stats.portfolio)}</b><span>نمونه‌کار منتشرشده</span></div>
-          <div class="admin-card"><b>{new Intl.NumberFormat('fa-IR').format(stats.messages)}</b><span>پیام دریافتی</span></div>
-        </div>
-        <section class="dash-analytics" aria-label="آمار محتوای سایت">
-          <div class="dash-chart-card">
-            <div class="dash-chart-head"><div><h2>وضعیت مقاله‌ها</h2><p>نمای کلی محتوای وبلاگ</p></div><span class="dash-chart-icon">◉</span></div>
-            <div class="dash-donut-wrap">
-              <div class="dash-donut" style={'--published:' + stats.posts + ';--draft:' + stats.draftPosts + ';--scheduled:' + stats.scheduledPosts + ';--total:' + Math.max(1,stats.posts+stats.draftPosts+stats.scheduledPosts)}><div><strong>{new Intl.NumberFormat('fa-IR').format(stats.posts+stats.draftPosts+stats.scheduledPosts)}</strong><span>مقاله</span></div></div>
-              <div class="dash-legend">
-                <div><i class="is-published"></i><span>منتشرشده</span><b>{new Intl.NumberFormat('fa-IR').format(stats.posts)}</b></div>
-                <div><i class="is-draft"></i><span>پیش‌نویس</span><b>{new Intl.NumberFormat('fa-IR').format(stats.draftPosts)}</b></div>
-                <div><i class="is-scheduled"></i><span>زمان‌بندی‌شده</span><b>{new Intl.NumberFormat('fa-IR').format(stats.scheduledPosts)}</b></div>
+        <div class="dash-wrap">
+          <header class="dash-head">
+            <div><h1>سلام بهادران، خوش اومدی! 👋</h1><p>امروز چه محتوای تازه‌ای به کافه دانش اضافه می‌کنیم؟</p></div>
+            <div class="dash-shortcuts">
+              <a class="primary" href="/admin/posts/new">＋ مقاله جدید</a>
+              <a href="/admin/pages">مدیریت صفحات</a>
+              <a href="/admin/media">افزودن تصویر</a>
+            </div>
+          </header>
+          {!dbOk && <div class="form-status is-err" style="display:flex;margin-bottom:16px">اتصال به پایگاه داده برقرار نیست. آمار داشبورد در دسترس نیست.</div>}
+          <section class="dash-stats">
+            <div class="dash-stat"><i>📝</i><span>مقاله منتشرشده</span><b>{fa(counts.published)}</b></div>
+            <div class="dash-stat"><i>📄</i><span>صفحه منتشرشده</span><b>{fa(counts.pages)}</b></div>
+            <div class="dash-stat"><i>💬</i><span>درخواست و پیام</span><b>{fa(counts.messages)}</b></div>
+            <div class="dash-stat"><i>🔔</i><span>پیام خوانده‌نشده</span><b>{fa(counts.unread)}</b></div>
+          </section>
+          <section class="dash-grid">
+            <div class="dash-panel">
+              <h2>وضعیت مقاله‌ها</h2>
+              <div class="donut-row">
+                <div class="donut" style={'background:conic-gradient(#6a2bda 0 ' + pubPct + '%, #f2a541 ' + pubPct + '% ' + (pubPct + draftPct) + '%, #29a6a0 ' + (pubPct + draftPct) + '% 100%)'}>
+                  <div class="donut-center"><b>{fa(totalPosts)}</b>مجموع مقاله‌ها</div>
+                </div>
+                <div class="donut-legend">
+                  <div class="legend-item"><span><i class="dot" style="background:#6a2bda"></i>منتشرشده</span><b>{fa(counts.published)}</b></div>
+                  <div class="legend-item"><span><i class="dot" style="background:#f2a541"></i>پیش‌نویس</span><b>{fa(counts.draft)}</b></div>
+                  <div class="legend-item"><span><i class="dot" style="background:#29a6a0"></i>زمان‌بندی‌شده</span><b>{fa(counts.scheduled)}</b></div>
+                </div>
+              </div>
+              <div class="dash-tiles">
+                <div class="dash-tile"><b>{fa(counts.draft)}</b><span>پیش‌نویس</span></div>
+                <div class="dash-tile"><b>{fa(counts.scheduled)}</b><span>زمان‌بندی‌شده</span></div>
+                <div class="dash-tile"><b>{fa(counts.portfolio)}</b><span>نمونه‌کار منتشرشده</span></div>
+                <div class="dash-tile"><b>{fa(counts.messages)}</b><span>پیام ثبت‌شده</span></div>
               </div>
             </div>
-          </div>
-          <div class="dash-chart-card">
-            <div class="dash-chart-head"><div><h2>خلاصه محتوای سایت</h2><p>آمار واقعی از پایگاه داده</p></div><span class="dash-chart-icon">▤</span></div>
-            <div class="dash-metric-list">
-              <div><span>صفحات منتشرشده</span><b>{new Intl.NumberFormat('fa-IR').format(stats.publishedPages)}</b></div>
-              <div><span>نمونه‌کارهای منتشرشده</span><b>{new Intl.NumberFormat('fa-IR').format(stats.portfolio)}</b></div>
-              <div><span>پیام‌های خوانده‌نشده</span><b>{new Intl.NumberFormat('fa-IR').format(stats.unread)}</b></div>
-              <div><span>کل پیام‌های دریافتی</span><b>{new Intl.NumberFormat('fa-IR').format(stats.messages)}</b></div>
+            <div class="dash-panel">
+              <h2>نمای کلی محتوا</h2>
+              <div class="bar-list">
+                <div><div class="bar-head"><span>مقاله‌های منتشرشده</span><b>{fa(counts.published)}</b></div><div class="bar-track"><div class="bar-fill" style={'width:' + (totalPosts ? counts.published / totalPosts * 100 : 0) + '%;background:#6a2bda'}></div></div></div>
+                <div><div class="bar-head"><span>پیش‌نویس‌ها</span><b>{fa(counts.draft)}</b></div><div class="bar-track"><div class="bar-fill" style={'width:' + (totalPosts ? counts.draft / totalPosts * 100 : 0) + '%;background:#f2a541'}></div></div></div>
+                <div><div class="bar-head"><span>صفحه‌های سایت</span><b>{fa(counts.pages)}</b></div><div class="bar-track"><div class="bar-fill" style={'width:' + (counts.pages ? 100 : 0) + '%;background:#29a6a0'}></div></div></div>
+              </div>
+              <p style="color:#888ca0;font-size:11.5px;margin:18px 0 0">آمار بازدید فقط پس از اتصال ابزار تحلیل و دریافت داده واقعی نمایش داده خواهد شد.</p>
             </div>
-          </div>
-        </section>
-
-        <div class="admin-card" style="margin-top:22px">
-          <h2 style="font-size:1.05rem">دسترسی سریع</h2>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-            <a href="/admin/posts" class="btn btn--sm">مدیریت مقالات</a>
-            <a href="/admin/portfolio" class="btn btn--sm btn--purple">مدیریت نمونه‌کارها</a>
-            <a href="/admin/messages" class="btn btn--sm btn--outline">صندوق پیام‌ها</a>
-            <a href="/admin/media" class="btn btn--sm btn--outline">کتابخانه رسانه</a>
-            <a href="/admin/pages" class="btn btn--sm btn--outline">مدیریت صفحات</a>
-            <a href="/admin/assistant" class="btn btn--sm btn--outline">دستیار هوشمند</a>
-          </div>
-          <p style="color:var(--mut);font-size:.85rem;margin-top:14px">محتوا پس از ذخیره از مسیر مدیریت به‌روزرسانی می‌شود؛ نیازی به اجرای دستی انتشار از این صفحه نیست.</p>
+          </section>
+          <section class="dash-panel" style="margin-top:16px">
+            <h2>آخرین فعالیت‌های پنل</h2>
+            {activity.length ? <div class="activity-list">{activity.map((item) => <div class="activity-row"><div class="activity-icon">📝</div><div><b>{String(item.title || (typeLabel[String(item.type)] || 'فعالیت') + ' ' + (entityLabel[String(item.entity)] || 'محتوا'))}</b><small>{new Intl.DateTimeFormat('fa-IR-u-ca-persian', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(String(item.created_at)))}</small></div></div>)}</div> : <p style="margin:0;color:#85899b;font-size:13px">هنوز فعالیتی ثبت نشده است.</p>}
+          </section>
         </div>
       </main>
     </div>
   </div>
-  <style>
-    .dash-analytics{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}
-    .dash-chart-card{background:linear-gradient(145deg,#fff,#f6f5ff);border:1px solid #e8e3f6;border-radius:18px;padding:20px;box-shadow:0 10px 28px rgba(50,35,110,.06);color:#28233d}
-    .dash-chart-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.dash-chart-head h2{font-size:1.02rem;margin:0;color:#30274b}.dash-chart-head p{font-size:.82rem;color:#817b91;margin:3px 0 0}
-    .dash-chart-icon{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:#eee9ff;color:#7043c7;font-size:21px}
-    .dash-donut-wrap{display:flex;align-items:center;justify-content:center;gap:28px;min-height:200px;flex-wrap:wrap;padding-top:12px}
-    .dash-donut{width:164px;height:164px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#7048d8 0 calc(var(--published)/var(--total)*100%),#f3a5c9 calc(var(--published)/var(--total)*100%) calc((var(--published) + var(--draft))/var(--total)*100%),#f5bd54 0 100%);position:relative}
-    .dash-donut:before{content:"";position:absolute;inset:17px;background:#fff;border-radius:50%}.dash-donut>div{z-index:1;display:grid;text-align:center}.dash-donut strong{font-size:1.65rem;color:#30274b;line-height:1.35}.dash-donut span{font-size:.78rem;color:#847d91}
-    .dash-legend{display:grid;gap:11px;min-width:150px}.dash-legend>div{display:grid;grid-template-columns:12px 1fr auto;align-items:center;gap:8px;font-size:.82rem;color:#716b81}.dash-legend i{width:10px;height:10px;border-radius:50%}.dash-legend .is-published{background:#7048d8}.dash-legend .is-draft{background:#f3a5c9}.dash-legend .is-scheduled{background:#f5bd54}.dash-legend b{color:#30274b;font-variant-numeric:tabular-nums}
-    .dash-metric-list{display:grid;gap:0;margin-top:18px}.dash-metric-list>div{display:flex;justify-content:space-between;gap:14px;padding:13px 2px;border-bottom:1px solid #ece8f4;color:#716b81;font-size:.88rem}.dash-metric-list>div:last-child{border-bottom:0}.dash-metric-list b{color:#30274b;font-size:1rem}
-    @media(max-width:760px){.dash-analytics{grid-template-columns:1fr}.dash-donut-wrap{gap:18px}}
-  </style>
   <script>
     document.getElementById('logout-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
