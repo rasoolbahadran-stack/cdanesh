@@ -10,15 +10,7 @@ if (useDb) {
 const fa = (n: number | string) => new Intl.NumberFormat('fa-IR').format(Number(n));
 ---
 <AdminLayout title="مدیریت مقاله‌ها">
-  <div class="admin-body">
-    <div class="admin-shell">
-      <aside class="admin-side">
-        <div style="display:flex;align-items:center;gap:10px"><img src="/img/logo.svg" alt="" width="38" height="38" style="border-radius:10px" /><div><b style="color:#fff;display:block">کافه دانش</b><small style="opacity:.7">پنل مدیریت</small></div></div>
-        <nav class="admin-side__nav" aria-label="منوی مدیریت">
-          <a href="/admin">🏠 داشبورد</a><a href="/admin/posts" class="is-active">📝 مقاله‌ها</a><a href="/admin/pages">📄 صفحات</a><a href="/admin/categories">🗂 دسته‌بندی‌ها</a><a href="/admin/media">🖼 رسانه‌ها</a><a href="/admin/messages">💬 پیام‌ها</a><a href="/admin/assistant">✨ دستیار هوشمند</a><a href="/admin/settings">⚙️ تنظیمات</a>
-        </nav>
-      </aside>
-      <main class="admin-main">
+  
         <div style="padding:28px;max-width:1400px;margin:auto;width:100%">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
             <div><h1 style="margin:0 0 4px">مدیریت مقاله‌ها</h1><p style="margin:0;color:var(--mut)">ساخت، ویرایش و مدیریت وضعیت انتشار مقاله‌ها</p></div>
@@ -44,9 +36,7 @@ const fa = (n: number | string) => new Intl.NumberFormat('fa-IR').format(Number(
             {!rows.length && <div class="empty-state" style="padding:34px">هنوز مقاله‌ای ثبت نشده است. با دکمهٔ «مقاله جدید» اولین مقاله را بسازید.</div>}
           </div>
         </div>
-      </main>
-    </div>
-  </div>
+      
   <script>
     const search = document.getElementById('post-search');
     search?.addEventListener('input', () => {
