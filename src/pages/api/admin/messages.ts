@@ -1,27 +1,5 @@
-export const prerender = false;
-import type { APIRoute } from 'astro';
-import { listMessages } from '../../../lib/cms-db';
-import { q } from '../../../lib/db';
-import { sessionFromCookies } from '../../../lib/auth';
-import { logActivity } from '../../../lib/seed';
-const allowed=(r:Request)=>!!sessionFromCookies(r.headers.get('cookie')||'');
-const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}});
-export const GET:APIRoute=async({request})=>{
- if(!allowed(request))return json({ok:false,message:'ابتدا وارد پنل شوید'},401);
- try{return json({ok:true,rows:await listMessages()});}catch{return json({ok:false,message:'بارگذاری پیام‌ها ناموفق بود'},500);}
-};
-export const PATCH:APIRoute=async({request})=>{
- if(!allowed(request))return json({ok:false,message:'ابتدا وارد پنل شوید'},401);
- try{
-  const b=await request.json();const id=Number(b.id);if(!id)return json({ok:false,message:'شناسه پیام معتبر نیست'},400);
-  const sets:string[]=[];const values:unknown[]=[];
-  if(['new','read','replied','archived'].includes(String(b.status||''))){values.push(String(b.status));sets.push('status=$'+values.length);}
-  if(typeof b.admin_note==='string'){values.push(b.admin_note.slice(0,1000));sets.push('admin_note=$'+values.length);}
-  if(typeof b.starred==='boolean'){values.push(b.starred);sets.push('starred=$'+values.length);}
-  if(!sets.length)return json({ok:false,message:'تغییری ارسال نشده است'},400);
-  values.push(id);const rows=await q('UPDATE messages SET '+sets.join(', ')+' WHERE id=$'+values.length+' RETURNING id',values);
-  if(!rows.length)return json({ok:false,message:'پیام پیدا نشد'},404);
-  await logActivity('update','messages',id,'پیام سایت به‌روزرسانی شد');
-  return json({ok:true});
- }catch{return json({ok:false,message:'به‌روزرسانی پیام ناموفق بود'},500);}
-};
+export const prerender=false;
+import type {APIRoute} from 'astro';import {listMessages} from '../../../lib/cms-db';import {q} from '../../../lib/db';import {sessionFromCookies} from '../../../lib/auth';import {logActivity} from '../../../lib/seed';
+const allowed=(r:Request)=>!!sessionFromCookies(r.headers.get('cookie')||'');const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}});
+export const GET:APIRoute=async({request})=>{if(!allowed(request))return json({ok:false,message:'ابتدا وارد پنل شوید'},401);try{return json({ok:true,rows:await listMessages(new URL(request.url).searchParams.get('view')||'active')});}catch{return json({ok:false,message:'بارگذاری پیام‌ها ناموفق بود'},500);}};
+export const PATCH:APIRoute=async({request})=>{if(!allowed(request))return json({ok:false,message:'ابتدا وارد پنل شوید'},401);try{const b=await request.json(),id=Number(b.id);if(!Number.isInteger(id)||id<=0)return json({ok:false,message:'شناسه پیام معتبر نیست'},400);const sets:string[]=[];const values:unknown[]=[];if(['new','read','replied','archived'].includes(String(b.status||''))){values.push(String(b.status));sets.push('status=$'+values.length);}if(typeof b.admin_note==='string'){values.push(b.admin_note.slice(0,1000));sets.push('admin_note=$'+values.length);}if(typeof b.starred==='boolean'){values.push(b.starred);sets.push('starred=$'+values.length);}if(!sets.length)return json({ok:false,message:'تغییری ارسال نشده است'},400);values.push(id);const rows=await q('UPDATE messages SET '+sets.join(', ')+' WHERE id=$'+values.length+' RETURNING id',values);if(!rows.length)return json({ok:false,message:'پیام پیدا نشد'},404);await logActivity('update','messages',id,'وضعیت یا اطلاعات پیام به‌روزرسانی شد');return json({ok:true});}catch{return json({ok:false,message:'به‌روزرسانی پیام ناموفق بود'},500);}};

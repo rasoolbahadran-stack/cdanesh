@@ -15,23 +15,7 @@ if (!rows.length) rows = localPortfolio as unknown as Array<Record<string, unkno
 const statusFa: Record<string, string> = { published: 'نسخه زنده', conceptual: 'نمونه مفهومی', soon: 'به‌زودی' };
 ---
 <AdminLayout title="پنل مدیریت کافه دانش">
-  <div class="admin-body">
-    <div class="admin-shell">
-      <aside class="admin-side">
-        <div style="display:flex;align-items:center;gap:10px">
-          <img src="/img/logo.svg" alt="" width="38" height="38" style="border-radius:10px" />
-          <div><b style="color:#fff;display:block">کافه دانش</b><small style="opacity:.7">پنل مدیریت</small></div>
-        </div>
-        <nav class="admin-side__nav" aria-label="منوی مدیریت">
-          <a href="/admin">🏠 داشبورد</a>
-          <a href="/admin/posts">📝 مقالات</a>
-          <a href="/admin/portfolio" class="is-active">🎨 نمونه‌کارها</a>
-          <a href="/admin/messages">💬 پیام‌ها</a>
-          <a href="/" target="_blank">🌍 مشاهده سایت</a>
-        </nav>
-      </aside>
-
-      <main class="admin-main">
+  
         <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
           <h1 style="margin:0">مدیریت نمونه‌کارها</h1>
           <button type="button" class="btn btn--sm" data-new-item>+ نمونه‌کار جدید</button>
@@ -102,9 +86,7 @@ const statusFa: Record<string, string> = { published: 'نسخه زنده', conce
             برای ویرایش نمونه‌کارها، DATABASE_URL را تنظیم کنید. فهرست بالا از داده‌های محلی است.
           </p>
         )}
-      </main>
-    </div>
-  </div>
+      
 
   <script>
     const form = document.getElementById('pf-form') as HTMLFormElement | null;
