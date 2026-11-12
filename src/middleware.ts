@@ -50,6 +50,20 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
   }
 
+  /* ریدایرکت دائمی اسلاگ قدیمی مقاله‌ها و صفحات */
+  const slugMatch = path.match(/^\\/(blog|page)\\/([^/]+)\\/?$/);
+  if (slugMatch) {
+    try {
+      const entity = slugMatch[1] === 'blog' ? 'posts' : 'pages';
+      const oldSlug = decodeURIComponent(slugMatch[2]);
+      const redirectRows = await q<{ new_slug: string }>('SELECT new_slug FROM slug_redirects WHERE entity=$1 AND old_slug=$2 LIMIT 1', [entity, oldSlug]);
+      const newSlug = redirectRows[0]?.new_slug;
+      if (newSlug && newSlug !== oldSlug) {
+        const destination = new URL('/' + slugMatch[1] + '/' + encodeURIComponent(newSlug), context.url);
+        return Response.redirect(destination, 301);
+      }
+    } catch { /* در صورت نبود رکورد، مسیر اصلی ادامه می‌یابد */ }
+  }
   /* مسیرهای مدیریتی */
   const isAdminPage = path === '/admin' || path.startsWith('/admin/');
   const isAdminPageLogin = path === '/admin/login';
