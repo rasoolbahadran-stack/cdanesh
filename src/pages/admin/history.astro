@@ -2,19 +2,93 @@
 export const prerender = false;
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { q } from '../../lib/db';
-const entity=String(Astro.url.searchParams.get('entity')||'posts');
-const id=Number(Astro.url.searchParams.get('id')||0);
-const valid=['posts','pages'].includes(entity)&&id>0;
-let revisions:Array<Record<string,unknown>>=[];
-if(valid){try{revisions=await q('SELECT id,created_at,snapshot FROM content_revisions WHERE entity=$1 AND entity_id=$2 ORDER BY created_at DESC LIMIT 30',[entity,id]);}catch{}}
-const dateFa=(v:unknown)=>new Intl.DateTimeFormat('fa-IR-u-ca-persian',{dateStyle:'medium',timeStyle:'short'}).format(new Date(String(v)));
+
+const entity = String(Astro.url.searchParams.get('entity') || 'posts');
+const id = Number(Astro.url.searchParams.get('id') || 0);
+const valid = ['posts', 'pages'].includes(entity) && id > 0;
+let revisions: Array<Record<string, unknown>> = [];
+if (valid) {
+  try {
+    revisions = await q(
+      'SELECT id, created_at, snapshot FROM content_revisions WHERE entity=$1 AND entity_id=$2 ORDER BY created_at DESC LIMIT 30',
+      [entity, id],
+    );
+  } catch {
+    revisions = [];
+  }
+}
+const dateFa = (value: unknown) => {
+  const date = new Date(String(value || ''));
+  return Number.isNaN(date.getTime())
+    ? 'تاریخ نامشخص'
+    : new Intl.DateTimeFormat('fa-IR-u-ca-persian', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+};
+const rows = revisions.map((revision) => {
+  const snapshot = (revision.snapshot || {}) as Record<string, unknown>;
+  return {
+    id: Number(revision.id),
+    title: String(snapshot.title || 'بدون عنوان'),
+    created: dateFa(revision.created_at),
+    status: String(snapshot.status || '—'),
+    excerpt: String(snapshot.excerpt || '').slice(0, 220),
+  };
+});
 ---
 <AdminLayout title="تاریخچه نسخه‌های محتوا">
-<div style="max-width:1100px;margin:auto;padding:26px">
- <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><h1 style="margin:0">تاریخچه و بازیابی نسخه‌ها</h1><p style="color:var(--a-muted);margin:4px 0">نسخه قبلی محتوا پیش از ویرایش نگهداری می‌شود.</p></div><a href={entity==='posts'?'/admin/posts':'/admin/pages'} class="btn btn-ghost">بازگشت</a></div>
- {!valid?<div class="admin-card" style="margin-top:18px">درخواست تاریخچه معتبر نیست.</div>:revisions.length?<div style="display:grid;gap:12px;margin-top:18px">{revisions.map((r)=>{const snap=(r.snapshot||{}) as Record<string,unknown>;return <article class="admin-card"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center"><div><b>{String(snap.title||'بدون عنوان')}</b><p style="font-size:12px;color:var(--a-muted);margin:4px 0">ذخیره‌شده در {dateFa(r.created_at)} · وضعیت: {String(snap.status||'—')}</p><p style="font-size:12px;color:var(--a-muted);margin:0">{String(snap.excerpt||'').slice(0,220)}</p></div><button type="button" class="btn btn-ghost" data-restore={String(r.id)}>بازیابی این نسخه</button></div></article>})}</div>:<div class="admin-card" style="margin-top:18px">هنوز نسخه قبلی ذخیره نشده است. از این پس نسخه قبلی پیش از هر ویرایش نگهداری می‌شود.</div>}
-</div>
-<script>
-document.querySelectorAll('[data-restore]').forEach(btn=>btn.addEventListener('click',async()=>{const el=btn as HTMLElement;if(!confirm('نسخه قبلی جایگزین محتوای فعلی شود؟ نسخه فعلی نیز پیش از بازیابی ذخیره خواهد شد.'))return;el.setAttribute('disabled','true');try{const r=await fetch('/api/admin/revisions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({entity:new URLSearchParams(location.search).get('entity'),revisionId:Number(el.dataset.restore)})});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j.message||'بازیابی انجام نشد');alert(j.message);location.reload();}catch(e){alert((e as Error).message);el.removeAttribute('disabled');}}));
-</script>
+  <div style="max-width:1100px;margin:auto;padding:26px">
+    <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
+      <div>
+        <h1 style="margin:0">تاریخچه و بازیابی نسخه‌ها</h1>
+        <p style="color:var(--a-muted);margin:4px 0">پیش از ویرایش محتوای منتشرشده، نسخه قبلی نگهداری می‌شود.</p>
+      </div>
+      <a href={entity === 'posts' ? '/admin/posts' : '/admin/pages'} class="btn btn-ghost">بازگشت</a>
+    </div>
+
+    {!valid ? (
+      <div class="admin-card" style="margin-top:18px">درخواست تاریخچه معتبر نیست.</div>
+    ) : rows.length ? (
+      <div style="display:grid;gap:12px;margin-top:18px">
+        {rows.map((row) => (
+          <article class="admin-card">
+            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center">
+              <div>
+                <b>{row.title}</b>
+                <p style="font-size:12px;color:var(--a-muted);margin:4px 0">ذخیره‌شده در {row.created} · وضعیت: {row.status}</p>
+                <p style="font-size:12px;color:var(--a-muted);margin:0">{row.excerpt}</p>
+              </div>
+              <button type="button" class="btn btn-ghost" data-restore={row.id}>بازیابی این نسخه</button>
+            </div>
+          </article>
+        ))}
+      </div>
+    ) : (
+      <div class="admin-card" style="margin-top:18px">هنوز نسخه قبلی ثبت نشده است. از این پس نسخه پیشین قبل از هر ویرایش نگهداری می‌شود.</div>
+    )}
+  </div>
+
+  <script>
+    document.querySelectorAll<HTMLButtonElement>('[data-restore]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const revisionId = Number(button.dataset.restore);
+        const entity = new URLSearchParams(location.search).get('entity');
+        if (!revisionId || !entity) return;
+        if (!confirm('نسخه قبلی جایگزین محتوای فعلی شود؟ نسخه فعلی نیز پیش از بازیابی ذخیره خواهد شد.')) return;
+        button.disabled = true;
+        try {
+          const response = await fetch('/api/admin/revisions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ entity, revisionId }),
+          });
+          const result = await response.json();
+          if (!response.ok || !result.ok) throw new Error(result.message || 'بازیابی انجام نشد');
+          alert(result.message || 'نسخه قبلی بازیابی شد.');
+          location.reload();
+        } catch (error) {
+          alert(error instanceof Error ? error.message : 'بازیابی ناموفق بود.');
+          button.disabled = false;
+        }
+      });
+    });
+  </script>
 </AdminLayout>
