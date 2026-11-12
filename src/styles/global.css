@@ -47,7 +47,7 @@
   --shadow-card: 0 14px 44px rgba(70, 37, 158, 0.12);
   --shadow-head: 0 0 16px rgba(0, 0, 0, 0.07);
 
-  --container: 1240px;
+  --container: 1280px;
   --sp: clamp(64px, 9vw, 110px);
   --ease: cubic-bezier(0.25, 0.74, 0.22, 0.99);
 }
@@ -94,6 +94,14 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 .bg-lavender { background: var(--lavender); }
 .bg-peach { background: var(--peach); }
 .bg-soft { background: #f8f8fe; }
+
+/* جداکنندهٔ موجی بین سکشن‌ها — میزبان باید position:relative بگیرد */
+.wave-host { position: relative; }
+.wave-sep {
+  position: absolute; bottom: -1px; inset-inline: 0;
+  width: 100%; height: clamp(36px, 5vw, 72px);
+  display: block; z-index: 2; pointer-events: none;
+}
 .grad-text {
   background: var(--grad-btn-hover);
   -webkit-background-clip: text; background-clip: text; color: transparent;
@@ -190,31 +198,33 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 .header__link svg { transition: transform 0.25s var(--ease); }
 .header__link[aria-expanded="true"] svg { transform: rotate(180deg); }
 
-/* منوی مگا خدمات */
+/* منوی مگا خدمات — لنگر به لبه راست قرص هدر (تراز با لوگو)؛ در هر زومی بیرون‌زدگی ندارد */
 .mega {
-  position: absolute; top: calc(100% + 4px); right: 50%; transform: translateX(50%) translateY(6px);
-  width: min(880px, calc(100vw - 40px));
+  position: absolute; top: calc(100% + 10px); right: 12px; left: auto;
+  width: min(920px, calc(100% - 24px));
   background: #fff; border-radius: var(--r-lg);
   box-shadow: var(--shadow-float);
   padding: 26px 28px;
-  display: grid; grid-template-columns: repeat(3, 1fr) 0.9fr; gap: 24px;
-  opacity: 0; visibility: hidden; pointer-events: none;
+  display: grid; grid-template-columns: repeat(3, 1fr) 0.9fr; gap: 22px;
+  opacity: 0; visibility: hidden; pointer-events: none; z-index: 60;
+  transform: translateY(6px);
   transition: opacity 0.28s var(--ease), transform 0.28s var(--ease), visibility 0s linear 0.28s;
 }
-.mega-wrap { position: relative; }
-.mega-wrap::after { content: ""; position: absolute; top: 100%; right: -8px; left: -8px; height: 12px; }
+/* پل هاور: بالای پنل تا زیر هدر — hover روی آن همان hover روی mega-wrap حساب می‌شود */
+.mega::before { content: ""; position: absolute; top: -14px; right: 0; left: 0; height: 14px; }
+.mega-wrap { position: static; }
 .mega-wrap:hover .mega,
 .mega-wrap:focus-within .mega,
 .mega.is-open {
-  opacity: 1; visibility: visible; pointer-events: auto; transform: translateX(50%) translateY(0);
+  opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0);
   transition-delay: 0s;
 }
-.mega__col-title { font-size: 0.86rem; font-weight: 800; color: var(--purple); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-.mega__col-title::before { content: ""; width: 8px; height: 8px; border-radius: 3px; background: var(--grad-btn-hover); }
+.mega__col-title { font-size: 0.86rem; font-weight: 800; color: var(--purple); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.mega__col-title::before { content: ""; width: 8px; height: 8px; border-radius: 3px; background: var(--grad-btn-hover); flex: none; }
 .mega__list { list-style: none; padding: 0; margin: 0 0 18px; display: grid; gap: 4px; }
 .mega__list a {
   display: block; padding: 7px 10px; border-radius: var(--r-sm);
-  color: var(--body); font-size: 0.9rem; font-weight: 600; line-height: 1.7;
+  color: var(--body); font-size: 0.9rem; font-weight: 600; line-height: 1.7; white-space: nowrap;
   transition: background 0.15s, color 0.15s;
 }
 .mega__list a:hover { background: var(--peach); color: var(--pink); }
@@ -702,13 +712,43 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 .prose th { background: var(--lavender); color: var(--navy); }
 .prose code { background: var(--lavender); padding: 2px 8px; border-radius: 6px; font-size: 0.9em; color: var(--purple); }
 
+/* تصویر میانهٔ مقاله — figure با کپشن */
+.prose figure { margin: 26px 0; }
+.prose figure img { width: 100%; border-radius: var(--r-lg); box-shadow: var(--shadow-card); margin-block: 0; }
+.prose figcaption { text-align: center; color: var(--mut); font-size: .84rem; margin-top: 8px; }
+
+/* لنگر تیترها زیر هدر چسبان پنهان نشوند */
+.prose h2, .prose h3, .prose h4, [id^="content-heading"] { scroll-margin-top: 96px; }
+
+/* چیدمان دوستونی (متن + تصویر) — صفحه درباره ما */
+.split { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: clamp(30px, 5vw, 64px); }
+.split__media { position: relative; }
+.split__media img { border-radius: var(--r-xl); box-shadow: var(--shadow-card); width: 100%; display: block; }
+.split__badge {
+  position: absolute; bottom: -18px; inset-inline-start: 26px;
+  display: flex; align-items: center; gap: 12px;
+  background: #fff; border-radius: 14px; box-shadow: var(--shadow-float);
+  padding: 12px 18px;
+}
+.split__badge-ico {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--mint); color: var(--mint-ink);
+  display: grid; place-items: center; flex: none;
+}
+.split__badge strong { display: block; color: var(--navy); font-size: .95rem; }
+.split__badge small { color: var(--mut); font-size: .78rem; }
+.split__list { display: grid; gap: 12px; margin-top: 22px; padding: 0; list-style: none; }
+.split__list li { display: flex; align-items: flex-start; gap: 10px; font-size: .95rem; color: var(--body); line-height: 1.9; }
+.split__list svg { color: var(--pink); flex: none; margin-top: 5px; }
+@media (max-width: 1020px) { .split { grid-template-columns: minmax(0, 1fr); } }
+
 .post-hero-meta {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 20px;
   color: rgba(255, 255, 255, 0.92); font-size: 0.9rem; font-weight: 600; margin-top: 10px;
 }
 .post-hero-meta span { display: inline-flex; align-items: center; gap: 7px; }
 
-/* ── پاورقی ─────────────────────────────────────────────────── */
+/* ── پاورقی: چهار ستون منظم؛ موبایل مینیمال ── */
 .footer {
   background: var(--dark-bg); color: #aab3d0; margin-top: 0;
   position: relative; overflow: hidden;
@@ -718,15 +758,28 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
   background: radial-gradient(420px 180px at 90% 0%, rgba(106, 43, 218, 0.16), transparent 70%);
 }
 .footer__top {
-  display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: 24px;
-  padding-block: 28px 22px; position: relative;
+  display: grid; grid-template-columns: 1.35fr 0.85fr 0.85fr 1.05fr; gap: 30px;
+  padding-block: 36px 26px; position: relative;
 }
-.footer h4 { color: #fff; font-size: .92rem; margin-bottom: 10px; }
-.footer__about p { font-size: .84rem; line-height: 1.8; margin: 8px 0 0; max-width: 310px; }
-.footer__list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px 16px; font-size: .84rem; }
-.footer__list a { color: #aab3d0; display: inline-flex; align-items: center; gap: 6px; }
+.footer h4 { color: #fff; font-size: .92rem; margin-bottom: 12px; }
+.footer__about p { font-size: .84rem; line-height: 1.9; margin: 10px 0 14px; max-width: 300px; }
+.footer__reach { display: flex; flex-wrap: wrap; gap: 8px; }
+.footer__reach-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: .82rem; font-weight: 700; color: #fff; direction: ltr;
+  background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 99px; padding: 6px 14px;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.footer__reach-link:hover { color: var(--pink-soft); border-color: rgba(244, 37, 123, 0.55); background: rgba(244, 37, 123, 0.08); }
+.footer__list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; font-size: .84rem; }
+.footer__list a { color: #aab3d0; }
 .footer__list a:hover { color: var(--pink-soft); }
-.footer__legal { display:inline-flex; gap:14px; }
+.footer__contact p { font-size: .82rem; line-height: 1.9; margin: 0 0 12px; }
+.footer__contact .btn { width: 100%; justify-content: center; }
+.footer__contact-alt { display: block; margin-top: 10px; font-size: .8rem; color: #aab3d0; text-align: center; }
+.footer__contact-alt:hover { color: var(--pink-soft); }
+.footer__legal { display: inline-flex; gap: 14px; }
 .footer__bottom {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding: 12px 0 14px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;
@@ -734,17 +787,26 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 }
 .footer__bottom a { color: #aab3d0; }
 .footer__bottom a:hover { color: var(--pink-soft); }
-@media (max-width: 760px) {
-  .footer__top { grid-template-columns: 1fr 1fr; gap: 18px 14px; padding-block: 22px 16px; }
+@media (max-width: 1020px) {
+  .footer__top { grid-template-columns: 1fr 1fr; gap: 24px 20px; }
   .footer__about { grid-column: 1 / -1; }
-  .footer__about p { max-width: 100%; }
-  .footer__list { grid-template-columns: 1fr; gap: 6px; }
-  .footer__bottom { align-items: flex-start; flex-direction: column; }
+  .footer__about p { max-width: 460px; }
+  .footer__contact { grid-column: 1 / -1; }
+  .footer__contact .btn { width: auto; min-width: 260px; }
 }
-@media (max-width: 420px) {
-  .footer__top { grid-template-columns: 1fr; }
-  .footer__about { grid-column: auto; }
-  .footer__list { grid-template-columns: repeat(2,minmax(0,1fr)); }
+@media (max-width: 760px) {
+  .footer__top { grid-template-columns: 1fr 1fr; gap: 20px 16px; padding-block: 26px 20px; }
+  .footer__about { text-align: center; }
+  .footer__about p { max-width: 100%; margin-inline: auto; }
+  .footer__reach { justify-content: center; }
+  .footer h4 { font-size: .88rem; }
+  .footer__list { gap: 7px; font-size: .8rem; }
+  /* موبایل: فقط ۵ لینک هر ستون کافی است — فوتر مینیمال می‌ماند */
+  .footer__list li:nth-child(n + 6) { display: none; }
+  .footer__contact { text-align: center; }
+  .footer__contact .btn { width: 100%; }
+  .footer__bottom { flex-direction: column; text-align: center; align-items: center; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+  .footer__legal { justify-content: center; }
 }
  
 /* دکمه بازگشت بالا */
@@ -896,14 +958,12 @@ span {
 
   .footer__top {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 16px;
   }
 
   .mega {
-    max-width: calc(100vw - 32px);
+    width: calc(100% - 24px);
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    right: auto;
-    left: 0;
-    transform: translateY(6px);
   }
 
   .mega-wrap:hover .mega,
@@ -1079,7 +1139,6 @@ span {
   .steps,
   .cap-grid,
   .pf-grid,
-  .footer__top,
   .form-grid,
   .contact-grid,
   .consult-grid {
@@ -1157,16 +1216,10 @@ span {
     width: 100%;
   }
 
-  .footer__top {
-    gap: 24px;
-    padding-block: 42px 30px;
-  }
-
   .footer__bottom {
     flex-direction: column;
-    align-items: flex-start;
-    text-align: right;
-    padding-bottom: calc(22px + env(safe-area-inset-bottom));
+    align-items: center;
+    text-align: center;
   }
 
   .article-cover {
@@ -1269,13 +1322,15 @@ span {
 html {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden !important;
+  /* clip (به‌جای hidden): overflow افقی را می‌بُرد بدون ساخت scroll container —
+     با hidden، body می‌شد جعبهٔ اسکرول و position: sticky سایدبارها از کار می‌افتاد */
+  overflow-x: clip !important;
 }
 
 body {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden !important;
+  overflow-x: clip !important;
 }
 
 main {
@@ -1546,71 +1601,10 @@ main {
     font-size: 16px !important;
   }
 
-  /* فوتر فشرده‌تر: معرفی کوتاه، دو ستون لینک و اطلاعات تماس جمع‌وجور */
-  .footer__top {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 20px 14px;
-    padding-block: 30px 22px;
-  }
-  .footer__about,
-  .footer__top > div:last-child {
-    grid-column: 1 / -1;
-  }
-  .footer__about p {
-    max-width: 38em;
-    margin: 8px 0 10px;
-    font-size: 0.82rem;
-    line-height: 1.85;
-  }
   .footer__about .logo svg {
     width: 132px;
   }
-  .footer__about .btn {
-    min-height: 38px;
-    padding: 7px 14px;
-    font-size: 0.82rem;
-  }
-  .footer h4 {
-    margin-bottom: 9px;
-    font-size: 0.88rem;
-  }
-  .footer__list {
-    gap: 6px;
-    font-size: 0.79rem;
-    line-height: 1.8;
-  }
-  .footer__list a {
-    align-items: flex-start;
-    gap: 6px;
-    line-height: 1.8;
-    overflow-wrap: anywhere;
-  }
-  .footer__list svg {
-    width: 11px;
-    height: 11px;
-    margin-top: 5px;
-  }
-  .footer__top > div:last-child .footer__list {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 12px;
-  }
-  .footer__top > div:last-child .footer__list li:last-child {
-    display: none;
-  }
-  .footer__bottom {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 8px;
-    padding: 14px 0 calc(18px + env(safe-area-inset-bottom));
-    font-size: 0.74rem;
-    line-height: 1.9;
-  }
-  .footer__bottom > span:last-child {
-    display: flex !important;
-    flex-wrap: wrap;
-    gap: 14px !important;
-  }
+
   .to-top {
     width: 40px;
     height: 40px;
@@ -1622,12 +1616,9 @@ main {
     font-size: 1.48rem;
   }
   .footer__top {
-    gap: 18px 10px;
+    gap: 18px 12px;
   }
   .footer__list {
     font-size: 0.75rem;
-  }
-  .footer__top > div:last-child .footer__list {
-    grid-template-columns: minmax(0, 1fr);
   }
 }

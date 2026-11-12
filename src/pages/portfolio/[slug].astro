@@ -107,7 +107,8 @@ const meta = {
 <style is:global>
   .pf-detail { display: grid; grid-template-columns: 1fr; gap: 40px; }
   @media (min-width: 1060px) {
-    .pf-detail { grid-template-columns: 1.25fr .75fr; align-items: start; }
-    .pf-aside { position: sticky; top: 100px; }
+    /* سایدبار باریک‌تر (استاندارد) + چسبیده تا انتهای محتوا و پیش از فوتر */
+    .pf-detail { grid-template-columns: minmax(0, 1fr) 320px; align-items: start; }
+    .pf-aside { position: sticky; top: 92px; }
   }
 </style>

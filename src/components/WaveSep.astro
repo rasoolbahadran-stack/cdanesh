@@ -1,0 +1,14 @@
+---
+// جداکنندهٔ موجی بین سکشن‌ها — الگوی Shape Divider رایج در سایت‌های حرفه‌ای
+// fill = رنگ پس‌زمینهٔ سکشنِ بعدی؛ موج روی انتهای سکشن بالایی می‌نشیند.
+interface Props { fill?: string; variant?: 'a' | 'b' }
+const { fill = 'var(--lavender)', variant = 'a' } = Astro.props;
+
+const paths: Record<'a' | 'b', string> = {
+  a: 'M0 46 C 250 92, 510 8, 775 34 C 1040 60, 1245 88, 1440 28 L 1440 96 L 0 96 Z',
+  b: 'M0 28 C 320 74, 560 92, 820 54 C 1080 16, 1285 42, 1440 70 L 1440 96 L 0 96 Z',
+};
+---
+<svg class="wave-sep" viewBox="0 0 1440 96" preserveAspectRatio="none" aria-hidden="true">
+  <path fill={fill} d={paths[variant]} />
+</svg>

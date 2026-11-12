@@ -116,7 +116,7 @@ export function sanitizeHtml(html: string): string {
         safeAttrs.push(`${name}="${value.replace(/"/g, '&quot;')}"`);
         continue;
       }
-      if (name === 'target' || name === 'rel' || name === 'alt' || name === 'title' || name === 'class' || name === 'loading' || name === 'colspan' || name === 'rowspan') {
+      if (name === 'target' || name === 'rel' || name === 'alt' || name === 'title' || name === 'class' || name === 'loading' || name === 'decoding' || name === 'width' || name === 'height' || name === 'colspan' || name === 'rowspan') {
         safeAttrs.push(`${name}="${value.replace(/"/g, '&quot;')}"`);
       }
     }

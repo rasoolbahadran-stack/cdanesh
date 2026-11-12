@@ -1,11 +1,11 @@
 ---
 // هدر صفحه داخلی — بنر گرادیان با خطوط منحنی، هماهنگ با زبان Hero
+// مسیر صفحه (breadcrumb) عمداً نمایش داده نمی‌شود؛ فقط اسکیمای BreadcrumbList برای سئو نگه داشته می‌شود.
 interface Props {
   title: string;
   sub?: string;
-  crumbs?: Array<{ label: string; href?: string }>;
 }
-const { title, sub, crumbs = [] } = Astro.props;
+const { title, sub } = Astro.props;
 ---
 <section class="page-hero">
   <svg class="hero__ribbon" viewBox="0 0 1440 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -14,11 +14,6 @@ const { title, sub, crumbs = [] } = Astro.props;
   </svg>
   <span class="hero__glow hero__glow--1" aria-hidden="true"></span>
   <div class="container">
-    {crumbs.length > 0 && (
-      <nav class="page-hero__crumbs" aria-label="مسیر صفحه">
-        {crumbs.map((c) => (c.href ? <a href={c.href}>{c.label}</a> : <span aria-current="page">{c.label}</span>))}
-      </nav>
-    )}
     <h1 data-reveal="up">{title}</h1>
     {sub && <p data-reveal="up" data-delay="120">{sub}</p>}
     <slot />

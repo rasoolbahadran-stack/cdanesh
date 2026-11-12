@@ -1,5 +1,5 @@
 ---
-// پاورقی مینیمال کافه دانش
+// پاورقی کافه دانش — چهار ستون منظم در دسکتاپ؛ فشرده و مینیمال در موبایل
 import Logo from './Logo.astro';
 import { FOOTER_LINKS, SITE } from '../lib/content';
 ---
@@ -11,30 +11,40 @@ import { FOOTER_LINKS, SITE } from '../lib/content';
           <Logo variant="full" />
         </a>
         <p>استودیو تخصصی طراحی و توسعه وب‌سایت؛ سایت شرکتی، فروشگاه اینترنتی و وب‌سایت اختصاصی.</p>
+        <div class="footer__reach">
+          <a href={`tel:${SITE.phoneIntl}`} class="footer__reach-link">{SITE.phoneFa}</a>
+          <a href={`mailto:${SITE.email}`} class="footer__reach-link">{SITE.email}</a>
+        </div>
       </div>
 
-      <nav aria-label="دسترسی سریع و خدمات">
+      <nav aria-label="خدمات کافه دانش">
+        <h4>خدمات</h4>
+        <ul class="footer__list">
+          {FOOTER_LINKS.services.map((l) => (
+            <li><a href={l.href}>{l.t}</a></li>
+          ))}
+        </ul>
+      </nav>
+
+      <nav aria-label="دسترسی سریع">
         <h4>دسترسی سریع</h4>
         <ul class="footer__list">
-          {[...FOOTER_LINKS.services, ...FOOTER_LINKS.quick].map((l) => (
+          {FOOTER_LINKS.quick.map((l) => (
             <li><a href={l.href}>{l.t}</a></li>
           ))}
         </ul>
       </nav>
 
       <div class="footer__contact">
-        <h4>ارتباط با ما</h4>
-        <ul class="footer__list">
-          <li><a href="/contact">فرم تماس</a></li>
-          <li><a href="/consult">درخواست مشاوره</a></li>
-          <li><a href={`mailto:${SITE.email}`} dir="ltr">{SITE.email}</a></li>
-          <li><a href={`tel:${SITE.phoneIntl}`} dir="ltr">{SITE.phoneFa}</a></li>
-        </ul>
+        <h4>شروع همکاری</h4>
+        <p>جلسهٔ اول مشاوره رایگان است؛ اهداف و نیازهای پروژه‌تان را با هم مرور می‌کنیم.</p>
+        <a href="/consult" class="btn btn--sm">درخواست مشاوره و سفارش پروژه</a>
+        <a href="/contact" class="footer__contact-alt">فرم تماس — پاسخ‌گویی حداکثر یک روز کاری</a>
       </div>
     </div>
 
     <div class="footer__bottom">
-      <span>© {SITE.year} کافه‌دانش — تمامی حقوق محفوظ است. طراحی: <a href="https://github.com/rasoolbahadran-stack" target="_blank" rel="noopener">{SITE.designer}</a></span>
+      <span>© {SITE.year} کافه‌دانش — تمامی حقوق محفوظ است. طراحی: <a href={SITE.github} target="_blank" rel="noopener">{SITE.designer}</a></span>
       <span class="footer__legal">
         <a href="/privacy">حریم خصوصی</a>
         <a href="/terms">شرایط استفاده</a>

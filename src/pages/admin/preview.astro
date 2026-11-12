@@ -49,7 +49,6 @@ const st = String(row?.status || 'draft');
     <PageHero
       title={String(row.title || 'بدون عنوان')}
       sub={String(row.excerpt || '')}
-      crumbs={[{ label: 'پنل مدیریت', href: '/admin' }, { label: 'پیش‌نمایش', href: '' }]}
       meta={st === 'scheduled' && row.published_at ? ['انتشار در ' + new Date(String(row.published_at)).toLocaleDateString('fa-IR')] : []}
     />
 

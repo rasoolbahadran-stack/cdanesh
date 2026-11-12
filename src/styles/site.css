@@ -3463,6 +3463,26 @@ details.faq-item .fq-body {
   margin-block: 10px;
 }
 
+/* تصویر میانهٔ مقاله — figure با کپشن */
+.prose-fa figure,
+.prose figure {
+  margin: 26px 0;
+}
+.prose-fa figure img,
+.prose figure img {
+  width: 100%;
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+  margin-block: 0;
+}
+.prose-fa figcaption,
+.prose figcaption {
+  text-align: center;
+  color: var(--mut);
+  font-size: .84rem;
+  margin-top: 9px;
+}
+
 .prose-fa table,
 .prose table {
   width: 100%;

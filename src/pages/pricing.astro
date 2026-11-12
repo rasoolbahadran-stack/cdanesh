@@ -4,13 +4,35 @@ import PageHero from '../components/PageHero.astro';
 import SectionHead from '../components/SectionHead.astro';
 import CtaBand from '../components/CtaBand.astro';
 import { PRICING } from '../lib/content';
-import { jsonLdBreadcrumb } from '../lib/seo';
+import { jsonLdBreadcrumb, jsonLdFaq } from '../lib/seo';
 
 const meta = {
-  title: 'تعرفه طراحی سایت | پکیج‌ها و قیمت‌ها — کافه دانش',
-  description: 'تعرفه شفاف پکیج‌های طراحی سایت کافه دانش؛ استارتر، حرفه‌ای، فروشگاهی و اختصاصی — از سایت معرفی و شرکتی تا فروشگاه اینترنتی و وب‌اپلیکیشن.',
+  title: 'تعرفه طراحی سایت ۱۴۰۵ | قیمت سایت شرکتی، فروشگاهی و اختصاصی — کافه دانش',
+  description: 'تعرفه شفاف پکیج‌های طراحی سایت کافه دانش: پکیج شرکتی ۱۵ میلیون، فروشگاهی ۳۷ میلیون و اختصاصی از ۶۷ میلیون تومان — با امکانات، زمان تحویل و هزینه‌های دوره‌ای مشخص.',
   path: '/pricing',
 };
+
+// سؤالات متداول اختصاصی تعرفه‌ها — هم برای کاربر، هم به‌عنوان اسکیمای FAQPage
+const pricingFaq = [
+  { q: 'قیمت طراحی سایت چرا در شرکت‌های مختلف این‌قدر متفاوت است؟', a: 'چون خروجی‌ها معمولاً یکی نیست. اختلاف قیمت بیشتر از این‌ها می‌آید: طراحی اختصاصی یا قالب آماده، کیفیت فنی و سرعت سایت، امکانات فروشگاهی، سئوی زیرساختی و پشتیبانی بعد از تحویل. قبل از مقایسهٔ قیمت، از هر تیم بپرسید دقیقاً چه چیزهایی داخل تعرفه هست و چه چیزهایی نیست؛ پاسخ این سؤال، مقایسه را واقعی می‌کند.' },
+  { q: 'پکیج شرکتی ۱۵ میلیون تومان شامل چه چیزهایی می‌شود؟', a: 'طراحی اختصاصی تا ۸ صفحه، بخش مجلهٔ مقالات، فرم‌های تماس و مشاوره، سئوی پایه، دامنهٔ .IR و ۶ ماه هاست هدیه، آموزش پنل مدیریت، تحویل ۲ تا ۳ هفته و ۳ ماه پشتیبانی رایگان. کارهای شرکتی استاندارد همه داخل همین پکیج پوشش داده می‌شود؛ اگر قابلیت خاصی خارج از این دامنه خواستید، برآورد شفاف و جداگانه اعلام می‌شود.' },
+  { q: 'بعد از راه‌اندازی سایت چه هزینه‌هایی خواهم داشت؟', a: 'دو دسته: اول، تمدید سالانهٔ دامنه و هاست که بعد از دورهٔ هدیه بر اساس تعرفهٔ ارائه‌دهنده محاسبه می‌شود. دوم، خدمات اختیاری رشد مثل سئو، تولید محتوا و پشتیبانی دوره‌ای که فقط اگر بخواهید فعال می‌شوند. هیچ هزینهٔ اجباری پنهانی بعد از تحویل وجود ندارد؛ همهٔ مبالغ پیش از هر اتفاق اعلام می‌شود.' },
+  { q: 'امکان ارتقا از پکیج شرکتی به فروشگاهی وجود دارد؟', a: 'بله. سایت‌ها از ابتدا با ساختار توسعه‌پذیر طراحی می‌شوند تا با رشد کسب‌وکار شما، امکانات فروشگاهی بدون شروع از صفر اضافه شود. مسیر و هزینهٔ ارتقا در جلسهٔ نیازسنجی شفاف اعلام می‌شود.' },
+  { q: 'پکیج اختصاصی چرا قیمت ثابت ندارد؟', a: 'چون دامنهٔ کار آن برای هر کسب‌وکار متفاوت است: وب‌اپلیکیشن، سامانهٔ داخلی یا پلتفرم با منطق اختصاصی. پس از جلسهٔ نیازسنجی رایگان، پروپوزال مکتوب با برآورد و زمان‌بندی دقیق ارائه می‌شود؛ مبلغ ۶۷ میلیون تومان نقطهٔ شروع این کلاس از پروژه‌هاست.' },
+  { q: 'پرداخت چگونه انجام می‌شود؟', a: 'مبلغ و زمان‌بندی پرداخت پیش از شروع کار، مکتوب و شفاف اعلام می‌شود؛ پرداخت یک‌جا یا مرحله‌ای بر اساس توافق در قرارداد مشخص می‌شود.' },
+];
+
+// امکاناتی که در هر سه پکیج مشترک است — تفاوت پکیج‌ها در دامنهٔ کار است، نه در کیفیت
+const commonFeatures = [
+  { t: 'مالکیت کامل', d: 'کد، دامنه و محتوا از روز اول به نام خودتان ثبت می‌شود.' },
+  { t: 'طراحی اختصاصی', d: 'بدون قالب آماده؛ هویت بصری مخصوص کسب‌وکار شما.' },
+  { t: 'پنل فارسی و ساده', d: 'مدیریت محتوا و تنظیمات بدون نیاز به دانش فنی.' },
+  { t: 'آموزش مدیریت', d: 'شما و تیم‌تان سایت را مستقل اداره خواهید کرد.' },
+  { t: 'ریسپانسیو کامل', d: 'نمایش درست در موبایل، تبلت و دسکتاپ.' },
+  { t: 'سئوی زیرساختی', d: 'ساختار استاندارد، متاها و سرعت مناسب از روز اول.' },
+  { t: 'تحویل مرحله‌ای', d: 'در هر مرحله بازخورد می‌دهید و نتیجه را می‌بینید.' },
+  { t: 'بدون هزینه پنهان', d: 'همه‌چیز از ابتدا در برآورد نوشته می‌شود.' },
+];
 
 // خدمات مکمل و پس از راه‌اندازی — برآورد پس از نیازسنجی (بدون قیمت ثابت)
 const complementary = [
@@ -31,18 +53,30 @@ const complementary = [
   },
 ];
 ---
-<BaseLayout meta={meta} current="/pricing" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'تعرفه‌ها', url: '/pricing' }])]}>
+<BaseLayout meta={meta} current="/pricing" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'تعرفه‌ها', url: '/pricing' }]), jsonLdFaq(pricingFaq)]}>
   <PageHero
     title="تعرفه‌ها و پکیج‌های طراحی سایت"
-    sub="قیمت پایه و محدودهٔ هر پکیج روشن است؛ امکانات، تعداد صفحات، زمان تحویل و مدت پشتیبانی پیش از شروع مشخص می‌شوند."
-    crumbs={[{ label: 'خانه', href: '/' }, { label: 'تعرفه‌ها' }]}
+    sub="سه پکیج با قیمت و دامنهٔ کار روشن: شرکتی، فروشگاهی و اختصاصی. امکانات، زمان تحویل و مدت پشتیبانی هر پکیج از همین صفحه مشخص است."
   />
 
-  <section class="section">
+  <!-- ═══ مقدمه: قیمت طراحی سایت چگونه تعیین می‌شود؟ ═══ -->
+  <section class="section section--tight" aria-labelledby="price-intro-title">
     <div class="container">
-      <div class="price-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:22px">
+      <div class="price-intro">
+        <h2 id="price-intro-title">هزینه طراحی سایت در کافه‌دانش چگونه تعیین می‌شود؟</h2>
+        <p>طراحی سایت صرفاً تحویل چند صفحهٔ وب نیست؛ زیرساختی است که کسب‌وکار شما روی آن دیده می‌شود، اعتماد می‌سازد و می‌فروشد. به همین دلیل تعرفه‌های کافه‌دانش بر اساس نیاز واقعی کسب‌وکارها چیده شده است، نه فهرست بلند امکاناتی که هرگز استفاده نمی‌شود.</p>
+        <p>سه پکیج یعنی سه مسیر روشن: <strong>شرکتی</strong> برای حضور آنلاین حرفه‌ای و کامل، <strong>فروشگاهی</strong> برای فروش آنلاین با امکانات کامل مدیریت محصول و سفارش، و <strong>اختصاصی</strong> برای سامانه‌ها و وب‌اپلیکیشن‌هایی که در هیچ قالبی جا نمی‌گیرند. قیمت هر پکیج از ابتدا مشخص است و پیش از شروع کار دقیقاً می‌دانید چه چیزی، چه زمانی و با چه کیفیتی تحویل می‌گیرید.</p>
+        <p>آنچه در هیچ‌کدام از قیمت‌ها جایی ندارد، هزینهٔ پنهان است: هر قابلیت خارج از دامنهٔ پکیج، پیش از شروع با برآورد مکتوب اعلام می‌شود.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ پکیج‌ها ═══ -->
+  <section class="section" aria-labelledby="pricing-title">
+    <div class="container">
+      <div class="price-grid">
         {PRICING.map((p, i) => (
-          <article class="card" style={`padding:clamp(24px,3vw,34px);display:flex;flex-direction:column;gap:10px;${p.featured ? 'border:2px solid var(--pink);position:relative' : ''}`} data-reveal="up" data-delay={String((i % 2) * 90)}>
+          <article class="card" style={`padding:clamp(24px,3vw,34px);display:flex;flex-direction:column;gap:10px;${p.featured ? 'border:2px solid var(--pink);position:relative' : ''}`} data-reveal="up" data-delay={String(i * 90)}>
             {p.featured && <span class="badge" style="position:absolute;top:-13px;right:22px;background:var(--pink);color:#fff">پیشنهاد ما</span>}
             <span class="section-head__tag" style="font-size:.82rem">{p.badge}</span>
             <h2 style="font-size:1.35rem;margin:0">{p.name}</h2>
@@ -67,11 +101,56 @@ const complementary = [
     </div>
   </section>
 
+  <!-- ═══ امکانات مشترک در همهٔ پکیج‌ها ═══ -->
+  <section class="section bg-soft" aria-labelledby="common-title">
+    <div class="container">
+      <SectionHead tag="استاندارد کافه‌دانش" title="در همهٔ پکیج‌ها، بدون استثنا" sub="تفاوت پکیج‌ها در دامنهٔ کار و امکانات است، نه در کیفیت. این‌ها بخشی از هر پروژه‌ای است که تحویل می‌دهیم." center />
+      <div class="common-grid">
+        {commonFeatures.map((c, i) => (
+          <div class="card common-item" data-reveal="up" data-delay={String((i % 4) * 70)}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--mint-ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg>
+            <div>
+              <strong>{c.t}</strong>
+              <span>{c.d}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ زمان تحویل و هزینه‌های دوره‌ای ═══ -->
+  <section class="section" aria-labelledby="timeline-title">
+    <div class="container">
+      <SectionHead tag="بعد از امضای قرارداد" title="زمان تحویل و هزینه‌های دوره‌ای" sub="شفاف‌ترین بخش هر تعرفه، بخشی است که دربارهٔ بعد از پروژه حرف می‌زند." center />
+      <div class="ops-grid">
+        <article class="card" style="padding:clamp(22px,3vw,30px);display:grid;gap:14px" data-reveal="up">
+          <h3 style="font-size:1.15rem;margin:0">هر پکیج چقدر طول می‌کشد؟</h3>
+          <ul style="list-style:none;padding:0;margin:0;display:grid;gap:10px;font-size:.95rem">
+            <li style="display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed var(--line);padding-bottom:10px"><span><b>پکیج شرکتی</b></span><span style="color:var(--mut)">۲ تا ۳ هفته</span></li>
+            <li style="display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed var(--line);padding-bottom:10px"><span><b>پکیج فروشگاهی</b></span><span style="color:var(--mut)">۴ تا ۶ هفته</span></li>
+            <li style="display:flex;justify-content:space-between;gap:12px"><span><b>پکیج اختصاصی</b></span><span style="color:var(--mut)">بر اساس فازهای پروژه</span></li>
+          </ul>
+          <p style="margin:0;color:var(--mut);font-size:.9rem">شمارش زمان از تکمیل اطلاعات و محتوای ارسالی شما شروع می‌شود؛ بازخورد سریع‌تر شما یعنی تحویل سریع‌تر پروژه.</p>
+        </article>
+        <article class="card" style="padding:clamp(22px,3vw,30px);display:grid;gap:14px" data-reveal="up" data-delay="90">
+          <h3 style="font-size:1.15rem;margin:0">بعد از راه‌اندازی چه هزینه‌هایی دارم؟</h3>
+          <ul style="list-style:none;padding:0;margin:0;display:grid;gap:10px;font-size:.95rem">
+            <li style="display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed var(--line);padding-bottom:10px"><span><b>دامنه</b></span><span style="color:var(--mut)">تمدید سالانه بر اساس تعرفهٔ ثبت</span></li>
+            <li style="display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed var(--line);padding-bottom:10px"><span><b>هاست</b></span><span style="color:var(--mut)">پس از دورهٔ هدیه، بر اساس پلن میزبانی</span></li>
+            <li style="display:flex;justify-content:space-between;gap:12px"><span><b>سئو، محتوا، پشتیبانی</b></span><span style="color:var(--mut)">اختیاری؛ با برآورد شفاف</span></li>
+          </ul>
+          <p style="margin:0;color:var(--mut);font-size:.9rem">هیچ هزینهٔ اجباری پنهانی بعد از تحویل وجود ندارد؛ همهٔ مبالغ پیش از هر اتفاق و به‌صورت مکتوب اعلام می‌شود.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
   <!-- خدمات مکمل و پس از راه‌اندازی -->
   <section class="section bg-soft">
     <div class="container">
       <SectionHead tag="خدمات مکمل و پشتیبانی" title="بعد از ساخت سایت: سئو، تولید محتوا و پشتیبانی" sub="تخصص اصلی ما طراحی و توسعه وب‌سایت است؛ این خدمات مکمل، رشد و سلامت بلندمدت سایت را پوشش می‌دهند. برآورد دقیق هر یک پس از نیازسنجی رایگان ارائه می‌شود." center />
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px" class="compl-price-grid">
+      <div class="compl-price-grid">
         {complementary.map((c, i) => (
           <article class="card" style="padding:clamp(22px,3vw,30px);display:flex;flex-direction:column;gap:10px" data-reveal="up" data-delay={String(i * 90)}>
             <h3 style="font-size:1.15rem;margin:0">{c.t}</h3>
@@ -84,11 +163,62 @@ const complementary = [
     </div>
   </section>
 
+  <!-- ═══ سؤالات متداول تعرفه‌ها ═══ -->
+  <section class="section" aria-labelledby="pricing-faq-title">
+    <div class="container">
+      <SectionHead tag="سؤالات متداول" title="هر آنچه درباره قیمت‌ها باید بدانید" center />
+      <div class="faq-wrap">
+        {pricingFaq.map((f, i) => (
+          <div class:list={['faq-item', { 'is-open': i === 0 }]} data-accordion-item data-reveal="up" data-delay={String(i * 60)}>
+            <button class="faq-item__btn" type="button" data-accordion-btn aria-expanded={i === 0 ? 'true' : 'false'}>
+              {f.q}
+              <span class="faq-item__sign" aria-hidden="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+              </span>
+            </button>
+            <div class="faq-item__panel" data-accordion-panel aria-hidden={i === 0 ? 'false' : 'true'}>
+              <div class="faq-item__panel-inner">{f.a}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
   <CtaBand title="مطمئن نیستید کدام پکیج مناسب شماست؟" sub="در جلسه مشاوره رایگان، نیازتان را بررسی می‌کنیم و پکیج درست را پیشنهاد می‌دهیم — حتی اگر هیچ‌کدام دقیقاً مناسب نباشد، برآورد شفاف می‌دهیم." />
 </BaseLayout>
 
 <style is:global>
+  /* مقدمهٔ تعرفه — متن روان و خوانا */
+  .price-intro { max-width: 820px; margin-inline: auto; display: grid; gap: 14px; line-height: 2; }
+  .price-intro h2 { font-size: clamp(1.25rem, 2.6vw, 1.6rem); color: var(--navy); margin: 0 0 4px; }
+  .price-intro p { margin: 0; color: var(--body); }
+  .price-intro strong { color: var(--navy); }
+
+  /* کارت‌های پکیج */
+  .price-grid { display: grid; grid-template-columns: 1fr; gap: 22px; }
+  .ops-grid { display: grid; grid-template-columns: 1fr; gap: 22px; }
+
+  /* امکانات مشترک */
+  .common-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  .common-item { display: flex; gap: 12px; align-items: flex-start; padding: 18px 20px; }
+  .common-item svg { flex: none; margin-top: 4px; }
+  .common-item strong { display: block; color: var(--navy); font-size: .98rem; margin-bottom: 3px; }
+  .common-item span { color: var(--mut); font-size: .87rem; line-height: 1.8; }
+
   .compl-price-grid { grid-template-columns: 1fr; }
-  @media (min-width: 760px) { .compl-price-grid { grid-template-columns: repeat(3, 1fr); } }
-  @media (max-width: 860px) { .price-grid { grid-template-columns: 1fr !important; } }
+
+  @media (min-width: 640px) {
+    .common-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 760px) {
+    .compl-price-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (min-width: 900px) {
+    .price-grid { grid-template-columns: repeat(3, 1fr); }
+    .ops-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 1020px) {
+    .common-grid { grid-template-columns: repeat(4, 1fr); }
+  }
 </style>

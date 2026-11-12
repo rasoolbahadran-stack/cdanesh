@@ -37,7 +37,7 @@ const ARTICLES: ArticleJson[] = [
 ];
 
 /* نقشهٔ تصویر شاخص مقالات — تصاویر واقعی وب (WebP) از منابع آزاد */
-const POST_COVERS: Record<string, string> = {
+export const POST_COVERS: Record<string, string> = {
   'guide-choosing-web-design-company': '/img/blog/guide-choosing-web-design-company.webp',
   'web-design-cost-iran': '/img/blog/web-design-cost-iran.webp',
   'custom-vs-template': '/img/blog/custom-vs-template.webp',

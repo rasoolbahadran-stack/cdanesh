@@ -13,22 +13,21 @@ const initialSubject = selectedPackage
 
 const meta = {
   title: 'تماس با کافه دانش | سفارش پروژه طراحی سایت',
-  description: 'راه‌های ارتباط با استودیو طراحی و توسعه وب‌سایت کافه‌دانش در بوشهر: ایمیل، تلفن و فرم پیام — برای درخواست خدمات یا پرسش درباره پروژه.',
+  description: 'راه‌های ارتباط با استودیو طراحی و توسعه وب‌سایت کافه‌دانش در بوشهر: تلفن، ایمیل و فرم پیام با پاسخ‌گویی حداکثر تا یک روز کاری — برای درخواست پروژه یا پرسش دربارهٔ خدمات.',
   path: '/contact',
 };
 ---
 <BaseLayout meta={meta} current="/contact" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'تماس با ما', url: '/contact' }])]}>
   <PageHero
     title="تماس با ما"
-    sub="برای پرسش دربارهٔ خدمات، وضعیت پروژه یا درخواست جلسه، از هر کدام از راه‌های زیر راحت‌ترین را انتخاب کنید."
-    crumbs={[{ label: 'خانه', href: '/' }, { label: 'تماس با ما' }]}
+    sub="پرسش دربارهٔ خدمات، دریافت برآورد یا شروع پروژه — راه‌های ارتباطی و زمان پاسخ‌گویی ما از ابتدا شفاف است."
   />
 
   <section class="section">
     <div class="container contact-grid">
       <div class="card" style="padding:clamp(22px,4vw,36px)">
-        <h2 style="font-size:1.3rem">درخواست خود را ثبت کنید</h2>
-        <p style="color:var(--mut);font-size:.94rem">فیلدهای ستاره‌دار را تکمیل کنید تا بتوانیم برای پیگیری درخواست با شما تماس بگیریم.</p>
+        <h2 style="font-size:1.3rem">پیام خود را ثبت کنید</h2>
+        <p style="color:var(--mut);font-size:.94rem">فیلدهای ستاره‌دار را تکمیل کنید؛ پیام شما مستقیم به تیم فنی می‌رسد و حداکثر تا <b>یک روز کاری</b> پاسخ می‌گیرید.</p>
         <FormBlock kind="contact" initialSubject={initialSubject} />
       </div>
 
@@ -52,9 +51,18 @@ const meta = {
         </div>
 
         <div class="card" style="padding:24px">
-          <h3 style="font-size:1.05rem">قبل از تماس بهتر است آماده کنید</h3>
-          <p style="font-size:.92rem;color:var(--mut)">اگر پروژهٔ مشخصی در ذهن دارید، چند خط دربارهٔ آن بنویسید: کسب‌وکارتان چه می‌فروشد، سایت دارید یا نه و نتیجهٔ مطلوب چیست.</p>
-          <p style="font-size:.92rem;margin:0">اگر دنبال <b>درخواست پروژه</b> هستید، بهتر است از <a href="/consult">فرم درخواست مشاوره</a> استفاده کنید؛ آن فرم برای نیازسنجی دقیق‌تر طراحی شده است.</p>
+          <h3 style="font-size:1.05rem">پس از ارسال پیام، چه اتفاقی می‌افتد؟</h3>
+          <ol class="contact-steps">
+            <li><b>پاسخ اولیه</b> — حداکثر تا یک روز کاری، با شما تماس می‌گیریم یا ایمیل می‌زنیم.</li>
+            <li><b>جلسهٔ نیازسنجی رایگان</b> — کسب‌وکار، مخاطب و هدف پروژه را مرور می‌کنیم (آنلاین یا حضوری).</li>
+            <li><b>پروپوزال مکتوب</b> — دامنهٔ کار، زمان‌بندی و برآورد شفاف؛ تصمیم با شماست، بدون تعهد.</li>
+          </ol>
+        </div>
+
+        <div class="card" style="padding:24px">
+          <h3 style="font-size:1.05rem">برای پاسخ دقیق‌تر، این‌ها را بنویسید</h3>
+          <p style="font-size:.92rem;color:var(--mut);margin:0 0 8px">کسب‌وکارتان چه می‌فروشد، الان سایت دارید یا نه، و از سایت جدید چه نتیجه‌ای می‌خواهید؛ همین سه خط، جلسهٔ اول را هدفمند می‌کند.</p>
+          <p style="font-size:.92rem;margin:0">اگر <b>درخواست پروژه</b> دارید، <a href="/consult">فرم درخواست مشاوره</a> برای نیازسنجی دقیق‌تر طراحی شده است. برآورد قیمت پکیج‌ها را هم می‌توانید در <a href="/pricing">صفحهٔ تعرفه‌ها</a> ببینید.</p>
         </div>
       </aside>
     </div>
@@ -63,8 +71,25 @@ const meta = {
 
 <style is:global>
   .contact-grid { display: grid; grid-template-columns: 1fr; gap: 30px; }
+  .contact-steps {
+    margin: 14px 0 0; padding: 0; list-style: none;
+    display: grid; gap: 12px; counter-reset: step;
+  }
+  .contact-steps li {
+    position: relative; padding-inline-start: 40px;
+    font-size: .92rem; line-height: 1.9; color: var(--body);
+  }
+  .contact-steps li::before {
+    counter-increment: step; content: counter(step, persian);
+    position: absolute; inset-inline-start: 0; top: 2px;
+    width: 28px; height: 28px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--lavender); color: var(--purple);
+    font-weight: 800; font-size: .88rem;
+  }
+  .contact-steps b { color: var(--navy); }
   @media (min-width: 1000px) {
-    .contact-grid { grid-template-columns: 1.15fr .85fr; align-items: start; }
-    .contact-aside { position: sticky; top: 100px; display: grid; gap: 20px; }
+    .contact-grid { grid-template-columns: minmax(0, 1fr) 320px; align-items: start; }
+    .contact-aside { position: sticky; top: 92px; display: grid; gap: 20px; }
   }
 </style>

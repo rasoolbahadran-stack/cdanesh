@@ -35,7 +35,7 @@ const fa = (s: string | number) => new Intl.NumberFormat('fa-IR').format(Number(
     if (b.t === 'img') {
       return (
         <figure style="margin:1.4em 0">
-          <img src={b.src} alt={b.alt || ''} loading="lazy" decoding="async" width="800" height="450" />
+          <img src={b.src} alt={b.alt || ''} loading="lazy" decoding="async" width={b.w || 800} height={b.h || 450} />
           {b.alt && <figcaption style="text-align:center;color:var(--mut);font-size:.84rem;margin-top:6px">{b.alt}</figcaption>}
         </figure>
       );

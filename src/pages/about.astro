@@ -1,4 +1,5 @@
 ---
+// صفحه درباره ما — داستان استودیو با چیدمان دوستونی (متن + تصویر) و تصویر مستقل برای هر بخش
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
 import Blocks from '../components/Blocks.astro';
@@ -7,10 +8,15 @@ import { getPage } from '../lib/content';
 import { jsonLdBreadcrumb } from '../lib/seo';
 
 const page = getPage('about')!;
-const bodyBlocks = page.blocks.filter((b) => !(b.t === 'h1'
-  || (b.t === 'img' && b.src.includes('about-studio'))
-  || (b.t === 'p' && b.x.startsWith('استودیو دیجیتال کافه'))
-  || (b.t === 'p' && b.x.startsWith('کافه‌دانش؛ استودیو تخصصی طراحی و توسعه وب‌سایت در بوشهر.'))));
+const blocks = page.blocks;
+
+// ترتیب بلوک‌ها در pages.json ثابت است: h1، دو پاراگراف معرفی، سپس محتوای اصلی
+const intro = blocks.slice(1, 3);
+const locIdx = blocks.findIndex((b) => b.t === 'h2' && b.x.startsWith('کجا هستیم'));
+const reasonsIdx = blocks.findIndex((b) => b.t === 'h2' && b.x.startsWith('پنج دلیل'));
+const part1 = blocks.slice(3, locIdx);
+const locSection = blocks.slice(locIdx, reasonsIdx);
+const part2 = blocks.slice(reasonsIdx);
 
 const meta = {
   title: 'درباره کافه دانش | استودیو طراحی و توسعه وب‌سایت در بوشهر',
@@ -20,24 +26,83 @@ const meta = {
 };
 ---
 <BaseLayout meta={meta} current="/about" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'درباره ما', url: '/about' }])]}>
-  <PageHero title="درباره کافه دانش" sub="کافه‌دانش؛ استودیو تخصصی طراحی و توسعه وب‌سایت در بوشهر — شرکتی، فروشگاهی و اختصاصی." crumbs={[{ label: 'خانه', href: '/' }, { label: 'درباره ما' }]} />
+  <PageHero title="درباره کافه دانش" sub="استودیو تخصصی طراحی و توسعهٔ وب‌سایت در بوشهر — از معماری اطلاعات و طراحی رابط کاربری تا کد تمیز، زیرساخت سئو و تحویل مرحله‌ای." />
 
-  <section class="section--tight">
+  <!-- داستان استودیو: متن + تصویر، دو ستونه -->
+  <section class="section">
     <div class="container">
-      <figure style="margin:0 0 10px;border-radius:var(--r-xl);overflow:hidden;box-shadow:var(--shadow-float);max-width:920px;margin-inline:auto">
-        <img src="/img/ai/about-team.webp" alt="فضای استودیو کافه دانش" width="800" height="450" loading="lazy" decoding="async" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block" />
-      </figure>
-      <Blocks blocks={bodyBlocks} />
+      <div class="split">
+        <div class="about-intro">
+          {intro.map((b) => <p set:html={(b as { t: string; x: string }).x} />)}
+          <ul class="split__list">
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg>
+              معماری اطلاعات و UI/UX پیش از طراحی بصری
+            </li>
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg>
+              سنجش سرعت و Core Web Vitals پیش از انتشار
+            </li>
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg>
+              مستندسازی، آموزش پنل و مالکیت کامل کد
+            </li>
+          </ul>
+        </div>
+        <div class="split__media">
+          <img src="/img/ai/about-team.webp" alt="تیم کافه دانش در حال بررسی طراحی وب‌سایت در استودیو" width="672" height="384" loading="lazy" decoding="async" />
+          <div class="split__badge">
+            <span class="split__badge-ico">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z" /><circle cx="12" cy="10" r="2.6" /></svg>
+            </span>
+            <span><strong>استودیو کافه‌دانش</strong><small>بوشهر، ایران</small></span>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- نگاه ما، اصول همکاری و دامنهٔ کار -->
   <section class="section--tight">
-    <div class="container" style="max-width:920px">
-      <figure style="margin:0;border-radius:var(--r-xl);overflow:hidden;box-shadow:var(--shadow-card)">
-        <img src="/img/ai/hero-team.webp" alt="تیم کافه دانش در حال برنامه‌ریزی و طراحی وب‌سایت" width="672" height="384" loading="lazy" decoding="async" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block" />
-      </figure>
+    <div class="container">
+      <div style="max-width:880px;margin-inline:auto">
+        <Blocks blocks={part1} />
+      </div>
+    </div>
+  </section>
+
+  <!-- کجا هستیم: تصویر دوم (چیدمان معکوس) -->
+  <section class="section bg-soft">
+    <div class="container">
+      <div class="split about-split-rev">
+        <div class="split__media">
+          <img src="/img/ai/hero-team.webp" alt="جلسهٔ طراحی و برنامه‌ریزی وب‌سایت در کافه دانش" width="672" height="384" loading="lazy" decoding="async" />
+        </div>
+        <div class="about-loc">
+          <Blocks blocks={locSection} />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- پنج دلیل، شش مرحله و دعوت به همکاری -->
+  <section class="section--tight">
+    <div class="container">
+      <div style="max-width:880px;margin-inline:auto">
+        <Blocks blocks={part2} />
+      </div>
     </div>
   </section>
 
   <CtaBand />
 </BaseLayout>
+
+<style>
+  .about-intro p { font-size: 1.02rem; line-height: 2.1; }
+  .about-intro p:first-child { margin-top: 0; }
+  .about-loc :global(h2) { margin-top: 0; }
+  @media (max-width: 720px) {
+    .about-split-rev .split__media { order: 2; }
+    .about-loc { order: 1; }
+  }
+</style>
