@@ -37,10 +37,15 @@ const schema = [{
 }];
 ---
 <BaseLayout
-  title={page.seo_title || page.title}
-  description={page.seo_description || page.excerpt}
-  activePath={`/page/${page.slug}`}
-  schema={schema}
+  meta={{
+    title: page.seo_title || page.title,
+    description: page.seo_description || page.excerpt,
+    path: `/page/${page.slug}`,
+    type: 'website',
+    image: page.featured_image || undefined,
+  }}
+  current={`/page/${page.slug}`}
+  extraJsonLd={schema}
 >
   <PageHero title={page.title} sub={page.excerpt} />
   <section class="sec">
