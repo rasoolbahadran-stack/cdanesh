@@ -129,7 +129,7 @@ export function makeUpdate(cfg: EntityConfig) {
           await q('INSERT INTO slug_redirects(entity,old_slug,new_slug) VALUES($1,$2,$3) ON CONFLICT(entity,old_slug) DO UPDATE SET new_slug=EXCLUDED.new_slug', [cfg.table, String(existing.slug), String(body[cfg.slugFrom.slugField])]);
         }
       }
-      const sets = keys.map((k, i) => `${k} = ${i + 1}`).join(', ');
+            const sets = keys.map((k, i) => `${k} = $${i + 1}`).join(', ');
       const values = keys.map((k) => cfg.fields[k](body[k], body));
       const hasUpdated = cfg.noTimestamp ? '' : ', updated_at = now()';
       const row = await q1(`UPDATE ${cfg.table} SET ${sets}${hasUpdated} WHERE id = $${keys.length + 1} RETURNING *`, [...values, id]);
