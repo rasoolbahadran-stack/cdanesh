@@ -99,6 +99,24 @@ const status = value('status', 'draft');
         </aside>
       </div>
     </form>
+    <div class="modal-scrim image-style-scrim" id="post-image-style" aria-hidden="true">
+    <section class="modal image-style-modal" role="dialog" aria-modal="true" aria-labelledby="image-style-title">
+      <div class="modal-head"><h3 id="image-style-title">تنظیم اندازه و استایل تصویر</h3><button type="button" class="btn btn-ghost btn-sm" id="image-style-cancel">انصراف</button></div>
+      <div class="modal-body">
+        <img id="image-style-preview" class="image-style-preview" src="" alt="پیش‌نمایش تصویر"/>
+        <div class="image-style-fields">
+          <label>عرض (پیکسل)<input id="image-style-width" type="number" min="80" max="1600" value="600"/></label>
+          <label>ارتفاع (پیکسل)<input id="image-style-height" type="number" min="80" max="1200" value="350"/></label>
+          <label class="image-style-check"><input id="image-style-ratio" type="checkbox" checked/> حفظ نسبت ابعاد</label>
+          <label>نحوه نمایش<select id="image-style-fit"><option value="contain">نمایش کامل</option><option value="cover">پوشش کادر</option></select></label>
+          <label>چینش<select id="image-style-align"><option value="center">وسط</option><option value="right">راست</option><option value="left">چپ</option></select></label>
+          <label>گردی گوشه‌ها (پیکسل)<input id="image-style-radius" type="number" min="0" max="48" value="12"/></label>
+        </div>
+        <p class="image-style-help">این تنظیمات فقط ظاهر تصویر داخل مقاله را تغییر می‌دهد؛ فایل اصلی رسانه دست‌نخورده می‌ماند.</p>
+        <div class="message-actions"><button type="button" class="btn btn-gold" id="image-style-insert">درج تصویر در مقاله</button></div>
+      </div>
+    </section>
+  </div>
   </div>
   <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
   <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
@@ -156,7 +174,32 @@ const status = value('status', 'draft');
       document.getElementById('insert-image')?.addEventListener('click', () => {
         const api = (window as any).CDA;
         if (!api?.openMediaPicker) return showNotice('کتابخانه رسانه بارگذاری نشد؛ صفحه را تازه‌سازی کنید.', false);
-        api.openMediaPicker((url: string) => { visual.focus(); document.execCommand('insertHTML', false, '<figure><img src="' + url + '" alt="" loading="lazy"><figcaption>توضیح تصویر</figcaption></figure>'); countWords(); });
+        api.openMediaPicker((url: string) => {
+          const dialog=document.getElementById('post-image-style') as HTMLElement;
+          (document.getElementById('image-style-preview') as HTMLImageElement).src=url;
+          dialog.dataset.imageUrl=url;dialog.classList.add('open');dialog.setAttribute('aria-hidden','false');
+        });
+      });
+      const imageDialog=document.getElementById('post-image-style') as HTMLElement;
+      const imageWidth=document.getElementById('image-style-width') as HTMLInputElement;
+      const imageHeight=document.getElementById('image-style-height') as HTMLInputElement;
+      const imageRatio=document.getElementById('image-style-ratio') as HTMLInputElement;
+      imageRatio.addEventListener('change',()=>{imageHeight.disabled=imageRatio.checked;});imageHeight.disabled=true;
+      document.getElementById('image-style-cancel')?.addEventListener('click',()=>{imageDialog.classList.remove('open');imageDialog.setAttribute('aria-hidden','true');});
+      imageDialog.addEventListener('click',(event)=>{if(event.target===imageDialog){imageDialog.classList.remove('open');imageDialog.setAttribute('aria-hidden','true');}});
+      document.getElementById('image-style-insert')?.addEventListener('click',()=>{
+        const url=imageDialog.dataset.imageUrl||'';if(!url)return;
+        const width=Math.max(80,Math.min(1600,Number(imageWidth.value)||600));
+        const height=imageRatio.checked?'auto':Math.max(80,Math.min(1200,Number(imageHeight.value)||350))+'px';
+        const fit=(document.getElementById('image-style-fit') as HTMLSelectElement).value;
+        const align=(document.getElementById('image-style-align') as HTMLSelectElement).value;
+        const radius=Math.max(0,Math.min(48,Number((document.getElementById('image-style-radius') as HTMLInputElement).value)||0));
+        const alt=prompt('متن جایگزین تصویر (Alt):','')||'تصویر';
+        const safeUrl=url.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+        const safeAlt=alt.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+        const style='--content-image-width:'+width+'px;--content-image-height:'+height+';--content-image-radius:'+radius+'px;--content-image-fit:'+fit+';';
+        visual.focus();document.execCommand('insertHTML',false,'<figure class="content-image content-image--'+align+'" style="'+style+'"><img src="'+safeUrl+'" alt="'+safeAlt+'" loading="lazy"><figcaption>توضیح تصویر</figcaption></figure><p></p>');
+        imageDialog.classList.remove('open');imageDialog.setAttribute('aria-hidden','true');countWords();
       });
       const cover = document.getElementById('cover-image') as HTMLInputElement;
       const preview = document.getElementById('cover-preview') as HTMLImageElement;
