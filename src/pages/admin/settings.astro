@@ -140,6 +140,9 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         });
       });
 
+      const initialTab = new URLSearchParams(window.location.search).get('tab');
+      if (initialTab) document.querySelector<HTMLButtonElement>(`#st-tabs button[data-tab="${initialTab}"]`)?.click();
+
       /* helpers */
       const pairsToLines = (arr: any[] | null | undefined) => (arr || []).map((p: any) => `${p.title || p.value || p.label || ''} | ${p.text || p.href || p.desc || ''}`).join('\n');
       const pairsToMega = (groups: any[] | null | undefined) => (groups || []).map((g: any) => {
