@@ -63,7 +63,7 @@ const status = value('status', 'draft');
             <div class="editor-box">
               <div class="editor-tabs"><button type="button" id="tab-visual" class="active">ویرایش بصری</button><button type="button" id="tab-html">ویرایش کد HTML</button><span style="margin-inline-start:auto;font-size:11px;color:var(--a-muted);align-self:center">تغییرات دو حالت همگام می‌شود</span></div>
               <div class="editor-tools" id="visual-tools">
-                <button type="button" data-command="formatBlock" data-value="h2">تیتر اصلی</button><button type="button" data-command="formatBlock" data-value="h3">تیتر فرعی</button><button type="button" data-command="formatBlock" data-value="p">پاراگراف</button><button type="button" data-command="bold"><b>پررنگ</b></button><button type="button" data-command="italic"><i>مورب</i></button><button type="button" data-command="insertUnorderedList">فهرست</button><button type="button" data-command="insertOrderedList">فهرست شماره‌ای</button><button type="button" id="insert-quote">نقل‌قول</button><button type="button" id="insert-image">افزودن از رسانه</button><button type="button" id="insert-link">لینک</button>
+                <button type="button" data-command="formatBlock" data-value="h2">تیتر اصلی</button><button type="button" data-command="formatBlock" data-value="h3">تیتر فرعی</button><button type="button" data-command="formatBlock" data-value="p">پاراگراف</button><button type="button" data-command="bold"><b>پررنگ</b></button><button type="button" data-command="italic"><i>مورب</i></button><button type="button" data-command="insertUnorderedList">فهرست</button><button type="button" data-command="insertOrderedList">فهرست شماره‌ای</button><button type="button" id="insert-quote">نقل‌قول</button><button type="button" id="insert-image">افزودن تصویر از رسانه</button><button type="button" id="insert-link">لینک</button>
               </div>
               <div id="visual-editor" class="editor-visual" contenteditable="true" set:html={value('content')}></div>
               <textarea id="html-editor" class="editor-source" spellcheck="false">{value('content')}</textarea>
@@ -87,7 +87,7 @@ const status = value('status', 'draft');
             <h2 style="font-size:15px;margin:0 0 12px">تصویر شاخص</h2>
             <input type="hidden" name="cover_image" id="cover-image" value={value('cover_image', value('cover'))} />
             <img id="cover-preview" src={value('cover_image', value('cover'))} alt="" style={'width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;background:#f3f3f8;display:' + (value('cover_image', value('cover')) ? 'block' : 'none')} />
-            <div style="display:grid;gap:8px;margin-top:10px"><button type="button" class="btn btn-ghost" id="cover-pick">انتخاب از کتابخانه رسانه</button><button type="button" class="btn btn-ghost" id="cover-clear">حذف تصویر شاخص</button></div>
+            <div style="display:grid;gap:8px;margin-top:10px"><button type="button" class="btn btn-ghost" id="cover-pick">انتخاب تصویر شاخص از رسانه</button><button type="button" class="btn btn-ghost" id="cover-clear">حذف تصویر شاخص</button></div>
           </section>
           <section class="post-panel">
             <h2 style="font-size:15px;margin:0 0 12px">وضعیت مقاله</h2>
@@ -139,6 +139,8 @@ const status = value('status', 'draft');
       const wordCount = document.getElementById('word-count') as HTMLElement;
       let cm: any = null;
       let sourceMode = false;
+      let pendingImageRange: Range | null = null;
+      let pendingSourceSelection: { start: number; end: number } | null = null;
       let slugTouched = !!slug.value;
       const countWords = () => { wordCount.textContent = new Intl.NumberFormat('fa-IR').format((visual.innerText || '').trim().split(/\s+/).filter(Boolean).length) + ' کلمه'; };
       const showNotice = (txt: string, good = true) => { message.textContent = txt; message.style.color = good ? '#177a48' : '#b3261e'; };
@@ -171,13 +173,33 @@ const status = value('status', 'draft');
       }));
       document.getElementById('insert-quote')?.addEventListener('click', () => { visual.focus(); document.execCommand('formatBlock', false, 'blockquote'); });
       document.getElementById('insert-link')?.addEventListener('click', () => { const href = prompt('آدرس لینک را وارد کنید'); if (href) { visual.focus(); document.execCommand('createLink', false, href); } });
+      document.getElementById('insert-image')?.addEventListener('mousedown', (event) => event.preventDefault());
       document.getElementById('insert-image')?.addEventListener('click', () => {
         const api = (window as any).CDA;
         if (!api?.openMediaPicker) return showNotice('کتابخانه رسانه بارگذاری نشد؛ صفحه را تازه‌سازی کنید.', false);
+        if (sourceMode) {
+          if (cm) {
+            pendingSourceSelection = {
+              start: cm.indexFromPos(cm.getCursor('from')),
+              end: cm.indexFromPos(cm.getCursor('to')),
+            };
+          } else {
+            pendingSourceSelection = { start: source.selectionStart, end: source.selectionEnd };
+          }
+          pendingImageRange = null;
+        } else {
+          const selection = window.getSelection();
+          pendingImageRange = selection && selection.rangeCount && selection.anchorNode && visual.contains(selection.anchorNode)
+            ? selection.getRangeAt(0).cloneRange()
+            : null;
+          pendingSourceSelection = null;
+        }
         api.openMediaPicker((url: string) => {
           const dialog=document.getElementById('post-image-style') as HTMLElement;
           (document.getElementById('image-style-preview') as HTMLImageElement).src=url;
-          dialog.dataset.imageUrl=url;dialog.classList.add('open');dialog.setAttribute('aria-hidden','false');
+          dialog.dataset.imageUrl=url;
+          dialog.classList.add('open');
+          dialog.setAttribute('aria-hidden','false');
         });
       });
       const imageDialog=document.getElementById('post-image-style') as HTMLElement;
@@ -198,7 +220,36 @@ const status = value('status', 'draft');
         const safeUrl=url.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
         const safeAlt=alt.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
         const style='--content-image-width:'+width+'px;--content-image-height:'+height+';--content-image-radius:'+radius+'px;--content-image-fit:'+fit+';';
-        visual.focus();document.execCommand('insertHTML',false,'<figure class="content-image content-image--'+align+'" style="'+style+'"><img src="'+safeUrl+'" alt="'+safeAlt+'" loading="lazy"><figcaption>توضیح تصویر</figcaption></figure><p></p>');
+        const figureHtml='<figure class="content-image content-image--'+align+'" style="'+style+'"><img src="'+safeUrl+'" alt="'+safeAlt+'" loading="lazy"><figcaption>توضیح تصویر</figcaption></figure><p></p>';
+        if (sourceMode) {
+          const start=pendingSourceSelection ? pendingSourceSelection.start : (cm ? cm.getValue().length : source.value.length);
+          const end=pendingSourceSelection ? pendingSourceSelection.end : start;
+          if (cm) {
+            cm.replaceRange(figureHtml,cm.posFromIndex(start),cm.posFromIndex(end));
+            cm.setCursor(cm.posFromIndex(start+figureHtml.length));
+            source.value=cm.getValue();
+            cm.save();
+          } else {
+            source.value=source.value.slice(0,start)+figureHtml+source.value.slice(end);
+            source.setSelectionRange(start+figureHtml.length,start+figureHtml.length);
+          }
+        } else {
+          visual.focus();
+          const selection=window.getSelection();
+          if (pendingImageRange && visual.contains(pendingImageRange.commonAncestorContainer)) {
+            selection?.removeAllRanges();
+            selection?.addRange(pendingImageRange);
+          } else {
+            const range=document.createRange();
+            range.selectNodeContents(visual);
+            range.collapse(false);
+            selection?.removeAllRanges();
+            selection?.addRange(range);
+          }
+          document.execCommand('insertHTML',false,figureHtml);
+        }
+        pendingImageRange=null;
+        pendingSourceSelection=null;
         imageDialog.classList.remove('open');imageDialog.setAttribute('aria-hidden','true');countWords();
       });
       const cover = document.getElementById('cover-image') as HTMLInputElement;
