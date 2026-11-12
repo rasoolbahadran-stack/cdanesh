@@ -4,6 +4,7 @@ interface Props { post?: Record<string, unknown>; isNew?: boolean; categories?: 
 const { post = {}, isNew = false, categories = [] } = Astro.props as Props;
 const value = (key: string, fallback = '') => String(post[key] ?? fallback);
 const status = value('status', 'draft');
+const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 'true' || v === 't' || v === 'yes';
 ---
 <AdminLayout title={isNew ? 'مقاله جدید' : 'ویرایش مقاله'}>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" />
@@ -54,6 +55,8 @@ const status = value('status', 'draft');
               <div class="post-field full"><label for="post-slug">آدرس انگلیسی مقاله (Slug)</label><div style="display:flex;gap:8px"><input id="post-slug" name="slug" dir="ltr" required maxlength="120" value={value('slug')} placeholder="ecommerce-design-principles" /><button type="button" id="slug-generate" class="btn btn-ghost">تولید خودکار</button></div><small>از عنوان فارسی پیشنهاد انگلیسی ساخته می‌شود؛ قبل از ذخیره می‌توانید آن را تغییر دهید.</small></div>
               <div class="post-field"><label for="post-category">دسته‌بندی</label><select id="post-category" name="category_id"><option value="">بدون دسته‌بندی</option>{categories.map((c) => <option value={c.id} selected={String(post.category_id || '') === String(c.id)}>{c.name}</option>)}</select></div>
               <div class="post-field"><label for="post-reading">زمان مطالعه (دقیقه)</label><input id="post-reading" name="reading_time" type="number" min="1" max="120" value={value('reading_time','6')} /></div>
+              <div class="post-field"><label for="post-author">نام نویسنده</label><input id="post-author" name="author" maxlength="100" value={value('author','مدیر کافه‌دانش')} /></div>
+              <div class="post-field"><label style="display:flex;align-items:center;gap:9px"><input type="checkbox" name="featured" value="1" checked={isChecked(post.featured)} style="width:18px;height:18px" /> مقاله ویژه</label><small>مقاله‌های ویژه می‌توانند در بخش‌های برجسته سایت نمایش داده شوند.</small></div>
               <div class="post-field full"><label for="post-tags">برچسب‌ها (با ویرگول جدا کنید)</label><input id="post-tags" name="tags" value={Array.isArray(post.tags) ? post.tags.join(', ') : value('tags')} placeholder="طراحی سایت، فروشگاه اینترنتی، سئو" /></div>
               <div class="post-field full"><label for="post-excerpt">توضیح کوتاه مقاله</label><textarea id="post-excerpt" name="excerpt" rows="3" maxlength="600">{value('excerpt')}</textarea></div>
             </div>
@@ -78,6 +81,7 @@ const status = value('status', 'draft');
                 <div class="post-field"><label>عنوان اشتراک‌گذاری</label><input name="og_title" value={value('og_title')} /></div>
                 <div class="post-field"><label>تصویر اشتراک‌گذاری</label><input name="og_image" dir="ltr" value={value('og_image')} /></div>
                 <div class="post-field full"><label>توضیحات اشتراک‌گذاری</label><textarea name="og_description" rows="2">{value('og_description')}</textarea></div>
+                <div class="post-field full"><label style="display:flex;align-items:center;gap:9px"><input type="checkbox" name="noindex" value="1" checked={isChecked(post.noindex)} style="width:18px;height:18px" /> عدم ایندکس مقاله توسط موتورهای جست‌وجو (noindex)</label></div>
               </div>
             </details>
           </section>
@@ -93,7 +97,7 @@ const status = value('status', 'draft');
             <h2 style="font-size:15px;margin:0 0 12px">وضعیت مقاله</h2>
             <div class="post-field"><label for="post-status">وضعیت انتشار</label><select id="post-status" name="status"><option value="draft" selected={status === 'draft'}>پیش‌نویس</option><option value="published" selected={status === 'published'}>منتشرشده</option><option value="scheduled" selected={status === 'scheduled'}>زمان‌بندی‌شده</option></select></div>
             <div class="post-field" style="margin-top:10px"><label for="post-published-at">زمان انتشار (برای زمان‌بندی)</label><input id="post-published-at" name="published_at" type="datetime-local" value={value('published_at') ? new Date(value('published_at')).toISOString().slice(0,16) : ''} /></div>
-            <div class="save-actions"><button type="button" class="btn btn-gold" id="save-draft">ذخیره پیش‌نویس</button><button type="button" class="btn btn-primary" id="publish-post">{isNew ? 'انتشار مقاله' : 'به‌روزرسانی و انتشار'}</button>{!isNew && <a class="btn btn-ghost" href={'/admin/history?entity=posts&id=' + value('id')}>تاریخچه و بازیابی نسخه‌ها</a>}</div>
+            <div class="save-actions"><button type="button" class="btn btn-gold" id="save-draft">ذخیره پیش‌نویس</button><button type="button" class="btn btn-ghost" id="schedule-post">زمان‌بندی انتشار</button><button type="button" class="btn btn-primary" id="publish-post">{isNew ? 'انتشار مقاله' : 'به‌روزرسانی و انتشار'}</button>{!isNew && <a class="btn btn-ghost" href={'/admin/history?entity=posts&id=' + value('id')}>تاریخچه و بازیابی نسخه‌ها</a>}</div>
             <p id="save-message" role="status" style="font-size:12px;margin:10px 0 0;color:var(--a-muted)"></p>
           </section>
         </aside>
@@ -235,6 +239,9 @@ const status = value('status', 'draft');
           category_id: (form.elements.namedItem('category_id') as HTMLSelectElement).value ? Number((form.elements.namedItem('category_id') as HTMLSelectElement).value) : undefined,
           tags: (form.elements.namedItem('tags') as HTMLInputElement).value.split(/[،,]/).map((x) => x.trim()).filter(Boolean).slice(0, 10),
           content: html, cover_image: cover.value, status: nextStatus,
+          author: (form.elements.namedItem('author') as HTMLInputElement).value.trim() || 'مدیر کافه‌دانش',
+          featured: (form.elements.namedItem('featured') as HTMLInputElement).checked,
+          noindex: (form.elements.namedItem('noindex') as HTMLInputElement).checked,
           reading_time: Number((form.elements.namedItem('reading_time') as HTMLInputElement).value || 6),
           seo_title: (form.elements.namedItem('seo_title') as HTMLInputElement).value,
           seo_description: (form.elements.namedItem('seo_description') as HTMLTextAreaElement).value,
@@ -264,6 +271,7 @@ const status = value('status', 'draft');
         } catch { showNotice('ارتباط با سرور برقرار نشد.',false); }
       }
       document.getElementById('save-draft')?.addEventListener('click', () => save('draft'));
+      document.getElementById('schedule-post')?.addEventListener('click', () => save('scheduled'));
       document.getElementById('publish-post')?.addEventListener('click', () => save('published'));
     });
   </script>
