@@ -103,6 +103,7 @@ const hasSeo = config.fields.some((f) => SEO_KEYS.includes(f.key));
           <button type="submit" class="btn btn-gold" id="ent-save">ذخیره در دیتابیس</button>
           <button type="button" class="btn btn-ghost" data-close>انصراف</button>
           <button type="button" class="btn btn-ghost" id="ent-preview-btn" style="display:none">پیش‌نمایش ↗</button>
+          <a class="btn btn-ghost" id="ent-history-btn" href="#" style="display:none">تاریخچه نسخه‌ها</a>
           <span id="ent-save-status" style="font-size:12px;color:var(--a-muted)"></span>
         </div>
       </form>
@@ -391,6 +392,12 @@ const hasSeo = config.fields.some((f) => SEO_KEYS.includes(f.key));
       if (seoWrap) bind(seoWrap);
       bindGallery();
       editingItem = item || null;
+      const historyBtn = document.getElementById('ent-history-btn') as HTMLAnchorElement;
+      if (historyBtn) {
+        const available = Boolean(editingId) && ['posts', 'pages'].includes(cfg.entity);
+        historyBtn.style.display = available ? 'inline-flex' : 'none';
+        if (available) historyBtn.href = '/admin/history?entity=' + encodeURIComponent(cfg.entity) + '&id=' + encodeURIComponent(String(editingId));
+      }
       updateSeoCheck();
       /* دکمهٔ پیش‌نمایش داخل فرم */
       const pv = document.getElementById('ent-preview-btn');
