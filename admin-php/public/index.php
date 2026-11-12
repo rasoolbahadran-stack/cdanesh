@@ -65,7 +65,7 @@ function setting(string $key): ?array {
 }
 function save_setting(string $key, array $value): void {
     $stmt = db()->prepare(
-        'INSERT INTO settings(key,value,updated_at) VALUES(:key,:value::jsonb,now())
+        'INSERT INTO settings(key,value,updated_at) VALUES(:key,CAST(:value AS jsonb),now())
          ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=now()'
     );
     $stmt->execute(['key' => $key, 'value' => json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
@@ -123,6 +123,8 @@ function save_record(string $table, int $id, array $input): int {
         if (!array_key_exists($field, $input)) continue;
         $value = is_array($input[$field]) ? $input[$field][0] ?? '' : $input[$field];
         $value = trim((string)$value);
+        if ($value === '' && $field === 'category_id') $value = null;
+        if ($value === '' && in_array($field, ['sort_order','reading_time','rating','price'], true)) $value = '0';
         if (in_array($field, ['tags','features','gallery'], true)) {
             if ($value === '') $value = '[]';
             $parsed = json_decode($value, true);
@@ -304,7 +306,7 @@ try {
 <?php foreach($entity['fields'] as $field=>$label): if(!in_array($field,table_columns($section),true)) continue; $value=$editing[$field]??''; if(is_array($value)) $value=json_encode($value,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES); $isLong=in_array($field,['content','excerpt','description','answer','message','admin_note','short_desc','seo_description','og_description','features','tags','gallery'],true); $isBool=in_array($field,['featured','noindex','highlighted','starred'],true); ?>
 <div class="control <?=$isLong?'full':''?>"><label><?=h($label)?></label>
 <?php if($isBool): ?><select name="<?=h($field)?>"><option value="false" <?=!in_array(strtolower((string)$value),['1','true','t','yes'],true)?'selected':''?>>خیر</option><option value="true" <?=in_array(strtolower((string)$value),['1','true','t','yes'],true)?'selected':''?>>بله</option></select>
-<?php elseif($field==='status'): ?><select name="status"><?php foreach(['draft'=>'پیش‌نویس','published'=>'منتشرشده','pending'=>'در انتظار','read'=>'خوانده‌شده','archived'=>'بایگانی'] as $v=>$l): ?><option value="<?=h($v)?>" <?=((string)$value===$v)?'selected':''?>><?=h($l)?></option><?php endforeach; ?></select>
+<?php elseif($field==='status'): $statusOptions = $section==='messages' ? ['new'=>'جدید','read'=>'خوانده‌شده','replied'=>'پاسخ داده شد','archived'=>'بایگانی'] : ['draft'=>'پیش‌نویس','published'=>'منتشرشده','pending'=>'در انتظار','read'=>'خوانده‌شده','archived'=>'بایگانی']; ?><select name="status"><?php foreach($statusOptions as $v=>$l): ?><option value="<?=h($v)?>" <?=((string)$value===$v)?'selected':''?>><?=h($l)?></option><?php endforeach; ?></select>
 <?php elseif($isLong): ?><textarea class="<?= $field==='content'?'content':'' ?>" name="<?=h($field)?>"><?=h($value)?></textarea><?php else: ?><input name="<?=h($field)?>" value="<?=h($value)?>" <?=in_array($field,['sort_order','reading_time','rating','price','category_id'],true)?'inputmode="decimal"':''?>><?php endif; ?></div>
 <?php endforeach; ?></div><p class="hint">برای فیلدهای JSON مانند برچسب‌ها و گالری، آرایهٔ JSON معتبر وارد کنید؛ نمونه: ["طراحی سایت","سئو"]</p><button>ذخیره تغییرات</button></form></div>
 <div class="panel"><div class="toolbar"><h2>فهرست <?=h($entity['label'])?></h2><input class="search" id="filter" placeholder="جست‌وجو در این فهرست..."></div><div class="tablewrap"><table id="records"><thead><tr><th>شناسه</th><?php foreach($entity['cols'] as $col=>$label): if(in_array($col,table_columns($section),true)): ?><th><?=h($label)?></th><?php endif; endforeach; ?><th>عملیات</th></tr></thead><tbody>
