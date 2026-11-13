@@ -5,15 +5,34 @@ interface Props { title:string; crumb?:string; newMessages?:number }
 const {title,crumb,newMessages=0}=Astro.props;
 const path=Astro.url.pathname;
 const adminUser=String(Astro.locals.admin?.u||'مدیر سایت');
-const groups=[
- {label:'مدیریت سایت',items:[
- ['/admin','داشبورد','⌂','dashboard'],['/admin/posts','مقاله‌ها','✎','posts'],['/admin/pages','صفحات','▤','pages'],
- ['/admin/categories','دسته‌بندی‌ها','▦','categories'],['/admin/portfolio','نمونه‌کارها','◇','portfolio'],['/admin/services','خدمات','⌘','services'],
- ['/admin/pricing','تعرفه‌ها','＄','pricing'],['/admin/faq','سؤالات متداول','?','faq'],['/admin/testimonials','نظرات مشتریان','☆','testimonials'],['/admin/media','کتابخانه رسانه','▧','media']]},
- {label:'ارتباط و ابزارها',items:[
- ['/admin/messages','درخواست‌ها و پیام‌ها','✉','messages'],['/admin/assistant','دستیار هوشمند','✧','assistant'],
- ['/admin/activity','گزارش فعالیت','◷','activity'],['/admin/trash','سطل زباله','♲','trash'],['/admin/errors','گزارش خطاها','⚒','errors'],
- ['/admin/settings','تنظیمات عمومی','⚙','settings'],['/admin/settings?tab=seo','تنظیمات سئو','◎','seo']]}
+const groups = [
+  {
+    label: 'مدیریت سایت',
+    items: [
+      { href: '/admin', label: 'داشبورد', icon: '⌂', key: 'dashboard' },
+      { href: '/admin/posts', label: 'مقاله‌ها', icon: '✎', key: 'posts' },
+      { href: '/admin/pages', label: 'صفحات', icon: '▤', key: 'pages' },
+      { href: '/admin/categories', label: 'دسته‌بندی‌ها', icon: '▦', key: 'categories' },
+      { href: '/admin/portfolio', label: 'نمونه‌کارها', icon: '◇', key: 'portfolio' },
+      { href: '/admin/services', label: 'خدمات', icon: '⌘', key: 'services' },
+      { href: '/admin/pricing', label: 'تعرفه‌ها', icon: '＄', key: 'pricing' },
+      { href: '/admin/faq', label: 'سؤالات متداول', icon: '?', key: 'faq' },
+      { href: '/admin/testimonials', label: 'نظرات مشتریان', icon: '☆', key: 'testimonials' },
+      { href: '/admin/media', label: 'کتابخانه رسانه', icon: '▧', key: 'media' },
+    ],
+  },
+  {
+    label: 'ارتباط و ابزارها',
+    items: [
+      { href: '/admin/messages', label: 'درخواست‌ها و پیام‌ها', icon: '✉', key: 'messages' },
+      { href: '/admin/assistant', label: 'دستیار هوشمند', icon: '✧', key: 'assistant' },
+      { href: '/admin/activity', label: 'گزارش فعالیت', icon: '◷', key: 'activity' },
+      { href: '/admin/trash', label: 'سطل زباله', icon: '♲', key: 'trash' },
+      { href: '/admin/errors', label: 'گزارش خطاها', icon: '⚒', key: 'errors' },
+      { href: '/admin/settings', label: 'تنظیمات عمومی', icon: '⚙', key: 'settings' },
+      { href: '/admin/settings?tab=seo', label: 'تنظیمات سئو', icon: '◎', key: 'seo' },
+    ],
+  },
 ];
 const active=path==='/admin'?'dashboard':path.startsWith('/admin/posts')||path.startsWith('/admin/history')?'posts':
 path.startsWith('/admin/pages')?'pages':path.startsWith('/admin/categories')?'categories':path.startsWith('/admin/media')?'media':
@@ -32,10 +51,24 @@ path.startsWith('/admin/errors')?'errors':path.startsWith('/admin/settings')?(As
 <aside class="admin-side" aria-label="منوی اصلی پنل">
 <a class="side-brand" href="/admin"><img src="/img/logo.svg" alt="" width="40" height="40"/><span><b>کافه دانش</b><small>سامانه مدیریت یکپارچه</small></span></a>
 <div class="side-version"><i></i> نسخه Astro · متصل به CMS اصلی</div>
-{groups.map(group=><section class="side-group"><div class="side-label">{group.label}</div><nav class="admin-side__nav">
-{group.items.map(([href,label,icon,key])=><a href={href} class:list={['side-link',active===key&&'active']} aria-current={active===key?'page':undefined}>
-<i class="ico" aria-hidden="true">{icon}</i><span class="txt">{label}</span>{key==='messages'&&newMessages>0&&<span class="side-badge">{newMessages}</span>}</a>)}
-</nav></>)}
+{groups.map((group) => (
+  <section class="side-group">
+    <div class="side-label">{group.label}</div>
+    <nav class="admin-side__nav">
+      {group.items.map((item) => (
+        <a
+          href={item.href}
+          class:list={['side-link', active === item.key && 'active']}
+          aria-current={active === item.key ? 'page' : undefined}
+        >
+          <i class="ico" aria-hidden="true">{item.icon}</i>
+          <span class="txt">{item.label}</span>
+          {item.key === 'messages' && newMessages > 0 && <span class="side-badge">{newMessages}</span>}
+        </a>
+      ))}
+    </nav>
+  </section>
+))}
 <div class="side-foot">
 <a class="side-link" href="/" target="_blank" rel="noopener"><i class="ico">↗</i><span class="txt">مشاهده سایت</span></a>
 <div class="side-user"><span class="avatar">{adminUser.slice(0,1)}</span><span><b>{adminUser}</b><small>مدیر سامانه</small></span></div>
