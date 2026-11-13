@@ -179,6 +179,43 @@ export function initEditor(containerId: string, initialHtml = ''): { getHtml: ()
   const status = root.querySelector('.ed-status') as HTMLElement;
   let changeCb: (() => void) | null = null;
   let sourceMode = false;
+  let sourceEditor: any = null;
+  let codeMirrorLoad: Promise<boolean> | null = null;
+
+  const CODEMIRROR_BASE = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/';
+  function loadScript(src: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('CodeMirror script failed: ' + src));
+      document.head.appendChild(script);
+    });
+  }
+
+  function ensureCodeMirror(): Promise<boolean> {
+    if ((window as any).CodeMirror) return Promise.resolve(true);
+    if (!codeMirrorLoad) {
+      codeMirrorLoad = (async () => {
+        const cssId = 'cdanesh-codemirror-css';
+        if (!document.getElementById(cssId)) {
+          const link = document.createElement('link');
+          link.id = cssId;
+          link.rel = 'stylesheet';
+          link.href = CODEMIRROR_BASE + 'codemirror.min.css';
+          document.head.appendChild(link);
+        }
+        await loadScript(CODEMIRROR_BASE + 'codemirror.min.js');
+        await loadScript(CODEMIRROR_BASE + 'mode/xml/xml.min.js');
+        await loadScript(CODEMIRROR_BASE + 'mode/javascript/javascript.min.js');
+        await loadScript(CODEMIRROR_BASE + 'mode/css/css.min.js');
+        await loadScript(CODEMIRROR_BASE + 'mode/htmlmixed/htmlmixed.min.js');
+        return !!(window as any).CodeMirror;
+      })().catch(() => false);
+    }
+    return codeMirrorLoad;
+  }
 
   ED_TOOLBAR.forEach((t) => {
     if (t.action === 'sep') {
@@ -216,8 +253,12 @@ export function initEditor(containerId: string, initialHtml = ''): { getHtml: ()
           const safeAlt = alt.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
           const html = `<img src="${safeUrl}" alt="${safeAlt}" loading="lazy" />`;
           if (sourceMode) {
-            const start = source.selectionStart;
-            source.setRangeText(html, start, source.selectionEnd, 'end');
+            if (sourceEditor) {
+              sourceEditor.replaceSelection(html);
+            } else {
+              const start = source.selectionStart;
+              source.setRangeText(html, start, source.selectionEnd, 'end');
+            }
             markDirty();
             return;
           }
@@ -244,15 +285,46 @@ export function initEditor(containerId: string, initialHtml = ''): { getHtml: ()
         document.execCommand('removeFormat');
         document.execCommand('formatBlock', false, 'P');
       } else if (t.action === 'source') {
-        sourceMode = !sourceMode;
-        if (sourceMode) {
+        if (!sourceMode) {
           source.value = area.innerHTML;
-          source.style.display = 'block';
           area.style.display = 'none';
+          source.style.display = 'block';
+          const useCodeMirror = await ensureCodeMirror();
+          if (useCodeMirror) {
+            if (!sourceEditor) {
+              sourceEditor = (window as any).CodeMirror.fromTextArea(source, {
+                mode: 'htmlmixed',
+                lineNumbers: true,
+                lineWrapping: true,
+                indentUnit: 2,
+                tabSize: 2,
+                viewportMargin: Infinity,
+              });
+              sourceEditor.on('change', () => {
+                source.value = sourceEditor.getValue();
+                markDirty();
+              });
+            } else {
+              sourceEditor.setValue(area.innerHTML);
+            }
+            sourceEditor.getWrapperElement().style.display = 'block';
+            sourceEditor.refresh();
+            source.style.display = 'none';
+            status.textContent = 'ویرایش مستقیم HTML · CodeMirror';
+          } else {
+            source.value = area.innerHTML;
+            source.style.display = 'block';
+            status.textContent = 'CodeMirror بارگذاری نشد؛ ویرایش متنی فعال است';
+          }
+          sourceMode = true;
         } else {
-          area.innerHTML = source.value;
+          const html = sourceEditor ? sourceEditor.getValue() : source.value;
+          area.innerHTML = html;
+          source.value = html;
+          if (sourceEditor) sourceEditor.getWrapperElement().style.display = 'none';
           source.style.display = 'none';
           area.style.display = 'block';
+          sourceMode = false;
           markDirty();
         }
         return;
@@ -285,8 +357,14 @@ export function initEditor(containerId: string, initialHtml = ''): { getHtml: ()
   updateCount();
 
   return {
-    getHtml: () => (sourceMode ? source.value : area.innerHTML),
-    setHtml: (h: string) => { area.innerHTML = h || ''; source.value = h || ''; updateCount(); },
+    getHtml: () => (sourceMode ? (sourceEditor ? sourceEditor.getValue() : source.value) : area.innerHTML),
+    setHtml: (h: string) => {
+      const value = h || '';
+      area.innerHTML = value;
+      source.value = value;
+      if (sourceEditor) sourceEditor.setValue(value);
+      updateCount();
+    },
     onChange: (cb: () => void) => { changeCb = cb; },
     setStatus: (txt: string, okFlag = true) => {
       status.textContent = txt;
