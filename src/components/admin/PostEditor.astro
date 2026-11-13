@@ -28,6 +28,7 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
     .editor-tabs button.active{background:#eee9ff;color:#5531aa;border-color:#d7cafa;font-weight:800}
     .editor-tools{border-bottom:0;border-top:1px solid var(--a-line);background:#fff}
     .editor-visual{min-height:420px;padding:18px;outline:0;line-height:2;color:#3e415b;direction:rtl;text-align:right}
+    .editor-visual > .ed-block-selected{outline:2px solid rgba(138,96,218,.55);outline-offset:4px;border-radius:8px;background:rgba(138,96,218,.035)}
     .editor-visual:empty:before{content:"محتوای مقاله را اینجا بنویسید…";color:#a1a3b0}
     .editor-visual h2{font-size:24px;margin:24px 0 10px}.editor-visual h3{font-size:19px;margin:20px 0 8px}
     .editor-visual p{margin:0 0 14px}.editor-visual blockquote{border-right:4px solid #8a64df;padding:8px 14px;background:#f6f3ff;border-radius:8px}
@@ -66,7 +67,7 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
             <div class="editor-box">
               <div class="editor-tabs"><button type="button" id="tab-visual" class="active">ویرایش بصری</button><button type="button" id="tab-html">ویرایش کد HTML</button><span style="margin-inline-start:auto;font-size:11px;color:var(--a-muted);align-self:center">تغییرات دو حالت همگام می‌شود</span></div>
               <div class="editor-tools" id="visual-tools">
-                <button type="button" data-command="formatBlock" data-value="h2">تیتر اصلی</button><button type="button" data-command="formatBlock" data-value="h3">تیتر فرعی</button><button type="button" data-command="formatBlock" data-value="p">پاراگراف</button><button type="button" data-command="bold"><b>پررنگ</b></button><button type="button" data-command="italic"><i>مورب</i></button><button type="button" data-command="insertUnorderedList">فهرست</button><button type="button" data-command="insertOrderedList">فهرست شماره‌ای</button><button type="button" id="insert-quote">نقل‌قول</button><button type="button" id="insert-image">＋ افزودن تصویر از رسانه‌ها</button><button type="button" id="insert-link">لینک</button>
+                <button type="button" data-command="formatBlock" data-value="h2">تیتر اصلی</button><button type="button" data-command="formatBlock" data-value="h3">تیتر فرعی</button><button type="button" data-command="formatBlock" data-value="p">پاراگراف</button><button type="button" data-command="bold"><b>پررنگ</b></button><button type="button" data-command="italic"><i>مورب</i></button><button type="button" data-command="insertUnorderedList">فهرست</button><button type="button" data-command="insertOrderedList">فهرست شماره‌ای</button><button type="button" id="insert-quote">نقل‌قول</button><button type="button" id="insert-image">＋ افزودن تصویر از رسانه‌ها</button><button type="button" id="insert-link">لینک</button><button type="button" id="block-move-up" title="انتقال بلوک انتخاب‌شده به بالا">↑ بلوک</button><button type="button" id="block-move-down" title="انتقال بلوک انتخاب‌شده به پایین">↓ بلوک</button><button type="button" id="block-duplicate" title="تکثیر بلوک انتخاب‌شده">▣ تکثیر</button><button type="button" id="block-delete" title="حذف بلوک انتخاب‌شده">⌫ حذف</button>
               </div>
               <div id="visual-editor" class="editor-visual" contenteditable="true" set:html={value('content')}></div>
               <textarea id="html-editor" class="editor-source" spellcheck="false">{value('content')}</textarea>
@@ -144,10 +145,62 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
       let cm: any = null;
       let sourceMode = false;
       let slugTouched = !!slug.value;
+      let selectedVisualBlock: HTMLElement | null = null;
+      const topLevelVisualBlock = (target: Node | null): HTMLElement | null => {
+        if (!target) return null;
+        let element = target instanceof HTMLElement ? target : target.parentElement;
+        if (!element || !visual.contains(element)) return null;
+        while (element.parentElement && element.parentElement !== visual) element = element.parentElement;
+        return element.parentElement === visual ? element : null;
+      };
+      const setSelectedVisualBlock = (block: HTMLElement | null) => {
+        if (selectedVisualBlock === block) return;
+        selectedVisualBlock?.classList.remove('ed-block-selected');
+        selectedVisualBlock = block;
+        selectedVisualBlock?.classList.add('ed-block-selected');
+      };
+      const getVisualHtml = () => {
+        const clone = visual.cloneNode(true) as HTMLElement;
+        clone.querySelectorAll('.ed-block-selected').forEach((node) => node.classList.remove('ed-block-selected'));
+        return clone.innerHTML;
+      };
+      visual.addEventListener('click', (event) => setSelectedVisualBlock(topLevelVisualBlock(event.target as Node)));
+      visual.addEventListener('keyup', () => setSelectedVisualBlock(topLevelVisualBlock(window.getSelection()?.anchorNode || null)));
+      const blockAction = (action: 'up' | 'down' | 'duplicate' | 'delete') => {
+        const selected = selectedVisualBlock;
+        if (!selected || selected.parentElement !== visual) {
+          showNotice('برای این عملیات ابتدا یک بلوک را در متن مقاله انتخاب کنید.', false);
+          return;
+        }
+        if (action === 'up') {
+          const previous = selected.previousElementSibling;
+          if (previous) visual.insertBefore(selected, previous);
+        } else if (action === 'down') {
+          const next = selected.nextElementSibling;
+          if (next) visual.insertBefore(next, selected);
+        } else if (action === 'duplicate') {
+          const copy = selected.cloneNode(true) as HTMLElement;
+          selected.after(copy);
+          setSelectedVisualBlock(copy);
+        } else if (action === 'delete') {
+          if (!confirm('بلوک انتخاب‌شده حذف شود؟')) return;
+          const next = selected.nextElementSibling as HTMLElement | null;
+          const previous = selected.previousElementSibling as HTMLElement | null;
+          selected.remove();
+          setSelectedVisualBlock(next || previous);
+        }
+        countWords();
+        showNotice('بلوک به‌روزرسانی شد.');
+      };
+      document.getElementById('block-move-up')?.addEventListener('click', () => blockAction('up'));
+      document.getElementById('block-move-down')?.addEventListener('click', () => blockAction('down'));
+      document.getElementById('block-duplicate')?.addEventListener('click', () => blockAction('duplicate'));
+      document.getElementById('block-delete')?.addEventListener('click', () => blockAction('delete'));
       const countWords = () => { wordCount.textContent = new Intl.NumberFormat('fa-IR').format((visual.innerText || '').trim().split(/\s+/).filter(Boolean).length) + ' کلمه'; };
       const showNotice = (txt: string, good = true) => { message.textContent = txt; message.style.color = good ? '#177a48' : '#b3261e'; };
       const toSource = () => {
-        source.value = visual.innerHTML;
+        setSelectedVisualBlock(null);
+        source.value = getVisualHtml();
         visual.style.display = 'none'; tools.style.display = 'none'; source.style.display = 'block';
         htmlTab.classList.add('active'); visualTab.classList.remove('active'); sourceMode = true;
         if ((window as any).CodeMirror) {
@@ -233,7 +286,7 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
       });
       visual.addEventListener('input', countWords); countWords();
       async function save(nextStatus: string) {
-        const html = sourceMode ? (cm ? cm.getValue() : source.value) : visual.innerHTML;
+        const html = sourceMode ? (cm ? cm.getValue() : source.value) : getVisualHtml();
         const data: Record<string, unknown> = {
           title: title.value.trim(), slug: slug.value.trim(), excerpt: (form.elements.namedItem('excerpt') as HTMLTextAreaElement).value,
           category_id: (form.elements.namedItem('category_id') as HTMLSelectElement).value ? Number((form.elements.namedItem('category_id') as HTMLSelectElement).value) : undefined,
