@@ -157,7 +157,13 @@ const ED_TOOLBAR: { cmd?: string[]; val?: string; html: string; title: string; a
   { cmd: ['insertHorizontalRule'], html: '―', title: 'خط جداکننده' },
   { html: '', title: '', cmd: undefined, action: 'sep' },
   { action: 'clean', html: '🧹', title: 'پاک‌سازی فرمت' },
-  { action: 'source', html: '<span class="lbl">&lt;/&gt;</span>', title: 'مشاهده کد HTML' },
+  { html: '', title: '', cmd: undefined, action: 'sep' },
+  { action: 'block-up', html: '↑', title: 'انتقال بلوک انتخاب‌شده به بالا' },
+  { action: 'block-down', html: '↓', title: 'انتقال بلوک انتخاب‌شده به پایین' },
+  { action: 'block-copy', html: '▣', title: 'تکثیر بلوک انتخاب‌شده' },
+  { action: 'block-delete', html: '⌫', title: 'حذف بلوک انتخاب‌شده' },
+  { html: '', title: '', cmd: undefined, action: 'sep' },
+  { action: 'source', html: '<span class="lbl">&lt;/&gt;</span>', title: 'ویرایش مستقیم کد HTML' },
 ];
 
 export function initEditor(containerId: string, initialHtml = ''): { getHtml: () => string; setHtml: (h: string) => void; onChange: (cb: () => void) => void } {
@@ -181,6 +187,27 @@ export function initEditor(containerId: string, initialHtml = ''): { getHtml: ()
   let sourceMode = false;
   let sourceEditor: any = null;
   let codeMirrorLoad: Promise<boolean> | null = null;
+  let selectedBlock: HTMLElement | null = null;
+
+  function topLevelBlock(target: Node | null): HTMLElement | null {
+    if (!target) return null;
+    let element = target instanceof HTMLElement ? target : target.parentElement;
+    if (!element || !area.contains(element)) return null;
+    while (element.parentElement && element.parentElement !== area) {
+      element = element.parentElement;
+    }
+    return element.parentElement === area ? element : null;
+  }
+
+  function setSelectedBlock(block: HTMLElement | null): void {
+    if (selectedBlock === block) return;
+    selectedBlock?.classList.remove('ed-block-selected');
+    selectedBlock = block;
+    selectedBlock?.classList.add('ed-block-selected');
+  }
+
+  area.addEventListener('click', (event) => setSelectedBlock(topLevelBlock(event.target as Node)));
+  area.addEventListener('keyup', () => setSelectedBlock(topLevelBlock(window.getSelection()?.anchorNode || null)));
 
   const CODEMIRROR_BASE = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/';
   function loadScript(src: string): Promise<void> {
@@ -231,6 +258,32 @@ export function initEditor(containerId: string, initialHtml = ''): { getHtml: ()
     b.innerHTML = t.html;
     b.addEventListener('mousedown', (e) => e.preventDefault());
     b.addEventListener('click', async () => {
+      if (t.action === 'block-up' || t.action === 'block-down' || t.action === 'block-copy' || t.action === 'block-delete') {
+        const block = selectedBlock;
+        if (!block || block.parentElement !== area) {
+          status.textContent = 'برای این عملیات ابتدا یک بلوک را در متن انتخاب کنید';
+          return;
+        }
+        if (t.action === 'block-up') {
+          const previous = block.previousElementSibling;
+          if (previous) area.insertBefore(block, previous);
+        } else if (t.action === 'block-down') {
+          const next = block.nextElementSibling;
+          if (next) area.insertBefore(next, block);
+        } else if (t.action === 'block-copy') {
+          const clone = block.cloneNode(true) as HTMLElement;
+          block.after(clone);
+          setSelectedBlock(clone);
+        } else if (t.action === 'block-delete') {
+          if (!window.confirm('بلوک انتخاب‌شده حذف شود؟')) return;
+          const next = block.nextElementSibling as HTMLElement | null;
+          const previous = block.previousElementSibling as HTMLElement | null;
+          block.remove();
+          setSelectedBlock(next || previous);
+        }
+        markDirty();
+        return;
+      }
       if (t.action === 'link') {
         const sel = window.getSelection();
         const txt = sel?.toString() || '';
@@ -286,6 +339,7 @@ export function initEditor(containerId: string, initialHtml = ''): { getHtml: ()
         document.execCommand('formatBlock', false, 'P');
       } else if (t.action === 'source') {
         if (!sourceMode) {
+          setSelectedBlock(null);
           source.value = area.innerHTML;
           area.style.display = 'none';
           source.style.display = 'block';
