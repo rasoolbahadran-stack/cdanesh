@@ -230,7 +230,7 @@ export function initEditor(containerId: string, initialHtml = ''): { getHtml: ()
     b.title = t.title;
     b.innerHTML = t.html;
     b.addEventListener('mousedown', (e) => e.preventDefault());
-    b.addEventListener('click', () => {
+    b.addEventListener('click', async () => {
       if (t.action === 'link') {
         const sel = window.getSelection();
         const txt = sel?.toString() || '';
