@@ -206,6 +206,12 @@ export function initEditor(containerId: string, initialHtml = ''): { getHtml: ()
     selectedBlock?.classList.add('ed-block-selected');
   }
 
+  function visualHtml(): string {
+    const clone = area.cloneNode(true) as HTMLElement;
+    clone.querySelectorAll('.ed-block-selected').forEach((node) => node.classList.remove('ed-block-selected'));
+    return clone.innerHTML;
+  }
+
   area.addEventListener('click', (event) => setSelectedBlock(topLevelBlock(event.target as Node)));
   area.addEventListener('keyup', () => setSelectedBlock(topLevelBlock(window.getSelection()?.anchorNode || null)));
 
@@ -340,7 +346,7 @@ export function initEditor(containerId: string, initialHtml = ''): { getHtml: ()
       } else if (t.action === 'source') {
         if (!sourceMode) {
           setSelectedBlock(null);
-          source.value = area.innerHTML;
+          source.value = visualHtml();
           area.style.display = 'none';
           source.style.display = 'block';
           const useCodeMirror = await ensureCodeMirror();
@@ -359,7 +365,7 @@ export function initEditor(containerId: string, initialHtml = ''): { getHtml: ()
                 markDirty();
               });
             } else {
-              sourceEditor.setValue(area.innerHTML);
+              sourceEditor.setValue(visualHtml());
             }
             sourceEditor.getWrapperElement().style.display = 'block';
             sourceEditor.refresh();
@@ -411,7 +417,7 @@ export function initEditor(containerId: string, initialHtml = ''): { getHtml: ()
   updateCount();
 
   return {
-    getHtml: () => (sourceMode ? (sourceEditor ? sourceEditor.getValue() : source.value) : area.innerHTML),
+    getHtml: () => (sourceMode ? (sourceEditor ? sourceEditor.getValue() : source.value) : visualHtml()),
     setHtml: (h: string) => {
       const value = h || '';
       area.innerHTML = value;
