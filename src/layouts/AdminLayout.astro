@@ -46,6 +46,21 @@ path.startsWith('/admin/errors')?'errors':path.startsWith('/admin/settings')?(As
 <div class="admin-topbar__heading"><h1>{title}</h1>{crumb&&<div class="crumb">{crumb}</div>}</div>
 <div class="actions"><span class="top-status"><i></i> اتصال مدیریت فعال</span><a class="btn btn-ghost btn-sm" href="/admin/assistant">دستیار هوشمند ✧</a><a class="btn btn-ghost btn-sm" href="/" target="_blank" rel="noopener">مشاهده سایت ↗</a></div>
 </header><div class="admin-content"><slot/></div><footer class="admin-footer"><span>کافه دانش · مدیریت یکپارچه محتوا</span><span>Astro + PostgreSQL</span></footer></main>
-</div><script>import '../scripts/admin.ts';
-document.getElementById('logout-form')?.addEventListener('submit',async(event)=>{event.preventDefault();const b=(event.currentTarget as HTMLFormElement).querySelector('button');if(b)b.setAttribute('disabled','true');try{await fetch('/api/auth/logout',{method:'POST'});}finally{window.location.href='/admin/login';}});</script>
+</div><script>
+import '../scripts/admin.ts';
+
+const logoutForm = document.getElementById('logout-form');
+if (logoutForm instanceof HTMLFormElement) {
+  logoutForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const button = logoutForm.querySelector('button');
+    if (button instanceof HTMLButtonElement) button.disabled = true;
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } finally {
+      window.location.assign('/admin/login');
+    }
+  });
+}
+</script>
 </body></html>
