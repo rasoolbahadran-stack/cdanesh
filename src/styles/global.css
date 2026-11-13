@@ -1628,3 +1628,44 @@ main {
 .content-image--right{margin-inline-start:0;margin-inline-end:auto;text-align:right}.content-image--left{margin-inline-start:auto;margin-inline-end:0;text-align:left}
 .content-image img{display:block;width:100%;height:var(--content-image-height,auto);max-width:100%;object-fit:var(--content-image-fit,contain);border-radius:var(--content-image-radius,12px);margin:0 auto}
 .content-image figcaption{margin-top:.5rem;color:var(--mut);font-size:.85rem;text-align:center}
+
+/* ---------- تثبیت تیتر اصلی صفحهٔ خانه ---------- */
+.hero__grid {
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, .98fr);
+}
+.hero__content {
+  min-width: 0;
+}
+.hero__title {
+  max-width: 100%;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  line-height: 1.48;
+}
+.hero__title-main {
+  display: block;
+  max-width: 100%;
+  font-size: .94em;
+  white-space: nowrap;
+}
+.hero__mark {
+  display: inline-block;
+  max-width: 100%;
+  white-space: normal !important;
+  line-height: 1.5;
+}
+@media (max-width: 760px) {
+  .hero__title {
+    font-size: clamp(1.55rem, 6.6vw, 2.05rem);
+  }
+  .hero__title-main {
+    white-space: normal;
+  }
+  .hero__mark {
+    display: inline;
+  }
+}
+@media (max-width: 380px) {
+  .hero__title {
+    font-size: 1.48rem;
+  }
+}
