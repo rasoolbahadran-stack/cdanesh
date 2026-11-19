@@ -268,7 +268,7 @@ const meta = {
             <img src={post.cover} alt={`تصویر شاخص مقاله: ${post.title}`} width="720" height="405" decoding="async" fetchpriority="high" />
           </figure>
         )}
-        {sidebarToc.length > 2 && <nav class="article-toc" aria-label="فهرست مطالب" data-toc">
+        {sidebarToc.length > 2 && <nav class="article-toc" aria-label="فهرست مطالب" data-toc>
           <button type="button" class="article-toc__toggle" data-toc-toggle aria-expanded="false" aria-controls="article-toc-body">
             <strong>سرفصل‌های مهم</strong>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
@@ -334,9 +334,8 @@ const meta = {
   <section class="section bg-soft article-related" aria-labelledby="related-title">
     <div class="container">
       <div class="section-head">
-        <span class="section-head__tag">ادامهٔ خواندن</span>
         <h2 class="section-head__title" style="font-size:1.5rem">مقالات مرتبط با این موضوع</h2>
-        <p>برای تکمیل اطلاعات، این سه راهنمای کاربردی را هم بخوانید.</p>
+        <p>مطالب تکمیلی و مرتبط با موضوع این مقاله</p>
       </div>
       <div class="pf-grid">
         {related.map((item, i) => <PostCard post={item} delay={String(i * 80)} />)}
