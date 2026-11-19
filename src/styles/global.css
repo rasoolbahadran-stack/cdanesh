@@ -47,7 +47,15 @@
   --shadow-card: 0 14px 44px rgba(70, 37, 158, 0.12);
   --shadow-head: 0 0 16px rgba(0, 0, 0, 0.07);
 
-  --container: 1280px;
+  /* عرض و نسبت ستون‌ها؛ یک منبع مرکزی برای صفحات عمومی */
+  --container: 1320px;
+  --article-sidebar-width: 280px;
+  --layout-gap: clamp(24px, 3vw, 42px);
+
+  /* خوانایی محتوای طولانی فارسی */
+  --reading-font-size: 1.03rem;
+  --reading-line-height: 2.05;
+
   --sp: clamp(64px, 9vw, 110px);
   --ease: cubic-bezier(0.25, 0.74, 0.22, 0.99);
 }
@@ -88,7 +96,7 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 }
 
 /* ── ۰۳ کمکی ────────────────────────────────────────────────── */
-.container { width: min(var(--container), 100% - 40px); margin-inline: auto; }
+.container { width: min(var(--container), calc(100% - 40px)); margin-inline: auto; }
 .section { padding-block: var(--sp); }
 .section--tight { padding-block: calc(var(--sp) * 0.62); }
 .bg-lavender { background: var(--lavender); }
@@ -692,7 +700,12 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 .form-status.is-err { display: flex; background: var(--peach); color: var(--pink-dark); }
 
 /* ── ۱۱ صفحه مقاله و متنی ───────────────────────────────────── */
-.prose { max-width: 780px; margin-inline: auto; font-size: 1.03rem; }
+.prose {
+  max-width: 780px;
+  margin-inline: auto;
+  font-size: var(--reading-font-size);
+  line-height: var(--reading-line-height);
+}
 /* مقالهٔ دو ستونه: ستون متن باید از محدودیت پیش‌فرض prose مستقل باشد */
 .article-content .prose {
   width: 100%;
@@ -1369,7 +1382,8 @@ span {
   }
 
   .prose {
-    font-size: 0.97rem;
+    font-size: 1rem;
+    line-height: 2;
   }
 
   .prose table {
