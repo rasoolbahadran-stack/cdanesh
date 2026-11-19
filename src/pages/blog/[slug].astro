@@ -6,7 +6,7 @@ import PostCard from '../../components/PostCard.astro';
 import CtaBand from '../../components/CtaBand.astro';
 import { getPost, getRelatedPosts, postWordCount, postReadMinutes, injectHtmlHeadingIds } from '../../lib/content';
 import type { Post } from '../../lib/types';
-import { jsonLdArticle, jsonLdBreadcrumb } from '../../lib/seo';
+import { jsonLdArticle, jsonLdBreadcrumb, jsonLdFaq } from '../../lib/seo';
 
 export const prerender = false;
 
@@ -17,26 +17,128 @@ if (!post) return Astro.redirect('/404');
 const related = getRelatedPosts(slug, 3);
 const fa = (n: number | string) => new Intl.NumberFormat('fa-IR').format(Number(n));
 
-// فهرست مطالب: هم بلوک‌های ساختاریافته و هم مقالات HTML یکپارچه دیتابیس
+// شناسه‌ها و فهرست مطالب پس از جداسازی FAQ از همان بلوک‌های مقاله محاسبه می‌شوند.
 type TocItem = { text: string; level: string; id: string };
-const toc: TocItem[] = [];
-post.blocks.forEach((block, index) => {
-  const blk = block as unknown as { t?: string; x?: string };
-  if (blk.t === 'h2' || blk.t === 'h3') {
-    toc.push({ text: blk.x || '', level: blk.t, id: `content-heading-${index + 1}` });
-  } else if (blk.t === 'html') {
-    toc.push(...injectHtmlHeadingIds(blk.x || '', index).headings
-      .filter((h) => h.level !== 'h4')
-      .map((h) => ({ text: h.text, level: h.level, id: h.id })));
-  }
-});
 
 // زمان مطالعه و شمارش واژه — همیشه از محتوای واقعی محاسبه می‌شود، نه مقدار قدیمی دیتابیس
 const wordCount = postWordCount(post);
 const readMinutes = postReadMinutes(post);
 
-// در مقاله طراحی سایت لباس، فهرست فقط تیترهای اصلی را نشان می‌دهد تا کوتاه و خوانا بماند.
-const visibleToc = slug === 'clothing-store-website-design' ? toc.filter((item) => item.level === 'h2') : toc;
+// برای مقالهٔ طراحی سایت فروشگاهی لباس، بخش پرسش‌های متداول را از بدنه جدا می‌کنیم
+// تا در قالب آکاردئون نمایش داده شود؛ محتوای پرسش‌ها در دادهٔ مقاله حفظ و بازاستفاده می‌شود.
+const isClothingDesignArticle =
+  slug === 'clothing-store-website-design' ||
+  (post.category === 'پوشاک و مد' && /طراحی سایت.*(لباس|پوشاک)|فروشگاهی.*لباس/.test(post.title));
+
+const faqHeadingPattern = /س[ؤو]الات\s*متداول|پرسش(?:‌|\s)?های?\s*متداول/i;
+const plainFaqText = (value: string) => String(value || '')
+  .replace(/<br\s*\/?\s*>/gi, ' ')
+  .replace(/<[^>]*>/g, ' ')
+  .replace(/&nbsp;/g, ' ')
+  .replace(/&amp;/g, '&')
+  .replace(/&quot;/g, '"')
+  .replace(/&#39;/g, "'")
+  .replace(/\s+/g, ' ')
+  .trim();
+
+const clothingFaqFallback = [
+  { q: 'هزینه طراحی سایت فروشگاهی لباس به چه عواملی بستگی دارد؟', a: 'هزینه به تعداد محصولات و تنوع آن‌ها، مدیریت رنگ و سایز، طراحی رابط کاربری، امکانات پنل مدیریت، روش‌های پرداخت و ارسال و اتصال‌های موردنیاز بستگی دارد. پس از مشخص‌شدن محدوده پروژه می‌توان برآورد دقیق‌تری ارائه کرد.' },
+  { q: 'برای فروشگاه اینترنتی لباس چه امکاناتی ضروری است؟', a: 'معمولاً صفحه محصول کامل، دسته‌بندی مناسب، جست‌وجو و فیلتر، انتخاب رنگ و سایز، نمایش موجودی هر تنوع، سبد خرید، ثبت سفارش و پنل مدیریت محصولات و سفارش‌ها اهمیت دارند. امکانات نهایی باید با مدل فروش بوتیک یا مزون هماهنگ شوند.' },
+  { q: 'آیا می‌توان موجودی هر رنگ و سایز را جداگانه مدیریت کرد؟', a: 'بله؛ در صورت پیاده‌سازی ساختار تنوع محصول، هر ترکیب رنگ و سایز می‌تواند شناسه و موجودی مستقل داشته باشد. این موضوع کمک می‌کند گزینه‌های ناموجود به‌درستی غیرفعال شوند و خطای ثبت سفارش کاهش پیدا کند.' },
+  { q: 'آیا امکان پرداخت آنلاین و تعیین روش ارسال وجود دارد؟', a: 'فروشگاه می‌تواند متناسب با نیاز کسب‌وکار به درگاه پرداخت و روش‌های ارسال موردتوافق متصل شود. انتخاب سرویس‌ها، هزینه ارسال، محدوده پوشش و قواعد سفارش باید پیش از توسعه مشخص شوند.' },
+  { q: 'چطور صفحات محصولات لباس برای گوگل بهینه می‌شوند؟', a: 'ساختار قابل خزش، نشانی‌های روشن، عنوان و توضیحات اختصاصی، اطلاعات کامل محصول، تصاویر بهینه، لینک‌سازی داخلی و داده‌های ساختاریافته مرتبط از اجزای مهم سئوی فروشگاه هستند. رعایت این موارد به معنی تضمین رتبه مشخص در گوگل نیست.' },
+  { q: 'طراحی و راه‌اندازی فروشگاه اینترنتی لباس چقدر زمان می‌برد؟', a: 'زمان اجرا به حجم محصولات، آماده‌بودن تصاویر و اطلاعات، امکانات اختصاصی، اتصال به سرویس‌های بیرونی و سرعت بازبینی مراحل بستگی دارد. زمان‌بندی دقیق پس از نیازسنجی و تعیین محدوده تحویل اعلام می‌شود.' },
+];
+
+let articleBlocks = [...post.blocks];
+let faqItems: Array<{ q: string; a: string }> = [];
+
+if (isClothingDesignArticle) {
+  // حالت اول: FAQ درون یک بلوک HTML قدیمی ذخیره شده است.
+  const htmlIndex = articleBlocks.findIndex((block) => {
+    const value = block as unknown as { t?: string; x?: string };
+    const headings = [...(value.x || '').matchAll(/<h[23]\b[^>]*>([\s\S]*?)<\/h[23]>/gi)];
+    return value.t === 'html' && headings.some((heading) => faqHeadingPattern.test(plainFaqText(heading[1])));
+  });
+
+  if (htmlIndex >= 0) {
+    const htmlBlock = articleBlocks[htmlIndex] as unknown as { t: string; x: string };
+    const heading = [...htmlBlock.x.matchAll(/<h[23]\b[^>]*>([\s\S]*?)<\/h[23]>/gi)]
+      .find((match) => faqHeadingPattern.test(plainFaqText(match[1])));
+    if (heading && heading.index != null) {
+      const afterHeading = htmlBlock.x.slice(heading.index + heading[0].length);
+      const nextSection = afterHeading.search(/<h2\b/i);
+      const faqMarkup = nextSection >= 0 ? afterHeading.slice(0, nextSection) : afterHeading;
+      const questionPattern = /<h[34]\b[^>]*>([\s\S]*?)<\/h[34]>([\s\S]*?)(?=<h[34]\b|<h2\b|$)/gi;
+      for (const match of faqMarkup.matchAll(questionPattern)) {
+        const q = plainFaqText(match[1]);
+        const a = plainFaqText(match[2]);
+        if (q && a) faqItems.push({ q, a });
+      }
+      if (faqItems.length) {
+        const before = htmlBlock.x.slice(0, heading.index);
+        const after = nextSection >= 0 ? afterHeading.slice(nextSection) : '';
+        articleBlocks[htmlIndex] = { ...htmlBlock, x: before + after } as typeof articleBlocks[number];
+      }
+    }
+  }
+
+  // حالت دوم: FAQ در بلوک‌های ساختاریافته (H2، H3 و پاراگراف‌ها) ذخیره شده است.
+  if (!faqItems.length) {
+    const faqStart = articleBlocks.findIndex((block) => {
+      const value = block as unknown as { t?: string; x?: string };
+      return value.t === 'h2' && faqHeadingPattern.test(value.x || '');
+    });
+    if (faqStart >= 0) {
+      let faqEnd = articleBlocks.findIndex((block, index) => {
+        const value = block as unknown as { t?: string };
+        return index > faqStart && value.t === 'h2';
+      });
+      if (faqEnd < 0) faqEnd = articleBlocks.length;
+      const sectionBlocks = articleBlocks.slice(faqStart + 1, faqEnd);
+      let current: { q: string; a: string } | null = null;
+      const flush = () => {
+        if (current?.q && current.a.trim()) faqItems.push({ q: current.q, a: current.a.trim() });
+        current = null;
+      };
+      for (const block of sectionBlocks) {
+        const value = block as unknown as { t?: string; x?: string; items?: string[] };
+        if (value.t === 'h3' || value.t === 'h4') {
+          flush();
+          current = { q: plainFaqText(value.x || ''), a: '' };
+        } else if (current && (value.t === 'p' || value.t === 'blockquote')) {
+          current.a += (current.a ? ' ' : '') + plainFaqText(value.x || '');
+        } else if (current && (value.t === 'ul' || value.t === 'ol')) {
+          current.a += (current.a ? ' ' : '') + (value.items || []).map(plainFaqText).join('؛ ');
+        } else if (current && value.t === 'html') {
+          current.a += (current.a ? ' ' : '') + plainFaqText(value.x || '');
+        }
+      }
+      flush();
+      if (faqItems.length) articleBlocks = [...articleBlocks.slice(0, faqStart), ...articleBlocks.slice(faqEnd)];
+    }
+  }
+
+  // اگر نسخهٔ مقاله هنوز FAQ ساختاریافته ندارد، پرسش‌های متداول کاربردی به آن افزوده می‌شوند.
+  if (!faqItems.length) faqItems = clothingFaqFallback;
+}
+
+const visibleToc: TocItem[] = [];
+articleBlocks.forEach((block, index) => {
+  const blk = block as unknown as { t?: string; x?: string };
+  if (blk.t === 'h2' || blk.t === 'h3') {
+    visibleToc.push({ text: blk.x || '', level: blk.t, id: `content-heading-${index + 1}` });
+  } else if (blk.t === 'html') {
+    visibleToc.push(...injectHtmlHeadingIds(blk.x || '', index).headings
+      .filter((h) => h.level !== 'h4')
+      .map((h) => ({ text: h.text, level: h.level, id: h.id })));
+  }
+});
+if (isClothingDesignArticle) {
+  for (let i = visibleToc.length - 1; i >= 0; i--) {
+    if (visibleToc[i].level !== 'h2') visibleToc.splice(i, 1);
+  }
+}
 
 // لینک‌سازی داخلی: هر مقاله به خدمات مرتبط با موضوع خودش لینک می‌دهد
 const CATEGORY_SERVICES: Record<string, Array<{ href: string; t: string }>> = {
@@ -76,6 +178,7 @@ const meta = {
     jsonLdBreadcrumb([
       { name: 'خانه', url: '/' }, { name: 'مجله', url: '/blog' }, { name: post.title, url: meta.path },
     ]),
+    ...(faqItems.length ? [jsonLdFaq(faqItems)] : []),
   ]}
 >
   <section class="page-hero">
@@ -102,44 +205,72 @@ const meta = {
   <section class="section--tight">
     <div class="container">
       {post.cover && (
-        <figure style="max-width:900px;margin:0 auto 34px;border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-card)">
+        <figure style="max-width:1100px;margin:0 auto 34px;border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-card)">
           <img src={post.cover} alt={`تصویر شاخص مقاله: ${post.title}`} width="800" height="450" decoding="async" style="width:100%;display:block;aspect-ratio:16/9;object-fit:cover" fetchpriority="high" />
         </figure>
       )}
-      {visibleToc.length > 2 && (
-        <nav class="article-toc" aria-label="فهرست مطالب" data-toc>
-          <button type="button" class="article-toc__toggle" data-toc-toggle aria-expanded="false" aria-controls="article-toc-body">
-            <strong>در این مقاله می‌خوانید</strong>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
-          </button>
-          <div class="article-toc__body" id="article-toc-body">
-            <ul>{visibleToc.map((item) => <li><a href={`#${item.id}`}>{item.text}</a></li>)}</ul>
+      <div class:list={['article-reading-layout', { 'article-reading-layout--with-toc': visibleToc.length > 2 }]}>
+        {visibleToc.length > 2 && (
+          <aside class="article-sidebar" aria-label="راهنمای مطالعه مقاله">
+            <nav class="article-toc" aria-label="فهرست مطالب" data-toc>
+              <button type="button" class="article-toc__toggle" data-toc-toggle aria-expanded="false" aria-controls="article-toc-body">
+                <strong>فهرست مطالب</strong>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+              </button>
+              <div class="article-toc__body" id="article-toc-body">
+                <ul>{visibleToc.map((item) => <li><a href={`#${item.id}`}>{item.text}</a></li>)}</ul>
+              </div>
+            </nav>
+          </aside>
+        )}
+
+        <div class="article-content">
+          <Blocks blocks={articleBlocks} />
+
+          {faqItems.length > 0 && (
+            <section class="article-faq" aria-labelledby="article-faq-title">
+              <div class="article-faq__head">
+                <span>پاسخ به پرسش‌های مهم</span>
+                <h2 id="article-faq-title">سؤالات متداول درباره طراحی سایت فروشگاهی لباس</h2>
+                <p>برای دیدن پاسخ هر پرسش، عنوان آن را انتخاب کنید.</p>
+              </div>
+              <div class="article-faq__list">
+                {faqItems.map((item) => (
+                  <details class="article-faq__item">
+                    <summary>
+                      <span>{item.q}</span>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+                    </summary>
+                    <div class="article-faq__answer"><p>{item.a}</p></div>
+                  </details>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <!-- لینک‌سازی داخلی: خدمات مرتبط با موضوع مقاله -->
+          <aside class="article-services" aria-label="خدمات مرتبط با این مقاله">
+            <strong>خدمات مرتبط با این موضوع در کافه دانش:</strong>
+            <span class="article-services__links">
+              {categoryServices.map((s) => <a href={s.href}>{s.t}</a>)}
+            </span>
+          </aside>
+
+          <div class="article-actions">
+            <span style="font-weight:700;color:var(--navy)">نوشتهٔ تیم کافه دانش</span>
+            <div>
+              <button type="button" class="btn btn--outline btn--sm" id="article-share">اشتراک‌گذاری مقاله</button>
+              <a href="/consult" class="btn btn--sm">مشاوره رایگان برای پروژه شما</a>
+            </div>
+            <p id="article-share-status" aria-live="polite"></p>
           </div>
-        </nav>
-      )}
-      <Blocks blocks={post.blocks} />
 
-      <!-- لینک‌سازی داخلی: خدمات مرتبط با موضوع مقاله -->
-      <aside class="article-services" aria-label="خدمات مرتبط با این مقاله">
-        <strong>خدمات مرتبط با این موضوع در کافه دانش:</strong>
-        <span class="article-services__links">
-          {categoryServices.map((s) => <a href={s.href}>{s.t}</a>)}
-        </span>
-      </aside>
-
-      <div class="article-actions">
-        <span style="font-weight:700;color:var(--navy)">نوشتهٔ تیم کافه دانش</span>
-        <div>
-          <button type="button" class="btn btn--outline btn--sm" id="article-share">اشتراک‌گذاری مقاله</button>
-          <a href="/consult" class="btn btn--sm">مشاوره رایگان برای پروژه شما</a>
+          <!-- مسیر صفحه — کوچک و کم‌رنگ در انتهای مقاله (برای سئو؛ اسکیمای BreadcrumbList همان مسیر را پوشش می‌دهد) -->
+          <nav class="article-crumbs" aria-label="مسیر صفحه">
+            <a href="/">خانه</a><span aria-hidden="true">/</span><a href="/blog">مجله</a><span aria-hidden="true">/</span><span aria-current="page">{post.category}</span>
+          </nav>
         </div>
-        <p id="article-share-status" aria-live="polite"></p>
       </div>
-
-      <!-- مسیر صفحه — کوچک و کم‌رنگ در انتهای مقاله (برای سئو؛ اسکیمای BreadcrumbList همان مسیر را پوشش می‌دهد) -->
-      <nav class="article-crumbs" aria-label="مسیر صفحه">
-        <a href="/">خانه</a><span aria-hidden="true">/</span><a href="/blog">مجله</a><span aria-hidden="true">/</span><span aria-current="page">{post.category}</span>
-      </nav>
     </div>
   </section>
 
@@ -159,17 +290,27 @@ const meta = {
 </BaseLayout>
 
 <script>
-  // فهرست مطالب: در موبایل جمع‌شونده است — با کلیک روی تیتر باز/بسته می‌شود
+  // فهرست مطالب: سایدبار باز در دسکتاپ و آکاردئون بسته در موبایل
   const toc = document.querySelector('[data-toc]');
   const tocToggle = toc?.querySelector<HTMLButtonElement>('[data-toc-toggle]');
+  const tocDesktop = window.matchMedia('(min-width: 981px)');
+  const syncTocMode = () => {
+    const open = tocDesktop.matches;
+    toc?.classList.toggle('is-open', open);
+    tocToggle?.setAttribute('aria-expanded', String(open));
+  };
+  syncTocMode();
+  tocDesktop.addEventListener?.('change', syncTocMode);
   tocToggle?.addEventListener('click', () => {
     const open = tocToggle.getAttribute('aria-expanded') === 'true';
     tocToggle.setAttribute('aria-expanded', String(!open));
     toc?.classList.toggle('is-open', !open);
   });
   toc?.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => {
-    tocToggle?.setAttribute('aria-expanded', 'false');
-    toc?.classList.remove('is-open');
+    if (!tocDesktop.matches) {
+      tocToggle?.setAttribute('aria-expanded', 'false');
+      toc?.classList.remove('is-open');
+    }
   }));
 
   const shareButton = document.getElementById('article-share') as HTMLButtonElement | null;
@@ -203,25 +344,74 @@ const meta = {
 </style>
 
 <style>
-  .article-toc{max-width:900px;margin:0 auto 28px;padding:16px 22px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--bg-soft,#faf9fd)}
-  .article-toc__toggle{
-    width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;
-    background:none;border:0;padding:0;cursor:default;
+  .article-reading-layout {
+    width: min(1140px, 100%);
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: clamp(26px, 3.2vw, 44px);
+    direction: rtl;
   }
-  .article-toc__toggle strong{display:block;color:var(--navy);font-size:1rem}
-  .article-toc__toggle svg{color:var(--purple);transition:transform .25s var(--ease);display:none}
-  .article-toc ul{margin:12px 0 0;padding-right:20px;display:grid;gap:8px;line-height:1.9}
-  .article-toc li{color:var(--purple)}
-  .article-toc li.is-sub{padding-right:16px;font-size:.92rem}
-  .article-toc a{color:var(--navy);text-decoration:none}
-  .article-toc a:hover{color:var(--purple)}
-  /* موبایل: فهرست به‌صورت پیش‌فرض جمع است و با کلیک باز می‌شود */
-  @media (max-width: 760px){
-    .article-toc__toggle{cursor:pointer}
-    .article-toc__toggle svg{display:block}
-    .article-toc__toggle[aria-expanded="true"] svg{transform:rotate(180deg)}
-    .article-toc__body{display:none}
-    .article-toc.is-open .article-toc__body{display:block}
-    .article-toc.is-open ul{margin-top:12px}
+  .article-reading-layout--with-toc { grid-template-columns: 236px minmax(0, 1fr); }
+  .article-sidebar { min-width: 0; position: sticky; top: 104px; align-self: start; }
+  .article-content { min-width: 0; width: 100%; }
+  .article-content .prose { max-width: 100%; width: 100%; margin: 0; line-height: 2.15; }
+  .article-content .prose h2,
+  .article-content .prose h3 { scroll-margin-top: 112px; }
+  .article-toc {
+    max-width: none; margin: 0; padding: 15px 16px;
+    border: 1px solid var(--line); border-radius: 16px;
+    background: #fff; box-shadow: var(--shadow-soft);
+  }
+  .article-toc__toggle {
+    width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: none; border: 0; padding: 0; cursor: pointer; text-align: right;
+  }
+  .article-toc__toggle strong { display: block; color: var(--navy); font-size: .98rem; }
+  .article-toc__toggle svg { color: var(--purple); transition: transform .25s var(--ease); flex: none; }
+  .article-toc__toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+  .article-toc__body { display: none; margin-top: 10px; }
+  .article-toc.is-open .article-toc__body { display: block; }
+  .article-toc ul {
+    margin: 0; padding: 0 18px 0 0; display: grid; gap: 7px;
+    line-height: 1.8; max-height: min(64vh, 620px); overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: var(--lavender-deep) transparent;
+  }
+  .article-toc li { color: var(--purple); padding-right: 1px; }
+  .article-toc a { color: #394052; text-decoration: none; font-size: .84rem; display: block; }
+  .article-toc a:hover { color: var(--purple); }
+  .article-faq { margin: 44px 0 0; padding-top: 30px; border-top: 1px solid var(--line); }
+  .article-faq__head { margin-bottom: 18px; }
+  .article-faq__head > span { display: inline-block; color: var(--pink-dark); font-size: .84rem; font-weight: 800; margin-bottom: 6px; }
+  .article-faq__head h2 { color: var(--navy); font-size: clamp(1.25rem, 2.2vw, 1.65rem); margin: 0 0 7px; }
+  .article-faq__head p { color: var(--mut); font-size: .9rem; margin: 0; }
+  .article-faq__list { display: grid; gap: 10px; }
+  .article-faq__item { border: 1px solid var(--line); border-radius: 13px; background: #fff; overflow: hidden; transition: border-color .2s, box-shadow .2s; }
+  .article-faq__item[open] { border-color: var(--lavender-deep); box-shadow: var(--shadow-soft); }
+  .article-faq__item summary {
+    list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    min-height: 58px; padding: 13px 17px; color: var(--navy); font-weight: 700;
+    font-size: .94rem; cursor: pointer;
+  }
+  .article-faq__item summary::-webkit-details-marker { display: none; }
+  .article-faq__item summary svg {
+    flex: none; color: var(--purple); width: 19px; height: 19px;
+    transition: transform .2s ease;
+  }
+  .article-faq__item[open] summary svg { transform: rotate(45deg); }
+  .article-faq__answer { padding: 0 17px 15px; color: var(--body); font-size: .92rem; line-height: 2; }
+  .article-faq__answer p { margin: 0; }
+  @media (max-width: 980px) {
+    .article-reading-layout { gap: 22px; }
+    .article-reading-layout--with-toc { grid-template-columns: 220px minmax(0, 1fr); }
+  }
+  @media (max-width: 760px) {
+    .article-reading-layout { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+    .article-sidebar { position: static; }
+    .article-toc { padding: 13px 15px; }
+    .article-toc__body { margin-top: 0; }
+    .article-toc.is-open .article-toc__body { margin-top: 10px; }
+    .article-toc ul { max-height: 48vh; }
   }
 </style>

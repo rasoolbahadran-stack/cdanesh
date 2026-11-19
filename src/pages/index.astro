@@ -164,7 +164,7 @@ const meta = {
   </section>
 
   <!-- نوار متحرک پروژه‌ها — باند گرادیانی با لبهٔ پایین موجی -->
-  <div class="marquee-band wave-host" style="background:var(--grad-hero);margin-top:-2px">
+  <div class="marquee-band wave-host marquee-band--projects">
     <div class="marquee marquee--hero">
       <div class="marquee__track">
         {marqueeItems.map((m) => (
@@ -387,6 +387,14 @@ const meta = {
 
 <style is:global>
   .marquee-band { position: relative; padding-block: 16px clamp(46px, 5.6vw, 78px); }
+  .hero { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+  .marquee-band--projects {
+    margin-top: 0;
+    background: linear-gradient(132deg, #171b43 0%, #30205f 52%, #4b287b 100%);
+    border-top: 1px solid rgba(255,255,255,.16);
+  }
+  .marquee-band--projects .marquee__item { color: #f8f5ff; }
+  .marquee-band--projects .marquee__item svg { color: #ff91bd; }
   .svc-grid, .price-grid, .blog-grid, .compl-grid, .home-four-row { grid-template-columns: 1fr; }
   @media (min-width: 700px) {
     .svc-grid { grid-template-columns: repeat(2, 1fr); }
