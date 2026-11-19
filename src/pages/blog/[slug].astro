@@ -35,6 +35,9 @@ post.blocks.forEach((block, index) => {
 const wordCount = postWordCount(post);
 const readMinutes = postReadMinutes(post);
 
+// در مقاله طراحی سایت لباس، فهرست فقط تیترهای اصلی را نشان می‌دهد تا کوتاه و خوانا بماند.
+const visibleToc = slug === 'clothing-store-website-design' ? toc.filter((item) => item.level === 'h2') : toc;
+
 // لینک‌سازی داخلی: هر مقاله به خدمات مرتبط با موضوع خودش لینک می‌دهد
 const CATEGORY_SERVICES: Record<string, Array<{ href: string; t: string }>> = {
   'سئو': [{ href: '/services/seo', t: 'خدمات سئو سایت' }, { href: '/services/content-strategy', t: 'استراتژی و تقویم محتوایی' }],
@@ -97,14 +100,14 @@ const meta = {
           <img src={post.cover} alt={`تصویر شاخص مقاله: ${post.title}`} width="800" height="450" decoding="async" style="width:100%;display:block;aspect-ratio:16/9;object-fit:cover" fetchpriority="high" />
         </figure>
       )}
-      {toc.length > 2 && (
+      {visibleToc.length > 2 && (
         <nav class="article-toc" aria-label="فهرست مطالب" data-toc>
           <button type="button" class="article-toc__toggle" data-toc-toggle aria-expanded="false" aria-controls="article-toc-body">
             <strong>در این مقاله می‌خوانید</strong>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
           </button>
           <div class="article-toc__body" id="article-toc-body">
-            <ul>{toc.map((item) => <li class:list={[item.level === 'h3' ? 'is-sub' : '']}><a href={`#${item.id}`}>{item.text}</a></li>)}</ul>
+            <ul>{visibleToc.map((item) => <li><a href={`#${item.id}`}>{item.text}</a></li>)}</ul>
           </div>
         </nav>
       )}
