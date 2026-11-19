@@ -141,8 +141,6 @@ const sameAsArticleCover = (value: string) =>
 // بعضی مقاله‌های قدیمی، تصویر شاخص را دوباره داخل HTML یا بلوک‌های تصویری ذخیره کرده‌اند.
 // تصویر تکراری از بدنه حذف می‌شود؛ نسخهٔ اصلی فقط در بالای سایدبار نمایش داده خواهد شد.
 const normalizeLegacyArticleHtml = (html: string) => {
-  if (!/<title\\b[\\s\\S]*?<\\/title>/i.test(html)) return html;
-
   let normalized = html
     .replace(/<!doctype\\b[^>]*>/gi, '')
     .replace(/<title\\b[^>]*>[\\s\\S]*?<\\/title>\\s*/i, '')
