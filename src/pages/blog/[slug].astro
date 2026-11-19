@@ -57,13 +57,14 @@ if (isClothingDesignArticle) {
   // حالت اول: FAQ درون یک بلوک HTML قدیمی ذخیره شده است.
   const htmlIndex = articleBlocks.findIndex((block) => {
     const value = block as unknown as { t?: string; x?: string };
-    const firstHeading = (value.x || '').match(/<h[23][^>]*>[\s\S]*?<\/h[23]>/i)?.[0] || '';
-    return value.t === 'html' && faqHeadingPattern.test(plainFaqText(firstHeading));
+    const headings = [...(value.x || '').matchAll(/<h[23]\b[^>]*>([\s\S]*?)<\/h[23]>/gi)];
+    return value.t === 'html' && headings.some((heading) => faqHeadingPattern.test(plainFaqText(heading[1])));
   });
 
   if (htmlIndex >= 0) {
     const htmlBlock = articleBlocks[htmlIndex] as unknown as { t: string; x: string };
-    const heading = /<h[23]\b[^>]*>[\s\S]*?(?:س[ؤو]الات\s*متداول|پرسش(?:‌|\s)?های?\s*متداول)[\s\S]*?<\/h[23]>/i.exec(htmlBlock.x);
+    const heading = [...htmlBlock.x.matchAll(/<h[23]\b[^>]*>([\s\S]*?)<\/h[23]>/gi)]
+      .find((match) => faqHeadingPattern.test(plainFaqText(match[1])));
     if (heading && heading.index != null) {
       const afterHeading = htmlBlock.x.slice(heading.index + heading[0].length);
       const nextSection = afterHeading.search(/<h2\b/i);
@@ -208,7 +209,7 @@ const meta = {
           <img src={post.cover} alt={`تصویر شاخص مقاله: ${post.title}`} width="800" height="450" decoding="async" style="width:100%;display:block;aspect-ratio:16/9;object-fit:cover" fetchpriority="high" />
         </figure>
       )}
-      <div class="article-reading-layout">
+      <div class:list={['article-reading-layout', { 'article-reading-layout--with-toc': visibleToc.length > 2 }]}>
         {visibleToc.length > 2 && (
           <aside class="article-sidebar" aria-label="راهنمای مطالعه مقاله">
             <nav class="article-toc" aria-label="فهرست مطالب" data-toc>
@@ -347,11 +348,12 @@ const meta = {
     width: min(1140px, 100%);
     margin-inline: auto;
     display: grid;
-    grid-template-columns: 236px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     align-items: start;
     gap: clamp(26px, 3.2vw, 44px);
     direction: rtl;
   }
+  .article-reading-layout--with-toc { grid-template-columns: 236px minmax(0, 1fr); }
   .article-sidebar { min-width: 0; position: sticky; top: 104px; align-self: start; }
   .article-content { min-width: 0; width: 100%; }
   .article-content .prose { max-width: 100%; width: 100%; margin: 0; line-height: 2.15; }
@@ -401,7 +403,8 @@ const meta = {
   .article-faq__answer { padding: 0 17px 15px; color: var(--body); font-size: .92rem; line-height: 2; }
   .article-faq__answer p { margin: 0; }
   @media (max-width: 980px) {
-    .article-reading-layout { grid-template-columns: 220px minmax(0, 1fr); gap: 22px; }
+    .article-reading-layout { gap: 22px; }
+    .article-reading-layout--with-toc { grid-template-columns: 220px minmax(0, 1fr); }
   }
   @media (max-width: 760px) {
     .article-reading-layout { grid-template-columns: minmax(0, 1fr); gap: 18px; }
