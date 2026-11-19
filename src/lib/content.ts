@@ -207,6 +207,7 @@ export const MEGA_GROUPS = [
     items: [
       { href: '/services/company-website', t: 'طراحی سایت شرکتی', d: 'معرفی برند و خدمات' },
       { href: '/services/ecommerce', t: 'طراحی فروشگاه اینترنتی', d: 'فروش آنلاین محصولات' },
+      { href: '/services/clothing-store', t: 'طراحی سایت پوشاک', d: 'فروشگاه ویژه بوتیک و مزون' },
       { href: '/services/custom-web', t: 'طراحی وب‌سایت اختصاصی', d: 'وب‌اپلیکیشن اختصاصی' },
       { href: '/services/ui-ux', t: 'طراحی رابط کاربری', d: 'UI/UX؛ مسیر کاربری هدفمند' },
     ],
@@ -233,6 +234,7 @@ export const FOOTER_LINKS = {
     { href: '/services', t: 'همه خدمات' },
     { href: '/services/company-website', t: 'طراحی سایت شرکتی' },
     { href: '/services/ecommerce', t: 'طراحی فروشگاه اینترنتی' },
+    { href: '/services/clothing-store', t: 'طراحی سایت پوشاک' },
     { href: '/services/custom-web', t: 'طراحی وب‌سایت اختصاصی' },
     { href: '/services/ui-ux', t: 'طراحی رابط و تجربه کاربری' },
     { href: '/services/seo', t: 'خدمات سئو سایت' },
