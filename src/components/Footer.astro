@@ -18,7 +18,7 @@ import { FOOTER_LINKS, SITE } from '../lib/content';
       </div>
 
       <nav aria-label="خدمات کافه دانش">
-        <h4>خدمات</h4>
+        <h2 class="footer__heading">خدمات</h2>
         <ul class="footer__list">
           {FOOTER_LINKS.services.map((l) => (
             <li><a href={l.href}>{l.t}</a></li>
@@ -27,7 +27,7 @@ import { FOOTER_LINKS, SITE } from '../lib/content';
       </nav>
 
       <nav aria-label="دسترسی سریع">
-        <h4>دسترسی سریع</h4>
+        <h2 class="footer__heading">دسترسی سریع</h2>
         <ul class="footer__list">
           {FOOTER_LINKS.quick.map((l) => (
             <li><a href={l.href}>{l.t}</a></li>
@@ -36,7 +36,7 @@ import { FOOTER_LINKS, SITE } from '../lib/content';
       </nav>
 
       <div class="footer__contact">
-        <h4>شروع همکاری</h4>
+        <h2 class="footer__heading">شروع همکاری</h2>
         <p>جلسهٔ اول مشاوره رایگان است؛ اهداف و نیازهای پروژه‌تان را با هم مرور می‌کنیم.</p>
         <a href="/consult" class="btn btn--sm">درخواست مشاوره و سفارش پروژه</a>
         <a href="/contact" class="footer__contact-alt">فرم تماس — پاسخ‌گویی حداکثر یک روز کاری</a>
