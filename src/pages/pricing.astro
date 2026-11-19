@@ -37,18 +37,21 @@ const commonFeatures = [
 // خدمات مکمل و پس از راه‌اندازی — برآورد پس از نیازسنجی (بدون قیمت ثابت)
 const complementary = [
   {
+    key: 'seo', label: 'دیده‌شدن و جذب مخاطب',
     t: 'خدمات سئو سایت',
-    d: 'بررسی و بهینه‌سازی ساختار فنی، سرعت، صفحات و محتوای وب‌سایت با هدف بهبود قابلیت دیده‌شدن در موتورهای جست‌وجو و جذب مخاطب مرتبط.',
+    d: 'بهینه‌سازی ساختار فنی، صفحات و محتوا برای افزایش قابلیت دیده‌شدن در جست‌وجو و جذب مخاطب مرتبط.',
     href: '/services/seo', cta: 'مشاهده خدمات سئو',
   },
   {
+    key: 'content', label: 'محتوای هدفمند و اثرگذار',
     t: 'تولید محتوای سایت',
-    d: 'تهیه مقالات تخصصی، محتوای صفحات و برنامه انتشار متناسب با نیاز مخاطبان و استراتژی محتوایی وب‌سایت.',
+    d: 'تدوین و نگارش مقاله‌ها و محتوای صفحات بر اساس نیاز مخاطبان، هویت برند و فرصت‌های جست‌وجو.',
     href: '/services/content', cta: 'مشاهده خدمات تولید محتوا',
   },
   {
+    key: 'support', label: 'نگهداری و توسعه مستمر',
     t: 'مدیریت و پشتیبانی سایت',
-    d: 'نگهداری فنی، به‌روزرسانی، مدیریت محتوا و بررسی مشکلات وب‌سایت پس از انتشار؛ با محدوده خدمات و شرایط پاسخ‌گویی مشخص.',
+    d: 'به‌روزرسانی، نگهداری فنی و رسیدگی به مشکلات سایت با محدوده خدمات و شیوه پاسخ‌گویی روشن.',
     href: '/services/support', cta: 'مشاهده خدمات پشتیبانی',
   },
 ];
@@ -56,17 +59,25 @@ const complementary = [
 <BaseLayout meta={meta} current="/pricing" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'تعرفه‌ها', url: '/pricing' }]), jsonLdFaq(pricingFaq)]}>
   <PageHero
     title="تعرفه طراحی سایت؛ پکیج‌های شرکتی، فروشگاهی و اختصاصی"
-    sub="سه مسیر روشن برای ساخت وب‌سایت کسب‌وکار شما؛ از سایت شرکتی و فروشگاه اینترنتی تا سامانه اختصاصی. امکانات، قیمت، زمان تحویل و مدت پشتیبانی هر پکیج را بررسی کنید و متناسب با نیازتان تصمیم بگیرید."
+    sub="پکیج‌های شرکتی، فروشگاهی و اختصاصی را از نظر امکانات، زمان تحویل و پشتیبانی مقایسه کنید."
   />
 
   <!-- ═══ مقدمه: قیمت طراحی سایت چگونه تعیین می‌شود؟ ═══ -->
   <section class="section section--tight" aria-labelledby="price-intro-title">
     <div class="container">
       <div class="price-intro">
-        <h2 id="price-intro-title">هزینه طراحی سایت در کافه دانش چگونه تعیین می‌شود؟</h2>
-        <p>هزینه طراحی سایت به نوع پروژه، امکانات موردنیاز، حجم محتوا و میزان سفارشی‌سازی بستگی دارد. به همین دلیل، خدمات پایه کافه دانش در سه پکیج مشخص ارائه می‌شوند تا پیش از شروع همکاری، محدوده خدمات و هزینه‌ها برای شما روشن باشد.</p>
-        <p>پکیج شرکتی برای معرفی حرفه‌ای کسب‌وکار و خدمات شما طراحی شده است. پکیج فروشگاهی امکانات لازم برای عرضه محصولات و مدیریت سفارش‌ها را فراهم می‌کند. پکیج اختصاصی نیز برای پروژه‌هایی در نظر گرفته شده که به سامانه، پنل مدیریتی یا فرایندهای فنی سفارشی نیاز دارند.</p>
-        <p>در هر پکیج، امکانات و زمان تحویل از ابتدا مشخص است. هر قابلیت خارج از محدوده توافق‌شده نیز پیش از اجرا، با برآورد مکتوب و تأیید شما اعلام می‌شود. هدف ما این است که پیش از شروع پروژه، دقیقاً بدانید چه خدماتی دریافت می‌کنید و چه هزینه‌هایی در انتظار شماست.</p>
+        <div class="price-intro__copy">
+          <span class="price-intro__eyebrow">قیمت‌گذاری شفاف و متناسب با دامنه پروژه</span>
+          <h2 id="price-intro-title">هزینه طراحی سایت در کافه دانش چگونه تعیین می‌شود؟</h2>
+          <p>هزینه طراحی سایت به نوع پروژه، امکانات موردنیاز، حجم محتوا و میزان سفارشی‌سازی بستگی دارد. پکیج‌های مشخص کافه دانش کمک می‌کنند پیش از شروع همکاری، محدوده خدمات و هزینه‌ها را بدانید.</p>
+          <p>پکیج شرکتی برای معرفی کسب‌وکار، پکیج فروشگاهی برای عرضه محصولات و مدیریت سفارش‌ها و پکیج اختصاصی برای سامانه‌ها و فرایندهای سفارشی طراحی شده است.</p>
+          <p>قابلیت‌های خارج از محدوده پکیج نیز پیش از اجرا، همراه با برآورد مکتوب و پس از تأیید شما انجام می‌شوند.</p>
+          <div class="price-intro__promise"><span aria-hidden="true">✓</span><strong>امکانات، زمان‌بندی و هزینه‌ها پیش از شروع مشخص می‌شوند.</strong></div>
+        </div>
+        <figure class="price-intro__visual">
+          <img src="/img/ai/hero-team.webp" alt="جلسه برنامه‌ریزی و بررسی نیازهای پروژه طراحی وب‌سایت" width="960" height="640" loading="lazy" decoding="async" />
+          <figcaption><span>از نیازسنجی تا برآورد</span><strong>هر پیشنهاد بر اساس نیاز واقعی کسب‌وکار شما</strong></figcaption>
+        </figure>
       </div>
     </div>
   </section>
@@ -76,7 +87,7 @@ const complementary = [
     <div class="container">
       <div class="price-grid">
         {PRICING.map((p, i) => (
-          <article class="card" style={`padding:clamp(24px,3vw,34px);display:flex;flex-direction:column;gap:10px;${p.featured ? 'border:2px solid var(--pink);position:relative' : ''}`} data-reveal="up" data-delay={String(i * 90)}>
+          <article class:list={['card', 'pricing-package', { 'pricing-package--featured': p.featured }]} style={`padding:clamp(24px,3vw,34px);display:flex;flex-direction:column;gap:10px;${p.featured ? 'border:2px solid var(--pink);position:relative' : ''}`} data-reveal="up" data-delay={String(i * 90)}>
             {p.featured && <span class="badge" style="position:absolute;top:-13px;right:22px;background:var(--pink);color:#fff">پیشنهاد کافه دانش</span>}
             <span class="section-head__tag" style="font-size:.82rem">{p.badge}</span>
             <h2 style="font-size:1.35rem;margin:0">{p.name}</h2>
@@ -107,13 +118,11 @@ const complementary = [
       <SectionHead title="استانداردهای کافه دانش در تمام پروژه‌ها" sub="تفاوت پکیج‌ها در نوع امکانات و دامنه اجراست؛ اما کیفیت اجرا، شفافیت همکاری و توجه به تجربه کاربری در تمام پروژه‌ها اهمیت دارد." center />
       <div class="common-grid">
         {commonFeatures.map((c, i) => (
-          <div class="card common-item" data-reveal="up" data-delay={String((i % 4) * 70)}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--mint-ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg>
-            <div>
-              <strong>{c.t}</strong>
-              <span>{c.d}</span>
-            </div>
-          </div>
+          <article class="card common-item" data-reveal="up" data-delay={String((i % 4) * 75)}>
+            <span class="common-item__number">{new Intl.NumberFormat('fa-IR').format(i + 1).padStart(2, '۰')}</span>
+            <span class="common-item__icon" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5" /></svg></span>
+            <div class="common-item__copy"><strong>{c.t}</strong><span>{c.d}</span></div>
+          </article>
         ))}
       </div>
     </div>
@@ -153,11 +162,25 @@ const complementary = [
       <SectionHead title="خدمات مکمل برای رشد و نگهداری وب‌سایت" sub="تخصص اصلی کافه دانش طراحی و توسعه وب‌سایت است. پس از راه‌اندازی نیز می‌توانید برای بهبود عملکرد، تولید محتوای هدفمند و نگهداری فنی سایت از خدمات مکمل ما استفاده کنید." center />
       <div class="compl-price-grid">
         {complementary.map((c, i) => (
-          <article class="card" style="padding:clamp(22px,3vw,30px);display:flex;flex-direction:column;gap:10px" data-reveal="up" data-delay={String(i * 90)}>
-            <h3 style="font-size:1.15rem;margin:0">{c.t}</h3>
-            <p style="color:var(--mut);font-size:.92rem;margin:0;flex:1">{c.d}</p>
-            <p style="margin:0"><b style="color:var(--navy)">برآورد هزینه پس از نیازسنجی</b></p>
-            <a href={c.href} class="btn btn--outline" style="justify-content:center">{c.cta}</a>
+          <article class:list={['card', 'compl-card', `compl-card--${c.key}`]} data-reveal="up" data-delay={String(i * 100)}>
+            <div class="compl-card__top">
+              <span class="compl-card__icon" aria-hidden="true">
+                {c.key === 'seo' ? (
+                  <svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg>
+                ) : c.key === 'content' ? (
+                  <svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg>
+                ) : (
+                  <svg viewBox="0 0 24 24"><path d="M12 3 20 6v5c0 5-3.4 8.2-8 10-4.6-1.8-8-5-8-10V6z"/><path d="m8.5 12 2.2 2.2 4.8-4.8"/></svg>
+                )}
+              </span>
+              <span class="compl-card__index">{new Intl.NumberFormat('fa-IR').format(i + 1).padStart(2, '۰')}</span>
+            </div>
+            <span class="compl-card__eyebrow">{c.label}</span><h3>{c.t}</h3>
+            <p class="compl-card__description">{c.d}</p>
+            <div class="compl-card__bottom">
+              <span class="compl-card__estimate">برآورد پس از نیازسنجی</span>
+              <a href={c.href} aria-label={c.cta}><span>{c.cta}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6"/></svg></a>
+            </div>
           </article>
         ))}
       </div>
@@ -190,36 +213,60 @@ const complementary = [
 </BaseLayout>
 
 <style is:global>
-  /* مقدمهٔ تعرفه — متن روان و خوانا */
-  .price-intro { max-width: 820px; margin-inline: auto; display: grid; gap: 14px; line-height: 2; }
-  .price-intro h2 { font-size: clamp(1.25rem, 2.6vw, 1.6rem); color: var(--navy); margin: 0 0 4px; }
-  .price-intro p { margin: 0; color: var(--body); }
-  .price-intro strong { color: var(--navy); }
-
-  /* کارت‌های پکیج */
-  .price-grid { display: grid; grid-template-columns: 1fr; gap: 22px; }
-  .ops-grid { display: grid; grid-template-columns: 1fr; gap: 22px; }
-
-  /* امکانات مشترک */
-  .common-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
-  .common-item { display: flex; gap: 12px; align-items: flex-start; padding: 18px 20px; }
-  .common-item svg { flex: none; margin-top: 4px; }
-  .common-item strong { display: block; color: var(--navy); font-size: .98rem; margin-bottom: 3px; }
-  .common-item span { color: var(--mut); font-size: .87rem; line-height: 1.8; }
-
-  .compl-price-grid { grid-template-columns: 1fr; }
-
-  @media (min-width: 640px) {
-    .common-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-  @media (min-width: 760px) {
-    .compl-price-grid { grid-template-columns: repeat(3, 1fr); }
-  }
-  @media (min-width: 900px) {
-    .price-grid { grid-template-columns: repeat(3, 1fr); }
-    .ops-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-  @media (min-width: 1020px) {
-    .common-grid { grid-template-columns: repeat(4, 1fr); }
-  }
+  .price-intro { display:grid; grid-template-columns:minmax(0,1.12fr) minmax(320px,.88fr); align-items:center; gap:clamp(26px,4vw,54px); max-width:1160px; margin-inline:auto; direction:rtl; }
+  .price-intro__copy { min-width:0; display:grid; gap:13px; direction:rtl; line-height:2.05; }
+  .price-intro__eyebrow { color:var(--pink-dark); font-size:.84rem; font-weight:800; }
+  .price-intro h2 { font-size:clamp(1.25rem,2.6vw,1.75rem); color:var(--navy); margin:0 0 3px; line-height:1.7; }
+  .price-intro p { margin:0; color:var(--body); }
+  .price-intro__promise { display:flex; align-items:center; gap:10px; margin-top:4px; padding:12px 14px; border-radius:13px; background:#f1fbf6; color:#246d4d; font-size:.9rem; }
+  .price-intro__promise span { display:grid; place-items:center; width:25px; height:25px; flex:none; border-radius:50%; background:#d9f5e6; font-weight:900; }
+  .price-intro__visual { position:relative; min-width:0; min-height:330px; height:100%; margin:0; overflow:hidden; border-radius:24px; background:var(--lavender); box-shadow:0 22px 55px rgba(39,26,84,.16); }
+  .price-intro__visual::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg,transparent 38%,rgba(20,18,52,.76) 100%); pointer-events:none; }
+  .price-intro__visual img { display:block; width:100%; height:100%; min-height:330px; object-fit:cover; object-position:center; transition:transform .65s cubic-bezier(.2,.7,.2,1); }
+  .price-intro__visual:hover img { transform:scale(1.045); }
+  .price-intro__visual figcaption { position:absolute; z-index:1; right:22px; left:22px; bottom:20px; display:grid; gap:6px; color:#fff; direction:rtl; }
+  .price-intro__visual figcaption span { color:#ffd8e8; font-size:.84rem; font-weight:800; }
+  .price-intro__visual figcaption strong { font-size:1.08rem; line-height:1.8; }
+  .price-grid { display:grid; grid-template-columns:1fr; gap:24px; }
+  .pricing-package { position:relative; overflow:hidden; border:1px solid rgba(93,77,150,.12); border-radius:22px; background:linear-gradient(180deg,#fff 0%,#fcfbff 100%); box-shadow:0 12px 36px rgba(31,25,68,.075); transition:transform .32s cubic-bezier(.2,.7,.2,1),box-shadow .32s ease,border-color .32s ease; }
+  .pricing-package::before { content:""; position:absolute; inset:0 0 auto; height:4px; background:linear-gradient(90deg,var(--purple),var(--pink)); transform:scaleX(.28); transform-origin:right; transition:transform .35s ease; }
+  .pricing-package:hover { transform:translateY(-7px); box-shadow:0 23px 54px rgba(48,30,100,.15); border-color:rgba(124,77,255,.26); }
+  .pricing-package:hover::before { transform:scaleX(1); }
+  .pricing-package--featured { box-shadow:0 18px 46px rgba(174,47,114,.13); }
+  .ops-grid { display:grid; grid-template-columns:1fr; gap:22px; }
+  .pricing-info-card { border:1px solid var(--line); border-radius:20px; box-shadow:0 12px 34px rgba(31,25,68,.07); transition:transform .28s ease,box-shadow .28s ease; }
+  .pricing-info-card:hover { transform:translateY(-5px); box-shadow:0 20px 45px rgba(31,25,68,.12); }
+  .common-grid { display:grid; grid-template-columns:1fr; gap:16px; }
+  .common-item { position:relative; display:grid; grid-template-columns:48px minmax(0,1fr); gap:13px; align-items:start; padding:22px 20px; overflow:hidden; border:1px solid rgba(100,83,153,.12); border-radius:19px; background:linear-gradient(145deg,#fff 0%,#fbf9ff 100%); box-shadow:0 10px 30px rgba(31,25,68,.055); transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s ease,border-color .3s ease; }
+  .common-item::before { content:""; position:absolute; inset:0 0 auto; height:3px; background:linear-gradient(90deg,#8563de,#f04d91); transform:scaleX(.22); transform-origin:right; transition:transform .34s ease; }
+  .common-item:hover { transform:translateY(-6px); border-color:rgba(124,77,255,.28); box-shadow:0 21px 42px rgba(54,38,112,.12); }
+  .common-item:hover::before { transform:scaleX(1); }
+  .common-item__number { position:absolute; top:13px; left:15px; color:rgba(93,77,150,.25); font-size:.76rem; font-weight:900; }
+  .common-item__icon { display:grid; place-items:center; width:46px; height:46px; border-radius:15px; background:linear-gradient(145deg,#eee8ff,#fce9f1); color:#7352c8; }
+  .common-item__copy { min-width:0; padding-top:2px; }
+  .common-item__copy strong { display:block; color:var(--navy); font-size:.98rem; line-height:1.65; margin-bottom:6px; }
+  .common-item__copy span { color:var(--mut); font-size:.87rem; line-height:1.9; }
+  .compl-price-grid { display:grid; grid-template-columns:1fr; gap:20px; }
+  .compl-card { position:relative; display:flex; flex-direction:column; gap:13px; min-height:300px; padding:26px; overflow:hidden; border:1px solid rgba(100,83,153,.13); border-radius:22px; background:linear-gradient(155deg,#fff 0%,#fbf9ff 100%); box-shadow:0 12px 34px rgba(31,25,68,.07); transition:transform .32s cubic-bezier(.2,.7,.2,1),box-shadow .32s ease,border-color .32s ease; }
+  .compl-card::after { content:""; position:absolute; width:180px; height:180px; border-radius:50%; left:-70px; top:-86px; background:radial-gradient(circle,rgba(139,108,220,.13),transparent 70%); pointer-events:none; }
+  .compl-card:hover { transform:translateY(-7px); box-shadow:0 23px 54px rgba(48,30,100,.14); border-color:rgba(124,77,255,.3); }
+  .compl-card__top { position:relative; z-index:1; display:flex; align-items:center; justify-content:space-between; }
+  .compl-card__icon { display:grid; place-items:center; width:54px; height:54px; border-radius:17px; background:linear-gradient(140deg,#eee8ff,#fceaf2); color:#7554cb; }
+  .compl-card__icon svg { width:25px; height:25px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  .compl-card__index { color:rgba(89,72,147,.35); font-size:.82rem; font-weight:900; }
+  .compl-card__eyebrow { color:var(--pink-dark); font-size:.8rem; font-weight:800; }
+  .compl-card h3 { color:var(--navy); font-size:1.16rem; line-height:1.7; margin:0; }
+  .compl-card__description { color:var(--mut); font-size:.92rem; line-height:2; margin:0; flex:1; }
+  .compl-card__bottom { display:grid; gap:14px; border-top:1px solid var(--line); padding-top:15px; }
+  .compl-card__estimate { justify-self:start; padding:5px 10px; border-radius:999px; background:#f1edf9; color:#62518f; font-size:.78rem; font-weight:800; }
+  .compl-card__bottom a { display:flex; align-items:center; justify-content:space-between; gap:10px; color:var(--purple); font-size:.9rem; font-weight:800; text-decoration:none; }
+  .compl-card__bottom a svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; transition:transform .2s ease; }
+  .compl-card__bottom a:hover svg { transform:translateX(-4px); }
+  @media (prefers-reduced-motion: reduce) { .pricing-package,.common-item,.compl-card,.pricing-info-card { transition:none; } .pricing-package:hover,.common-item:hover,.compl-card:hover,.pricing-info-card:hover { transform:none; } .price-intro__visual img { transition:none; } }
+  @media (min-width:640px) { .common-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  @media (min-width:760px) { .compl-price-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+  @media (min-width:900px) { .price-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } .ops-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  @media (min-width:1020px) { .common-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+  @media (max-width:850px) { .price-intro { grid-template-columns:minmax(0,1fr); } .price-intro__visual { min-height:250px; max-height:380px; } .price-intro__visual img { min-height:250px; } }
+  @media (max-width:560px) { .common-item { padding:19px 16px; grid-template-columns:42px minmax(0,1fr); } .common-item__icon { width:42px; height:42px; border-radius:13px; } .compl-card { min-height:0; padding:22px; } }
 </style>

@@ -72,7 +72,12 @@ const meta = {
 
   <section class="section bg-soft">
     <div class="container about-location">
-      <Blocks blocks={locationBlocks} />
+      <figure class="about-location__media">
+        <img src="/img/ai/hero-team.webp" alt="تیم کافه دانش در حال بررسی و برنامه‌ریزی پروژه‌های طراحی وب‌سایت" width="960" height="640" loading="lazy" decoding="async" />
+      </figure>
+      <div class="about-location__copy">
+        <Blocks blocks={locationBlocks} />
+      </div>
     </div>
   </section>
 
@@ -80,7 +85,6 @@ const meta = {
     <div class="container about-duo">
       <section class="about-duo__panel" aria-labelledby="about-reasons-title">
         <div class="about-duo__head">
-          <span>چرا کافه دانش؟</span>
           <h2 id="about-reasons-title">{blocks[reasonsIdx]?.x || 'پنج دلیل که نتیجه کار را متمایز می‌کند'}</h2>
         </div>
         <div class="about-duo__list">
@@ -94,7 +98,6 @@ const meta = {
       </section>
       <section class="about-duo__panel" aria-labelledby="about-steps-title">
         <div class="about-duo__head">
-          <span>روند همکاری</span>
           <h2 id="about-steps-title">{blocks[stepsIdx]?.x || 'شش مرحله شفاف، از درخواست تا تحویل'}</h2>
         </div>
         <div class="about-duo__list">
@@ -125,7 +128,20 @@ const meta = {
   .about-intro__points svg { flex: none; color: var(--mint-ink); margin-top: 3px; }
   .about-core { width: 100%; }
   .about-core .prose,.about-location .prose { max-width: 100%; width: 100%; margin-inline: 0; }
-  .about-location { width: 100%; }
+  .about-location {
+    width: 100%; display: grid;
+    grid-template-columns: minmax(0,.92fr) minmax(0,1.08fr);
+    align-items: center; gap: clamp(26px,4vw,52px); direction: ltr;
+  }
+  .about-location__media {
+    min-width: 0; min-height: 350px; margin: 0; overflow: hidden;
+    border-radius: 22px; background: var(--lavender); box-shadow: var(--shadow-card);
+  }
+  .about-location__media img {
+    display: block; width: 100%; height: 100%; min-height: 350px;
+    object-fit: cover; object-position: center;
+  }
+  .about-location__copy { min-width: 0; direction: rtl; }
   .about-location .prose h2 { margin-top: 0; }
   .about-duo { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 26px; align-items: stretch; }
   .about-duo__panel { min-width: 0; padding: clamp(24px,2.8vw,36px); border-radius: 22px; background: #fff; border: 1px solid var(--line); box-shadow: var(--shadow-soft); }
@@ -139,7 +155,8 @@ const meta = {
   .about-point p { color: var(--mut); font-size: .88rem; line-height: 1.95; margin: 0; }
   .about-point--step .about-point__num { background: var(--peach); color: var(--pink-dark); }
   @media (max-width: 920px) {
-    .about-duo { grid-template-columns: minmax(0,1fr); }
+    .about-duo, .about-location { grid-template-columns: minmax(0,1fr); }
     .about-intro__points { grid-template-columns: minmax(0,1fr); }
+    .about-location__media, .about-location__media img { min-height: 280px; }
   }
 </style>

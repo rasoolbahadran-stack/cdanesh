@@ -5,7 +5,6 @@ import SectionHead from '../components/SectionHead.astro';
 import PortfolioCard from '../components/PortfolioCard.astro';
 import PostCard from '../components/PostCard.astro';
 import CtaBand from '../components/CtaBand.astro';
-import WaveSep from '../components/WaveSep.astro';
 import { getPosts, getPortfolio, PROS, STEPS, PRICING, MARQUEE_ITEMS, SITE, svcImg } from '../lib/content';
 import { jsonLdFaq, jsonLdBreadcrumb } from '../lib/seo';
 
@@ -157,7 +156,7 @@ const meta = {
   </section>
 
   <!-- نوار متحرک پروژه‌ها — باند گرادیانی با لبهٔ پایین موجی -->
-  <div class="marquee-band wave-host marquee-band--projects">
+  <div class="marquee-band marquee-band--projects">
     <div class="marquee marquee--hero">
       <div class="marquee__track">
         {marqueeItems.map((m) => (
@@ -168,7 +167,7 @@ const meta = {
         ))}
       </div>
     </div>
-    <WaveSep fill="#ffffff" variant="a" />
+
   </div>
 
   <!-- ═══════════ نوار آمار ═══════════ -->
@@ -192,7 +191,7 @@ const meta = {
         </div>
       </div>
     </div>
-    <WaveSep fill="var(--lavender)" variant="b" />
+
   </section>
 
   <!-- ═══════════ تخصص اصلی: طراحی و توسعه وب‌سایت ═══════════ -->
@@ -226,7 +225,7 @@ const meta = {
         <a href="/services/support">مدیریت و پشتیبانی سایت</a>
       </p>
     </div>
-    <WaveSep fill="#ffffff" variant="a" />
+
   </section>
 
 
@@ -331,7 +330,7 @@ const meta = {
         ))}
       </div>
     </div>
-    <WaveSep fill="#ffffff" variant="b" />
+
   </section>
 
   <!-- ═══════════ FAQ ═══════════ -->
@@ -372,19 +371,20 @@ const meta = {
         <a href="/blog" class="btn btn--outline btn--lg">مشاهده همه مقالات</a>
       </div>
     </div>
-    <WaveSep fill="#ffffff" variant="a" />
+
   </section>
 
   <CtaBand sub="در جلسه مشاوره اولیه، درباره اهداف، نیازها و امکانات موردنظر شما گفت‌وگو می‌کنیم و مسیر مناسب اجرای پروژه را همراه با برآورد اولیه و محدوده خدمات مشخص می‌کنیم." />
 </BaseLayout>
 
 <style is:global>
-  .marquee-band { position: relative; padding-block: 16px clamp(46px, 5.6vw, 78px); }
-  .hero { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+  .marquee-band { position: relative; padding-block: 14px 16px; }
+  .hero { border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: 0; }
   .marquee-band--projects {
-    margin-top: 0;
+    margin-top: -2px;
+    padding-bottom: 16px;
     background: linear-gradient(132deg, #171b43 0%, #30205f 52%, #4b287b 100%);
-    border-top: 1px solid rgba(255,255,255,.16);
+    border-top: 0;
   }
   .marquee-band--projects .marquee__item { color: #f8f5ff; }
   .marquee-band--projects .marquee__item svg { color: #ff91bd; }

@@ -864,12 +864,23 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
   box-shadow: 0 8px 24px rgba(25, 20, 60, .12);
   transition: color .18s ease, background .18s ease, border-color .18s ease, transform .18s ease;
 }
+.contact-rail__link--whatsapp { color: #159b55; background: #effbf4; border-color: #c9efd8; }
+.contact-rail__link--telegram { color: #168bc5; background: #eff8fd; border-color: #c9e8f7; }
+.contact-rail__link--instagram {
+  color: #fff;
+  background: linear-gradient(145deg, #feda75 0%, #fa7e1e 27%, #d62976 58%, #962fbf 79%, #4f5bd5 100%);
+  border-color: transparent;
+}
+.contact-rail__link--phone { color: #6950c8; background: #f4f0ff; border-color: #dfd5ff; }
+.contact-rail__link--email { color: #dc557d; background: #fff1f5; border-color: #f8d4e0; }
 .contact-rail__link:hover,
 .contact-rail__link:focus-visible {
   color: #fff;
   transform: translateX(3px);
 }
 .contact-rail__link svg { width: 21px; height: 21px; fill: currentColor; }
+.contact-rail__link--instagram svg { fill: none; stroke: currentColor; }
+.contact-rail__link--instagram svg circle:last-child { fill: currentColor; stroke: none; }
 .contact-rail__link--whatsapp:hover,
 .contact-rail__link--whatsapp:focus-visible { background: #20b768; border-color: #20b768; }
 .contact-rail__link--telegram:hover,
@@ -908,19 +919,19 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
     letter-spacing: -.02em;
   }
   .contact-rail {
-    left: 10px;
-    top: auto;
-    bottom: calc(14px + env(safe-area-inset-bottom));
-    transform: none;
-    flex-direction: row;
+    left: 8px;
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+    flex-direction: column;
     gap: 7px;
   }
-  .contact-rail__link { width: 42px; height: 42px; border-radius: 13px; }
+  .contact-rail__link { width: 40px; height: 40px; border-radius: 13px; }
   .to-top { left: auto; right: 14px; }
 }
 @media (max-width: 380px) {
   .hero__mark { font-size: clamp(.98rem, 4.4vw, 1.1rem); }
-  .contact-rail { left: 8px; bottom: calc(10px + env(safe-area-inset-bottom)); }
+  .contact-rail { left: 6px; }
 }
 
 /* دکمه بازگشت بالا */
