@@ -134,11 +134,13 @@ articleBlocks.forEach((block, index) => {
       .map((h) => ({ text: h.text, level: h.level, id: h.id })));
   }
 });
-if (isClothingDesignArticle) {
-  for (let i = visibleToc.length - 1; i >= 0; i--) {
-    if (visibleToc[i].level !== 'h2') visibleToc.splice(i, 1);
-  }
+// فهرست کناری فقط سرفصل‌های اصلی را نشان می‌دهد؛ تیترهای فرعی در آن تکرار نمی‌شوند.
+for (let i = visibleToc.length - 1; i >= 0; i--) {
+  if (visibleToc[i].level !== 'h2') visibleToc.splice(i, 1);
 }
+const sidebarToc = visibleToc.length > 6
+  ? [...visibleToc.slice(0, 5), visibleToc[visibleToc.length - 1]]
+  : visibleToc;
 
 // لینک‌سازی داخلی: هر مقاله به خدمات مرتبط با موضوع خودش لینک می‌دهد
 const CATEGORY_SERVICES: Record<string, Array<{ href: string; t: string }>> = {
@@ -202,31 +204,36 @@ const meta = {
     </div>
   </section>
 
-  <section class="section--tight">
-    <div class="container">
-      {post.cover && (
-        <figure style="max-width:1100px;margin:0 auto 34px;border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-card)">
-          <img src={post.cover} alt={`تصویر شاخص مقاله: ${post.title}`} width="800" height="450" decoding="async" style="width:100%;display:block;aspect-ratio:16/9;object-fit:cover" fetchpriority="high" />
-        </figure>
-      )}
-      <div class:list={['article-reading-layout', { 'article-reading-layout--with-toc': visibleToc.length > 2 }]}>
-        {visibleToc.length > 2 && (
-          <aside class="article-sidebar" aria-label="راهنمای مطالعه مقاله">
-            <nav class="article-toc" aria-label="فهرست مطالب" data-toc>
-              <button type="button" class="article-toc__toggle" data-toc-toggle aria-expanded="false" aria-controls="article-toc-body">
-                <strong>فهرست مطالب</strong>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
-              </button>
-              <div class="article-toc__body" id="article-toc-body">
-                <ul>{visibleToc.map((item) => <li><a href={`#${item.id}`}>{item.text}</a></li>)}</ul>
-              </div>
-            </nav>
-          </aside>
+  <div class:list={['container', 'article-page-layout', { 'article-page-layout--with-toc': sidebarToc.length > 2 }]}>
+    {sidebarToc.length > 2 && (
+      <aside class="article-sidebar" aria-label="راهنمای مطالعه مقاله">
+        <nav class="article-toc" aria-label="فهرست مطالب" data-toc>
+          <button type="button" class="article-toc__toggle" data-toc-toggle aria-expanded="false" aria-controls="article-toc-body">
+            <strong>سرفصل‌های مهم</strong>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+          </button>
+          <div class="article-toc__body" id="article-toc-body">
+            <ul>{sidebarToc.map((item) => <li><a href={`#${item.id}`}>{item.text}</a></li>)}</ul>
+          </div>
+        </nav>
+        <div class="article-sidebar__cta">
+          <span class="article-sidebar__cta-kicker">مشاوره و نیازسنجی پروژه</span>
+          <strong>{isClothingDesignArticle ? 'برای فروش آنلاین پوشاک برنامه دارید؟' : 'برای وب‌سایت کسب‌وکارتان برنامه دارید؟'}</strong>
+          <p>نیازها و امکانات موردنظر را بررسی می‌کنیم و مسیر مناسب اجرا را پیشنهاد می‌دهیم.</p>
+          <a href="/consult" class="btn btn--sm">درخواست مشاوره</a>
+          {isClothingDesignArticle && <a href="/services/clothing-store" class="article-sidebar__cta-link">جزئیات طراحی سایت پوشاک</a>}
+        </div>
+      </aside>
+    )}
+    <div class="article-page-main">
+      <section class="section--tight article-main-section">
+        {post.cover && (
+          <figure class="article-cover">
+            <img src={post.cover} alt={`تصویر شاخص مقاله: ${post.title}`} width="1100" height="620" decoding="async" style="width:100%;display:block;aspect-ratio:16/9;object-fit:cover" fetchpriority="high" />
+          </figure>
         )}
-
         <div class="article-content">
           <Blocks blocks={articleBlocks} />
-
           {faqItems.length > 0 && (
             <section class="article-faq" aria-labelledby="article-faq-title">
               <div class="article-faq__head">
@@ -247,15 +254,12 @@ const meta = {
               </div>
             </section>
           )}
-
-          <!-- لینک‌سازی داخلی: خدمات مرتبط با موضوع مقاله -->
           <aside class="article-services" aria-label="خدمات مرتبط با این مقاله">
             <strong>خدمات مرتبط با این موضوع در کافه دانش:</strong>
             <span class="article-services__links">
-              {categoryServices.map((s) => <a href={s.href}>{s.t}</a>)}
+              {categoryServices.map((item) => <a href={item.href}>{item.t}</a>)}
             </span>
           </aside>
-
           <div class="article-actions">
             <span style="font-weight:700;color:var(--navy)">نوشتهٔ تیم کافه دانش</span>
             <div>
@@ -264,29 +268,23 @@ const meta = {
             </div>
             <p id="article-share-status" aria-live="polite"></p>
           </div>
-
-          <!-- مسیر صفحه — کوچک و کم‌رنگ در انتهای مقاله (برای سئو؛ اسکیمای BreadcrumbList همان مسیر را پوشش می‌دهد) -->
           <nav class="article-crumbs" aria-label="مسیر صفحه">
             <a href="/">خانه</a><span aria-hidden="true">/</span><a href="/blog">مجله</a><span aria-hidden="true">/</span><span aria-current="page">{post.category}</span>
           </nav>
         </div>
-      </div>
+      </section>
+      <section class="section bg-soft article-related" aria-labelledby="related-title">
+        <div class="section-head">
+          <span class="section-head__tag">ادامهٔ خواندن</span>
+          <h2 class="section-head__title" style="font-size:1.5rem">مقالات مرتبط</h2>
+        </div>
+        <div class="pf-grid">
+          {related.map((item, i) => <PostCard post={item} delay={String(i * 80)} />)}
+        </div>
+      </section>
+      <CtaBand />
     </div>
-  </section>
-
-  <section class="section bg-soft" aria-labelledby="related-title">
-    <div class="container">
-      <div class="section-head">
-        <span class="section-head__tag">ادامهٔ خواندن</span>
-        <h2 class="section-head__title" style="font-size:1.5rem">مقالات مرتبط</h2>
-      </div>
-      <div class="pf-grid">
-        {related.map((p, i) => <PostCard post={p} delay={String(i * 80)} />)}
-      </div>
-    </div>
-  </section>
-
-  <CtaBand />
+  </div>
 </BaseLayout>
 
 <script>
@@ -344,74 +342,62 @@ const meta = {
 </style>
 
 <style>
-  .article-reading-layout {
-    width: min(1140px, 100%);
-    margin-inline: auto;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    align-items: start;
-    gap: clamp(26px, 3.2vw, 44px);
-    direction: rtl;
+  .article-page-layout {
+    display: grid; grid-template-columns: minmax(0,1fr);
+    align-items: stretch; gap: clamp(24px,3vw,40px); direction: ltr;
   }
-  .article-reading-layout--with-toc { grid-template-columns: 236px minmax(0, 1fr); }
-  .article-sidebar { min-width: 0; position: sticky; top: 104px; align-self: start; }
+  .article-page-layout--with-toc { grid-template-columns: 248px minmax(0,1fr); }
+  .article-sidebar { min-width: 0; position: sticky; top: 108px; align-self: start; direction: rtl; }
+  .article-page-main { min-width: 0; direction: rtl; }
+  .article-main-section { padding-top: clamp(24px,3vw,38px); }
+  .article-cover { width: 100%; max-width: 1100px; margin: 0 auto 30px; overflow: hidden; border-radius: var(--r-lg); box-shadow: var(--shadow-card); }
+  .article-cover img { width: 100%; display: block; aspect-ratio: 16/9; object-fit: cover; }
   .article-content { min-width: 0; width: 100%; }
   .article-content .prose { max-width: 100%; width: 100%; margin: 0; line-height: 2.15; }
-  .article-content .prose h2,
-  .article-content .prose h3 { scroll-margin-top: 112px; }
-  .article-toc {
-    max-width: none; margin: 0; padding: 15px 16px;
-    border: 1px solid var(--line); border-radius: 16px;
-    background: #fff; box-shadow: var(--shadow-soft);
-  }
-  .article-toc__toggle {
-    width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    background: none; border: 0; padding: 0; cursor: pointer; text-align: right;
-  }
-  .article-toc__toggle strong { display: block; color: var(--navy); font-size: .98rem; }
+  .article-content .prose h2, .article-content .prose h3 { scroll-margin-top: 112px; }
+  .article-toc { margin: 0; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: #fff; box-shadow: var(--shadow-soft); }
+  .article-toc__toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; background: none; border: 0; padding: 0; cursor: pointer; text-align: right; }
+  .article-toc__toggle strong { color: var(--navy); font-size: .98rem; }
   .article-toc__toggle svg { color: var(--purple); transition: transform .25s var(--ease); flex: none; }
   .article-toc__toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
-  .article-toc__body { display: none; margin-top: 10px; }
+  .article-toc__body { display: none; margin-top: 12px; }
   .article-toc.is-open .article-toc__body { display: block; }
-  .article-toc ul {
-    margin: 0; padding: 0 18px 0 0; display: grid; gap: 7px;
-    line-height: 1.8; max-height: min(64vh, 620px); overflow-y: auto;
-    scrollbar-width: thin; scrollbar-color: var(--lavender-deep) transparent;
-  }
+  .article-toc ul { margin: 0; padding: 0 18px 0 0; display: grid; gap: 8px; line-height: 1.9; list-style: disc; overflow: visible; }
   .article-toc li { color: var(--purple); padding-right: 1px; }
-  .article-toc a { color: #394052; text-decoration: none; font-size: .84rem; display: block; }
+  .article-toc a { color: #394052; text-decoration: none; font-size: .86rem; display: block; line-height: 1.85; }
   .article-toc a:hover { color: var(--purple); }
+  .article-sidebar__cta { margin-top: 16px; padding: 18px 16px; border-radius: 16px; background: linear-gradient(145deg,#f4edff,#fff4f8); border: 1px solid rgba(124,77,255,.12); display: grid; gap: 9px; box-shadow: var(--shadow-soft); direction: rtl; }
+  .article-sidebar__cta-kicker { color: var(--pink-dark); font-size: .76rem; font-weight: 800; }
+  .article-sidebar__cta strong { color: var(--navy); font-size: .94rem; line-height: 1.8; }
+  .article-sidebar__cta p { color: var(--mut); font-size: .82rem; line-height: 1.9; margin: 0; }
+  .article-sidebar__cta .btn { width: 100%; margin-top: 3px; }
+  .article-sidebar__cta-link { color: var(--purple); font-size: .8rem; font-weight: 700; text-align: center; text-decoration: none; }
+  .article-related { margin-top: 0; }
+  .article-related .section-head { max-width: 100%; }
+  .article-related .pf-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .article-faq { margin: 44px 0 0; padding-top: 30px; border-top: 1px solid var(--line); }
   .article-faq__head { margin-bottom: 18px; }
   .article-faq__head > span { display: inline-block; color: var(--pink-dark); font-size: .84rem; font-weight: 800; margin-bottom: 6px; }
-  .article-faq__head h2 { color: var(--navy); font-size: clamp(1.25rem, 2.2vw, 1.65rem); margin: 0 0 7px; }
+  .article-faq__head h2 { color: var(--navy); font-size: clamp(1.25rem,2.2vw,1.65rem); margin: 0 0 7px; }
   .article-faq__head p { color: var(--mut); font-size: .9rem; margin: 0; }
   .article-faq__list { display: grid; gap: 10px; }
-  .article-faq__item { border: 1px solid var(--line); border-radius: 13px; background: #fff; overflow: hidden; transition: border-color .2s, box-shadow .2s; }
+  .article-faq__item { border: 1px solid var(--line); border-radius: 13px; background: #fff; overflow: hidden; transition: border-color .2s,box-shadow .2s; }
   .article-faq__item[open] { border-color: var(--lavender-deep); box-shadow: var(--shadow-soft); }
-  .article-faq__item summary {
-    list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 14px;
-    min-height: 58px; padding: 13px 17px; color: var(--navy); font-weight: 700;
-    font-size: .94rem; cursor: pointer;
-  }
+  .article-faq__item summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 58px; padding: 13px 17px; color: var(--navy); font-weight: 700; font-size: .94rem; cursor: pointer; }
   .article-faq__item summary::-webkit-details-marker { display: none; }
-  .article-faq__item summary svg {
-    flex: none; color: var(--purple); width: 19px; height: 19px;
-    transition: transform .2s ease;
-  }
+  .article-faq__item summary svg { flex: none; color: var(--purple); width: 19px; height: 19px; transition: transform .2s ease; }
   .article-faq__item[open] summary svg { transform: rotate(45deg); }
   .article-faq__answer { padding: 0 17px 15px; color: var(--body); font-size: .92rem; line-height: 2; }
   .article-faq__answer p { margin: 0; }
   @media (max-width: 980px) {
-    .article-reading-layout { gap: 22px; }
-    .article-reading-layout--with-toc { grid-template-columns: 220px minmax(0, 1fr); }
+    .article-page-layout--with-toc { grid-template-columns: minmax(0,1fr); gap: 18px; }
+    .article-sidebar { position: static; }
   }
   @media (max-width: 760px) {
-    .article-reading-layout { grid-template-columns: minmax(0, 1fr); gap: 18px; }
-    .article-sidebar { position: static; }
-    .article-toc { padding: 13px 15px; }
-    .article-toc__body { margin-top: 0; }
-    .article-toc.is-open .article-toc__body { margin-top: 10px; }
-    .article-toc ul { max-height: 48vh; }
+    .article-page-layout { gap: 14px; }
+    .article-toc { padding: 13px 14px; }
+    .article-sidebar__cta { padding: 15px; }
+    .article-related .pf-grid { grid-template-columns: minmax(0,1fr); }
+    .article-main-section { padding-top: 22px; }
   }
 </style>

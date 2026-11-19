@@ -104,7 +104,7 @@ const complementary = [
   <!-- ═══ امکانات مشترک در همهٔ پکیج‌ها ═══ -->
   <section class="section bg-soft" aria-labelledby="common-title">
     <div class="container">
-      <SectionHead tag="استانداردهای کافه دانش" title="استانداردهای کافه دانش در تمام پروژه‌ها" sub="تفاوت پکیج‌ها در نوع امکانات و دامنه اجراست؛ اما کیفیت اجرا، شفافیت همکاری و توجه به تجربه کاربری در تمام پروژه‌ها اهمیت دارد." center />
+      <SectionHead title="استانداردهای کافه دانش در تمام پروژه‌ها" sub="تفاوت پکیج‌ها در نوع امکانات و دامنه اجراست؛ اما کیفیت اجرا، شفافیت همکاری و توجه به تجربه کاربری در تمام پروژه‌ها اهمیت دارد." center />
       <div class="common-grid">
         {commonFeatures.map((c, i) => (
           <div class="card common-item" data-reveal="up" data-delay={String((i % 4) * 70)}>
@@ -122,7 +122,7 @@ const complementary = [
   <!-- ═══ زمان تحویل و هزینه‌های دوره‌ای ═══ -->
   <section class="section" aria-labelledby="timeline-title">
     <div class="container">
-      <SectionHead tag="زمان تحویل و هزینه‌ها" title="زمان تحویل و هزینه‌های پس از راه‌اندازی" sub="برای تصمیم‌گیری دقیق، بهتر است علاوه بر قیمت طراحی سایت، زمان اجرای پروژه و هزینه‌های احتمالی نگهداری آن را نیز از ابتدا بدانید." center />
+      <SectionHead title="زمان تحویل و هزینه‌های پس از راه‌اندازی" sub="برای تصمیم‌گیری دقیق، بهتر است علاوه بر قیمت طراحی سایت، زمان اجرای پروژه و هزینه‌های احتمالی نگهداری آن را نیز از ابتدا بدانید." center />
       <div class="ops-grid">
         <article class="card" style="padding:clamp(22px,3vw,30px);display:grid;gap:14px" data-reveal="up">
           <h3 style="font-size:1.15rem;margin:0">هر پکیج چقدر زمان نیاز دارد؟</h3>
@@ -150,7 +150,7 @@ const complementary = [
   <!-- خدمات مکمل و پس از راه‌اندازی -->
   <section class="section bg-soft">
     <div class="container">
-      <SectionHead tag="خدمات مکمل و پشتیبانی" title="خدمات مکمل برای رشد و نگهداری وب‌سایت" sub="تخصص اصلی کافه دانش طراحی و توسعه وب‌سایت است. پس از راه‌اندازی نیز می‌توانید برای بهبود عملکرد، تولید محتوای هدفمند و نگهداری فنی سایت از خدمات مکمل ما استفاده کنید." center />
+      <SectionHead title="خدمات مکمل برای رشد و نگهداری وب‌سایت" sub="تخصص اصلی کافه دانش طراحی و توسعه وب‌سایت است. پس از راه‌اندازی نیز می‌توانید برای بهبود عملکرد، تولید محتوای هدفمند و نگهداری فنی سایت از خدمات مکمل ما استفاده کنید." center />
       <div class="compl-price-grid">
         {complementary.map((c, i) => (
           <article class="card" style="padding:clamp(22px,3vw,30px);display:flex;flex-direction:column;gap:10px" data-reveal="up" data-delay={String(i * 90)}>
@@ -167,7 +167,7 @@ const complementary = [
   <!-- ═══ سؤالات متداول تعرفه‌ها ═══ -->
   <section class="section" aria-labelledby="pricing-faq-title">
     <div class="container">
-      <SectionHead tag="سؤالات متداول" title="سؤالات متداول درباره قیمت و شرایط طراحی سایت" sub="پیش از انتخاب پکیج، پاسخ پرسش‌های متداول درباره هزینه، امکانات، زمان اجرا و شرایط همکاری را بررسی کنید." center />
+      <SectionHead title="سؤالات متداول درباره قیمت و شرایط طراحی سایت" sub="پیش از انتخاب پکیج، پاسخ پرسش‌های متداول درباره هزینه، امکانات، زمان اجرا و شرایط همکاری را بررسی کنید." center />
       <div class="faq-wrap">
         {pricingFaq.map((f, i) => (
           <div class:list={['faq-item', { 'is-open': i === 0 }]} data-accordion-item data-reveal="up" data-delay={String(i * 60)}>

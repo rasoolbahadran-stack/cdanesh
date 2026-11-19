@@ -200,18 +200,18 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 
 /* منوی مگا خدمات — لنگر به لبه راست قرص هدر (تراز با لوگو)؛ در هر زومی بیرون‌زدگی ندارد */
 .mega {
-  position: absolute; top: calc(100% + 10px); right: 12px; left: auto;
-  width: min(920px, calc(100% - 24px));
+  position: absolute; top: calc(100% + 4px); right: 12px; left: auto;
+  width: min(1020px, calc(100% - 24px));
   background: #fff; border-radius: var(--r-lg);
   box-shadow: var(--shadow-float);
   padding: 26px 28px;
-  display: grid; grid-template-columns: repeat(3, 1fr) 0.9fr; gap: 22px;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(236px, .95fr); gap: 18px;
   opacity: 0; visibility: hidden; pointer-events: none; z-index: 60;
   transform: translateY(6px);
-  transition: opacity 0.28s var(--ease), transform 0.28s var(--ease), visibility 0s linear 0.28s;
+  transition: opacity 0.24s var(--ease), transform 0.24s var(--ease), visibility 0s linear 0.5s;
 }
-/* پل هاور: بالای پنل تا زیر هدر — hover روی آن همان hover روی mega-wrap حساب می‌شود */
-.mega::before { content: ""; position: absolute; top: -14px; right: 0; left: 0; height: 14px; }
+/* پل هاور پیوسته: فاصلهٔ بین هدر و پنل هنگام حرکت موس پوشش داده می‌شود. */
+.mega::before { content: ""; position: absolute; top: -18px; right: 0; left: 0; height: 22px; }
 .mega-wrap { position: static; }
 .mega-wrap:hover .mega,
 .mega-wrap:focus-within .mega,
@@ -231,7 +231,8 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 .mega__list a small { display: block; color: var(--mut); font-weight: 500; font-size: 0.78rem; }
 .mega__aside {
   background: var(--grad-hero); border-radius: var(--r-md);
-  padding: 18px 16px; color: #fff; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;
+  min-width: 0; padding: 22px 20px; color: #fff;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 14px;
 }
 .mega__aside-title { display: block; color: #fff; font-size: 1rem; font-weight: 800; margin: 0; }
 .mega__aside p { font-size: 0.82rem; opacity: 0.92; margin: 0; line-height: 1.8; }
@@ -819,6 +820,109 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
   .footer__legal { justify-content: center; }
 }
  
+/* ── اصلاحات نهایی تجربه کاربری و نمایش در زوم‌های مختلف ───── */
+.hero {
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+.marquee-band--projects {
+  margin-top: -1px;
+  position: relative;
+  z-index: 2;
+  padding-top: 17px;
+}
+.hero__mark {
+  display: inline-block !important;
+  white-space: nowrap !important;
+  max-width: none;
+}
+.mega__aside p { line-height: 1.9; }
+.mega__aside .btn { width: 100%; min-height: 44px; }
+
+/* نوار ارتباط ثابت در سمت چپ صفحه */
+.contact-rail {
+  position: fixed;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 870;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  direction: ltr;
+}
+.contact-rail__link {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(34, 40, 70, .09);
+  border-radius: 15px;
+  background: rgba(255,255,255,.97);
+  color: #667085;
+  box-shadow: 0 8px 24px rgba(25, 20, 60, .12);
+  transition: color .18s ease, background .18s ease, border-color .18s ease, transform .18s ease;
+}
+.contact-rail__link:hover,
+.contact-rail__link:focus-visible {
+  color: #fff;
+  transform: translateX(3px);
+}
+.contact-rail__link svg { width: 21px; height: 21px; fill: currentColor; }
+.contact-rail__link--whatsapp:hover,
+.contact-rail__link--whatsapp:focus-visible { background: #20b768; border-color: #20b768; }
+.contact-rail__link--telegram:hover,
+.contact-rail__link--telegram:focus-visible { background: #229ed9; border-color: #229ed9; }
+.contact-rail__link--phone:hover,
+.contact-rail__link--phone:focus-visible { background: #6950c8; border-color: #6950c8; }
+.contact-rail__link--email:hover,
+.contact-rail__link--email:focus-visible { background: #e45b83; border-color: #e45b83; }
+.contact-rail__label {
+  position: absolute;
+  left: calc(100% + 9px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: #171b43;
+  color: #fff;
+  font-size: .75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .16s ease, transform .16s ease;
+}
+.contact-rail__link:hover .contact-rail__label,
+.contact-rail__link:focus-visible .contact-rail__label {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+@media (max-width: 760px) {
+  .hero__mark {
+    display: inline-block !important;
+    white-space: nowrap !important;
+    font-size: clamp(1.04rem, 4.8vw, 1.55rem);
+    line-height: 1.5;
+    letter-spacing: -.02em;
+  }
+  .contact-rail {
+    left: 10px;
+    top: auto;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    transform: none;
+    flex-direction: row;
+    gap: 7px;
+  }
+  .contact-rail__link { width: 42px; height: 42px; border-radius: 13px; }
+  .to-top { left: auto; right: 14px; }
+}
+@media (max-width: 380px) {
+  .hero__mark { font-size: clamp(.98rem, 4.4vw, 1.1rem); }
+  .contact-rail { left: 8px; bottom: calc(10px + env(safe-area-inset-bottom)); }
+}
+
 /* دکمه بازگشت بالا */
 .to-top {
   position: fixed; bottom: 22px; left: 22px; z-index: 800;
@@ -1040,8 +1144,8 @@ span {
 
   .hero {
     padding-top: 112px;
-    border-bottom-left-radius: 30px;
-    border-bottom-right-radius: 30px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
   }
 
   .hero__grid {

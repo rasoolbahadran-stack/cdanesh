@@ -12,8 +12,6 @@ const posts = await getPosts();
 const preferredCats = ['پوشاک و مد', 'طراحی سایت', 'طراحی UI/UX', 'سئو', 'تولید محتوا', 'هوش مصنوعی', 'کسب‌وکار و رشد آنلاین'];
 const foundCats = [...new Set(posts.map((p) => p.category))];
 const categories = ['همه', ...preferredCats.filter((c) => foundCats.includes(c)), ...foundCats.filter((c) => !preferredCats.includes(c))];
-const fa = (n: number) => new Intl.NumberFormat('fa-IR').format(n);
-
 const meta = {
   title: 'وبلاگ کافه دانش | مقالات طراحی سایت، سئو و تولید محتوا',
   description: 'مقالات تخصصی درباره طراحی سایت، فروشگاه اینترنتی، UI/UX، سئو و تولید محتوا — به زبان ساده و کاربردی.',
@@ -21,10 +19,7 @@ const meta = {
 };
 ---
 <BaseLayout meta={meta} current="/blog" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'مجله', url: '/blog' }])]}>
-  <PageHero
-    title="مجله کافه دانش"
-    sub={`${fa(posts.length)} مقالهٔ تخصصی درباره طراحی سایت، فروشگاه اینترنتی، سئو و تولید محتوا — هر هفته یک مطلب کاربردی تازه.`}
-  />
+  <PageHero title="مجله کافه دانش" />
 
   <section class="section">
     <div class="container">
