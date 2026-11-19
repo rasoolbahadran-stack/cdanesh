@@ -29,9 +29,9 @@ const meta = {
       </div>
 
       <aside class="contact-aside">
-        <div class="card" style="padding:24px">
-          <h3 style="font-size:1.05rem">راه‌های ارتباطی</h3>
-          <ul style="list-style:none;padding:0;margin:14px 0 0;display:grid;gap:14px;font-size:.95rem">
+        <div class="card contact-aside__card">
+          <h3>راه‌های ارتباطی</h3>
+          <ul style="list-style:none;padding:0;margin:12px 0 0;display:grid;gap:10px;font-size:.9rem">
             <li style="display:flex;gap:11px;align-items:flex-start">
               <span class="hero__chip-ico" style="flex:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2" /></svg></span>
               <span><b>تلفن:</b> <a href={`tel:${SITE.phoneIntl}`} dir="ltr">{SITE.phoneFa}</a><br /><small style="color:var(--mut)">شنبه تا پنجشنبه، ۹ تا ۱۸</small></span>
@@ -47,8 +47,8 @@ const meta = {
           </ul>
         </div>
 
-        <div class="card" style="padding:24px">
-          <h3 style="font-size:1.05rem">پس از ارسال پیام، چه اتفاقی می‌افتد؟</h3>
+        <div class="card contact-aside__card">
+          <h3>مراحل پیگیری پیام</h3>
           <ol class="contact-steps">
             <li><b>پاسخ اولیه</b> — حداکثر تا یک روز کاری، با شما تماس می‌گیریم یا ایمیل می‌زنیم.</li>
             <li><b>جلسهٔ نیازسنجی رایگان</b> — کسب‌وکار، مخاطب و هدف پروژه را مرور می‌کنیم (آنلاین یا حضوری).</li>
@@ -56,37 +56,45 @@ const meta = {
           </ol>
         </div>
 
-        <div class="card" style="padding:24px">
-          <h3 style="font-size:1.05rem">برای پاسخ دقیق‌تر، این‌ها را بنویسید</h3>
-          <p style="font-size:.92rem;color:var(--mut);margin:0 0 8px">کسب‌وکارتان چه می‌فروشد، الان سایت دارید یا نه، و از سایت جدید چه نتیجه‌ای می‌خواهید؛ همین سه خط، جلسهٔ اول را هدفمند می‌کند.</p>
-          <p style="font-size:.92rem;margin:0">اگر <b>درخواست پروژه</b> دارید، <a href="/consult">فرم درخواست مشاوره</a> برای نیازسنجی دقیق‌تر طراحی شده است. برآورد قیمت پکیج‌ها را هم می‌توانید در <a href="/pricing">صفحهٔ تعرفه‌ها</a> ببینید.</p>
-        </div>
+        <p class="contact-aside__hint">برای برآورد هزینه، <a href="/pricing">تعرفه‌ها</a> را ببینید یا از <a href="/consult">فرم مشاوره</a> استفاده کنید.</p>
       </aside>
     </div>
   </section>
 </BaseLayout>
 
 <style is:global>
-  .contact-grid { display: grid; grid-template-columns: 1fr; gap: 30px; }
+   .contact-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
   .contact-steps {
-    margin: 14px 0 0; padding: 0; list-style: none;
-    display: grid; gap: 12px; counter-reset: step;
+    margin: 12px 0 0; padding: 0; list-style: none;
+    display: grid; gap: 9px; counter-reset: step;
   }
   .contact-steps li {
-    position: relative; padding-inline-start: 40px;
-    font-size: .92rem; line-height: 1.9; color: var(--body);
+    position: relative; padding-inline-start: 34px;
+    font-size: .84rem; line-height: 1.75; color: var(--body);
   }
   .contact-steps li::before {
     counter-increment: step; content: counter(step, persian);
     position: absolute; inset-inline-start: 0; top: 2px;
-    width: 28px; height: 28px; border-radius: 50%;
+    width: 24px; height: 24px; border-radius: 50%;
     display: grid; place-items: center;
     background: var(--lavender); color: var(--purple);
-    font-weight: 800; font-size: .88rem;
+    font-weight: 800; font-size: .78rem;
   }
   .contact-steps b { color: var(--navy); }
+  .contact-aside { display: grid; gap: 12px; align-content: start; }
+  .contact-aside__card { padding: 18px 20px; }
+  .contact-aside__card h3 { font-size: 1rem; margin-bottom: 0; }
+  .contact-aside__hint { margin: 0; padding: 10px 14px; border-radius: 10px; background: var(--sky); color: var(--mut); font-size: .82rem; line-height: 1.8; }
+  .contact-aside__hint a { font-weight: 800; }
   @media (min-width: 1000px) {
-    .contact-grid { grid-template-columns: minmax(0, 1fr) 320px; align-items: start; }
-    .contact-aside { position: sticky; top: 92px; display: grid; gap: 20px; }
+    .contact-grid { grid-template-columns: minmax(0, 1fr) 300px; align-items: start; gap: 24px; }
+  }
+  @media (max-width: 999px) {
+    .contact-aside { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+    .contact-aside__hint { grid-column: 1 / -1; }
+  }
+  @media (max-width: 640px) {
+    .contact-aside { grid-template-columns: 1fr; }
+    .contact-aside__hint { grid-column: auto; }
   }
 </style>
