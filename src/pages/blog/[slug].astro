@@ -126,10 +126,21 @@ if (isClothingDesignArticle) {
 // تعدادی از مقاله‌های قدیمی به‌صورت سند کامل HTML ذخیره شده‌اند.
  // عنوان و تصویر شاخص در قالب اصلی نمایش داده می‌شوند؛ پوستهٔ واردشده را از بدنه حذف می‌کنیم.
 const articleCoverUrl = String(post.cover || '').trim().replace(/&amp;/g, '&');
-let duplicateCoverRemoved = false;
-const normalizeLegacyArticleHtml = (html: string) => {
-  if (!/<title\b[\s\S]*?<\/title>/i.test(html)) return html;
+const normalizeImageUrl = (value: string) => {
+  const raw = String(value || '').trim().replace(/&amp;/g, '&');
+  try {
+    const url = new URL(raw, Astro.site);
+    return (url.origin + url.pathname).replace(/\/+$/, '').toLowerCase();
+  } catch {
+    return raw.split(/[?#]/)[0].replace(/\/+$/, '').toLowerCase();
+  }
+};
+const sameAsArticleCover = (value: string) =>
+  Boolean(articleCoverUrl && normalizeImageUrl(value) === normalizeImageUrl(articleCoverUrl));
 
+// بعضی مقاله‌های قدیمی، تصویر شاخص را دوباره داخل HTML یا بلوک‌های تصویری ذخیره کرده‌اند.
+// تصویر تکراری از بدنه حذف می‌شود؛ نسخهٔ اصلی فقط در بالای سایدبار نمایش داده خواهد شد.
+const normalizeLegacyArticleHtml = (html: string) => {
   let normalized = html
     .replace(/<!doctype\b[^>]*>/gi, '')
     .replace(/<title\b[^>]*>[\s\S]*?<\/title>\s*/i, '')
@@ -144,22 +155,24 @@ const normalizeLegacyArticleHtml = (html: string) => {
     return plainFaqText(text) === plainFaqText(post.title) ? '' : heading;
   });
 
-  if (articleCoverUrl && !duplicateCoverRemoved) {
-    normalized = normalized.replace(/<figure\b[^>]*>[\s\S]*?<\/figure>/gi, (figure) => {
-      if (duplicateCoverRemoved) return figure;
-      const image = figure.match(/<img\b[^>]*\bsrc=["']([^"']+)["']/i);
-      if (image && image[1].trim().replace(/&amp;/g, '&') === articleCoverUrl) {
-        duplicateCoverRemoved = true;
-        return '';
-      }
-      return figure;
-    });
-  }
+  normalized = normalized.replace(/<figure\b[^>]*>[\s\S]*?<\/figure>/gi, (figure) => {
+    const images = [...figure.matchAll(/<img\b[^>]*>/gi)];
+    return images.some((match) => {
+      const src = match[0].match(/\bsrc\s*=\s*["']([^"']+)["']/i)?.[1] || '';
+      return sameAsArticleCover(src);
+    }) ? '' : figure;
+  });
+  normalized = normalized.replace(/<img\b[^>]*>/gi, (image) => {
+    const src = image.match(/\bsrc\s*=\s*["']([^"']+)["']/i)?.[1] || '';
+    return sameAsArticleCover(src) ? '' : image;
+  });
   return normalized;
 };
-articleBlocks = articleBlocks.map((block) => block.t === 'html'
-  ? { ...block, x: normalizeLegacyArticleHtml(block.x) }
-  : block);
+articleBlocks = articleBlocks
+  .filter((block) => block.t !== 'img' || !sameAsArticleCover(block.src))
+  .map((block) => block.t === 'html'
+    ? { ...block, x: normalizeLegacyArticleHtml(block.x) }
+    : block);
 
 const visibleToc: TocItem[] = [];
 articleBlocks.forEach((block, index) => {
@@ -245,7 +258,12 @@ const meta = {
   <div class:list={['container', 'article-page-layout', { 'article-page-layout--with-toc': sidebarToc.length > 2 }]}>
     {sidebarToc.length > 2 && (
       <aside class="article-sidebar" aria-label="راهنمای مطالعه مقاله">
-        <nav class="article-toc" aria-label="فهرست مطالب" data-toc>
+        {post.cover && (
+          <figure class="article-sidebar__cover">
+            <img src={post.cover} alt={`تصویر شاخص مقاله: ${post.title}`} width="720" height="405" decoding="async" fetchpriority="high" />
+          </figure>
+        )}
+        {sidebarToc.length > 2 && <nav class="article-toc" aria-label="فهرست مطالب" data-toc">
           <button type="button" class="article-toc__toggle" data-toc-toggle aria-expanded="false" aria-controls="article-toc-body">
             <strong>سرفصل‌های مهم</strong>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
@@ -253,7 +271,7 @@ const meta = {
           <div class="article-toc__body" id="article-toc-body">
             <ul>{sidebarToc.map((item) => <li><a href={`#${item.id}`}>{item.text}</a></li>)}</ul>
           </div>
-        </nav>
+        </nav>}
         <div class="article-sidebar__cta">
           <span class="article-sidebar__cta-kicker">مشاوره و نیازسنجی پروژه</span>
           <strong>{isClothingDesignArticle ? 'برای فروش آنلاین پوشاک برنامه دارید؟' : 'برای وب‌سایت کسب‌وکارتان برنامه دارید؟'}</strong>
@@ -261,15 +279,17 @@ const meta = {
           <a href="/consult" class="btn btn--sm">درخواست مشاوره</a>
           {isClothingDesignArticle && <a href="/services/clothing-store" class="article-sidebar__cta-link">جزئیات طراحی سایت پوشاک</a>}
         </div>
+        {related[0] && (
+          <a class="article-sidebar__related" href={`/blog/${related[0].slug}`}>
+            <span>مطالعه بیشتر</span>
+            <strong>{related[0].title}</strong>
+            <small>مشاهده مقاله مرتبط ←</small>
+          </a>
+        )}
       </aside>
     )}
     <div class="article-page-main">
       <section class="section--tight article-main-section">
-        {post.cover && (
-          <figure class="article-cover">
-            <img src={post.cover} alt={`تصویر شاخص مقاله: ${post.title}`} width="1100" height="620" decoding="async" style="width:100%;display:block;aspect-ratio:16/9;object-fit:cover" fetchpriority="high" />
-          </figure>
-        )}
         <div class="article-content">
           <Blocks blocks={articleBlocks} />
           {faqItems.length > 0 && (
@@ -385,11 +405,16 @@ const meta = {
     align-items: stretch; gap: var(--layout-gap); direction: ltr;
   }
   .article-page-layout--with-toc { grid-template-columns: var(--article-sidebar-width) minmax(0,1fr); }
-  .article-sidebar { min-width: 0; position: sticky; top: 108px; align-self: start; direction: rtl; }
+  .article-sidebar { min-width: 0; position: sticky; top: 108px; align-self: start; direction: rtl; display: grid; gap: 14px; }
+  .article-sidebar__cover { margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: #fff; box-shadow: var(--shadow-soft); }
+  .article-sidebar__cover img { display: block; width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+  .article-sidebar__related { display: grid; gap: 8px; padding: 17px 16px; border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(145deg,#fff,#f4f0ff); box-shadow: var(--shadow-soft); text-decoration: none; transition: transform .2s ease, box-shadow .2s ease; }
+  .article-sidebar__related:hover { transform: translateY(-3px); box-shadow: var(--shadow-card); }
+  .article-sidebar__related span { color: var(--pink-dark); font-size: .76rem; font-weight: 800; }
+  .article-sidebar__related strong { color: var(--navy); font-size: .9rem; line-height: 1.9; }
+  .article-sidebar__related small { color: var(--purple); font-size: .78rem; font-weight: 800; }
   .article-page-main { min-width: 0; direction: rtl; }
   .article-main-section { padding-top: clamp(24px,3vw,38px); }
-  .article-cover { width: 100%; max-width: 1100px; margin: 0 auto 30px; overflow: hidden; border-radius: var(--r-lg); box-shadow: var(--shadow-card); }
-  .article-cover img { width: 100%; display: block; aspect-ratio: 16/9; object-fit: cover; }
   .article-content { min-width: 0; width: 100%; }
   .article-content .prose {
     max-width: 100%; width: 100%; margin: 0;
