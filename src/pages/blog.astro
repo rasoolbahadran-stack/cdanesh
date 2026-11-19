@@ -9,7 +9,7 @@ import { jsonLdBreadcrumb } from '../lib/seo';
 
 const posts = await getPosts();
 // ترتیب دسته‌ها با اولویت تخصص اصلی برند (طراحی سایت و UI/UX)
-const preferredCats = ['طراحی سایت', 'طراحی UI/UX', 'سئو', 'تولید محتوا', 'هوش مصنوعی', 'کسب‌وکار و رشد آنلاین'];
+const preferredCats = ['پوشاک و مد', 'طراحی سایت', 'طراحی UI/UX', 'سئو', 'تولید محتوا', 'هوش مصنوعی', 'کسب‌وکار و رشد آنلاین'];
 const foundCats = [...new Set(posts.map((p) => p.category))];
 const categories = ['همه', ...preferredCats.filter((c) => foundCats.includes(c)), ...foundCats.filter((c) => !preferredCats.includes(c))];
 const fa = (n: number) => new Intl.NumberFormat('fa-IR').format(n);

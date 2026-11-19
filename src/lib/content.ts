@@ -207,6 +207,7 @@ export const MEGA_GROUPS = [
     items: [
       { href: '/services/company-website', t: 'طراحی سایت شرکتی', d: 'معرفی برند و خدمات' },
       { href: '/services/ecommerce', t: 'طراحی فروشگاه اینترنتی', d: 'فروش آنلاین محصولات' },
+      { href: '/services/clothing-store', t: 'طراحی سایت پوشاک', d: 'فروشگاه ویژه بوتیک و مزون' },
       { href: '/services/custom-web', t: 'طراحی وب‌سایت اختصاصی', d: 'وب‌اپلیکیشن اختصاصی' },
       { href: '/services/ui-ux', t: 'طراحی رابط کاربری', d: 'UI/UX؛ مسیر کاربری هدفمند' },
     ],
@@ -233,6 +234,7 @@ export const FOOTER_LINKS = {
     { href: '/services', t: 'همه خدمات' },
     { href: '/services/company-website', t: 'طراحی سایت شرکتی' },
     { href: '/services/ecommerce', t: 'طراحی فروشگاه اینترنتی' },
+    { href: '/services/clothing-store', t: 'طراحی سایت پوشاک' },
     { href: '/services/custom-web', t: 'طراحی وب‌سایت اختصاصی' },
     { href: '/services/ui-ux', t: 'طراحی رابط و تجربه کاربری' },
     { href: '/services/seo', t: 'خدمات سئو سایت' },
@@ -312,6 +314,7 @@ export const PRICING = [
 export const SERVICE_CARDS = [
   { slug: 'company-website', cat: 'سایت شرکتی', t: 'طراحی سایت شرکتی', d: 'حضور حرفه‌ای برای معرفی خدمات، پروژه‌ها و تیم شرکت شما.' },
   { slug: 'ecommerce', cat: 'فروشگاه اینترنتی', t: 'طراحی فروشگاه اینترنتی', d: 'تجربه خرید روان، درگاه پرداخت و صفحه محصول تبدیل‌محور.' },
+  { slug: 'clothing-store', cat: 'تخصص صنعت پوشاک', t: 'طراحی سایت پوشاک', d: 'فروشگاه اینترنتی متناسب با بوتیک، مزون، تولیدی و برند لباس؛ با توجه به رنگ، سایز و مدل فروش.' },
   { slug: 'custom-web', cat: 'وب‌سایت اختصاصی', t: 'طراحی وب‌سایت اختصاصی', d: 'وب‌اپلیکیشن و سامانه‌های تحت وب با معماری فنی قابل توسعه.' },
   { slug: 'ui-ux', cat: 'تخصص UI/UX', t: 'طراحی رابط و تجربه کاربری', d: 'مسیر کاربر مهندسی می‌شود تا هر صفحه به هدف خودش برسد.' },
   { slug: 'seo', cat: 'خدمت مکمل', t: 'سئو تکنیکال و محتوایی', d: 'زیرساخت فنی استاندارد و انتخاب هوشمندانه کلمات کلیدی.' },
@@ -325,6 +328,7 @@ export const SERVICE_CARDS = [
 export const SVC_IMG: Record<string, string> = {
   'company-website': '/img/ai/svc-company.webp',
   'ecommerce': '/img/ai/svc-ecommerce.webp',
+  'clothing-store': '/img/ai/svc-ecommerce.webp',
   'custom-web': '/img/ai/svc-webdesign.webp',
   'speed-optimization': '/img/ai/svc-speed.webp',
   'ui-ux': '/img/ai/svc-uiux.webp',
