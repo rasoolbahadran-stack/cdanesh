@@ -268,7 +268,7 @@ const meta = {
             <img src={post.cover} alt={`تصویر شاخص مقاله: ${post.title}`} width="720" height="405" decoding="async" fetchpriority="high" />
           </figure>
         )}
-        {sidebarToc.length > 2 && <nav class="article-toc" aria-label="فهرست مطالب" data-toc">
+        {sidebarToc.length > 0 && <nav class="article-toc" aria-label="فهرست مطالب" data-toc">
           <button type="button" class="article-toc__toggle" data-toc-toggle aria-expanded="false" aria-controls="article-toc-body">
             <strong>سرفصل‌های مهم</strong>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
