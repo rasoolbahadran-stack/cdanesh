@@ -3,6 +3,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PortfolioCard from '../components/PortfolioCard.astro';
 import CtaBand from '../components/CtaBand.astro';
+import PageHero from '../components/PageHero.astro';
 import { getPortfolio } from '../lib/content';
 import { jsonLdBreadcrumb } from '../lib/seo';
 
@@ -20,7 +21,7 @@ const meta = {
 };
 ---
 <BaseLayout meta={meta} current="/portfolio" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'نمونه‌کارها', url: '/portfolio' }])]}>
-  <h1 class="sr-only">نمونه‌کارها</h1>
+  <PageHero title="نمونه‌کارهای طراحی سایت کافه دانش" sub="پروژه‌های واقعی طراحی سایت شرکتی، فروشگاه اینترنتی و سامانه‌های اختصاصی؛ هر نمونه را باز کنید و جزئیات اجرا را ببینید." />
 
   <section class="section">
     <div class="container">

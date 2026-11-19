@@ -1840,3 +1840,68 @@ main {
     font-size: clamp(.98rem, 4.4vw, 1.1rem) !important;
   }
 }
+
+
+/* دکمه مینیمال باز و بسته کردن نوار ارتباطی؛ بدون متن */
+.contact-rail__toggle {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0;
+  gap: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0;
+}
+.contact-rail__toggle svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+@media (max-width: 760px) {
+  .contact-rail__toggle {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    min-height: 32px;
+    padding: 0;
+  }
+}
+
+
+/* هم‌ردیفی دکمه‌های اصلی Hero در دسکتاپ و موبایل */
+.hero__btns {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 12px;
+}
+.hero__btns > .btn {
+  flex: 1 1 0;
+  min-width: 0;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
+}
+@media (max-width: 760px) {
+  .hero__btns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .hero__btns > .btn {
+    width: 100%;
+    min-height: 54px;
+    padding: 10px 7px;
+    white-space: normal;
+    font-size: .78rem;
+    line-height: 1.7;
+  }
+  .hero__btns > .btn svg {
+    width: 15px;
+    height: 15px;
+    flex: none;
+  }
+}
