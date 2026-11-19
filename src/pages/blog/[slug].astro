@@ -47,7 +47,13 @@ const CATEGORY_SERVICES: Record<string, Array<{ href: string; t: string }>> = {
   'هوش مصنوعی': [{ href: '/services/custom-web', t: 'طراحی وب‌سایت اختصاصی' }, { href: '/services/support', t: 'مدیریت و پشتیبانی سایت' }],
   'کسب‌وکار و رشد آنلاین': [{ href: '/services/seo', t: 'خدمات سئو' }, { href: '/services/support', t: 'مدیریت و پشتیبانی سایت' }],
 };
-const categoryServices = CATEGORY_SERVICES[post.category] || CATEGORY_SERVICES['طراحی سایت'];
+const categoryServices = slug === 'clothing-store-website-design'
+  ? [
+      { href: '/services/clothing-store', t: 'طراحی سایت پوشاک برای بوتیک و مزون' },
+      { href: '/services/ecommerce', t: 'طراحی فروشگاه اینترنتی' },
+      { href: '/portfolio', t: 'مشاهده نمونه‌کارهای فروشگاهی' },
+    ]
+  : CATEGORY_SERVICES[post.category] || CATEGORY_SERVICES['طراحی سایت'];
 
 const meta = {
   title: `${post.title} | مجله کافه دانش`,
