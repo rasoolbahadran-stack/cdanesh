@@ -130,9 +130,9 @@ const normalizeImageUrl = (value: string) => {
   const raw = String(value || '').trim().replace(/&amp;/g, '&');
   try {
     const url = new URL(raw, Astro.site);
-    return `${url.origin}${url.pathname}`.replace(/\\/+$/, '').toLowerCase();
+    return (url.origin + url.pathname).replace(/\/+$/, '').toLowerCase();
   } catch {
-    return raw.split(/[?#]/)[0].replace(/\\/+$/, '').toLowerCase();
+    return raw.split(/[?#]/)[0].replace(/\/+$/, '').toLowerCase();
   }
 };
 const sameAsArticleCover = (value: string) =>
@@ -142,28 +142,28 @@ const sameAsArticleCover = (value: string) =>
 // تصویر تکراری از بدنه حذف می‌شود؛ نسخهٔ اصلی فقط در بالای سایدبار نمایش داده خواهد شد.
 const normalizeLegacyArticleHtml = (html: string) => {
   let normalized = html
-    .replace(/<!doctype\\b[^>]*>/gi, '')
-    .replace(/<title\\b[^>]*>[\\s\\S]*?<\\/title>\\s*/i, '')
-    .replace(/<meta\\b[^>]*>/gi, '')
-    .replace(/<link\\b[^>]*>/gi, '')
-    .replace(/<style\\b[^>]*>[\\s\\S]*?<\\/style>/gi, '')
-    .replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/gi, '')
-    .replace(/<\\/?(?:html|head|body)\\b[^>]*>/gi, '');
+    .replace(/<!doctype\b[^>]*>/gi, '')
+    .replace(/<title\b[^>]*>[\s\S]*?<\/title>\s*/i, '')
+    .replace(/<meta\b[^>]*>/gi, '')
+    .replace(/<link\b[^>]*>/gi, '')
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<\/?(?:html|head|body)\b[^>]*>/gi, '');
 
-  normalized = normalized.replace(/<h1\\b[^>]*>([\\s\\S]*?)<\\/h1>/i, (heading) => {
-    const text = heading.replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim();
+  normalized = normalized.replace(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i, (heading) => {
+    const text = heading.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
     return plainFaqText(text) === plainFaqText(post.title) ? '' : heading;
   });
 
-  normalized = normalized.replace(/<figure\\b[^>]*>[\\s\\S]*?<\\/figure>/gi, (figure) => {
-    const images = [...figure.matchAll(/<img\\b[^>]*>/gi)];
+  normalized = normalized.replace(/<figure\b[^>]*>[\s\S]*?<\/figure>/gi, (figure) => {
+    const images = [...figure.matchAll(/<img\b[^>]*>/gi)];
     return images.some((match) => {
-      const src = match[0].match(/\\bsrc\\s*=\\s*["']([^"']+)["']/i)?.[1] || '';
+      const src = match[0].match(/\bsrc\s*=\s*["']([^"']+)["']/i)?.[1] || '';
       return sameAsArticleCover(src);
     }) ? '' : figure;
   });
-  normalized = normalized.replace(/<img\\b[^>]*>/gi, (image) => {
-    const src = image.match(/\\bsrc\\s*=\\s*["']([^"']+)["']/i)?.[1] || '';
+  normalized = normalized.replace(/<img\b[^>]*>/gi, (image) => {
+    const src = image.match(/\bsrc\s*=\s*["']([^"']+)["']/i)?.[1] || '';
     return sameAsArticleCover(src) ? '' : image;
   });
   return normalized;
