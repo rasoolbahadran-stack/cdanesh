@@ -56,7 +56,7 @@
   --reading-font-size: 1.03rem;
   --reading-line-height: 2.05;
 
-  --sp: clamp(64px, 9vw, 110px);
+  --sp: clamp(52px, 6.2vw, 82px);
   --ease: cubic-bezier(0.25, 0.74, 0.22, 0.99);
 }
 
@@ -98,7 +98,7 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 /* ── ۰۳ کمکی ────────────────────────────────────────────────── */
 .container { width: min(var(--container), calc(100% - 40px)); margin-inline: auto; }
 .section { padding-block: var(--sp); }
-.section--tight { padding-block: calc(var(--sp) * 0.62); }
+.section--tight { padding-block: calc(var(--sp) * 0.56); }
 .bg-lavender { background: var(--lavender); }
 .bg-peach { background: var(--peach); }
 .bg-soft { background: #f8f8fe; }
@@ -861,9 +861,21 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
   z-index: 870;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 10px;
   direction: ltr;
 }
+.contact-rail__toggle {
+  min-height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 8px 12px; border: 1px solid rgba(34,40,70,.12); border-radius: 12px;
+  background: #fff; color: var(--navy); box-shadow: 0 8px 24px rgba(25,20,60,.12);
+  font: 700 .76rem/1.4 var(--font); white-space: nowrap;
+}
+.contact-rail__toggle svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.4; transition: transform .2s ease; }
+.contact-rail__toggle[aria-expanded="false"] svg { transform: rotate(180deg); }
+.contact-rail__links { display: flex; flex-direction: column; gap: 10px; overflow: hidden; max-height: 260px; opacity: 1; transition: max-height .25s ease, opacity .2s ease; }
+.contact-rail.is-collapsed .contact-rail__links { max-height: 0; opacity: 0; pointer-events: none; }
+.contact-rail.is-collapsed { gap: 0; }
 .contact-rail__link {
   position: relative;
   display: grid;
@@ -939,7 +951,7 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
     flex-direction: column;
     gap: 7px;
   }
-  .contact-rail__link { width: 40px; height: 40px; border-radius: 13px; }
+  .contact-rail__link { width: 40px; height: 40px; border-radius: 13px; }\n  .contact-rail__toggle { min-height: 36px; padding: 7px 9px; font-size: .7rem; }\n  .contact-rail__links { gap: 7px; }
   .to-top { left: auto; right: 14px; }
 }
 @media (max-width: 380px) {
