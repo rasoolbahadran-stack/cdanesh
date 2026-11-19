@@ -1,295 +1,298 @@
 [
- {
-  "slug": "bazarino-astro",
-  "title": "بازارینو",
-  "excerpt": "فروشگاه آنلاین چنددسته‌ای با ساختار مناسب مرور محصولات و خرید اینترنتی.",
-  "description": "فروشگاه آنلاین چنددسته‌ای با ساختار مناسب مرور محصولات و خرید اینترنتی.",
-  "category": "سایت شرکتی",
-  "tags": [
-   "طراحی اختصاصی"
-  ],
-  "cover": "/img/pf/bazarino-astro.webp",
-  "preview": "/img/pf/bazarino-astro.webp",
-  "liveUrl": "https://bazarino.cdanesh.ir",
-  "status": "published",
-  "sort": 1
- },
- {
-  "slug": "maison-mehr-astro",
-  "title": "مزون مهر",
-  "excerpt": "وب‌سایت مزون با هویت بصری ظریف و نمایش مجموعه پوشاک و محصولات منتخب.",
-  "description": "وب‌سایت مزون با هویت بصری ظریف و نمایش مجموعه پوشاک و محصولات منتخب.",
-  "category": "سایت شرکتی",
-  "tags": [
-   "طراحی اختصاصی"
-  ],
-  "cover": "/img/pf/maison-mehr-astro.webp",
-  "preview": "/img/pf/maison-mehr-astro.webp",
-  "liveUrl": "https://maisonmehr.cdanesh.ir",
-  "status": "published",
-  "sort": 2
- },
- {
-  "slug": "shoes-store",
-  "title": "فروشگاه کفش",
-  "excerpt": "فروشگاه تخصصی کفش با تمرکز بر نمایش مدل‌ها، تصاویر محصول و انتخاب آسان.",
-  "description": "فروشگاه تخصصی کفش با تمرکز بر نمایش مدل‌ها، تصاویر محصول و انتخاب آسان.",
-  "category": "فروشگاه اینترنتی",
-  "tags": [
-   "طراحی اختصاصی"
-  ],
-  "cover": "/img/pf/shoes-store.webp",
-  "preview": "/img/pf/shoes-store.webp",
-  "liveUrl": "https://shoes.cdanesh.ir",
-  "status": "published",
-  "sort": 3
- },
- {
-  "slug": "smart-gadget-store",
-  "title": "فروشگاه اسمارت گجت",
-  "excerpt": "فروشگاه آنلاین لوازم و گجت‌های هوشمند با تمرکز بر معرفی محصول و تجربه خرید.",
-  "description": "فروشگاه آنلاین لوازم و گجت‌های هوشمند با تمرکز بر معرفی محصول و تجربه خرید.",
-  "category": "فروشگاه اینترنتی",
-  "tags": [
-   "طراحی اختصاصی"
-  ],
-  "cover": "/img/pf/smart-gadget-store.webp",
-  "preview": "/img/pf/smart-gadget-store.webp",
-  "liveUrl": "https://gadget.cdanesh.ir",
-  "status": "published",
-  "sort": 4
- },
- {
-  "slug": "mahpoosh-store",
-  "title": "فروشگاه ماه‌پوش",
-  "excerpt": "فروشگاه پوشاک با چیدمان محصولات، دسته‌بندی و طراحی مناسب برندهای مد.",
-  "description": "فروشگاه پوشاک با چیدمان محصولات، دسته‌بندی و طراحی مناسب برندهای مد.",
-  "category": "فروشگاه اینترنتی",
-  "tags": [
-   "طراحی اختصاصی"
-  ],
-  "cover": "/img/pf/mahpoosh-store.webp",
-  "preview": "/img/pf/mahpoosh-store.webp",
-  "liveUrl": "https://mahpoosh.cdanesh.ir",
-  "status": "published",
-  "sort": 5
- },
- {
-  "slug": "simba-beauty-store",
-  "title": "فروشگاه سیمبا بیوتی",
-  "excerpt": "فروشگاه محصولات زیبایی و مراقبت شخصی با ارائه تصویری محصولات و مسیر خرید ساده.",
-  "description": "فروشگاه محصولات زیبایی و مراقبت شخصی با ارائه تصویری محصولات و مسیر خرید ساده.",
-  "category": "فروشگاه اینترنتی",
-  "tags": [
-   "طراحی اختصاصی"
-  ],
-  "cover": "/img/pf/simba-beauty-store.webp",
-  "preview": "/img/pf/simba-beauty-store.webp",
-  "liveUrl": "https://simbeauty.cdanesh.ir",
-  "status": "published",
-  "sort": 6
- },
- {
-  "slug": "smarto-astro",
-  "title": "فروشگاه اسمارتو",
-  "excerpt": "فروشگاه اینترنتی با طراحی مدرن، نمایش دسته‌بندی‌ها و کارت‌های محصول.",
-  "description": "فروشگاه اینترنتی با طراحی مدرن، نمایش دسته‌بندی‌ها و کارت‌های محصول.",
-  "category": "فروشگاه اینترنتی",
-  "tags": [
-   "طراحی اختصاصی"
-  ],
-  "cover": "/img/pf/smarto-astro.webp",
-  "preview": "/img/pf/smarto-astro.webp",
-  "liveUrl": "https://smarto.cdanesh.ir",
-  "status": "published",
-  "sort": 7
- },
- {
-  "slug": "karino-job-portal-astro",
-  "title": "پورتال کاریابی کارینو",
-  "excerpt": "سامانه کاریابی و معرفی فرصت‌های شغلی با ساختار مناسب جست‌وجو و مرور موقعیت‌ها.",
-  "description": "سامانه کاریابی و معرفی فرصت‌های شغلی با ساختار مناسب جست‌وجو و مرور موقعیت‌ها.",
-  "category": "پورتال و سامانه",
-  "tags": [
-   "طراحی اختصاصی"
-  ],
-  "cover": "/img/pf/karino-job-portal-astro.webp",
-  "preview": "/img/pf/karino-job-portal-astro.webp",
-  "liveUrl": "https://karino.cdanesh.ir",
-  "status": "published",
-  "sort": 8
- },
- {
-  "slug": "novinroshd-agency",
-  "title": "آژانس نوین‌رشد",
-  "excerpt": "وب‌سایت آژانس خدمات دیجیتال برای معرفی تخصص‌ها، خدمات و مسیر همکاری.",
-  "description": "وب‌سایت آژانس خدمات دیجیتال برای معرفی تخصص‌ها، خدمات و مسیر همکاری.",
-  "category": "سایت شرکتی",
-  "tags": [
-   "طراحی اختصاصی"
-  ],
-  "cover": "/img/pf/novinroshd-agency.webp",
-  "preview": "/img/pf/novinroshd-agency.webp",
-  "liveUrl": "https://novinroshd.cdanesh.ir",
-  "status": "published",
-  "sort": 9
- },
- {
-  "slug": "cdanesh-galaxy-source",
-  "title": "دموی طراحی سایت کهکشانی",
-  "excerpt": "وب‌سایت نمایشی با طراحی فضایی، جلوه‌های بصری مدرن و معرفی خدمات دیجیتال.",
-  "description": "وب‌سایت نمایشی با طراحی فضایی، جلوه‌های بصری مدرن و معرفی خدمات دیجیتال.",
-  "category": "سایت شرکتی",
-  "tags": [
-   "طراحی اختصاصی"
-  ],
-  "cover": "/img/pf/cdanesh-galaxy-source.webp",
-  "preview": "/img/pf/cdanesh-galaxy-source.webp",
-  "liveUrl": "https://galaxy.cdanesh.ir",
-  "status": "published",
-  "sort": 10
- },
- {
-  "slug": "rosa-shop",
-  "title": "نمونه‌کار فروشگاه اینترنتی رُزا | کافه دانش",
-  "excerpt": "نمونه مفهومی فروشگاه اینترنتی رُزا: تجربه خرید روان، فیلتر دسته‌بندی و صفحه محصول بهینه‌شده برای تبدیل.",
-  "description": "فروش محصولات تازه با تجربه خرید روان، فیلتر دسته‌بندی و صفحه محصول بهینه‌شده برای تبدیل.",
-  "category": "فروشگاه اینترنتی",
-  "tags": [
-   "فروشگاهی"
-  ],
-  "cover": "/img/pf-rosa.webp",
-  "preview": "/img/pf-rosa.webp",
-  "liveUrl": "",
-  "status": "conceptual",
-  "sort": 12
- },
- {
-  "slug": "arman-holding",
-  "title": "نمونه‌کار وب‌سایت هلدینگ آرمان | کافه دانش",
-  "excerpt": "نمونه مفهومی وب‌سایت هلدینگ آرمان: معرفی شرکت‌های تابعه، پروژه‌های اجراشده و روند همکاری برای مخاطب B2B.",
-  "description": "معرفی سه شرکت تابعه، پروژه‌های اجراشده و روند همکاری؛ ساختار منظم برای مخاطب B2B.",
-  "category": "سایت شرکتی",
-  "tags": [
-   "شرکتی"
-  ],
-  "cover": "/img/pf-arman.webp",
-  "preview": "/img/pf-arman.webp",
-  "liveUrl": "",
-  "status": "conceptual",
-  "sort": 13
- },
- {
-  "slug": "negar-assistant",
-  "title": "نمونه‌کار دستیار هوشمند نِگار | کافه دانش",
-  "excerpt": "نمونه مفهومی صفحه فرود دستیار هوشمند نِگار: نمایش زنده گفتگو، پلن‌های قیمت‌گذاری و ثبت‌نام آزمایشی.",
-  "description": "صفحه فرود محصول با نمایش زنده گفتگو، پلن‌های قیمت‌گذاری و ثبت‌نام آزمایشی؛ برای محصول SaaS.",
-  "category": "پورتال و سامانه",
-  "tags": [
-   "هوش مصنوعی"
-  ],
-  "cover": "/img/pf-negar.webp",
-  "preview": "/img/pf-negar.webp",
-  "liveUrl": "",
-  "status": "conceptual",
-  "sort": 14
- },
- {
-  "slug": "delicia-astro-showcase",
-  "title": "نوشانه — فروشگاه تغذیه سالم",
-  "excerpt": "فروشگاه آنلاین تغذیه سالم با ساختار محصول‌محور و تجربه خرید ساده و سریع.",
-  "description": "فروشگاه آنلاین نوشانه برای فروش محصولات تغذیه سالم ساخته شده است؛ ساختار دسته‌بندی دقیق، صفحه محصول استاندارد و تجربه خرید روان روی موبایل و دسکتاپ.",
-  "category": "فروشگاه اینترنتی",
-  "tags": [
-   "فروشگاه اینترنتی",
-   "Astro"
-  ],
-  "cover": "/img/pf/delicia-astro-showcase.webp",
-  "preview": "/img/pf/delicia-astro-showcase.webp",
-  "liveUrl": "https://delicia.cdanesh.ir",
-  "status": "published",
-  "sort": 11
- },
- {
-  "slug": "nexora-astro-showcase",
-  "title": "نکسورا — پلتفرم مدیریت کسب‌وکار",
-  "excerpt": "پلتفرم مدیریت هوشمند کسب‌وکار با رابط کاربری تمیز و ساختار داده‌محور.",
-  "description": "نکسورا پلتفرمی برای مدیریت هوشمند کسب‌وکار است؛ وب‌اپلیکیشنی با معماری قابل توسعه، پنل مدیریت و تمرکز بر سرعت و تجربه کاربری.",
-  "category": "وب‌سایت اختصاصی",
-  "tags": [
-   "وب‌اپلیکیشن",
-   "Astro"
-  ],
-  "cover": "/img/pf/nexora-astro-showcase.webp",
-  "preview": "/img/pf/nexora-astro-showcase.webp",
-  "liveUrl": "https://nexora.cdanesh.ir",
-  "status": "published",
-  "sort": 12
- },
- {
-  "slug": "elora-dental-astro",
-  "title": "کلینیک دندان‌پزشکی الورا",
-  "excerpt": "وب‌سایت معرفی کلینیک دندان‌پزشکی با تمرکز بر اعتمادسازی و تجربه کاربری آرام.",
-  "description": "وب‌سایت کلینیک دندان‌پزشکی الورا برای معرفی خدمات و ایجاد اعتماد مخاطب طراحی شده است؛ چیدمان آرام، فرم تماس ساده و نمایش درست در موبایل.",
-  "category": "سایت شرکتی",
-  "tags": [
-   "سایت شرکتی",
-   "Astro",
-   "UI/UX"
-  ],
-  "cover": "/img/pf/elora-dental-astro.webp",
-  "preview": "/img/pf/elora-dental-astro.webp",
-  "liveUrl": "https://elora.cdanesh.ir",
-  "status": "published",
-  "sort": 13
- },
- {
-  "slug": "nexa-web-studio-demo",
-  "title": "نکسا — استودیو طراحی وب",
-  "excerpt": "وب‌سایت معرفی استودیو طراحی وب با چیدمان مدرن و بخش نمونه‌کار.",
-  "description": "نکسا وب‌سایت معرفی یک استودیو طراحی وب است؛ ساختار سرمقاله‌ای، نمایش نمونه‌کارها و لحن برند منسجم در همه صفحات.",
-  "category": "سایت شرکتی",
-  "tags": [
-   "سایت شرکتی",
-   "Astro"
-  ],
-  "cover": "/img/pf/nexa-web-studio-demo.webp",
-  "preview": "/img/pf/nexa-web-studio-demo.webp",
-  "liveUrl": "https://nexa.cdanesh.ir",
-  "status": "published",
-  "sort": 14
- },
- {
-  "slug": "simba-colorful-astro-source",
-  "title": "رنگ‌نما — استودیو خلاق",
-  "excerpt": "وب‌سایت استودیو خلاق با هویت بصری رنگی و چیدمان سرمقاله‌ای.",
-  "description": "رنگ‌نما وب‌سایت یک استودیو خلاق طراحی و توسعه وب است؛ هویت بصری رنگی، تایپوگرافی مشخص و چیدمان مدرن محتوا.",
-  "category": "سایت شرکتی",
-  "tags": [
-   "طراحی اختصاصی",
-   "Astro"
-  ],
-  "cover": "/img/pf/simba-colorful-astro-source.webp",
-  "preview": "/img/pf/simba-colorful-astro-source.webp",
-  "liveUrl": "https://simba.cdanesh.ir",
-  "status": "published",
-  "sort": 15
- },
- {
-  "slug": "cdanesh-studio",
-  "title": "کافه‌دانش — نسخه استودیو",
-  "excerpt": "نسخه استودیویی وب‌سایت کافه‌دانش با تمرکز بر طراحی اختصاصی و سئوی محلی بوشهر.",
-  "description": "نسخه استودیویی وب‌سایت کافه‌دانش؛ طراحی اختصاصی با معماری محتوایی دقیق، ساختار سئوی محلی برای جست‌وجوهای بوشهر و تجربه کاربری ساده و سریع.",
-  "category": "سایت شرکتی",
-  "tags": [
-   "طراحی اختصاصی",
-   "Astro",
-   "سئو محلی"
-  ],
-  "cover": "/img/pf/cdanesh-studio.webp",
-  "preview": "/img/pf/cdanesh-studio.webp",
-  "liveUrl": "https://studio.cdanesh.ir",
-  "status": "published",
-  "sort": 16
- }
+  {
+    "slug": "bazarino-astro",
+    "title": "بازارینو",
+    "excerpt": "فروشگاه آنلاین چنددسته‌ای با ساختار مناسب مرور محصولات و خرید اینترنتی.",
+    "description": "فروشگاه آنلاین چنددسته‌ای با ساختار مناسب مرور محصولات و خرید اینترنتی.",
+    "category": "سایت شرکتی",
+    "tags": [
+      "طراحی اختصاصی"
+    ],
+    "cover": "/img/pf/bazarino-astro.webp",
+    "preview": "/img/pf/bazarino-astro.webp",
+    "liveUrl": "https://bazarino.cdanesh.ir",
+    "status": "published",
+    "sort": 1
+  },
+  {
+    "slug": "maison-mehr-astro",
+    "title": "مزون مهر",
+    "excerpt": "وب‌سایت مزون با هویت بصری ظریف و نمایش مجموعه پوشاک و محصولات منتخب.",
+    "description": "وب‌سایت مزون با هویت بصری ظریف و نمایش مجموعه پوشاک و محصولات منتخب.",
+    "category": "پوشاک و مد",
+    "tags": [
+      "طراحی اختصاصی",
+      "طراحی سایت مزون",
+      "پوشاک و مد",
+      "فروش آنلاین لباس"
+    ],
+    "cover": "/img/pf/maison-mehr-astro.webp",
+    "preview": "/img/pf/maison-mehr-astro.webp",
+    "liveUrl": "https://maisonmehr.cdanesh.ir",
+    "status": "published",
+    "sort": 2
+  },
+  {
+    "slug": "shoes-store",
+    "title": "فروشگاه کفش",
+    "excerpt": "فروشگاه تخصصی کفش با تمرکز بر نمایش مدل‌ها، تصاویر محصول و انتخاب آسان.",
+    "description": "فروشگاه تخصصی کفش با تمرکز بر نمایش مدل‌ها، تصاویر محصول و انتخاب آسان.",
+    "category": "فروشگاه اینترنتی",
+    "tags": [
+      "طراحی اختصاصی"
+    ],
+    "cover": "/img/pf/shoes-store.webp",
+    "preview": "/img/pf/shoes-store.webp",
+    "liveUrl": "https://shoes.cdanesh.ir",
+    "status": "published",
+    "sort": 3
+  },
+  {
+    "slug": "smart-gadget-store",
+    "title": "فروشگاه اسمارت گجت",
+    "excerpt": "فروشگاه آنلاین لوازم و گجت‌های هوشمند با تمرکز بر معرفی محصول و تجربه خرید.",
+    "description": "فروشگاه آنلاین لوازم و گجت‌های هوشمند با تمرکز بر معرفی محصول و تجربه خرید.",
+    "category": "فروشگاه اینترنتی",
+    "tags": [
+      "طراحی اختصاصی"
+    ],
+    "cover": "/img/pf/smart-gadget-store.webp",
+    "preview": "/img/pf/smart-gadget-store.webp",
+    "liveUrl": "https://gadget.cdanesh.ir",
+    "status": "published",
+    "sort": 4
+  },
+  {
+    "slug": "mahpoosh-store",
+    "title": "فروشگاه ماه‌پوش",
+    "excerpt": "فروشگاه پوشاک با چیدمان محصولات، دسته‌بندی و طراحی مناسب برندهای مد.",
+    "description": "فروشگاه پوشاک با چیدمان محصولات، دسته‌بندی و طراحی مناسب برندهای مد.",
+    "category": "فروشگاه اینترنتی",
+    "tags": [
+      "طراحی اختصاصی"
+    ],
+    "cover": "/img/pf/mahpoosh-store.webp",
+    "preview": "/img/pf/mahpoosh-store.webp",
+    "liveUrl": "https://mahpoosh.cdanesh.ir",
+    "status": "published",
+    "sort": 5
+  },
+  {
+    "slug": "simba-beauty-store",
+    "title": "فروشگاه سیمبا بیوتی",
+    "excerpt": "فروشگاه محصولات زیبایی و مراقبت شخصی با ارائه تصویری محصولات و مسیر خرید ساده.",
+    "description": "فروشگاه محصولات زیبایی و مراقبت شخصی با ارائه تصویری محصولات و مسیر خرید ساده.",
+    "category": "فروشگاه اینترنتی",
+    "tags": [
+      "طراحی اختصاصی"
+    ],
+    "cover": "/img/pf/simba-beauty-store.webp",
+    "preview": "/img/pf/simba-beauty-store.webp",
+    "liveUrl": "https://simbeauty.cdanesh.ir",
+    "status": "published",
+    "sort": 6
+  },
+  {
+    "slug": "smarto-astro",
+    "title": "فروشگاه اسمارتو",
+    "excerpt": "فروشگاه اینترنتی با طراحی مدرن، نمایش دسته‌بندی‌ها و کارت‌های محصول.",
+    "description": "فروشگاه اینترنتی با طراحی مدرن، نمایش دسته‌بندی‌ها و کارت‌های محصول.",
+    "category": "فروشگاه اینترنتی",
+    "tags": [
+      "طراحی اختصاصی"
+    ],
+    "cover": "/img/pf/smarto-astro.webp",
+    "preview": "/img/pf/smarto-astro.webp",
+    "liveUrl": "https://smarto.cdanesh.ir",
+    "status": "published",
+    "sort": 7
+  },
+  {
+    "slug": "karino-job-portal-astro",
+    "title": "پورتال کاریابی کارینو",
+    "excerpt": "سامانه کاریابی و معرفی فرصت‌های شغلی با ساختار مناسب جست‌وجو و مرور موقعیت‌ها.",
+    "description": "سامانه کاریابی و معرفی فرصت‌های شغلی با ساختار مناسب جست‌وجو و مرور موقعیت‌ها.",
+    "category": "پورتال و سامانه",
+    "tags": [
+      "طراحی اختصاصی"
+    ],
+    "cover": "/img/pf/karino-job-portal-astro.webp",
+    "preview": "/img/pf/karino-job-portal-astro.webp",
+    "liveUrl": "https://karino.cdanesh.ir",
+    "status": "published",
+    "sort": 8
+  },
+  {
+    "slug": "novinroshd-agency",
+    "title": "آژانس نوین‌رشد",
+    "excerpt": "وب‌سایت آژانس خدمات دیجیتال برای معرفی تخصص‌ها، خدمات و مسیر همکاری.",
+    "description": "وب‌سایت آژانس خدمات دیجیتال برای معرفی تخصص‌ها، خدمات و مسیر همکاری.",
+    "category": "سایت شرکتی",
+    "tags": [
+      "طراحی اختصاصی"
+    ],
+    "cover": "/img/pf/novinroshd-agency.webp",
+    "preview": "/img/pf/novinroshd-agency.webp",
+    "liveUrl": "https://novinroshd.cdanesh.ir",
+    "status": "published",
+    "sort": 9
+  },
+  {
+    "slug": "cdanesh-galaxy-source",
+    "title": "دموی طراحی سایت کهکشانی",
+    "excerpt": "وب‌سایت نمایشی با طراحی فضایی، جلوه‌های بصری مدرن و معرفی خدمات دیجیتال.",
+    "description": "وب‌سایت نمایشی با طراحی فضایی، جلوه‌های بصری مدرن و معرفی خدمات دیجیتال.",
+    "category": "سایت شرکتی",
+    "tags": [
+      "طراحی اختصاصی"
+    ],
+    "cover": "/img/pf/cdanesh-galaxy-source.webp",
+    "preview": "/img/pf/cdanesh-galaxy-source.webp",
+    "liveUrl": "https://galaxy.cdanesh.ir",
+    "status": "published",
+    "sort": 10
+  },
+  {
+    "slug": "rosa-shop",
+    "title": "نمونه‌کار فروشگاه اینترنتی رُزا | کافه دانش",
+    "excerpt": "نمونه مفهومی فروشگاه اینترنتی رُزا: تجربه خرید روان، فیلتر دسته‌بندی و صفحه محصول بهینه‌شده برای تبدیل.",
+    "description": "فروش محصولات تازه با تجربه خرید روان، فیلتر دسته‌بندی و صفحه محصول بهینه‌شده برای تبدیل.",
+    "category": "فروشگاه اینترنتی",
+    "tags": [
+      "فروشگاهی"
+    ],
+    "cover": "/img/pf-rosa.webp",
+    "preview": "/img/pf-rosa.webp",
+    "liveUrl": "",
+    "status": "conceptual",
+    "sort": 12
+  },
+  {
+    "slug": "arman-holding",
+    "title": "نمونه‌کار وب‌سایت هلدینگ آرمان | کافه دانش",
+    "excerpt": "نمونه مفهومی وب‌سایت هلدینگ آرمان: معرفی شرکت‌های تابعه، پروژه‌های اجراشده و روند همکاری برای مخاطب B2B.",
+    "description": "معرفی سه شرکت تابعه، پروژه‌های اجراشده و روند همکاری؛ ساختار منظم برای مخاطب B2B.",
+    "category": "سایت شرکتی",
+    "tags": [
+      "شرکتی"
+    ],
+    "cover": "/img/pf-arman.webp",
+    "preview": "/img/pf-arman.webp",
+    "liveUrl": "",
+    "status": "conceptual",
+    "sort": 13
+  },
+  {
+    "slug": "negar-assistant",
+    "title": "نمونه‌کار دستیار هوشمند نِگار | کافه دانش",
+    "excerpt": "نمونه مفهومی صفحه فرود دستیار هوشمند نِگار: نمایش زنده گفتگو، پلن‌های قیمت‌گذاری و ثبت‌نام آزمایشی.",
+    "description": "صفحه فرود محصول با نمایش زنده گفتگو، پلن‌های قیمت‌گذاری و ثبت‌نام آزمایشی؛ برای محصول SaaS.",
+    "category": "پورتال و سامانه",
+    "tags": [
+      "هوش مصنوعی"
+    ],
+    "cover": "/img/pf-negar.webp",
+    "preview": "/img/pf-negar.webp",
+    "liveUrl": "",
+    "status": "conceptual",
+    "sort": 14
+  },
+  {
+    "slug": "delicia-astro-showcase",
+    "title": "نوشانه — فروشگاه تغذیه سالم",
+    "excerpt": "فروشگاه آنلاین تغذیه سالم با ساختار محصول‌محور و تجربه خرید ساده و سریع.",
+    "description": "فروشگاه آنلاین نوشانه برای فروش محصولات تغذیه سالم ساخته شده است؛ ساختار دسته‌بندی دقیق، صفحه محصول استاندارد و تجربه خرید روان روی موبایل و دسکتاپ.",
+    "category": "فروشگاه اینترنتی",
+    "tags": [
+      "فروشگاه اینترنتی",
+      "Astro"
+    ],
+    "cover": "/img/pf/delicia-astro-showcase.webp",
+    "preview": "/img/pf/delicia-astro-showcase.webp",
+    "liveUrl": "https://delicia.cdanesh.ir",
+    "status": "published",
+    "sort": 11
+  },
+  {
+    "slug": "nexora-astro-showcase",
+    "title": "نکسورا — پلتفرم مدیریت کسب‌وکار",
+    "excerpt": "پلتفرم مدیریت هوشمند کسب‌وکار با رابط کاربری تمیز و ساختار داده‌محور.",
+    "description": "نکسورا پلتفرمی برای مدیریت هوشمند کسب‌وکار است؛ وب‌اپلیکیشنی با معماری قابل توسعه، پنل مدیریت و تمرکز بر سرعت و تجربه کاربری.",
+    "category": "وب‌سایت اختصاصی",
+    "tags": [
+      "وب‌اپلیکیشن",
+      "Astro"
+    ],
+    "cover": "/img/pf/nexora-astro-showcase.webp",
+    "preview": "/img/pf/nexora-astro-showcase.webp",
+    "liveUrl": "https://nexora.cdanesh.ir",
+    "status": "published",
+    "sort": 12
+  },
+  {
+    "slug": "elora-dental-astro",
+    "title": "کلینیک دندان‌پزشکی الورا",
+    "excerpt": "وب‌سایت معرفی کلینیک دندان‌پزشکی با تمرکز بر اعتمادسازی و تجربه کاربری آرام.",
+    "description": "وب‌سایت کلینیک دندان‌پزشکی الورا برای معرفی خدمات و ایجاد اعتماد مخاطب طراحی شده است؛ چیدمان آرام، فرم تماس ساده و نمایش درست در موبایل.",
+    "category": "سایت شرکتی",
+    "tags": [
+      "سایت شرکتی",
+      "Astro",
+      "UI/UX"
+    ],
+    "cover": "/img/pf/elora-dental-astro.webp",
+    "preview": "/img/pf/elora-dental-astro.webp",
+    "liveUrl": "https://elora.cdanesh.ir",
+    "status": "published",
+    "sort": 13
+  },
+  {
+    "slug": "nexa-web-studio-demo",
+    "title": "نکسا — استودیو طراحی وب",
+    "excerpt": "وب‌سایت معرفی استودیو طراحی وب با چیدمان مدرن و بخش نمونه‌کار.",
+    "description": "نکسا وب‌سایت معرفی یک استودیو طراحی وب است؛ ساختار سرمقاله‌ای، نمایش نمونه‌کارها و لحن برند منسجم در همه صفحات.",
+    "category": "سایت شرکتی",
+    "tags": [
+      "سایت شرکتی",
+      "Astro"
+    ],
+    "cover": "/img/pf/nexa-web-studio-demo.webp",
+    "preview": "/img/pf/nexa-web-studio-demo.webp",
+    "liveUrl": "https://nexa.cdanesh.ir",
+    "status": "published",
+    "sort": 14
+  },
+  {
+    "slug": "simba-colorful-astro-source",
+    "title": "رنگ‌نما — استودیو خلاق",
+    "excerpt": "وب‌سایت استودیو خلاق با هویت بصری رنگی و چیدمان سرمقاله‌ای.",
+    "description": "رنگ‌نما وب‌سایت یک استودیو خلاق طراحی و توسعه وب است؛ هویت بصری رنگی، تایپوگرافی مشخص و چیدمان مدرن محتوا.",
+    "category": "سایت شرکتی",
+    "tags": [
+      "طراحی اختصاصی",
+      "Astro"
+    ],
+    "cover": "/img/pf/simba-colorful-astro-source.webp",
+    "preview": "/img/pf/simba-colorful-astro-source.webp",
+    "liveUrl": "https://simba.cdanesh.ir",
+    "status": "published",
+    "sort": 15
+  },
+  {
+    "slug": "cdanesh-studio",
+    "title": "کافه‌دانش — نسخه استودیو",
+    "excerpt": "نسخه استودیویی وب‌سایت کافه‌دانش با تمرکز بر طراحی اختصاصی و سئوی محلی بوشهر.",
+    "description": "نسخه استودیویی وب‌سایت کافه‌دانش؛ طراحی اختصاصی با معماری محتوایی دقیق، ساختار سئوی محلی برای جست‌وجوهای بوشهر و تجربه کاربری ساده و سریع.",
+    "category": "سایت شرکتی",
+    "tags": [
+      "طراحی اختصاصی",
+      "Astro",
+      "سئو محلی"
+    ],
+    "cover": "/img/pf/cdanesh-studio.webp",
+    "preview": "/img/pf/cdanesh-studio.webp",
+    "liveUrl": "https://studio.cdanesh.ir",
+    "status": "published",
+    "sort": 16
+  }
 ]
