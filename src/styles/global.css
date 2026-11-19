@@ -692,6 +692,15 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 
 /* ── ۱۱ صفحه مقاله و متنی ───────────────────────────────────── */
 .prose { max-width: 780px; margin-inline: auto; font-size: 1.03rem; }
+/* مقالهٔ دو ستونه: ستون متن باید از محدودیت پیش‌فرض prose مستقل باشد */
+.article-content .prose {
+  width: 100%;
+  max-width: 100%;
+  margin-inline: 0;
+  line-height: 2.15;
+}
+.article-content .prose h2,
+.article-content .prose h3 { scroll-margin-top: 112px; }
 .prose h2 { font-size: clamp(1.3rem, 2.6vw, 1.7rem); margin-top: 1.8em; position: relative; padding-right: 18px; }
 .prose h2::before {
   content: ""; position: absolute; right: 0; top: 0.34em; bottom: 0.34em;
