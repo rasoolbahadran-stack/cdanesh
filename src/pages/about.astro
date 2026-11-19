@@ -130,16 +130,17 @@ const meta = {
   .about-core .prose,.about-location .prose { max-width: 100%; width: 100%; margin-inline: 0; }
   .about-location {
     width: 100%; display: grid;
-    grid-template-columns: minmax(0,.92fr) minmax(0,1.08fr);
-    align-items: center; gap: clamp(26px,4vw,52px); direction: ltr;
+    grid-template-columns: minmax(0,.78fr) minmax(0,1.22fr);
+    align-items: center; gap: clamp(28px,3vw,44px); direction: ltr;
   }
   .about-location__media {
-    min-width: 0; min-height: 350px; margin: 0; overflow: hidden;
-    border-radius: 22px; background: var(--lavender); box-shadow: var(--shadow-card);
+    min-width: 0; width: 100%; height: clamp(280px,25vw,360px);
+    margin: 0; overflow: hidden; border-radius: 22px;
+    background: var(--lavender); box-shadow: var(--shadow-card);
   }
   .about-location__media img {
-    display: block; width: 100%; height: 100%; min-height: 350px;
-    object-fit: cover; object-position: center;
+    display: block; width: 100%; height: 100%; min-height: 0;
+    object-fit: cover; object-position: center 44%;
   }
   .about-location__copy { min-width: 0; direction: rtl; }
   .about-location .prose h2 { margin-top: 0; }
@@ -157,6 +158,7 @@ const meta = {
   @media (max-width: 920px) {
     .about-duo, .about-location { grid-template-columns: minmax(0,1fr); }
     .about-intro__points { grid-template-columns: minmax(0,1fr); }
-    .about-location__media, .about-location__media img { min-height: 280px; }
+    .about-location__media { height: clamp(220px,56vw,280px); }
+    .about-location__media img { min-height: 0; }
   }
 </style>
