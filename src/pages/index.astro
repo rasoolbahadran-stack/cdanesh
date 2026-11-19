@@ -43,8 +43,8 @@ const HOME_SERVICES = [
 const marqueeItems = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
 
 const meta = {
-  title: 'کافه دانش | طراحی سایت شرکتی، فروشگاهی و اختصاصی',
-  description: 'کافه دانش خدمات طراحی و توسعه وب‌سایت شرکتی، فروشگاه اینترنتی و سامانه‌های اختصاصی را با تمرکز بر تجربه کاربری، عملکرد فنی و سئوی اصولی ارائه می‌کند. برای بررسی نیاز کسب‌وکار و دریافت مشاوره اقدام کنید.',
+  title: 'کافه دانش | طراحی سایت شرکتی، فروشگاهی و تخصصی پوشاک',
+  description: 'کافه دانش طراحی سایت شرکتی، فروشگاه اینترنتی و سامانه‌های اختصاصی را انجام می‌دهد؛ با تمرکز ویژه بر فروشگاه آنلاین لباس برای بوتیک‌ها، مزون‌ها و برندهای پوشاک. برای بررسی نیاز کسب‌وکار و دریافت مشاوره اقدام کنید.',
   path: '/',
 };
 ---
@@ -236,6 +236,28 @@ const meta = {
     <WaveSep fill="#ffffff" variant="a" />
   </section>
 
+
+  <!-- ═══════════ تخصص بازار: فروشگاه اینترنتی پوشاک ═══════════ -->
+  <section class="section apparel-focus" aria-labelledby="apparel-focus-title">
+    <div class="container">
+      <div class="apparel-focus__intro">
+        <span class="apparel-focus__eyebrow">تخصص ویژه کافه دانش</span>
+        <h2 id="apparel-focus-title">طراحی فروشگاه اینترنتی ویژه بوتیک‌ها، مزون‌ها و برندهای پوشاک</h2>
+        <p>اگر فروش لباس شما به مراجعه حضوری یا سفارش‌های پراکنده در دایرکت محدود شده، یک فروشگاه اینترنتی متناسب با فرایند واقعی کسب‌وکارتان می‌تواند مسیر معرفی محصول، ثبت سفارش و فروش به مشتریان سراسر ایران را منظم‌تر کند.</p>
+      </div>
+      <div class="apparel-focus__grid">
+        <article class="apparel-focus__card"><span aria-hidden="true">01</span><h3>مدیریت دقیق محصولات</h3><p>دسته‌بندی لباس‌ها، تعریف رنگ و سایز، نمایش موجودی و صفحه محصولی که به سؤال‌های خریدار پاسخ بدهد.</p></article>
+        <article class="apparel-focus__card"><span aria-hidden="true">02</span><h3>مسیر سفارش روشن</h3><p>سبد خرید، پرداخت آنلاین و پیگیری سفارش؛ به‌جای گم‌شدن درخواست‌ها میان پیام‌های پراکنده.</p></article>
+        <article class="apparel-focus__card"><span aria-hidden="true">03</span><h3>متناسب با مدل کسب‌وکار</h3><p>راهکار متناسب با خرده‌فروشی، فروش عمده، مزون و سفارش دوخت؛ امکانات بر اساس نیازسنجی تعیین می‌شوند.</p></article>
+      </div>
+      <div class="apparel-focus__actions">
+        <a class="btn btn--lg" href="/services/clothing-store">جزئیات طراحی سایت پوشاک</a>
+        <a class="btn btn--outline btn--lg" href="/consult?service=clothing-store">مشاوره راه‌اندازی فروشگاه لباس</a>
+      </div>
+      <p class="apparel-focus__note">این تخصص در کنار خدمات عمومی طراحی سایت شرکتی، فروشگاهی و سامانه‌های اختصاصی ارائه می‌شود.</p>
+    </div>
+  </section>
+
   <!-- ═══════════ نمونه‌کارهای منتخب ═══════════ -->
   <section class="section" aria-labelledby="pf-title">
     <div class="container">
@@ -388,4 +410,20 @@ const meta = {
   .compl-strip a:hover { color: var(--pink); border-color: var(--pink); }
     .home-four-row { grid-template-columns: inherit !important; }
   }
+</style>
+
+<style>
+  .apparel-focus { background: #fbf9ff; }
+  .apparel-focus__intro { max-width: 820px; margin: 0 auto 30px; text-align: center; }
+  .apparel-focus__eyebrow { display: inline-flex; padding: 6px 13px; border-radius: 999px; background: #eee7ff; color: #6041a5; font-size: .84rem; font-weight: 800; margin-bottom: 12px; }
+  .apparel-focus__intro h2 { margin: 0 0 12px; color: var(--navy); font-size: clamp(1.45rem, 3vw, 2.1rem); line-height: 1.7; }
+  .apparel-focus__intro p { margin: 0; color: var(--mut); line-height: 2.1; }
+  .apparel-focus__grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; }
+  .apparel-focus__card { min-width: 0; padding: 23px; border: 1px solid var(--line); border-radius: var(--r-lg); background: #fff; box-shadow: var(--shadow-soft); }
+  .apparel-focus__card > span { display: inline-grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--lavender); color: var(--purple); font-weight: 800; font-size: .8rem; }
+  .apparel-focus__card h3 { margin: 14px 0 8px; color: var(--navy); font-size: 1.05rem; }
+  .apparel-focus__card p { margin: 0; color: var(--mut); line-height: 2; font-size: .92rem; }
+  .apparel-focus__actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+  .apparel-focus__note { margin: 16px 0 0; text-align: center; color: var(--mut); font-size: .84rem; }
+  @media(max-width:760px) { .apparel-focus__grid { grid-template-columns: 1fr; } .apparel-focus__card { padding: 19px; } .apparel-focus__actions { display: grid; grid-template-columns: 1fr; } .apparel-focus__actions .btn { width: 100%; } .apparel-focus__intro { text-align: right; } }
 </style>
