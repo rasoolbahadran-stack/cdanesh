@@ -138,8 +138,9 @@ const normalizeImageUrl = (value: string) => {
 const sameAsArticleCover = (value: string) =>
   Boolean(articleCoverUrl && normalizeImageUrl(value) === normalizeImageUrl(articleCoverUrl));
 
-// بعضی مقاله‌های قدیمی، تصویر شاخص را دوباره داخل HTML یا بلوک‌های تصویری ذخیره کرده‌اند.
-// تصویر تکراری از بدنه حذف می‌شود؛ نسخهٔ اصلی فقط در بالای سایدبار نمایش داده خواهد شد.
+// اگر تصویر شاخص در محتوای مقاله هم استفاده شده باشد، فقط تکرارهای اضافه حذف می‌شوند.
+// یک نسخه از تصویر در متن مقاله حفظ می‌شود و نسخهٔ شاخص نیز بالای سایدبار قرار می‌گیرد.
+let keptCoverImageInBody = false;
 const normalizeLegacyArticleHtml = (html: string) => {
   let normalized = html
     .replace(/<!doctype\b[^>]*>/gi, '')
@@ -155,24 +156,28 @@ const normalizeLegacyArticleHtml = (html: string) => {
     return plainFaqText(text) === plainFaqText(post.title) ? '' : heading;
   });
 
-  normalized = normalized.replace(/<figure\b[^>]*>[\s\S]*?<\/figure>/gi, (figure) => {
-    const images = [...figure.matchAll(/<img\b[^>]*>/gi)];
-    return images.some((match) => {
-      const src = match[0].match(/\bsrc\s*=\s*["']([^"']+)["']/i)?.[1] || '';
-      return sameAsArticleCover(src);
-    }) ? '' : figure;
-  });
   normalized = normalized.replace(/<img\b[^>]*>/gi, (image) => {
     const src = image.match(/\bsrc\s*=\s*["']([^"']+)["']/i)?.[1] || '';
-    return sameAsArticleCover(src) ? '' : image;
+    if (!sameAsArticleCover(src)) return image;
+    if (!keptCoverImageInBody) {
+      keptCoverImageInBody = true;
+      return image;
+    }
+    return '';
   });
   return normalized;
 };
-articleBlocks = articleBlocks
-  .filter((block) => block.t !== 'img' || !sameAsArticleCover(block.src))
-  .map((block) => block.t === 'html'
-    ? { ...block, x: normalizeLegacyArticleHtml(block.x) }
-    : block);
+articleBlocks = articleBlocks.map((block) => {
+  if (block.t === 'html') return { ...block, x: normalizeLegacyArticleHtml(block.x) };
+  if (block.t === 'img' && sameAsArticleCover(block.src)) {
+    if (!keptCoverImageInBody) {
+      keptCoverImageInBody = true;
+      return block;
+    }
+    return null;
+  }
+  return block;
+}).filter(Boolean) as typeof articleBlocks;
 
 const visibleToc: TocItem[] = [];
 articleBlocks.forEach((block, index) => {
@@ -255,8 +260,8 @@ const meta = {
     </div>
   </section>
 
-  <div class:list={['container', 'article-page-layout', { 'article-page-layout--with-toc': sidebarToc.length > 2 }]}>
-    {sidebarToc.length > 2 && (
+  <div class:list={['container', 'article-page-layout', { 'article-page-layout--with-toc': Boolean(post.cover) || sidebarToc.length > 2 }]}>
+    {(post.cover || sidebarToc.length > 2) && (
       <aside class="article-sidebar" aria-label="راهنمای مطالعه مقاله">
         {post.cover && (
           <figure class="article-sidebar__cover">
@@ -279,13 +284,6 @@ const meta = {
           <a href="/consult" class="btn btn--sm">درخواست مشاوره</a>
           {isClothingDesignArticle && <a href="/services/clothing-store" class="article-sidebar__cta-link">جزئیات طراحی سایت پوشاک</a>}
         </div>
-        {related[0] && (
-          <a class="article-sidebar__related" href={`/blog/${related[0].slug}`}>
-            <span>مطالعه بیشتر</span>
-            <strong>{related[0].title}</strong>
-            <small>مشاهده مقاله مرتبط ←</small>
-          </a>
-        )}
       </aside>
     )}
     <div class="article-page-main">
@@ -331,18 +329,21 @@ const meta = {
           </nav>
         </div>
       </section>
-      <section class="section bg-soft article-related" aria-labelledby="related-title">
-        <div class="section-head">
-          <span class="section-head__tag">ادامهٔ خواندن</span>
-          <h2 class="section-head__title" style="font-size:1.5rem">مقالات مرتبط</h2>
-        </div>
-        <div class="pf-grid">
-          {related.map((item, i) => <PostCard post={item} delay={String(i * 80)} />)}
-        </div>
-      </section>
-      <CtaBand />
     </div>
   </div>
+  <section class="section bg-soft article-related" aria-labelledby="related-title">
+    <div class="container">
+      <div class="section-head">
+        <span class="section-head__tag">ادامهٔ خواندن</span>
+        <h2 class="section-head__title" style="font-size:1.5rem">مقالات مرتبط با این موضوع</h2>
+        <p>برای تکمیل اطلاعات، این سه راهنمای کاربردی را هم بخوانید.</p>
+      </div>
+      <div class="pf-grid">
+        {related.map((item, i) => <PostCard post={item} delay={String(i * 80)} />)}
+      </div>
+    </div>
+  </section>
+  <CtaBand />
 </BaseLayout>
 
 <script>
@@ -441,7 +442,7 @@ const meta = {
   .article-sidebar__cta-link { color: var(--purple); font-size: .8rem; font-weight: 700; text-align: center; text-decoration: none; }
   .article-related { margin-top: 0; }
   .article-related .section-head { max-width: 100%; }
-  .article-related .pf-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .article-related .pf-grid { grid-template-columns: repeat(3,minmax(0,1fr)); align-items: stretch; gap: 22px; }
   .article-faq { margin: 44px 0 0; padding-top: 30px; border-top: 1px solid var(--line); }
   .article-faq__head { margin-bottom: 18px; }
   .article-faq__head > span { display: inline-block; color: var(--pink-dark); font-size: .84rem; font-weight: 800; margin-bottom: 6px; }
@@ -456,6 +457,9 @@ const meta = {
   .article-faq__item[open] summary svg { transform: rotate(45deg); }
   .article-faq__answer { padding: 0 17px 15px; color: var(--body); font-size: .92rem; line-height: 2; }
   .article-faq__answer p { margin: 0; }
+  @media (max-width: 1100px) {
+    .article-related .pf-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  }
   @media (max-width: 980px) {
     .article-page-layout--with-toc { grid-template-columns: minmax(0,1fr); gap: 18px; }
     .article-sidebar { position: static; }
@@ -464,7 +468,7 @@ const meta = {
     .article-page-layout { gap: 14px; }
     .article-toc { padding: 13px 14px; }
     .article-sidebar__cta { padding: 15px; }
-    .article-related .pf-grid { grid-template-columns: minmax(0,1fr); }
+    .article-related .pf-grid { grid-template-columns: minmax(0,1fr); gap: 16px; }
     .article-main-section { padding-top: 22px; }
   }
 </style>
