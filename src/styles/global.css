@@ -698,7 +698,8 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
   width: 5px; border-radius: 99px; background: var(--grad-btn-hover);
 }
 .prose h3 { font-size: 1.15rem; margin-top: 1.5em; }
-.prose a { text-decoration: underline; text-underline-offset: 4px; }
+.prose a { text-decoration: none; text-underline-offset: auto; }
+.prose a:hover { text-decoration: none; }
 .prose img { border-radius: var(--r-md); box-shadow: var(--shadow-soft); margin-block: 1.2em; }
 .prose ul li, .prose ol li { margin-bottom: 0.5em; }
 .prose ul li::marker { color: var(--pink); }
