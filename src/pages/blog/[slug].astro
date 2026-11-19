@@ -260,8 +260,8 @@ const meta = {
     </div>
   </section>
 
-  <div class:list={['container', 'article-page-layout', { 'article-page-layout--with-toc': Boolean(post.cover) || sidebarToc.length > 2 }]}>
-    {(post.cover || sidebarToc.length > 2) && (
+  <div class:list={['container', 'article-page-layout', { 'article-page-layout--with-toc': Boolean(post.cover) || sidebarToc.length > 0 }]}>
+    {(post.cover || sidebarToc.length > 0) && (
       <aside class="article-sidebar" aria-label="راهنمای مطالعه مقاله">
         {post.cover && (
           <figure class="article-sidebar__cover">
