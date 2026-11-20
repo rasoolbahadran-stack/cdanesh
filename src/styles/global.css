@@ -1863,6 +1863,7 @@ main {
   height: 16px;
 }
 @media (max-width: 760px) {
+  .contact-rail { top: 25%; bottom: auto; transform: translateY(0); }
   .contact-rail__toggle {
     width: 32px;
     min-width: 32px;
