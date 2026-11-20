@@ -1406,13 +1406,6 @@ span {
     line-height: 2;
   }
 
-  .prose table {
-    display: block;
-    max-width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
   .to-top {
     width: 42px;
     height: 42px;
@@ -1925,7 +1918,16 @@ main {
 }
 .article-page-hero h1 { font-size: clamp(1.45rem, 3vw, 2.25rem) !important; line-height: 1.65; }
 .article-page-hero .post-hero-meta { margin-top: 6px; font-size: .82rem; }
-.prose table { display:block; width:max-content; min-width:100%; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.prose .article-table-shell{width:100%;max-width:100%;min-width:0;margin-block:1.2em;direction:ltr}
+.prose .article-table-viewport{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-inline:contain;scrollbar-width:none;direction:ltr}
+.prose .article-table-viewport::-webkit-scrollbar{display:none}
+.prose .article-table-viewport table{display:table;width:max-content;min-width:100%;max-width:none;margin:0;border-collapse:collapse;table-layout:auto;direction:rtl;overflow:visible}
+.prose .article-table-viewport th,.prose .article-table-viewport td{min-width:180px;max-width:360px;white-space:normal;word-break:normal;overflow-wrap:normal;vertical-align:top}
+.prose .article-table-rail{height:7px;margin:9px 2px 0;background:#e9e5f2;border-radius:99px;position:relative;touch-action:pan-y;opacity:.0;transition:opacity .2s ease}
+.prose .article-table-rail.is-scrollable{opacity:1}
+.prose .article-table-thumb{position:absolute;left:0;top:0;height:7px;min-width:18px;background:#8a64df;border-radius:99px;cursor:grab;touch-action:none}
+.prose .article-table-thumb:active{cursor:grabbing}
+@media(max-width:760px){.prose .article-table-viewport th,.prose .article-table-viewport td{min-width:190px;max-width:300px;padding:9px 11px}.prose .article-table-rail,.prose .article-table-thumb{height:6px}}
 @media (max-width: 760px) {
   .footer__top { grid-template-columns:1fr 1fr; gap:12px 14px; padding-block:16px 12px; }
   .footer__about { grid-column:1/-1; }
