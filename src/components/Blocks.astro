@@ -24,12 +24,10 @@ const fa = (s: string | number) => new Intl.NumberFormat('fa-IR').format(Number(
     if (b.t === 'table') {
       const [head, ...rows] = b.rows;
       return (
-        <div style="overflow-x:auto">
-          <table>
-            {head && <thead><tr>{head.map((c) => <th set:html={c} />)}</tr></thead>}
-            <tbody>{rows.map((r) => <tr>{r.map((c) => <td set:html={c} />)}</tr>)}</tbody>
-          </table>
-        </div>
+        <table>
+          {head && <thead><tr>{head.map((c) => <th set:html={c} />)}</tr></thead>}
+          <tbody>{rows.map((r) => <tr>{r.map((c) => <td set:html={c} />)}</tr>)}</tbody>
+        </table>
       );
     }
     if (b.t === 'img') {
@@ -43,3 +41,65 @@ const fa = (s: string | number) => new Intl.NumberFormat('fa-IR').format(Number(
     return null;
   })}
 </div>
+
+
+<script>
+  // همهٔ جدول‌های بلوکی و جدول‌های داخل HTML قدیمی، اسکرول افقی یکسان و ریل قابل‌کشیدن داشته باشند.
+  const articleTables = document.querySelectorAll< HTMLTableElement >('.prose table');
+  articleTables.forEach((table) => {
+    if (table.closest('.article-table-shell')) return;
+    const shell = document.createElement('div');
+    shell.className = 'article-table-shell';
+    const viewport = document.createElement('div');
+    viewport.className = 'article-table-viewport';
+    const rail = document.createElement('div');
+    rail.className = 'article-table-rail';
+    rail.setAttribute('aria-hidden', 'true');
+    const thumb = document.createElement('span');
+    thumb.className = 'article-table-thumb';
+    rail.append(thumb);
+    const parent = table.parentElement;
+    if (!parent) return;
+    parent.insertBefore(shell, table);
+    shell.append(viewport, rail);
+    viewport.append(table);
+
+    const updateRail = () => {
+      const maxScroll = viewport.scrollWidth - viewport.clientWidth;
+      const ratio = viewport.clientWidth / Math.max(viewport.scrollWidth, 1);
+      const thumbWidth = Math.max(18, ratio * rail.clientWidth);
+      const maxThumb = Math.max(0, rail.clientWidth - thumbWidth);
+      const progress = maxScroll > 0 ? viewport.scrollLeft / maxScroll : 0;
+      thumb.style.width = thumbWidth + 'px';
+      thumb.style.transform = 'translateX(' + (maxThumb * progress) + 'px)';
+      rail.classList.toggle('is-scrollable', maxScroll > 2);
+    };
+    viewport.addEventListener('scroll', updateRail, { passive: true });
+    if (typeof ResizeObserver !== 'undefined') {
+      const observer = new ResizeObserver(updateRail);
+      observer.observe(viewport);
+      observer.observe(table);
+    }
+    let dragStartX = 0;
+    let dragStartScroll = 0;
+    thumb.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      dragStartX = event.clientX;
+      dragStartScroll = viewport.scrollLeft;
+      thumb.setPointerCapture(event.pointerId);
+    });
+    thumb.addEventListener('pointermove', (event) => {
+      if (!thumb.hasPointerCapture(event.pointerId)) return;
+      const maxScroll = viewport.scrollWidth - viewport.clientWidth;
+      const thumbTravel = Math.max(1, rail.clientWidth - thumb.offsetWidth);
+      viewport.scrollLeft = dragStartScroll + ((event.clientX - dragStartX) / thumbTravel) * maxScroll;
+    });
+    rail.addEventListener('pointerdown', (event) => {
+      if (event.target === thumb) return;
+      const bounds = rail.getBoundingClientRect();
+      const target = Math.max(0, Math.min(1, (event.clientX - bounds.left) / bounds.width));
+      viewport.scrollLeft = target * (viewport.scrollWidth - viewport.clientWidth);
+    });
+    requestAnimationFrame(updateRail);
+  });
+</script>
