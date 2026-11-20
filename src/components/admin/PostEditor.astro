@@ -12,9 +12,10 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
     .post-editor-page{max-width:1500px;margin:auto;padding:24px}
     .post-editor-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
     .post-editor-head h1{margin:0;font-size:22px}
-    .post-form-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;grid-template-areas:"fields sidebar" "editor editor";gap:16px;align-items:start}
+    .post-form-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;grid-template-areas:"fields sidebar" "editor editor";gap:16px;align-items:stretch}
     .post-form-grid>div:first-child{grid-area:fields;min-width:0;display:grid;gap:14px}
-    .post-form-grid>aside{grid-area:sidebar;grid-column:auto;grid-row:auto}
+    .post-form-grid>aside{grid-area:sidebar;grid-column:auto;grid-row:auto;display:grid;grid-template-rows:1fr 1fr;gap:14px;align-content:stretch;min-height:100%}
+    .post-form-grid>aside>.post-panel{height:100%;min-height:0}
     .post-form-grid>.post-editor-fullwidth{grid-area:editor;grid-column:1/-1;width:100%;min-width:0;justify-self:stretch}
     .post-panel{min-width:0;width:100%;background:#fff;border:1px solid var(--a-line);border-radius:16px;padding:18px;box-shadow:0 8px 22px rgba(30,35,80,.04);min-width:0}
     .post-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
