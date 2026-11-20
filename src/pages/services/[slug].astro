@@ -1,0 +1,70 @@
+---
+// صفحه اختصاصی هر خدمت — محتوای کامل از سایت فعلی
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import Blocks from '../../components/Blocks.astro';
+import { getServices, getService, SERVICE_CARDS, svcImg } from '../../lib/content';
+import { jsonLdService, jsonLdBreadcrumb } from '../../lib/seo';
+
+export const prerender = false;
+
+const slug = Astro.params.slug ?? '';
+const svc = getService(slug);
+if (!svc) return Astro.redirect('/404');
+
+const others = SERVICE_CARDS.filter((s) => s.slug !== slug).slice(0, 3);
+const cover = svcImg(svc.slug);
+
+const meta = {
+  title: svc.seoTitle ?? `${svc.title} | خدمات کافه دانش`,
+  description: svc.excerpt,
+  path: `/services/${svc.slug}`,
+  image: cover,
+};
+---
+<BaseLayout meta={meta} current="/services" extraJsonLd={[jsonLdService(svc.title, svc.excerpt, meta.path), jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'خدمات', url: '/services' }, { name: svc.title, url: meta.path }])]}>
+  <PageHero
+    title={svc.title}
+    sub={svc.excerpt}
+  />
+
+  <section class="section">
+    <div class="container svc-detail">
+      <Blocks blocks={svc.blocks} />
+      <aside class="svc-aside">
+        <img src={cover} alt={`${svc.title} — کافه دانش`} width="480" height="360" loading="lazy" decoding="async" style="border-radius:var(--r-lg);box-shadow:var(--shadow-card);width:100%;aspect-ratio:4/3;object-fit:cover" />
+        <div class="card" style="padding:22px">
+          <h3 style="font-size:1.05rem">این خدمت را سفارش می‌دهید؟</h3>
+          <p style="font-size:.92rem;color:var(--mut)">جلسه اول مشاوره رایگان است؛ دامنه کار و برآورد شفاف پیش از هر تعهدی اعلام می‌شود.</p>
+          <a href={`/consult?service=${svc.slug}`} class="btn" style="width:100%;justify-content:center">درخواست مشاوره رایگان</a>
+        </div>
+        <div class="card" style="padding:22px">
+          <h3 style="font-size:1.05rem">سایر خدمات</h3>
+          <ul style="list-style:none;padding:0;margin:0;display:grid;gap:8px;font-size:.94rem">
+            {others.map((o) => (
+              <li>
+                <a href={`/services/${o.slug}`} style="display:flex;align-items:center;gap:8px">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--pink)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" /></svg>
+                  {o.t}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <CtaBand />
+</BaseLayout>
+
+<style is:global>
+  .svc-detail { display: grid; grid-template-columns: 1fr; gap: 34px; }
+  @media (min-width: 1000px) {
+    /* سایدبار باریک‌تر (استاندارد) + چسبیده تا انتهای محتوا و پیش از فوتر */
+    .svc-detail { grid-template-columns: minmax(0, 1fr) 320px; }
+    .svc-aside { position: sticky; top: 92px; display: grid; gap: 18px; align-self: start; max-height: calc(100vh - 116px); overflow-y: auto; scrollbar-width: none; }
+    .svc-aside::-webkit-scrollbar { display: none; }
+  }
+</style>

@@ -1,0 +1,7 @@
+---
+export const prerender = false;
+import PostEditor from '../../../components/admin/PostEditor.astro';
+import { q } from '../../../lib/db';
+const categories = await q<{id:number;name:string}>('SELECT id,name FROM categories ORDER BY sort_order,name').catch(()=>[]);
+---
+<PostEditor isNew={true} categories={categories} />

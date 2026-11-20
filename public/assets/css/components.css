@@ -1,0 +1,820 @@
+/* ═══ کامپوننت‌های بخش‌ها — کافه‌دانش استاتیک ═══ */
+
+/* ─── هیرو ────────────────────────────────────────────────── */
+.hero { padding: calc(14px + var(--header-h) + 54px) 0 80px; position: relative; overflow: hidden; }
+.hero::before {
+  content: ''; position: absolute; top: -220px; inset-inline-start: 50%; transform: translateX(50%);
+  width: 1100px; height: 620px; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(24, 92, 62, .14), transparent 70%);
+}
+.hero-grid { display: grid; grid-template-columns: 1.02fr .98fr; gap: 56px; align-items: center; }
+
+.hero-copy .h1 { margin-bottom: 22px; }
+.hero-copy .lead { margin-bottom: 32px; max-width: 520px; }
+.hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 26px; }
+.hero-pills { display: flex; gap: 9px; flex-wrap: wrap; }
+
+/* ترکیب بصری هیرو — قاب مرورگر + مدار */
+.hero-visual { position: relative; min-height: 470px; }
+.hero-orbit {
+  position: absolute; inset: -8% -6%;
+  background:
+    radial-gradient(circle at 50% 46%, rgba(227, 185, 83, .1), transparent 34%),
+    repeating-radial-gradient(circle at 50% 46%, transparent 0 118px, rgba(255, 255, 255, .05) 118px 119px);
+  border-radius: 50%; filter: blur(.4px);
+  mask-image: radial-gradient(circle at 50% 46%, #000 30%, transparent 72%);
+  -webkit-mask-image: radial-gradient(circle at 50% 46%, #000 30%, transparent 72%);
+}
+.orbit-tag {
+  position: absolute; z-index: 3;
+  padding: 6px 14px; border-radius: 999px;
+  background: rgba(12, 12, 16, .85); border: 1px solid var(--line-2);
+  font-size: 12px; color: var(--mut); backdrop-filter: blur(8px);
+  white-space: nowrap;
+}
+.orbit-tag b { color: var(--gold); font-weight: 600; }
+
+.hero-frame {
+  position: relative; z-index: 2;
+  margin-top: 46px; margin-inline-start: auto; width: min(520px, 100%);
+  background: linear-gradient(160deg, #121218, #0b0b0f);
+  border: 1px solid var(--line-2); border-radius: 20px;
+  box-shadow: 0 50px 110px -40px rgba(0, 0, 0, .9), 0 0 0 1px rgba(227, 185, 83, .06);
+  overflow: hidden;
+}
+.frame-bar { display: flex; align-items: center; gap: 10px; padding: 11px 15px; border-bottom: 1px solid var(--line); background: rgba(255, 255, 255, .03); }
+.frame-bar i { width: 10px; height: 10px; border-radius: 50%; background: #2e2e36; }
+.frame-bar i:nth-child(1) { background: #e5766a; } .frame-bar i:nth-child(2) { background: #e8c268; } .frame-bar i:nth-child(3) { background: #58c98b; }
+.frame-url { flex: 1; direction: ltr; text-align: left; font-size: 11px; color: var(--faint); background: rgba(255, 255, 255, .05); border-radius: 8px; padding: 4px 12px; }
+
+/* ماکاپ مینی-سایت داخل قاب هیرو (کاملاً CSS) */
+.mock { padding: 18px 20px 22px; display: grid; gap: 12px; }
+.mock-nav { display: flex; align-items: center; gap: 8px; }
+.mock-logo { width: 26px; height: 26px; border-radius: 8px; background: linear-gradient(140deg, var(--gold-2), var(--gold)); }
+.mock-nav i { height: 7px; border-radius: 99px; background: #23232b; }
+.mock-nav i:nth-child(2) { width: 44px; } .mock-nav i:nth-child(3) { width: 34px; } .mock-nav i:nth-child(4) { width: 40px; }
+.mock-nav .mock-btn { margin-inline-start: auto; width: 64px; height: 22px; border-radius: 99px; background: linear-gradient(135deg, var(--gold-2), var(--gold)); }
+.mock-hero { border-radius: 14px; padding: 20px 18px 22px; background: linear-gradient(150deg, rgba(227, 185, 83, .14), rgba(255, 255, 255, .03) 60%); border: 1px solid var(--line); }
+.mock-hero b { display: block; width: 62%; height: 13px; border-radius: 99px; background: linear-gradient(90deg, var(--gold-2), rgba(227, 185, 83, .35)); margin-bottom: 9px; }
+.mock-hero b:last-of-type { width: 42%; height: 13px; background: rgba(255, 255, 255, .22); }
+.mock-hero i { display: block; width: 86%; height: 6px; border-radius: 99px; background: #1d1d24; margin-bottom: 6px; }
+.mock-hero .mock-cta { display: inline-block; width: 86px; height: 24px; border-radius: 99px; background: linear-gradient(135deg, var(--gold-2), var(--gold)); margin-top: 8px; }
+.mock-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.mock-cards i { height: 52px; border-radius: 12px; background: #101016; border: 1px solid var(--line); position: relative; overflow: hidden; }
+.mock-cards i::before { content: ''; position: absolute; top: 10px; inset-inline-start: 10px; width: 16px; height: 16px; border-radius: 6px; background: var(--gold-soft); border: 1px solid rgba(227, 185, 83, .35); }
+.mock-cards i::after { content: ''; position: absolute; bottom: 10px; inset-inline: 10px; height: 6px; border-radius: 99px; background: #1d1d24; }
+
+.float-chip {
+  position: absolute; z-index: 4;
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 16px; border-radius: 16px;
+  background: rgba(14, 14, 19, .92); border: 1px solid var(--line-2);
+  box-shadow: 0 24px 50px -20px rgba(0, 0, 0, .8);
+  backdrop-filter: blur(10px); font-size: 12.5px; line-height: 1.7;
+}
+.float-chip b { display: block; font-size: 13px; }
+.float-chip span { color: var(--faint); font-size: 11.5px; }
+.float-chip .fc-ico { width: 34px; height: 34px; border-radius: 11px; background: var(--gold-soft); border: 1px solid rgba(227, 185, 83, .3); display: flex; align-items: center; justify-content: center; color: var(--gold); flex-shrink: 0; }
+.float-chip .fc-ico svg { width: 17px; height: 17px; }
+.fc-1 { top: 8px; inset-inline-start: 0; }
+.fc-2 { bottom: 30px; inset-inline-end: -6px; animation: floaty 5s ease-in-out infinite; }
+@keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+
+/* نوار اعتماد زیر هیرو */
+.trustbar { margin-top: 64px; border: 1px solid var(--line); border-radius: 22px; background: rgba(255, 255, 255, .025); display: grid; grid-template-columns: repeat(3, 1fr); }
+.trust-item { display: flex; align-items: center; gap: 14px; padding: 22px 26px; }
+.trust-item + .trust-item { border-inline-start: 1px solid var(--line); }
+.trust-item svg { width: 24px; height: 24px; color: var(--gold); flex-shrink: 0; }
+.trust-item b { display: block; font-size: 15px; }
+.trust-item span { font-size: 12.5px; color: var(--faint); }
+
+/* ─── بنتو توانمندی‌ها ─────────────────────────────────────── */
+.bento { display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px; }
+.bento-card {
+  border-radius: var(--r-lg); padding: 28px;
+  background: var(--card); border: 1px solid var(--line);
+  position: relative; overflow: hidden;
+  transition: transform .3s ease, border-color .3s ease, background .3s ease;
+}
+.bento-card:hover { transform: translateY(-4px); border-color: rgba(227, 185, 83, .4); background: var(--card-2); }
+.bento-card h3 { font-size: 17.5px; font-weight: 700; margin-bottom: 8px; }
+.bento-card p { font-size: 14.5px; color: var(--mut); line-height: 2; }
+.bento-ico { width: 46px; height: 46px; border-radius: 14px; background: var(--gold-soft); border: 1px solid rgba(227, 185, 83, .28); display: flex; align-items: center; justify-content: center; color: var(--gold); margin-bottom: 18px; }
+.bento-ico svg { width: 22px; height: 22px; }
+.bento-num { position: absolute; top: 22px; inset-inline-end: 24px; font-size: 13px; color: var(--faint); direction: ltr; }
+
+.b-gold { background: linear-gradient(140deg, rgba(227, 185, 83, .16), rgba(227, 185, 83, .04)); border-color: rgba(227, 185, 83, .3); }
+.b-deep { background: linear-gradient(160deg, #0d0d11, #09090b); }
+.b-wide { grid-column: span 7; } .b-slim { grid-column: span 5; }
+.b-third { grid-column: span 4; } .b-half { grid-column: span 6; }
+
+/* نمودارهای ریز CSS داخل بنتو */
+.mini-bars { display: flex; align-items: flex-end; gap: 7px; height: 64px; margin-top: 20px; }
+.mini-bars i { flex: 1; border-radius: 6px 6px 2px 2px; background: linear-gradient(to top, rgba(227, 185, 83, .15), rgba(227, 185, 83, .55)); }
+.mini-bars i:nth-child(2) { height: 38%; } .mini-bars i:nth-child(3) { height: 58%; } .mini-bars i:nth-child(1) { height: 26%; } .mini-bars i:nth-child(4) { height: 72%; } .mini-bars i:nth-child(5) { height: 52%; } .mini-bars i:nth-child(6) { height: 88%; }
+.mini-type { display: flex; align-items: baseline; gap: 12px; margin-top: 18px; direction: ltr; }
+.mini-type b { font-size: 46px; font-weight: 800; color: var(--gold); line-height: 1; }
+.mini-type .dots { display: flex; gap: 6px; }
+.mini-type .dots i { width: 18px; height: 18px; border-radius: 50%; }
+.mini-type .dots i:nth-child(1) { background: var(--gold); } .mini-type .dots i:nth-child(2) { background: #58c98b; } .mini-type .dots i:nth-child(3) { background: #7f7fe0; } .mini-type .dots i:nth-child(4) { background: #3c3c46; }
+.mini-orbit { position: relative; height: 92px; margin-top: 16px; }
+.mini-orbit::before { content: ''; position: absolute; inset: 0 18%; border: 1px dashed rgba(227, 185, 83, .4); border-radius: 50%; }
+.mini-orbit::after { content: ''; position: absolute; top: 50%; inset-inline-start: 14%; width: 14px; height: 14px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 18px rgba(227, 185, 83, .7); }
+
+/* ─── خدمات ───────────────────────────────────────────────── */
+.svc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.svc-card {
+  border-radius: var(--r-lg); padding: 30px 28px;
+  background: var(--card); border: 1px solid var(--line);
+  display: flex; flex-direction: column;
+  transition: transform .3s, border-color .3s, background .3s;
+}
+.svc-card:hover { transform: translateY(-5px); border-color: rgba(227, 185, 83, .38); background: var(--card-2); }
+.svc-card .bento-ico { margin-bottom: 20px; }
+.svc-card h3 { font-size: 19px; font-weight: 700; margin-bottom: 10px; }
+.svc-card > p { font-size: 15px; color: var(--mut); margin-bottom: 18px; }
+.svc-list { display: flex; flex-direction: column; gap: 2px; margin-bottom: 24px; flex: 1; }
+.svc-list a { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 11px; font-size: 14.5px; color: var(--mut); transition: .2s; }
+.svc-list a::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--gold-3); flex-shrink: 0; transition: .2s; }
+.svc-list a:hover { background: rgba(255, 255, 255, .05); color: var(--txt); }
+.svc-list a:hover::before { background: var(--gold); box-shadow: 0 0 10px rgba(227, 185, 83, .8); }
+.svc-card .link-more { margin-top: auto; }
+
+.link-more { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--gold); }
+.link-more svg { width: 16px; height: 16px; transition: transform .25s; }
+.link-more:hover svg { transform: translateX(-4px); }
+
+/* ─── نوار هوش مصنوعی (تیره‌ترین بخش + مدار) ──────────────── */
+.ai-band {
+  margin-block: 30px;
+  background: linear-gradient(165deg, #0a0a0c, #060607 70%);
+  border-block: 1px solid var(--line);
+  position: relative; overflow: hidden;
+}
+.ai-band::before { content: ''; position: absolute; inset-inline-start: -180px; top: 50%; transform: translateY(-50%); width: 720px; height: 720px; border-radius: 50%; background: repeating-radial-gradient(circle, transparent 0 74px, rgba(227, 185, 83, .07) 74px 75px); }
+.ai-band::after { content: ''; position: absolute; inset-inline-start: 60px; top: 50%; width: 16px; height: 16px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 30px rgba(227, 185, 83, .8); }
+.ai-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; padding-block: 90px; }
+.ai-grid .lead { margin-bottom: 30px; }
+.ai-points { display: grid; gap: 12px; margin-bottom: 34px; }
+.ai-points li { display: flex; gap: 12px; align-items: flex-start; font-size: 15.5px; color: var(--mut); }
+.ai-points li svg { width: 19px; height: 19px; color: var(--gold); flex-shrink: 0; margin-top: 5px; }
+.ai-points li b { color: var(--txt); font-weight: 600; }
+.ai-tools-mini { display: flex; flex-wrap: wrap; gap: 9px; }
+
+/* ─── چرا ما ──────────────────────────────────────────────── */
+.why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+.why-rows { display: flex; flex-direction: column; }
+.why-row { display: flex; gap: 20px; padding: 24px 4px; border-bottom: 1px solid var(--line); transition: .25s; }
+.why-row:first-child { border-top: 1px solid var(--line); }
+.why-row:hover { background: rgba(255, 255, 255, .02); padding-inline: 16px; }
+.why-num { font-size: 15px; font-weight: 800; color: var(--gold); direction: ltr; min-width: 34px; padding-top: 2px; }
+.why-row b { display: block; font-size: 16.5px; margin-bottom: 5px; }
+.why-row p { font-size: 14.5px; color: var(--mut); line-height: 2; }
+
+.why-visual { position: relative; min-height: 420px; display: flex; align-items: center; justify-content: center; }
+.why-ring { position: absolute; width: 400px; height: 400px; border-radius: 50%; border: 1px dashed rgba(227, 185, 83, .3); animation: spin 60s linear infinite; }
+.why-ring::after { content: ''; position: absolute; top: -8px; inset-inline-start: calc(50% - 8px); width: 16px; height: 16px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 22px rgba(227, 185, 83, .8); }
+@keyframes spin { to { transform: rotate(360deg); } }
+.why-stat-card {
+  position: relative; z-index: 2; width: min(330px, 86%);
+  border-radius: var(--r-lg); padding: 30px;
+  background: rgba(14, 14, 19, .9); border: 1px solid var(--line-2);
+  box-shadow: 0 40px 90px -40px rgba(0, 0, 0, .9);
+  text-align: center;
+}
+.why-stat-card .num { font-size: 44px; font-weight: 800; color: var(--gold); line-height: 1.3; }
+.why-stat-card .lbl { font-size: 13.5px; color: var(--mut); margin-bottom: 22px; }
+.why-stat-card .row { display: flex; justify-content: space-between; padding: 12px 2px; border-top: 1px solid var(--line); font-size: 13px; color: var(--mut); }
+.why-stat-card .row b { color: var(--txt); }
+
+/* ─── فرایند همکاری ───────────────────────────────────────── */
+.steps { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; position: relative; counter-reset: step; }
+.steps::before { content: ''; position: absolute; top: 27px; inset-inline: 8%; border-top: 2px dashed rgba(227, 185, 83, .3); }
+.step { text-align: center; position: relative; padding-top: 64px; }
+.step-dot {
+  position: absolute; top: 0; inset-inline-start: calc(50% - 27px);
+  width: 54px; height: 54px; border-radius: 50%;
+  background: var(--bg-1); border: 1.5px solid rgba(227, 185, 83, .45);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; font-weight: 800; color: var(--gold);
+  box-shadow: 0 0 0 7px rgba(227, 185, 83, .08);
+}
+.step b { display: block; font-size: 15.5px; margin-bottom: 7px; }
+.step p { font-size: 12.5px; color: var(--faint); line-height: 1.9; }
+
+/* ─── نمونه‌کارها — قاب اسکرول‌شو ─────────────────────────── */
+.pf-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 26px; }
+.pf-card {
+  border-radius: var(--r-lg); overflow: hidden;
+  background: var(--card); border: 1px solid var(--line);
+  transition: border-color .3s, transform .3s, box-shadow .3s;
+}
+.pf-card:hover { border-color: rgba(227, 185, 83, .4); transform: translateY(-5px); box-shadow: var(--shadow-1); }
+.pf-head { display: flex; align-items: center; gap: 10px; padding: 13px 18px; border-bottom: 1px solid var(--line); background: rgba(255, 255, 255, .03); }
+.pf-head .dots { display: flex; gap: 6px; }
+.pf-head .dots i { width: 10px; height: 10px; border-radius: 50%; }
+.pf-head .dots i:nth-child(1) { background: #e5766a; } .pf-head .dots i:nth-child(2) { background: #e8c268; } .pf-head .dots i:nth-child(3) { background: #58c98b; }
+.pf-url { flex: 1; direction: ltr; text-align: left; font-size: 11.5px; color: var(--faint); background: rgba(255, 255, 255, .05); padding: 5px 13px; border-radius: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pf-zoom { width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; color: var(--faint); transition: .2s; }
+.pf-zoom:hover { background: var(--gold-soft); color: var(--gold); }
+.pf-zoom svg { width: 15px; height: 15px; }
+
+.pf-window {
+  height: 430px; overflow-y: auto; overscroll-behavior: contain;
+  background: #0d0d11; cursor: grab;
+  scrollbar-width: thin; scrollbar-color: rgba(227, 185, 83, .35) transparent;
+}
+.pf-window.dragging { cursor: grabbing; user-select: none; }
+.pf-window img { width: 100%; pointer-events: none; }
+
+.pf-meta { padding: 22px 24px 26px; }
+.pf-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.pf-meta h3 { font-size: 18.5px; font-weight: 700; margin-bottom: 7px; }
+.pf-meta p { font-size: 14.5px; color: var(--mut); line-height: 2; }
+
+/* بزرگ‌نمایی نمونه‌کار */
+.pf-lightbox { position: fixed; inset: 0; z-index: 200; background: rgba(4, 4, 6, .88); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 4vh 4vw; opacity: 0; visibility: hidden; transition: .3s; }
+.pf-lightbox.open { opacity: 1; visibility: visible; }
+.pf-lightbox-inner { width: min(920px, 100%); max-height: 92vh; display: flex; flex-direction: column; background: #0c0c10; border: 1px solid var(--line-2); border-radius: 20px; overflow: hidden; }
+.pf-lightbox-head { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; border-bottom: 1px solid var(--line); }
+.pf-lightbox-head b { font-size: 15px; }
+.pf-lightbox-head span { font-size: 12px; color: var(--faint); }
+.pf-lightbox-window { flex: 1; overflow-y: auto; overscroll-behavior: contain; background: #0d0d11; }
+.pf-lightbox-window img { width: 100%; }
+
+/* ─── سؤالات متداول ───────────────────────────────────────── */
+.faq-list { max-width: 860px; margin-inline: auto; display: flex; flex-direction: column; gap: 13px; }
+.faq-item { border: 1px solid var(--line); border-radius: 18px; background: var(--card); overflow: hidden; transition: border-color .25s; }
+.faq-item.open { border-color: rgba(227, 185, 83, .4); }
+.faq-q { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px; text-align: right; font-size: 15.5px; font-weight: 600; }
+.faq-q .fx { width: 30px; height: 30px; border-radius: 10px; border: 1px solid var(--line-2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: .3s; color: var(--mut); }
+.faq-item.open .fx { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); transform: rotate(45deg); }
+.faq-a { max-height: 0; overflow: hidden; transition: max-height .4s ease; }
+.faq-a > div { padding: 0 24px 22px; font-size: 15px; color: var(--mut); line-height: 2.1; }
+
+/* ─── بنر CTA طلایی ───────────────────────────────────────── */
+.cta-banner {
+  border-radius: var(--r-xl); padding: 56px 48px;
+  background: linear-gradient(135deg, #f2d488, #e3b953 45%, #cf9f38);
+  color: var(--gold-ink); position: relative; overflow: hidden;
+  display: grid; grid-template-columns: 1.4fr .8fr; gap: 36px; align-items: center;
+}
+.cta-banner::before { content: ''; position: absolute; inset-inline-end: -60px; top: -60px; width: 300px; height: 300px; border-radius: 50%; border: 1.5px dashed rgba(34, 25, 3, .25); }
+.cta-banner::after { content: ''; position: absolute; inset-inline-end: 30px; bottom: -80px; width: 220px; height: 220px; border-radius: 50%; border: 1.5px dashed rgba(34, 25, 3, .18); }
+.cta-banner h2 { font-size: clamp(22px, 2.6vw, 32px); font-weight: 800; line-height: 1.6; margin-bottom: 10px; }
+.cta-banner p { font-size: 15px; line-height: 2; opacity: .82; }
+.cta-actions { display: flex; gap: 13px; flex-wrap: wrap; justify-content: flex-end; position: relative; z-index: 2; }
+
+/* ─── مقالات ──────────────────────────────────────────────── */
+.posts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.post-card { border-radius: var(--r-lg); overflow: hidden; background: var(--card); border: 1px solid var(--line); transition: transform .3s, border-color .3s; display: flex; flex-direction: column; }
+.post-card:hover { transform: translateY(-5px); border-color: rgba(227, 185, 83, .38); }
+.post-thumb { position: relative; aspect-ratio: 16/9.4; overflow: hidden; }
+.post-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
+.post-card:hover .post-thumb img { transform: scale(1.045); }
+.post-thumb .chip-gold { position: absolute; top: 14px; inset-inline-start: 14px; backdrop-filter: blur(6px); }
+.post-body { padding: 22px 24px 26px; display: flex; flex-direction: column; flex: 1; }
+.post-body h3 { font-size: 16.5px; font-weight: 700; line-height: 1.75; margin-bottom: 9px; }
+.post-body h3 a:hover { color: var(--gold); }
+.post-body p { font-size: 14.5px; color: var(--mut); line-height: 2; margin-bottom: 16px; flex: 1; }
+.post-meta { display: flex; align-items: center; gap: 16px; font-size: 12px; color: var(--faint); }
+.post-meta span { display: inline-flex; align-items: center; gap: 6px; }
+.post-meta svg { width: 14px; height: 14px; }
+
+/* ─── هیروی صفحات داخلی ───────────────────────────────────── */
+.page-hero { padding: calc(14px + var(--header-h) + 56px) 0 64px; position: relative; overflow: hidden; }
+.page-hero::before { content: ''; position: absolute; top: -180px; inset-inline-start: 50%; transform: translateX(50%); width: 900px; height: 480px; background: radial-gradient(closest-side, rgba(227, 185, 83, .1), transparent 70%); pointer-events: none; }
+.breadcrumb { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--faint); margin-bottom: 18px; }
+.breadcrumb a:hover { color: var(--gold); }
+.breadcrumb svg { width: 13px; height: 13px; }
+.page-hero .lead { max-width: 660px; margin-top: 14px; }
+.page-hero-pills { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 24px; }
+
+/* ─── چیدمان دو ستونه صفحات خدمات/مقاله ───────────────────── */
+.split { display: grid; grid-template-columns: 1fr 340px; gap: 44px; align-items: start; }
+.aside-card { border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--card); padding: 26px; position: sticky; top: 110px; }
+.aside-card + .aside-card { margin-top: 20px; }
+.aside-card > b { display: block; font-size: 15px; margin-bottom: 14px; }
+.aside-card .toc a { display: block; padding: 8px 12px; border-inline-start: 2px solid var(--line); font-size: 13.5px; color: var(--mut); transition: .2s; }
+.aside-card .toc a:hover, .aside-card .toc a.active { color: var(--gold); border-color: var(--gold); background: linear-gradient(to left, rgba(227, 185, 83, .08), transparent); }
+
+.prose { font-size: 16.5px; line-height: 2.2; color: var(--mut); }
+.prose > * + * { margin-top: 18px; }
+.prose h2 { font-size: 24px; font-weight: 800; color: var(--txt); margin-top: 44px; scroll-margin-top: 120px; }
+.prose h3 { font-size: 19px; font-weight: 700; color: var(--txt); margin-top: 34px; scroll-margin-top: 120px; }
+.prose strong { color: var(--txt); font-weight: 700; }
+.prose ul { padding-inline-start: 4px; display: flex; flex-direction: column; gap: 10px; }
+.prose ul li { position: relative; padding-inline-start: 22px; }
+.prose ul li::before { content: ''; position: absolute; inset-inline-start: 0; top: 15px; width: 8px; height: 8px; border-radius: 50%; background: linear-gradient(135deg, var(--gold-2), var(--gold)); }
+.prose blockquote { border-inline-start: 3px solid var(--gold); background: var(--gold-soft); border-radius: 0 14px 14px 0; padding: 18px 22px; color: var(--txt); font-size: 15.5px; }
+.prose img { border-radius: var(--r-md); border: 1px solid var(--line); }
+.prose table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.prose th, .prose td { border: 1px solid var(--line); padding: 11px 14px; text-align: right; }
+.prose th { background: rgba(255, 255, 255, .04); color: var(--txt); }
+.prose .check-list li::before { content: '✓'; background: none; color: var(--gold); font-weight: 800; top: 0; inset-inline-start: 0; width: auto; height: auto; }
+.prose a { color: var(--gold-2); text-decoration: underline; text-underline-offset: 4px; text-decoration-color: rgba(227, 185, 83, .45); transition: color .2s, text-decoration-color .2s; }
+.prose a:hover { color: var(--gold); text-decoration-color: var(--gold); }
+
+/* ═══ کارت بدنهٔ مقاله — زمینهٔ کمی روشن‌تر برای خوانایی راحت‌تر متن اصلی ═══
+   فقط روی صفحهٔ مقاله (/blog/<slug>) اعمال می‌شود؛ هویت بصری تیرهٔ سایت حفظ می‌شود. */
+.article-body-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .055), rgba(255, 255, 255, .022));
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: var(--r-lg);
+  padding: 36px 40px 40px;
+  box-shadow: 0 24px 60px -40px rgba(0, 0, 0, .55);
+}
+.article-body-card h2 { scroll-margin-top: 130px; }
+@media (max-width: 760px) { .article-body-card { padding: 24px 20px 28px; } }
+
+/* جعبهٔ نویسنده در انتهای مقاله */
+.author-box { display: flex; gap: 16px; align-items: center; margin-top: 46px; padding: 20px 22px; border: 1px solid rgba(227, 185, 83, .3); border-radius: 18px; background: linear-gradient(150deg, rgba(227, 185, 83, .1), rgba(227, 185, 83, .02)); }
+.author-box img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(227, 185, 83, .5); flex-shrink: 0; }
+.author-box b { display: block; font-size: 15px; color: var(--txt); margin-bottom: 4px; }
+.author-box span { display: block; font-size: 12.5px; color: var(--mut); line-height: 1.9; }
+.author-box a { display: inline-block; margin-top: 8px; font-size: 12.5px; color: var(--gold-2); text-decoration: none; }
+.author-box a:hover { color: var(--gold); }
+.article-meta .author-role { color: var(--faint); font-size: 12px; }
+@media (max-width: 640px) { .author-box { flex-direction: column; text-align: center; } }
+
+/* کارت‌های محتوا داخل صفحات خدمات */
+.feat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 34px; }
+.feat-card { border: 1px solid var(--line); border-radius: var(--r-md); background: var(--card); padding: 24px; transition: .25s; }
+.feat-card:hover { border-color: rgba(227, 185, 83, .38); transform: translateY(-3px); }
+.feat-card .bento-ico { width: 42px; height: 42px; margin-bottom: 14px; }
+.feat-card .bento-ico svg { width: 20px; height: 20px; }
+.feat-card b { display: block; font-size: 15.5px; margin-bottom: 6px; }
+.feat-card p { font-size: 14px; color: var(--mut); line-height: 1.95; }
+
+/* ─── فرم‌ها ──────────────────────────────────────────────── */
+.form-card { border: 1px solid var(--line); border-radius: var(--r-xl); background: linear-gradient(165deg, rgba(255, 255, 255, .045), rgba(255, 255, 255, .015)); padding: 40px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.form-grid .field-full { grid-column: 1 / -1; }
+.form-note { display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; color: var(--faint); line-height: 1.9; margin-top: 18px; }
+.form-note svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 4px; color: var(--warn); }
+.form-ok { display: none; align-items: flex-start; gap: 12px; padding: 16px 20px; border-radius: 14px; background: rgba(88, 201, 139, .1); border: 1px solid rgba(88, 201, 139, .4); color: var(--ok); font-size: 14px; margin-bottom: 20px; }
+.form-ok.show { display: flex; }
+
+/* ─── وبلاگ ───────────────────────────────────────────────── */
+.blog-tools { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 40px; }
+.blog-search { position: relative; flex: 1; min-width: 240px; }
+.blog-search svg { position: absolute; inset-inline-start: 16px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: var(--faint); }
+.blog-search .control { padding-inline-start: 44px; }
+.blog-cats { display: flex; gap: 8px; flex-wrap: wrap; }
+.blog-cats button { padding: 9px 18px; border-radius: 999px; border: 1px solid var(--line-2); font-size: 13px; color: var(--mut); transition: .2s; }
+.blog-cats button:hover { color: var(--txt); border-color: var(--gold); }
+.blog-cats button.active { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); font-weight: 700; }
+.blog-empty { display: none; text-align: center; padding: 70px 20px; color: var(--faint); }
+
+.pagination { display: flex; justify-content: center; gap: 8px; margin-top: 52px; }
+.pagination a, .pagination span { min-width: 44px; height: 44px; padding-inline: 8px; display: inline-flex; align-items: center; justify-content: center; border-radius: 13px; border: 1px solid var(--line-2); font-size: 14px; color: var(--mut); transition: .2s; }
+.pagination a:hover { border-color: var(--gold); color: var(--gold); }
+.pagination .current { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); font-weight: 700; }
+
+/* مقاله */
+.article-cover { border-radius: var(--r-xl); overflow: hidden; border: 1px solid var(--line); margin-bottom: 36px; }
+.article-head h1 { font-size: clamp(24px, 3vw, 36px); font-weight: 800; line-height: 1.65; margin-bottom: 18px; }
+.article-meta { display: flex; gap: 20px; flex-wrap: wrap; font-size: 13px; color: var(--faint); padding-bottom: 24px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+.article-meta span { display: inline-flex; align-items: center; gap: 7px; }
+.article-meta svg { width: 15px; height: 15px; }
+/* سایدبار مقاله: چسبیده تا انتهای محتوا (مثل مستندات استاندارد) */
+.article-aside { position: sticky; top: 104px; align-self: start; }
+.article-aside .aside-card { position: static; max-height: calc(100vh - 140px); overflow-y: auto; }
+.toc-l3 { padding-inline-start: 28px !important; font-size: 12.5px; }
+.toc-l3::before { width: 2px !important; }
+.share-row { display: flex; gap: 9px; align-items: center; margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--line); }
+.share-row b { font-size: 13.5px; margin-inline-end: 4px; }
+.share-row a { width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line-2); display: flex; align-items: center; justify-content: center; color: var(--mut); transition: .2s; }
+.share-row a:hover { border-color: var(--gold); color: var(--gold); }
+.share-row svg { width: 17px; height: 17px; }
+
+/* ─── تماس ────────────────────────────────────────────────── */
+.contact-grid { display: grid; grid-template-columns: 1fr 1.25fr; gap: 40px; align-items: start; }
+.contact-info { display: flex; flex-direction: column; gap: 14px; }
+.contact-item { display: flex; gap: 16px; align-items: flex-start; border: 1px solid var(--line); border-radius: var(--r-md); padding: 20px 22px; background: var(--card); transition: .25s; }
+.contact-item:hover { border-color: rgba(227, 185, 83, .38); }
+.contact-item .bento-ico { width: 42px; height: 42px; margin: 0; flex-shrink: 0; }
+.contact-item .bento-ico svg { width: 19px; height: 19px; }
+.contact-item b { display: block; font-size: 14.5px; margin-bottom: 3px; }
+.contact-item p, .contact-item a { font-size: 14.5px; color: var(--mut); line-height: 1.95; }
+.contact-item a:hover { color: var(--gold); }
+
+/* ─── نمودار قیمت/پلن در صفحات خدمات ─────────────────────── */
+.plan-list { display: flex; flex-direction: column; gap: 12px; }
+.plan-row { display: flex; align-items: center; gap: 16px; border: 1px solid var(--line); border-radius: var(--r-md); padding: 18px 22px; background: var(--card); transition: .25s; }
+.plan-row:hover { border-color: rgba(227, 185, 83, .35); }
+.plan-row svg { width: 20px; height: 20px; color: var(--gold); flex-shrink: 0; }
+.plan-row b { font-size: 14.5px; }
+.plan-row span { display: block; font-size: 12.5px; color: var(--faint); }
+.plan-row .plan-link { margin-inline-start: auto; font-size: 13px; font-weight: 700; color: var(--gold); white-space: nowrap; }
+
+/* ─── پیش‌نمایش پنل (استاتیک) ─────────────────────────────── */
+.admin-shell { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+.admin-side { background: #0a0a0e; border-inline-end: 1px solid var(--line); padding: 26px 20px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.admin-side .brand { margin-bottom: 30px; }
+.admin-side nav a { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 13px; font-size: 14px; color: var(--mut); margin-bottom: 3px; transition: .2s; }
+.admin-side nav a:hover { background: rgba(255, 255, 255, .05); color: var(--txt); }
+.admin-side nav a.active { background: var(--gold-soft); color: var(--gold); font-weight: 600; }
+.admin-side nav a svg { width: 18px; height: 18px; }
+.admin-main { padding: 34px 40px; }
+.admin-stat { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 30px; }
+.admin-card { border: 1px solid var(--line); border-radius: var(--r-md); background: var(--card); padding: 20px 22px; }
+.admin-card small { font-size: 12px; color: var(--faint); }
+.admin-card b { display: block; font-size: 27px; font-weight: 800; color: var(--gold); margin-top: 4px; }
+.admin-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.admin-table th { text-align: right; padding: 12px 16px; color: var(--faint); font-weight: 600; font-size: 12.5px; border-bottom: 1px solid var(--line); }
+.admin-table td { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.status-pill { padding: 4px 13px; border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+.st-pub { background: rgba(88, 201, 139, .12); color: var(--ok); }
+.st-draft { background: rgba(255, 255, 255, .07); color: var(--mut); }
+.st-new { background: rgba(227, 185, 83, .12); color: var(--gold); }
+
+/* ─── 404 ─────────────────────────────────────────────────── */
+.nf-wrap { min-height: 78vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 140px 20px 60px; }
+.nf-code { font-size: clamp(90px, 16vw, 170px); font-weight: 800; line-height: 1; background: linear-gradient(140deg, var(--gold-2), var(--gold-3)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+/* ─── واکنش‌گرایی کامپوننت‌ها ─────────────────────────────── */
+@media (max-width: 1080px) {
+  .hero-grid, .ai-grid, .why-grid, .contact-grid { grid-template-columns: 1fr; gap: 48px; }
+  .hero-visual { min-height: 400px; max-width: 560px; margin-inline: auto; }
+  .why-visual { min-height: 360px; }
+  .why-ring { width: min(400px, 84vw); height: min(400px, 84vw); }
+  .split { grid-template-columns: 1fr; }
+  .aside-card { position: static; }
+  .article-aside { position: static; }
+  .article-aside .aside-card { max-height: none; overflow: visible; }
+  .b-wide, .b-slim { grid-column: span 12; }
+  .b-third { grid-column: span 6; }
+  .steps { grid-template-columns: repeat(2, 1fr); gap: 30px; }
+  .steps::before { display: none; }
+  .svc-grid { grid-template-columns: 1fr 1fr; }
+  .admin-shell { grid-template-columns: 78px 1fr; }
+  .admin-side nav a span, .admin-side .brand-name { display: none; }
+}
+
+@media (max-width: 700px) {
+  .pf-grid, .posts-grid, .svc-grid, .feat-grid, .form-grid { grid-template-columns: 1fr; }
+  .trustbar { grid-template-columns: 1fr; }
+  .trust-item + .trust-item { border-inline-start: 0; border-top: 1px solid var(--line); }
+  .bento { gap: 14px; }
+  .b-third, .b-half { grid-column: span 12; }
+  .steps { grid-template-columns: 1fr; }
+  .step { padding-top: 58px; text-align: right; }
+  .step-dot { inset-inline-start: 0; }
+  .cta-banner { grid-template-columns: 1fr; padding: 40px 28px; }
+  .cta-actions { justify-content: flex-start; }
+  .form-card { padding: 26px 20px; }
+  .fc-2 { inset-inline-end: 0; }
+  .admin-stat { grid-template-columns: 1fr 1fr; }
+  .admin-main { padding: 24px 18px; }
+  .float-chip { display: none; }
+  .float-chip.fc-1 { display: flex; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   افزودنی‌های نسخه تکمیلی — کارت نمونه‌کار تعاملی، فیلترها،
+   سکشن دو ستونه، پکیج‌های قیمت و دسته‌بندی FAQ
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── نوار فیلتر نمونه‌کارها ─────────────────────────────── */
+.pf-filters { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 44px; }
+.pf-filters button {
+  padding: 9px 20px; border-radius: 999px; font-size: 13.5px; font-weight: 600;
+  color: var(--mut); background: var(--card); border: 1px solid var(--line);
+  transition: .25s; cursor: pointer;
+}
+.pf-filters button:hover { color: var(--txt); border-color: var(--line-2); }
+.pf-filters button.active { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
+.pf-count { text-align: center; font-size: 12.5px; color: var(--faint); margin-bottom: 22px; }
+
+/* ─── کارت نمونه‌کار تعاملی (اسکرول خودکار در Hover) ─────── */
+.pf-grid2 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
+.pf-card2 {
+  border: 1px solid var(--line); border-radius: var(--r-lg);
+  background: var(--card); overflow: hidden;
+  transition: border-color .3s, transform .3s, box-shadow .3s;
+  display: flex; flex-direction: column;
+}
+.pf-card2:hover { border-color: rgba(227, 185, 83, .42); transform: translateY(-5px); box-shadow: var(--shadow-1); }
+.pf-card2.is-hidden { display: none; }
+
+/* ─── قاب نمونه‌کار: بلندتر برای حس «صفحه کامل» ─────────── */
+.pf-frame {
+  position: relative; display: block; aspect-ratio: 4 / 3.9;
+  overflow: hidden; background: #0d0d11; border-bottom: 1px solid var(--line);
+}
+.pf-scroll { position: absolute; inset: 0; overflow: hidden; will-change: transform; }
+.pf-scroll img { width: 100%; display: block; pointer-events: none; user-select: none; }
+
+.pf-hint {
+  position: absolute; z-index: 2; bottom: 12px; inset-inline-start: 12px;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 13px; border-radius: 999px;
+  background: rgba(8, 8, 11, .82); border: 1px solid var(--line-2);
+  color: #cfccd6; font-size: 11px;
+  transition: opacity .3s;
+}
+.pf-frame:hover .pf-hint { opacity: 0; }
+.pf-hint svg { width: 13px; height: 13px; }
+
+.pf-card2 .pf-meta { padding: 20px 22px 24px; flex: 1; display: flex; flex-direction: column; }
+.pf-card2 .pf-meta h3 { font-size: 17.5px; }
+.pf-card2 .pf-meta .link-more { margin-top: auto; padding-top: 16px; }
+
+/* نسخه لمسی: بدون انیمیشن خودکار — پیش‌نمایش با کشیدن انگشت + باز کردن جزئیات */
+@media (hover: none) {
+  .article-aside { position: static; }
+  .article-aside .aside-card { max-height: none; overflow: visible; }
+  .pf-frame { aspect-ratio: auto; height: 420px; }
+  .pf-scroll { position: static; height: 100%; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; scrollbar-width: none; }
+  .pf-scroll::-webkit-scrollbar { display: none; }
+  .pf-hint { background: rgba(8, 8, 11, .82); }
+  .pf-hint .hint-motion { display: none; }
+  .pf-hint .hint-touch { display: inline; }
+}
+.pf-hint .hint-touch { display: none; }
+
+/* حرکت‌کاسته: بدون انیمیشن؛ فقط تصویر ثابت و لینک جزئیات */
+@media (prefers-reduced-motion: reduce) {
+  .pf-scroll { transform: none !important; transition: none !important; }
+  .pf-card2, .pf-card2:hover { transform: none; }
+  .pf-hint { transition: none; }
+}
+
+/* ─── سکشن دو ستونه متن/تصویر (سبک WebDaran، هویت خودمان) ── */
+.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+.duo + .duo { margin-top: 96px; }
+.duo-copy .kicker { margin-bottom: 12px; display: inline-flex; }
+.duo-copy h2 { font-size: clamp(24px, 3vw, 31px); font-weight: 800; line-height: 1.6; margin-bottom: 14px; }
+.duo-copy > p { color: var(--mut); line-height: 2; margin-bottom: 20px; }
+.duo-points { display: grid; gap: 13px; margin-bottom: 26px; }
+.duo-points li { display: flex; gap: 12px; align-items: flex-start; font-size: 15.5px; color: var(--txt); }
+.duo-points li svg { width: 19px; height: 19px; color: var(--gold); flex-shrink: 0; margin-top: 5px; }
+.duo-points li b { font-weight: 700; }
+.duo-points li span { color: var(--mut); }
+.duo-visual {
+  position: relative; border-radius: var(--r-xl); overflow: hidden;
+  background: linear-gradient(150deg, #12121a, #0c0c11);
+  border: 1px solid var(--line); box-shadow: var(--shadow-1);
+  min-height: 380px; display: flex; align-items: center; justify-content: center; padding: 34px;
+}
+.duo-visual::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(420px 260px at 80% -10%, rgba(227, 185, 83, .12), transparent 65%);
+  pointer-events: none;
+}
+.duo-visual > * { position: relative; z-index: 1; }
+.duo-visual img { width: 100%; border-radius: 14px; border: 1px solid var(--line-2); }
+.duo.flip .duo-visual { order: -1; }
+@media (max-width: 1080px) {
+  .duo { grid-template-columns: 1fr; gap: 36px; }
+  .duo.flip .duo-visual { order: 0; }
+  .pf-grid2 { grid-template-columns: 1fr 1fr; }
+}
+
+/* ─── پکیج‌های قیمت ───────────────────────────────────────── */
+.pricing-tabs { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 42px; }
+.pricing-tabs button {
+  padding: 11px 26px; border-radius: 999px; font-size: 14px; font-weight: 700;
+  color: var(--mut); background: var(--card); border: 1px solid var(--line); transition: .25s; cursor: pointer;
+}
+.pricing-tabs button:hover { color: var(--txt); border-color: var(--line-2); }
+.pricing-tabs button.active { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); box-shadow: var(--shadow-gold); }
+.pkg-pane { display: none; }
+.pkg-pane.active { display: block; animation: fadeUp .4s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.pkg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; align-items: stretch; }
+.pkg-card {
+  position: relative; border: 1px solid var(--line); border-radius: var(--r-lg);
+  background: var(--card); padding: 30px 28px; display: flex; flex-direction: column;
+  transition: border-color .3s, transform .3s, box-shadow .3s;
+}
+.pkg-card:hover { border-color: rgba(227, 185, 83, .4); transform: translateY(-4px); }
+.pkg-card.featured { border-color: rgba(227, 185, 83, .55); background: linear-gradient(170deg, rgba(227, 185, 83, .07), var(--card) 45%); box-shadow: var(--shadow-1); }
+.pkg-flag {
+  position: absolute; top: -13px; inset-inline-start: 26px;
+  background: var(--gold); color: var(--gold-ink);
+  font-size: 11.5px; font-weight: 800; padding: 5px 14px; border-radius: 999px;
+}
+.pkg-cat { font-size: 12px; font-weight: 700; color: var(--gold); letter-spacing: .3px; }
+.pkg-card h3 { font-size: 20px; font-weight: 800; margin-top: 6px; }
+.pkg-for { font-size: 14px; color: var(--mut); line-height: 1.95; margin-top: 8px; min-height: 50px; }
+.pkg-price { margin-top: 16px; padding: 13px 16px; border-radius: 14px; background: rgba(255, 255, 255, .04); border: 1px dashed var(--line-2); }
+.pkg-price b { color: var(--gold-2); font-size: 16.5px; }
+.pkg-price span { display: block; font-size: 11.5px; color: var(--faint); margin-top: 3px; }
+.pkg-feat { margin: 20px 0 24px; display: grid; gap: 11px; flex: 1; }
+.pkg-feat li { display: flex; gap: 10px; font-size: 14.5px; color: var(--txt); align-items: flex-start; }
+.pkg-feat li svg { width: 17px; height: 17px; color: var(--gold); flex-shrink: 0; margin-top: 4px; }
+.pkg-note { font-size: 11.5px; color: var(--faint); line-height: 1.8; margin-top: 14px; }
+/* دکمهٔ لینک پرداخت آنلاین هر پکیج (با فعال‌شدن درگاه از پنل، نمایش داده می‌شود) */
+.pkg-pay {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  margin-top: 12px; font-size: 13px; font-weight: 600; color: var(--gold);
+  transition: color .2s, transform .2s;
+}
+.pkg-pay:hover { color: var(--gold-2); transform: translateY(-1px); }
+.pkg-pay svg { width: 15px; height: 15px; }
+.pkg-pay[hidden] { display: none; }
+@media (max-width: 1080px) { .pkg-grid { grid-template-columns: 1fr; max-width: 560px; margin-inline: auto; } }
+
+/* ─── دسته‌بندی FAQ صفحه اختصاصی ─────────────────────────── */
+.faq-cats { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 40px; }
+.faq-cats button { padding: 9px 20px; border-radius: 999px; font-size: 13.5px; font-weight: 600; color: var(--mut); background: var(--card); border: 1px solid var(--line); transition: .25s; cursor: pointer; }
+.faq-cats button:hover { color: var(--txt); border-color: var(--line-2); }
+.faq-cats button.active { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
+.faq-group { margin-bottom: 40px; }
+.faq-group > b { display: block; font-size: 18px; font-weight: 800; margin-bottom: 18px; color: var(--gold-2); }
+.faq-group.is-hidden { display: none; }
+
+@media (max-width: 700px) {
+  .pf-grid2 { grid-template-columns: 1fr; }
+  .pf-frame { height: 400px; }
+}
+
+
+/* گرید ۸ کارت خدمات صفحه اصلی */
+.svc-grid8 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+.svc-grid8 .svc-mini {
+  border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--card); padding: 22px 20px; display: flex; flex-direction: column; gap: 10px;
+  transition: border-color .3s, transform .3s;
+}
+.svc-grid8 .svc-mini:hover { border-color: rgba(227, 185, 83, .4); transform: translateY(-4px); }
+.svc-grid8 .svc-mini h3 { font-size: 15.5px; font-weight: 700; }
+.svc-grid8 .svc-mini p { font-size: 12.5px; color: var(--mut); line-height: 1.85; flex: 1; }
+.svc-grid8 .svc-mini .link-more { font-size: 12.5px; }
+@media (max-width: 1080px) { .svc-grid8 { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 700px) { .svc-grid8 { grid-template-columns: 1fr; } .steps { grid-template-columns: 1fr; } }
+
+/* ═══════════════════════════════════════════════════════════════
+   افزودنی‌های نهایی — بنر مقاله، ابزار اشتراک، پنل مدیریت
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── بنر مقاله: جمع‌وجور، مرتبط با محتوا ─────────────────── */
+.article-hero {
+  padding: calc(14px + var(--header-h) + 44px) 0 34px;
+  position: relative; overflow: hidden;
+}
+.article-hero::before {
+  content: ''; position: absolute; top: -160px; inset-inline-start: 50%; transform: translateX(50%);
+  width: 860px; height: 380px;
+  background: radial-gradient(closest-side, rgba(227, 185, 83, .09), transparent 70%);
+  pointer-events: none;
+}
+.article-hero-grid {
+  display: grid; grid-template-columns: 1fr 320px; gap: 36px; align-items: center;
+  position: relative;
+}
+.article-hero-cover {
+  border-radius: var(--r-lg); overflow: hidden;
+  border: 1px solid var(--line-2); box-shadow: var(--shadow-1);
+  aspect-ratio: 16 / 10; background: #0d0d11;
+}
+.article-hero-cover img { width: 100%; height: 100%; object-fit: cover; }
+.article-hero .article-head h1 {
+  font-size: clamp(22px, 2.7vw, 33px); font-weight: 800; line-height: 1.7; margin-bottom: 14px;
+}
+.article-hero .article-meta { border-bottom: 0; padding-bottom: 0; margin-bottom: 0; }
+.article-hero .breadcrumb { margin-bottom: 14px; }
+.article-cats { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+@media (max-width: 900px) {
+  .article-hero { padding: calc(14px + var(--header-h) + 34px) 0 26px; }
+  .article-hero-grid { grid-template-columns: 1fr; gap: 22px; }
+  .article-hero-cover { order: -1; aspect-ratio: 16 / 8; }
+}
+
+/* ─── دکمه کپی لینک مقاله ─────────────────────────────────── */
+.share-row .copy-ok { font-size: 12.5px; color: var(--ok); }
+
+/* ─── پنل مدیریت (نسخه کامل آزمایشی) ──────────────────────── */
+.adm-topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  flex-wrap: wrap; margin-bottom: 26px;
+}
+.adm-topbar h1 { font-size: 21px; font-weight: 800; }
+.adm-topbar .lead { font-size: 14px; }
+.adm-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.adm-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+.adm-tabs button {
+  padding: 9px 18px; border-radius: 999px; font-size: 13px; font-weight: 600;
+  color: var(--mut); background: var(--card); border: 1px solid var(--line); transition: .2s;
+}
+.adm-tabs button.active { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
+.adm-panel { border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--card); padding: 24px; }
+.adm-panel + .adm-panel { margin-top: 18px; }
+.adm-panel > .adm-panel-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  margin: -24px -24px 20px; padding: 16px 24px;
+  border-bottom: 1px solid var(--line);
+}
+.adm-panel > .adm-panel-head b { font-size: 15px; }
+.adm-toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 18px; }
+.adm-toolbar .control { max-width: 260px; padding: 9px 14px; font-size: 13.5px; }
+.adm-table-wrap { overflow-x: auto; }
+.adm-table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 640px; }
+.adm-table th { text-align: right; padding: 11px 14px; color: var(--faint); font-weight: 600; font-size: 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.adm-table td { padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.adm-table tr:last-child td { border-bottom: 0; }
+.adm-table .row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.adm-btn {
+  padding: 6px 13px; border-radius: 10px; font-size: 12px; font-weight: 600;
+  border: 1px solid var(--line-2); color: var(--mut); transition: .2s; white-space: nowrap;
+}
+.adm-btn:hover { color: var(--txt); border-color: var(--gold); }
+.adm-btn.danger { color: var(--err); border-color: rgba(229, 118, 106, .4); }
+.adm-btn.danger:hover { background: rgba(229, 118, 106, .1); }
+.adm-btn.primary { background: var(--gold-soft); border-color: rgba(227, 185, 83, .4); color: var(--gold); }
+.adm-empty { text-align: center; padding: 44px 20px; color: var(--faint); font-size: 14px; }
+.adm-grid2 { display: grid; grid-template-columns: 1.15fr .85fr; gap: 18px; }
+.adm-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.adm-form-grid .field-full { grid-column: 1 / -1; }
+.adm-label { font-size: 12.5px; font-weight: 600; color: var(--mut); display: block; margin-bottom: 7px; }
+.adm-hint { font-size: 11.5px; color: var(--faint); margin-top: 5px; line-height: 1.8; }
+.adm-editor { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.adm-editor textarea { min-height: 340px; font-size: 14px; line-height: 2.1; }
+.adm-preview { border: 1px dashed var(--line-2); border-radius: 14px; padding: 18px; max-height: 420px; overflow-y: auto; }
+.adm-kpi { display: flex; align-items: center; gap: 12px; }
+.adm-kpi .ico { width: 44px; height: 44px; border-radius: 13px; background: var(--gold-soft); border: 1px solid rgba(227, 185, 83, .3); color: var(--gold); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.adm-kpi .ico svg { width: 20px; height: 20px; }
+.adm-msg-body { white-space: pre-wrap; font-size: 14px; line-height: 2.05; color: var(--mut); }
+.adm-check { display: flex; align-items: flex-start; gap: 12px; padding: 13px 4px; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+.adm-check:last-child { border-bottom: 0; }
+.adm-check input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--gold); margin-top: 5px; flex-shrink: 0; }
+.adm-check > input:not([type="checkbox"]) { flex: 1; }
+.adm-check b { display: block; font-size: 13.5px; }
+.adm-check span { color: var(--faint); font-size: 12px; line-height: 1.9; }
+.adm-meter { height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .07); overflow: hidden; }
+.adm-meter i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--gold-2), var(--gold)); }
+.adm-audit-ok { color: var(--ok); }
+.adm-audit-warn { color: var(--warn); }
+.adm-audit-bad { color: var(--err); }
+.adm-badge-count { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding-inline: 6px; border-radius: 99px; background: var(--gold); color: var(--gold-ink); font-size: 11px; font-weight: 800; }
+.adm-viewport-note { display: flex; gap: 10px; align-items: flex-start; padding: 13px 16px; border-radius: 13px; background: var(--gold-soft); border: 1px solid rgba(227, 185, 83, .3); font-size: 12.5px; color: var(--gold-2); line-height: 1.9; margin-bottom: 20px; }
+.adm-viewport-note svg { width: 17px; height: 17px; flex-shrink: 0; margin-top: 3px; }
+@media (max-width: 1080px) {
+  .adm-grid2, .adm-form-grid, .adm-editor { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .adm-panel { padding: 18px; }
+  .adm-panel > .adm-panel-head { margin: -18px -18px 16px; padding: 14px 18px; }
+}
+
+/* ─── فرم ورود مدیر ───────────────────────────────────────── */
+.login-veil {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  padding: 40px 20px;
+  background:
+    radial-gradient(700px 380px at 15% -5%, rgba(124, 77, 255, .16), transparent 60%),
+    radial-gradient(700px 380px at 85% -8%, rgba(227, 185, 83, .1), transparent 60%), var(--bg-0);
+}
+
+/* ─── پکیج‌ها: چیدمان چهار ستونی (استارتر/حرفه‌ای/فروشگاهی/اختصاصی) ─── */
+.pkg-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 1080px) {
+  .pkg-grid.cols-4 { grid-template-columns: repeat(2, 1fr); max-width: 780px; }
+}
+@media (max-width: 640px) {
+  .pkg-grid.cols-4 { grid-template-columns: 1fr; max-width: 440px; }
+}
+
+/* ─── کارت بنیان‌گذار (درباره ما) ─────────────────────────── */
+.founder-card {
+  border: 1px solid var(--line); border-radius: var(--r-xl);
+  background: linear-gradient(165deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .015));
+  padding: 38px 36px;
+}
+.founder-head { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 18px; }
+.founder-avatar {
+  width: 78px; height: 78px; border-radius: 24px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 34px; font-weight: 800; color: var(--gold-ink);
+  background: linear-gradient(140deg, var(--gold-2), var(--gold-3));
+  box-shadow: 0 16px 34px -16px rgba(227, 185, 83, .55);
+}
+/* عکس واقعی بنیان‌گذار (WebP) — هم‌اندازه و هم‌شکل آواتار قبلی */
+.founder-avatar.founder-photo {
+  object-fit: cover; object-position: center 22%;
+  border: 1px solid rgba(227, 185, 83, .35);
+}
+.founder-id .eyebrow { margin-bottom: 2px; }
+.founder-id h2 { font-size: 24px; font-weight: 800; line-height: 1.5; }
+.founder-role { color: var(--gold-2); font-size: 14px; font-weight: 600; }
+.founder-bio { color: var(--mut); max-width: 72ch; margin-bottom: 22px; }
+.founder-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+.founder-chip {
+  display: inline-flex; align-items: center; gap: 9px; padding: 9px 16px;
+  border-radius: 999px; border: 1px solid var(--line-2); background: var(--card);
+  font-size: 13px; color: var(--txt); transition: .25s;
+}
+a.founder-chip:hover { border-color: var(--gold); color: var(--gold-2); transform: translateY(-2px); }
+.founder-chip svg { width: 15px; height: 15px; color: var(--gold); flex-shrink: 0; }
+.founder-credit { font-size: 12.5px; color: var(--faint); }
+.founder-credit b { color: var(--mut); }
+@media (max-width: 700px) { .founder-card { padding: 28px 22px; } }
+
+/* ─── اعتبار طراح در فوتر ────────────────────────────────── */
+.fc-credit { margin-inline-start: 14px; padding-inline-start: 14px; border-inline-start: 1px solid var(--line-2); }
+.fc-credit a { color: var(--gold); font-weight: 600; }
+@media (max-width: 700px) {
+  .fc-credit { display: block; margin: 6px 0 0; padding: 0; border: 0; }
+}

@@ -1,0 +1,41 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import { getFaq } from '../lib/content';
+import { jsonLdFaq, jsonLdBreadcrumb } from '../lib/seo';
+
+const faq = getFaq();
+const fa = (n: number) => new Intl.NumberFormat('fa-IR').format(n);
+
+const meta = {
+  title: 'سؤالات متداول | کافه دانش',
+  description: 'پاسخ شفاف به سؤالات پرتکرار درباره طراحی سایت، هزینه، زمان اجرا، سئو، هوش مصنوعی و مالکیت کد در کافه دانش.',
+  path: '/faq',
+};
+---
+<BaseLayout meta={meta} current="/faq" extraJsonLd={[jsonLdFaq(faq), jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'سؤالات متداول', url: '/faq' }])]}>
+  <PageHero title="سؤالات متداول" sub={`${fa(faq.length)} پاسخ شفاف و بدون ابهام درباره روند کار، هزینه‌ها و همکاری با کافه‌دانش.`} />
+
+  <section class="section">
+    <div class="container">
+      <div class="faq-wrap">
+        {faq.map((f, i) => (
+          <div class:list={['faq-item', { 'is-open': i === 0 }]} data-accordion-item data-reveal="up" data-delay={String(i * 60)}>
+            <button class="faq-item__btn" type="button" data-accordion-btn aria-expanded={i === 0 ? 'true' : 'false'}>
+              {f.q}
+              <span class="faq-item__sign" aria-hidden="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+              </span>
+            </button>
+            <div class="faq-item__panel" data-accordion-panel aria-hidden={i === 0 ? 'false' : 'true'}>
+              <div class="faq-item__panel-inner">{f.a}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style="text-align:center;margin-top:34px" data-reveal="up">
+        <p style="color:var(--mut)">سؤال دیگری دارید؟ از طریق <a href="/consult">فرم مشاوره</a> بپرسید؛ در ساعات کاری پاسخ می‌دهیم.</p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

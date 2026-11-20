@@ -1,0 +1,99 @@
+---
+import '../styles/global.css';
+import '../styles/admin.css';
+interface Props { title:string; crumb?:string; newMessages?:number }
+const {title,crumb,newMessages=0}=Astro.props;
+const path=Astro.url.pathname;
+const adminUser=String(Astro.locals.admin?.u||'مدیر سایت');
+const groups = [
+  {
+    label: 'مدیریت سایت',
+    items: [
+      { href: '/admin', label: 'داشبورد', icon: '⌂', key: 'dashboard' },
+      { href: '/admin/pages', label: 'صفحات سایت', icon: '▤', key: 'pages' },
+      { href: '/admin/posts', label: 'مقاله‌ها', icon: '✎', key: 'posts' },
+      { href: '/admin/categories', label: 'دسته‌بندی‌ها', icon: '▦', key: 'categories' },
+      { href: '/admin/portfolio', label: 'نمونه‌کارها', icon: '◇', key: 'portfolio' },
+      { href: '/admin/services', label: 'خدمات', icon: '⌘', key: 'services' },
+      { href: '/admin/pricing', label: 'تعرفه‌ها', icon: '＄', key: 'pricing' },
+      { href: '/admin/faq', label: 'سؤالات متداول', icon: '?', key: 'faq' },
+      { href: '/admin/testimonials', label: 'نظرات مشتریان', icon: '☆', key: 'testimonials' },
+      { href: '/admin/media', label: 'کتابخانه رسانه', icon: '▧', key: 'media' },
+    ],
+  },
+  {
+    label: 'ارتباط و ابزارها',
+    items: [
+      { href: '/admin/messages', label: 'درخواست‌ها و پیام‌ها', icon: '✉', key: 'messages' },
+      { href: '/admin/assistant', label: 'دستیار هوشمند', icon: '✧', key: 'assistant' },
+      { href: '/admin/activity', label: 'گزارش فعالیت', icon: '◷', key: 'activity' },
+      { href: '/admin/trash', label: 'سطل زباله', icon: '♲', key: 'trash' },
+      { href: '/admin/errors', label: 'گزارش خطاها', icon: '⚒', key: 'errors' },
+      { href: '/admin/settings', label: 'تنظیمات عمومی', icon: '⚙', key: 'settings' },
+      { href: '/admin/settings?tab=seo', label: 'تنظیمات سئو', icon: '◎', key: 'seo' },
+    ],
+  },
+];
+const active=path==='/admin'?'dashboard':path.startsWith('/admin/posts')||path.startsWith('/admin/history')?'posts':
+path.startsWith('/admin/pages')?'pages':path.startsWith('/admin/categories')?'categories':path.startsWith('/admin/media')?'media':
+path.startsWith('/admin/portfolio')?'portfolio':path.startsWith('/admin/services')?'services':path.startsWith('/admin/pricing')?'pricing':
+path.startsWith('/admin/faq')?'faq':path.startsWith('/admin/testimonials')?'testimonials':path.startsWith('/admin/messages')?'messages':
+path.startsWith('/admin/activity')?'activity':path.startsWith('/admin/trash')?'trash':path.startsWith('/admin/assistant')?'assistant':
+path.startsWith('/admin/errors')?'errors':path.startsWith('/admin/settings')?(Astro.url.searchParams.get('tab')==='seo'?'seo':'settings'):'';
+---
+<!doctype html><html lang="fa" dir="rtl"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>{title} | کافه دانش</title><meta name="robots" content="noindex,nofollow,noarchive"/>
+<link rel="icon" type="image/svg+xml" href="/img/logo.svg"/>
+<link rel="preload" as="font" type="font/woff2" href="/fonts/Vazirmatn-Regular.woff2" crossorigin/>
+<link rel="preload" as="font" type="font/woff2" href="/fonts/Vazirmatn-Bold.woff2" crossorigin/>
+</head><body class="admin-body"><div class="admin-layout">
+<aside class="admin-side" aria-label="منوی اصلی پنل">
+<a class="side-brand" href="/admin"><img src="/img/logo.svg" alt="" width="40" height="40"/><span><b>کافه دانش</b><small>سامانه مدیریت یکپارچه</small></span></a>
+<div class="side-version"><i></i> نسخه Astro · متصل به CMS اصلی</div>
+{groups.map((group) => (
+  <section class="side-group">
+    <div class="side-label">{group.label}</div>
+    <nav class="admin-side__nav">
+      {group.items.map((item) => (
+        <a
+          href={item.href}
+          class:list={['side-link', active === item.key && 'active']}
+          aria-current={active === item.key ? 'page' : undefined}
+        >
+          <i class="ico" aria-hidden="true">{item.icon}</i>
+          <span class="txt">{item.label}</span>
+          {item.key === 'messages' && newMessages > 0 && <span class="side-badge">{newMessages}</span>}
+        </a>
+      ))}
+    </nav>
+  </section>
+))}
+<div class="side-foot">
+<a class="side-link" href="/" target="_blank" rel="noopener"><i class="ico">↗</i><span class="txt">مشاهده سایت</span></a>
+<div class="side-user"><span class="avatar">{adminUser.slice(0,1)}</span><span><b>{adminUser}</b><small>مدیر سامانه</small></span></div>
+<form id="logout-form"><button class="side-link side-logout" type="submit"><i class="ico">⇥</i><span class="txt">خروج امن از پنل</span></button></form>
+<button type="button" class="side-collapse" aria-label="جمع‌کردن منو"><i class="sc-ico">‹</i><span class="txt">جمع‌کردن منو</span></button>
+</div></aside><div class="side-scrim"></div>
+<main class="admin-main"><header class="admin-topbar"><button type="button" class="side-open-m" aria-label="بازکردن منو">☰ <span>منو</span></button>
+<div class="admin-topbar__heading"><h1>{title}</h1>{crumb&&<div class="crumb">{crumb}</div>}</div>
+<div class="actions"><span class="top-status"><i></i> اتصال مدیریت فعال</span><a class="btn btn-ghost btn-sm" href="/admin/assistant">دستیار هوشمند ✧</a><a class="btn btn-ghost btn-sm" href="/" target="_blank" rel="noopener">مشاهده سایت ↗</a></div>
+</header><div class="admin-content"><slot/></div><footer class="admin-footer"><span>کافه دانش · مدیریت یکپارچه محتوا</span><span>Astro + PostgreSQL</span></footer></main>
+</div><script>
+import '../scripts/admin.ts';
+
+const logoutForm = document.getElementById('logout-form');
+if (logoutForm instanceof HTMLFormElement) {
+  logoutForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const button = logoutForm.querySelector('button');
+    if (button instanceof HTMLButtonElement) button.disabled = true;
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } finally {
+      window.location.assign('/admin/login');
+    }
+  });
+}
+</script>
+</body></html>

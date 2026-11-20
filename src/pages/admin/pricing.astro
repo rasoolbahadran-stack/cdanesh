@@ -1,0 +1,32 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import EntityAdmin from '../../components/admin/EntityAdmin.astro';
+
+const config = {
+  entity: 'plans',
+  title: 'پلن‌های تعرفه',
+  help: 'تعرفه‌های واقعی کافه‌دانش. قیمت‌ها را فقط پس از تغییر رسمی لیست قیمت به‌روزرسانی کنید؛ کارت «پیشنهاد ما» با گزینهٔ برجسته فعال می‌شود.',
+  columns: [
+    { key: 'title', label: 'عنوان' },
+    { key: 'badge', label: 'برچسب' },
+    { key: 'price', label: 'قیمت' },
+    { key: 'status', label: 'وضعیت', type: 'badge' },
+    { key: 'sort_order', label: 'ترتیب', type: 'num' },
+  ],
+  fields: [
+    { key: 'title', label: 'عنوان پلن', type: 'text', required: true },
+    { key: 'badge', label: 'برچسب بالای کارت', type: 'text', hint: 'مثلاً سایت معرفی، پیشنهاد ما' },
+    { key: 'price', label: 'قیمت', type: 'text', required: true, hint: 'مثلاً ۱۵,۰۰۰,۰۰۰ تومان' },
+    { key: 'price_note', label: 'یادداشت قیمت', type: 'text' },
+    { key: 'description', label: 'توضیح پلن', type: 'textarea', full: true },
+    { key: 'features', label: 'امکانات', type: 'lines', hint: 'هر مورد در یک خط' },
+    { key: 'highlighted', label: 'برجسته (پیشنهاد ما)', type: 'checkbox' },
+    { key: 'cta_text', label: 'متن دکمه', type: 'text' },
+    { key: 'sort_order', label: 'ترتیب', type: 'number' },
+    { key: 'status', label: 'وضعیت', type: 'select', options: ['published', 'draft'], labels: ['منتشرشده', 'پیش‌نویس'] },
+  ],
+};
+---
+<AdminLayout title="تعرفه‌ها" crumb="بخش‌های سایت › تعرفه‌ها">
+  <EntityAdmin config={config} />
+</AdminLayout>

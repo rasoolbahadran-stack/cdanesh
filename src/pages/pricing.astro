@@ -1,0 +1,348 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import SectionHead from '../components/SectionHead.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { PRICING } from '../lib/content';
+import { jsonLdBreadcrumb, jsonLdFaq } from '../lib/seo';
+
+const meta = {
+  title: 'تعرفه طراحی سایت | پکیج شرکتی، فروشگاهی و اختصاصی کافه دانش',
+  description: 'تعرفه طراحی سایت شرکتی، فروشگاهی و اختصاصی در کافه دانش؛ قیمت، امکانات، زمان تحویل و پشتیبانی پکیج‌ها را مقایسه کنید و برای سفارش سایت مشاوره بگیرید.',
+  path: '/pricing',
+};
+
+// سؤالات متداول اختصاصی تعرفه‌ها — هم برای کاربر، هم به‌عنوان اسکیمای FAQPage
+const pricingFaq = [
+  { q: 'قیمت طراحی سایت چرا در شرکت‌های مختلف متفاوت است؟', a: 'قیمت طراحی سایت به نوع طراحی، کیفیت پیاده‌سازی، امکانات فنی، پیچیدگی پروژه، پنل مدیریتی، زیرساخت میزبانی و خدمات پس از تحویل بستگی دارد. برای مقایسه دقیق، فقط مبلغ نهایی را بررسی نکنید؛ دامنه خدمات، امکانات، مالکیت و دسترسی‌ها، زمان تحویل و شرایط پشتیبانی را نیز مقایسه کنید.' },
+  { q: 'پکیج شرکتی ۱۷ میلیون تومان شامل چه امکاناتی است؟', a: 'این پکیج شامل طراحی اختصاصی وب‌سایت شرکتی تا ۸ صفحه، دامنه .IR رایگان، ۶ ماه هاست هدیه، صفحات اصلی، مجله مقالات با پنل فارسی، فرم تماس و مشاوره، تنظیمات پایه سئو و نمایش ریسپانسیو است. زمان تحویل ۲ تا ۳ هفته و مدت پشتیبانی رایگان ۳ ماه است. جزئیات کامل در کارت پکیج شرکتی درج شده است.' },
+  { q: 'بعد از راه‌اندازی سایت چه هزینه‌هایی خواهم داشت؟', a: 'مهم‌ترین هزینه‌های احتمالی پس از پایان دوره هدیه شامل تمدید دامنه، تمدید هاست و در صورت نیاز خدمات سئو، تولید محتوا و پشتیبانی هستند. هزینه هر سرویس بر اساس نوع نیاز و تعرفه زمان تمدید مشخص می‌شود. موارد خارج از پکیج پیش از اجرا به شما اطلاع داده خواهند شد.' },
+  { q: 'آیا امکان ارتقا از پکیج شرکتی به فروشگاهی وجود دارد؟', a: 'بله، در صورت سازگاری ساختار فنی سایت با امکانات فروشگاهی موردنیاز، امکان بررسی و توسعه آن وجود دارد. ابتدا نیازهای فروشگاه، امکانات لازم و وضعیت سایت فعلی بررسی می‌شوند و سپس محدوده تغییرات، هزینه و زمان اجرای ارتقا اعلام خواهد شد.' },
+  { q: 'چرا پکیج اختصاصی قیمت ثابت ندارد؟', a: 'پروژه‌های اختصاصی از نظر نوع فرایندها، تعداد کاربران، پنل‌های مدیریتی، امکانات، سطح پیچیدگی و اتصال به سرویس‌های دیگر با یکدیگر متفاوت هستند. به همین دلیل، ابتدا نیازمندی‌ها بررسی و مستند می‌شوند و سپس بر اساس محدوده اجرا، برآورد دقیق ارائه می‌شود.' },
+  { q: 'پرداخت هزینه طراحی سایت چگونه انجام می‌شود؟', a: 'هزینه پکیج‌های شرکتی و فروشگاهی طبق شرایط درج‌شده در صفحه به‌صورت یک‌جا پرداخت می‌شود. در پروژه‌های اختصاصی، شرایط و مراحل پرداخت متناسب با محدوده پروژه در پروپوزال و قرارداد مشخص خواهد شد.' },
+];
+
+// استانداردهای مشترک کافه دانش در همهٔ پکیج‌ها — تفاوت پکیج‌ها در دامنهٔ کار است، نه در کیفیت
+const commonFeatures = [
+  { t: 'مالکیت و دسترسی پروژه', d: 'دسترسی‌های مدیریتی، دامنه و محتوای متعلق به کسب‌وکار مطابق توافق در اختیار شما قرار می‌گیرد. شرایط تحویل سورس‌کد و مجوزهای اجزای ثالث نیز از ابتدا مشخص می‌شود.' },
+  { t: 'طراحی اختصاصی', d: 'طراحی متناسب با هویت برند و نیاز کسب‌وکار شما؛ بدون اتکا به قالب آماده برای بخش‌های اصلی طراحی.' },
+  { t: 'پنل مدیریتی فارسی', d: 'امکانات مدیریتی متناسب با نوع وب‌سایت، برای مدیریت محتوا، محصولات یا بخش‌های قابل ویرایش پروژه.' },
+  { t: 'آموزش مدیریت سایت', d: 'آموزش کار با پنل و بخش‌های مدیریتی در اختیار شما قرار می‌گیرد تا بتوانید امور روزمره سایت را مستقل انجام دهید.' },
+  { t: 'نمایش ریسپانسیو', d: 'ساختار و صفحات سایت برای نمایش مناسب در موبایل، تبلت و دسکتاپ طراحی و بررسی می‌شوند.' },
+  { t: 'سئوی زیرساختی', d: 'ساختار استاندارد صفحات، تنظیمات پایه سئو و ملاحظات فنی اولیه از زمان طراحی و توسعه در نظر گرفته می‌شوند.' },
+  { t: 'تحویل مرحله‌ای', d: 'مراحل اصلی پروژه به‌صورت مشخص پیش می‌روند و فرصت بررسی و ارائه بازخورد در نقاط توافق‌شده وجود دارد.' },
+  { t: 'شفافیت در هزینه‌ها', d: 'محدوده خدمات، هزینه‌های توافق‌شده و موارد خارج از پکیج پیش از اجرا مشخص می‌شوند. هیچ خدمت اضافه‌ای بدون اطلاع و تأیید شما به پروژه افزوده نمی‌شود.' },
+];
+
+// خدمات مکمل و پس از راه‌اندازی — برآورد پس از نیازسنجی (بدون قیمت ثابت)
+const complementary = [
+  {
+    key: 'seo', label: 'دیده‌شدن و جذب مخاطب',
+    t: 'خدمات سئو سایت',
+    d: 'بهینه‌سازی ساختار فنی، صفحات و محتوا برای افزایش قابلیت دیده‌شدن در جست‌وجو و جذب مخاطب مرتبط.',
+    href: '/services/seo', cta: 'مشاهده خدمات سئو',
+  },
+  {
+    key: 'content', label: 'محتوای هدفمند و اثرگذار',
+    t: 'تولید محتوای سایت',
+    d: 'تدوین و نگارش مقاله‌ها و محتوای صفحات بر اساس نیاز مخاطبان، هویت برند و فرصت‌های جست‌وجو.',
+    href: '/services/content', cta: 'مشاهده خدمات تولید محتوا',
+  },
+  {
+    key: 'support', label: 'نگهداری و توسعه مستمر',
+    t: 'مدیریت و پشتیبانی سایت',
+    d: 'به‌روزرسانی، نگهداری فنی و رسیدگی به مشکلات سایت با محدوده خدمات و شیوه پاسخ‌گویی روشن.',
+    href: '/services/support', cta: 'مشاهده خدمات پشتیبانی',
+  },
+];
+---
+<BaseLayout meta={meta} current="/pricing" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'تعرفه‌ها', url: '/pricing' }]), jsonLdFaq(pricingFaq)]}>
+  <PageHero
+    title="تعرفه طراحی سایت؛ پکیج‌های شرکتی، فروشگاهی و اختصاصی"
+    sub="پکیج‌های شرکتی، فروشگاهی و اختصاصی را از نظر امکانات، زمان تحویل و پشتیبانی مقایسه کنید."
+  />
+
+  <!-- ═══ پکیج‌ها ═══ -->
+  <section class="section" aria-labelledby="pricing-title">
+    <div class="container">
+      <div class="price-grid">
+        {PRICING.map((p, i) => (
+          <article class:list={['card', 'pricing-package', { 'pricing-package--featured': p.featured }]} style={`padding:clamp(24px,3vw,34px);display:flex;flex-direction:column;gap:10px;${p.featured ? 'border:2px solid var(--pink);position:relative' : ''}`} data-reveal="up" data-delay={String(i * 90)}>
+            {p.featured && <span class="badge" style="position:absolute;top:-13px;right:22px;background:var(--pink);color:#fff">پیشنهاد کافه دانش</span>}
+            <span class="section-head__tag" style="font-size:.82rem">{p.badge}</span>
+            <h2 style="font-size:1.35rem;margin:0">{p.name}</h2>
+            <p style="color:var(--mut);font-size:.93rem;margin:0">{p.desc}</p>
+            <p style="margin:8px 0 0"><b style="font-size:1.35rem;color:var(--navy)">{p.price}</b><br /><small style="color:var(--mut)">{p.note}</small></p>
+            <ul style="list-style:none;padding:0;margin:8px 0;display:grid;gap:8px;font-size:.93rem">
+              {p.features.map((f) => (
+                <li style="display:flex;gap:8px;align-items:flex-start">
+                  <svg style="flex:none;margin-top:5px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--mint-ink)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg>
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:auto;padding-top:8px">
+              <a href={`/consult?package=${p.key}`} class="btn">{p.btn}</a>
+              <a href={`/contact?package=${p.key}`} class="btn btn--outline">سؤال درباره پکیج {p.name}</a>
+            </div>
+            <small style="color:var(--mut)">{p.foot}</small>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ مقدمه: قیمت طراحی سایت چگونه تعیین می‌شود؟ ═══ -->
+  <section class="section section--tight" aria-labelledby="price-intro-title">
+    <div class="container">
+      <div class="price-intro">
+        <div class="price-intro__copy">
+          <span class="price-intro__eyebrow">قیمت‌گذاری شفاف و متناسب با دامنه پروژه</span>
+          <h2 id="price-intro-title">هزینه طراحی سایت در کافه دانش چگونه تعیین می‌شود؟</h2>
+          <p>هزینه طراحی سایت به نوع پروژه، امکانات موردنیاز، حجم محتوا و میزان سفارشی‌سازی بستگی دارد. پکیج‌های مشخص کافه دانش کمک می‌کنند پیش از شروع همکاری، محدوده خدمات و هزینه‌ها را بدانید.</p>
+          <p>پکیج شرکتی برای معرفی کسب‌وکار، پکیج فروشگاهی برای عرضه محصولات و مدیریت سفارش‌ها و پکیج اختصاصی برای سامانه‌ها و فرایندهای سفارشی طراحی شده است.</p>
+          <p>قابلیت‌های خارج از محدوده پکیج نیز پیش از اجرا، همراه با برآورد مکتوب و پس از تأیید شما انجام می‌شوند.</p>
+          <div class="price-intro__promise"><span aria-hidden="true">✓</span><strong>امکانات، زمان‌بندی و هزینه‌ها پیش از شروع مشخص می‌شوند.</strong></div>
+        </div>
+        <figure class="price-intro__visual">
+          <img src="/img/ai/hero-team.webp" alt="جلسه برنامه‌ریزی و بررسی نیازهای پروژه طراحی وب‌سایت" width="960" height="640" loading="lazy" decoding="async" />
+          <figcaption><span>از نیازسنجی تا برآورد</span><strong>هر پیشنهاد بر اساس نیاز واقعی کسب‌وکار شما</strong></figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ امکانات مشترک در همهٔ پکیج‌ها ═══ -->
+  <section class="section bg-soft" aria-labelledby="common-title">
+    <div class="container">
+      <SectionHead title="استانداردهای کافه دانش در تمام پروژه‌ها" sub="تفاوت پکیج‌ها در نوع امکانات و دامنه اجراست؛ اما کیفیت اجرا، شفافیت همکاری و توجه به تجربه کاربری در تمام پروژه‌ها اهمیت دارد." center />
+      <div class="common-grid">
+        {commonFeatures.map((c, i) => (
+          <article class="card common-item" data-reveal="up" data-delay={String((i % 4) * 75)}>
+            <span class="common-item__number">{new Intl.NumberFormat('fa-IR').format(i + 1).padStart(2, '۰')}</span>
+            <span class="common-item__icon" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5" /></svg></span>
+            <div class="common-item__copy"><strong>{c.t}</strong><span>{c.d}</span></div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ زمان تحویل و هزینه‌های دوره‌ای ═══ -->
+  <section class="section" aria-labelledby="timeline-title">
+    <div class="container">
+      <SectionHead title="زمان تحویل و هزینه‌های پس از راه‌اندازی" sub="برای تصمیم‌گیری دقیق، بهتر است علاوه بر قیمت طراحی سایت، زمان اجرای پروژه و هزینه‌های احتمالی نگهداری آن را نیز از ابتدا بدانید." center />
+      <div class="ops-grid">
+        <article class="card ops-card" data-reveal="up">
+          <h3>هر پکیج چقدر زمان نیاز دارد؟</h3>
+          <table class="ops-table" aria-label="زمان تحویل پکیج‌های طراحی سایت">
+            <caption class="sr-only">زمان تحویل پکیج‌های طراحی سایت</caption>
+            <tbody>
+              <tr><th scope="row">پکیج شرکتی</th><td>۲ تا ۳ هفته</td></tr>
+              <tr><th scope="row">پکیج فروشگاهی</th><td>۴ تا ۶ هفته</td></tr>
+              <tr><th scope="row">پکیج اختصاصی</th><td>بر اساس فازهای اجرایی و محدوده پروژه</td></tr>
+            </tbody>
+          </table>
+          <p class="ops-card__note">زمان‌بندی پروژه پس از دریافت اطلاعات، محتوا و دسترسی‌های موردنیاز آغاز می‌شود. آماده‌بودن محتوای اولیه و ارائه بازخورد در زمان مناسب، به حفظ برنامه تحویل کمک می‌کند. زمان‌بندی نهایی در توافق پروژه مشخص خواهد شد.</p>
+        </article>
+        <article class="card ops-card" data-reveal="up" data-delay="90">
+          <h3>پس از راه‌اندازی سایت چه هزینه‌هایی وجود دارد؟</h3>
+          <table class="ops-table" aria-label="هزینه‌های احتمالی پس از راه‌اندازی سایت">
+            <caption class="sr-only">هزینه‌های احتمالی پس از راه‌اندازی سایت</caption>
+            <tbody>
+              <tr><th scope="row">دامنه</th><td>تمدید دامنه به‌صورت سالانه و بر اساس تعرفه روز ثبت‌کننده انجام می‌شود</td></tr>
+              <tr><th scope="row">هاست و میزبانی</th><td>پس از پایان دوره هدیه هر پکیج، بر اساس نوع سرویس و نیاز سایت</td></tr>
+              <tr><th scope="row">سئو و تولید محتوا</th><td>در صورت نیاز، جداگانه و با محدوده و برآورد مشخص</td></tr>
+              <tr><th scope="row">پشتیبانی و توسعه</th><td>پس از پایان مدت پشتیبانی رایگان، با توافق جداگانه</td></tr>
+            </tbody>
+          </table>
+          <p class="ops-card__note">هزینه‌های دوره‌ای و خدمات خارج از پکیج پیش از انجام، به شما اعلام می‌شوند تا برای نگهداری و توسعه وب‌سایت برنامه‌ریزی روشنی داشته باشید.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- خدمات مکمل و پس از راه‌اندازی -->
+  <section class="section bg-soft">
+    <div class="container">
+      <SectionHead title="خدمات مکمل برای رشد و نگهداری وب‌سایت" sub="تخصص اصلی کافه دانش طراحی و توسعه وب‌سایت است. پس از راه‌اندازی نیز می‌توانید برای بهبود عملکرد، تولید محتوای هدفمند و نگهداری فنی سایت از خدمات مکمل ما استفاده کنید." center />
+      <div class="compl-price-grid">
+        {complementary.map((c, i) => (
+          <article class:list={['card', 'compl-card', `compl-card--${c.key}`]} data-reveal="up" data-delay={String(i * 100)}>
+            <div class="compl-card__top">
+              <span class="compl-card__icon" aria-hidden="true">
+                {c.key === 'seo' ? (
+                  <svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg>
+                ) : c.key === 'content' ? (
+                  <svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg>
+                ) : (
+                  <svg viewBox="0 0 24 24"><path d="M12 3 20 6v5c0 5-3.4 8.2-8 10-4.6-1.8-8-5-8-10V6z"/><path d="m8.5 12 2.2 2.2 4.8-4.8"/></svg>
+                )}
+              </span>
+              <span class="compl-card__index">{new Intl.NumberFormat('fa-IR').format(i + 1).padStart(2, '۰')}</span>
+            </div>
+            <span class="compl-card__eyebrow">{c.label}</span><h3>{c.t}</h3>
+            <p class="compl-card__description">{c.d}</p>
+            <div class="compl-card__bottom">
+              <span class="compl-card__estimate">برآورد پس از نیازسنجی</span>
+              <a href={c.href} aria-label={c.cta}><span>{c.cta}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6"/></svg></a>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ سؤالات متداول تعرفه‌ها ═══ -->
+  <section class="section" aria-labelledby="pricing-faq-title">
+    <div class="container">
+      <SectionHead title="سؤالات متداول درباره قیمت و شرایط طراحی سایت" sub="پیش از انتخاب پکیج، پاسخ پرسش‌های متداول درباره هزینه، امکانات، زمان اجرا و شرایط همکاری را بررسی کنید." center />
+      <div class="faq-wrap">
+        {pricingFaq.map((f, i) => (
+          <div class:list={['faq-item', { 'is-open': i === 0 }]} data-accordion-item data-reveal="up" data-delay={String(i * 60)}>
+            <button class="faq-item__btn" type="button" data-accordion-btn aria-expanded={i === 0 ? 'true' : 'false'}>
+              {f.q}
+              <span class="faq-item__sign" aria-hidden="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+              </span>
+            </button>
+            <div class="faq-item__panel" data-accordion-panel aria-hidden={i === 0 ? 'false' : 'true'}>
+              <div class="faq-item__panel-inner">{f.a}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <CtaBand title="برای انتخاب پکیج مناسب نیاز به راهنمایی دارید؟" sub="هر کسب‌وکاری نیازها و اولویت‌های متفاوتی دارد. در جلسه مشاوره اولیه، شرایط و اهداف شما را بررسی می‌کنیم تا مناسب‌ترین پکیج یا راهکار اختصاصی را پیشنهاد دهیم. پیش از شروع نیز محدوده خدمات، زمان‌بندی و برآورد هزینه را شفاف در اختیار شما قرار می‌دهیم." />
+</BaseLayout>
+
+<style is:global>
+  .price-intro { display:grid; grid-template-columns:minmax(0,1.12fr) minmax(320px,.88fr); align-items:center; gap:clamp(26px,4vw,54px); max-width:1160px; margin-inline:auto; direction:rtl; }
+  .price-intro__copy { min-width:0; display:grid; gap:13px; direction:rtl; line-height:2.05; }
+  .price-intro__eyebrow { color:var(--pink-dark); font-size:.84rem; font-weight:800; }
+  .price-intro h2 { font-size:clamp(1.25rem,2.6vw,1.75rem); color:var(--navy); margin:0 0 3px; line-height:1.7; }
+  .price-intro p { margin:0; color:var(--body); }
+  .price-intro__promise { display:flex; align-items:center; gap:10px; margin-top:4px; padding:12px 14px; border-radius:13px; background:#f1fbf6; color:#246d4d; font-size:.9rem; }
+  .price-intro__promise span { display:grid; place-items:center; width:25px; height:25px; flex:none; border-radius:50%; background:#d9f5e6; font-weight:900; }
+  .price-intro__visual { position:relative; min-width:0; min-height:330px; height:100%; margin:0; overflow:hidden; border-radius:24px; background:var(--lavender); box-shadow:0 22px 55px rgba(39,26,84,.16); }
+  .price-intro__visual::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg,transparent 38%,rgba(20,18,52,.76) 100%); pointer-events:none; }
+  .price-intro__visual img { display:block; width:100%; height:100%; min-height:330px; object-fit:cover; object-position:center; transition:transform .65s cubic-bezier(.2,.7,.2,1); }
+  .price-intro__visual:hover img { transform:scale(1.045); }
+  .price-intro__visual figcaption { position:absolute; z-index:1; right:22px; left:22px; bottom:20px; display:grid; gap:6px; color:#fff; direction:rtl; }
+  .price-intro__visual figcaption span { color:#ffd8e8; font-size:.84rem; font-weight:800; }
+  .price-intro__visual figcaption strong { font-size:1.08rem; line-height:1.8; }
+  .price-grid { display:grid; grid-template-columns:1fr; gap:24px; }
+  .pricing-package { position:relative; overflow:hidden; border:1px solid rgba(93,77,150,.12); border-radius:22px; background:linear-gradient(180deg,#fff 0%,#fcfbff 100%); box-shadow:0 12px 36px rgba(31,25,68,.075); transition:transform .32s cubic-bezier(.2,.7,.2,1),box-shadow .32s ease,border-color .32s ease; }
+  .pricing-package::before { content:""; position:absolute; inset:0 0 auto; height:4px; background:linear-gradient(90deg,var(--purple),var(--pink)); transform:scaleX(.28); transform-origin:right; transition:transform .35s ease; }
+  .pricing-package:hover { transform:translateY(-7px); box-shadow:0 23px 54px rgba(48,30,100,.15); border-color:rgba(124,77,255,.26); }
+  .pricing-package:hover::before { transform:scaleX(1); }
+  .pricing-package--featured { box-shadow:0 18px 46px rgba(174,47,114,.13); }
+  .ops-grid { display:grid; grid-template-columns:1fr; gap:22px; }
+  .pricing-info-card { border:1px solid var(--line); border-radius:20px; box-shadow:0 12px 34px rgba(31,25,68,.07); transition:transform .28s ease,box-shadow .28s ease; }
+  .pricing-info-card:hover { transform:translateY(-5px); box-shadow:0 20px 45px rgba(31,25,68,.12); }
+  .common-grid { display:grid; grid-template-columns:1fr; gap:16px; }
+  .common-item { position:relative; display:grid; grid-template-columns:48px minmax(0,1fr); gap:13px; align-items:start; padding:22px 20px; overflow:hidden; border:1px solid rgba(100,83,153,.12); border-radius:19px; background:linear-gradient(145deg,#fff 0%,#fbf9ff 100%); box-shadow:0 10px 30px rgba(31,25,68,.055); transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s ease,border-color .3s ease; }
+  .common-item::before { content:""; position:absolute; inset:0 0 auto; height:3px; background:linear-gradient(90deg,#8563de,#f04d91); transform:scaleX(.22); transform-origin:right; transition:transform .34s ease; }
+  .common-item:hover { transform:translateY(-6px); border-color:rgba(124,77,255,.28); box-shadow:0 21px 42px rgba(54,38,112,.12); }
+  .common-item:hover::before { transform:scaleX(1); }
+  .common-item__number { position:absolute; top:13px; left:15px; color:rgba(93,77,150,.25); font-size:.76rem; font-weight:900; }
+  .common-item__icon { display:grid; place-items:center; width:46px; height:46px; border-radius:15px; background:linear-gradient(145deg,#eee8ff,#fce9f1); color:#7352c8; }
+  .common-item__copy { min-width:0; padding-top:2px; }
+  .common-item__copy strong { display:block; color:var(--navy); font-size:.98rem; line-height:1.65; margin-bottom:6px; }
+  .common-item__copy span { color:var(--mut); font-size:.87rem; line-height:1.9; }
+  .compl-price-grid { display:grid; grid-template-columns:1fr; gap:20px; }
+  .compl-card { position:relative; display:flex; flex-direction:column; gap:13px; min-height:300px; padding:26px; overflow:hidden; border:1px solid rgba(100,83,153,.13); border-radius:22px; background:linear-gradient(155deg,#fff 0%,#fbf9ff 100%); box-shadow:0 12px 34px rgba(31,25,68,.07); transition:transform .32s cubic-bezier(.2,.7,.2,1),box-shadow .32s ease,border-color .32s ease; }
+  .compl-card::after { content:""; position:absolute; width:180px; height:180px; border-radius:50%; left:-70px; top:-86px; background:radial-gradient(circle,rgba(139,108,220,.13),transparent 70%); pointer-events:none; }
+  .compl-card:hover { transform:translateY(-7px); box-shadow:0 23px 54px rgba(48,30,100,.14); border-color:rgba(124,77,255,.3); }
+  .compl-card__top { position:relative; z-index:1; display:flex; align-items:center; justify-content:space-between; }
+  .compl-card__icon { display:grid; place-items:center; width:54px; height:54px; border-radius:17px; background:linear-gradient(140deg,#eee8ff,#fceaf2); color:#7554cb; }
+  .compl-card__icon svg { width:25px; height:25px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  .compl-card__index { color:rgba(89,72,147,.35); font-size:.82rem; font-weight:900; }
+  .compl-card__eyebrow { color:var(--pink-dark); font-size:.8rem; font-weight:800; }
+  .compl-card h3 { color:var(--navy); font-size:1.16rem; line-height:1.7; margin:0; }
+  .compl-card__description { color:var(--mut); font-size:.92rem; line-height:2; margin:0; flex:1; }
+  .compl-card__bottom { display:grid; gap:14px; border-top:1px solid var(--line); padding-top:15px; }
+  .compl-card__estimate { justify-self:start; padding:5px 10px; border-radius:999px; background:#f1edf9; color:#62518f; font-size:.78rem; font-weight:800; }
+  .compl-card__bottom a { display:flex; align-items:center; justify-content:space-between; gap:10px; color:var(--purple); font-size:.9rem; font-weight:800; text-decoration:none; }
+  .compl-card__bottom a svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; transition:transform .2s ease; }
+  .compl-card__bottom a:hover svg { transform:translateX(-4px); }
+  @media (prefers-reduced-motion: reduce) { .pricing-package,.common-item,.compl-card,.pricing-info-card { transition:none; } .pricing-package:hover,.common-item:hover,.compl-card:hover,.pricing-info-card:hover { transform:none; } .price-intro__visual img { transition:none; } }
+  @media (min-width:640px) { .common-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  @media (min-width:760px) { .compl-price-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+  @media (min-width:900px) { .price-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } .ops-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  @media (min-width:1020px) { .common-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+  @media (max-width:850px) { .price-intro { grid-template-columns:minmax(0,1fr); } .price-intro__visual { min-height:250px; max-height:380px; } .price-intro__visual img { min-height:250px; } }
+  @media (max-width:560px) { .common-item { padding:19px 16px; grid-template-columns:42px minmax(0,1fr); } .common-item__icon { width:42px; height:42px; border-radius:13px; } .compl-card { min-height:0; padding:22px; } }
+
+  .ops-card {
+    min-width: 0;
+    padding: clamp(22px, 2.7vw, 30px);
+    display: grid;
+    align-content: start;
+    gap: 16px;
+    border: 1px solid rgba(93,77,150,.12);
+    border-radius: 22px;
+    background: linear-gradient(155deg,#fff 0%,#fbfaff 100%);
+    box-shadow: 0 12px 34px rgba(31,25,68,.065);
+    transition: transform .28s cubic-bezier(.2,.7,.2,1), box-shadow .28s ease, border-color .28s ease;
+  }
+  .ops-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(124,77,255,.23);
+    box-shadow: 0 20px 44px rgba(48,30,100,.12);
+  }
+  .ops-card h3 { color: var(--navy); font-size: 1.12rem; line-height: 1.7; margin: 0; }
+  .ops-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff;
+    font-size: .96rem;
+    line-height: 1.9;
+  }
+  .ops-table th,
+  .ops-table td {
+    padding: 13px 14px;
+    text-align: right;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+    border-bottom: 1px solid var(--line);
+  }
+  .ops-table th {
+    width: 33%;
+    background: #f4f1fc;
+    color: var(--navy);
+    font-weight: 800;
+  }
+  .ops-table td { color: var(--body); }
+  .ops-table tr:last-child th,
+  .ops-table tr:last-child td { border-bottom: 0; }
+  .ops-table tbody tr:nth-child(even) td { background: #fcfbff; }
+  .ops-card__note {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #f6f5fb;
+    color: var(--mut);
+    font-size: .9rem;
+    line-height: 1.95;
+  }
+  @media (max-width: 560px) {
+    .ops-card { padding: 18px 16px; }
+    .ops-table { font-size: .92rem; }
+    .ops-table th, .ops-table td { padding: 11px 9px; }
+    .ops-table th { width: 36%; }
+    .ops-card__note { font-size: .88rem; padding: 11px 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ops-card { transition: none; }
+    .ops-card:hover { transform: none; }
+  }
+
+</style>

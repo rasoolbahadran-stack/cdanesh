@@ -1,0 +1,66 @@
+---
+/* ماکاپ داشبورد هیرو — HTML/CSS خالص (بدون تصویر، تیز و سبک)
+   نمایشی و تزئینی: بازدید، درخواست‌ها و وضعیت پروژه‌ها */
+import Icon from './Icon.astro';
+---
+
+<div class="dash" role="img" aria-label="پیش‌نمایش نمایشی داشبورد مدیریت سایت و درخواست‌ها">
+  <div class="dash__bar">
+    <span class="dash__dot dash__dot--r"></span>
+    <span class="dash__dot dash__dot--y"></span>
+    <span class="dash__dot dash__dot--g"></span>
+    <span class="dash__url">panel.cdanesh.ir</span>
+  </div>
+  <div class="dash__body">
+    <div class="dash__side">
+      <span class="is-on"><Icon name="chart" size={15} stroke={2} /></span>
+      <span><Icon name="doc" size={15} stroke={2} /></span>
+      <span><Icon name="cart" size={15} stroke={2} /></span>
+      <span><Icon name="mail" size={15} stroke={2} /></span>
+      <span><Icon name="cog" size={15} stroke={2} /></span>
+    </div>
+    <div class="dash__main">
+      <div class="dash__cards">
+        <div class="dash__kpi">
+          <small>بازدید امروز</small>
+          <b>۱٬۲۴۸</b>
+        </div>
+        <div class="dash__kpi dash__kpi--pink">
+          <small>درخواست جدید</small>
+          <b>۱۸</b>
+        </div>
+        <div class="dash__kpi dash__kpi--purple">
+          <small>پروژه فعال</small>
+          <b>۷</b>
+        </div>
+      </div>
+      <div class="dash__chart">
+        <div class="dash__chart-head">
+          <b>روند بازدید هفته گذشته</b>
+          <span>۷ روز</span>
+        </div>
+        <div class="dash__bars">
+          <i style="height:46%"></i>
+          <i style="height:64%"></i>
+          <i style="height:52%"></i>
+          <i style="height:78%"></i>
+          <i style="height:58%"></i>
+          <i style="height:92%"></i>
+          <i style="height:70%"></i>
+        </div>
+      </div>
+      <div class="dash__rows">
+        <div class="dash__row">
+          <i><Icon name="doc" size={13} stroke={2.2} /></i>
+          <b>مقاله جدید منتشر شد</b>
+          <span class="ok">انجام شد</span>
+        </div>
+        <div class="dash__row">
+          <i><Icon name="mail" size={13} stroke={2.2} /></i>
+          <b>درخواست مشاوره ثبت شد</b>
+          <span class="pend">در انتظار</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

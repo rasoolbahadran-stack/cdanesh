@@ -1,0 +1,253 @@
+---
+// چیدمان پایه — SEO کامل، فونت محلی، انیمیشن‌های Reveal، هدر و فوتر
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE } from '../lib/content';
+import { ogImage, jsonLdOrganization, jsonLdWebSite, type PageMeta } from '../lib/seo';
+
+interface Props {
+  meta: PageMeta;
+  current?: string;
+  extraJsonLd?: object[];
+}
+const { meta, current = '/', extraJsonLd = [] } = Astro.props;
+
+const canonical = `${SITE.url}${meta.path === '/' ? '' : meta.path}`;
+const ogImg = ogImage(meta);
+const org = jsonLdOrganization();
+const website = jsonLdWebSite();
+
+const orgLd = JSON.stringify(org);
+const siteLd = JSON.stringify(website);
+const extraLd = extraJsonLd.map((j) => JSON.stringify(j));
+---
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{meta.title}</title>
+    <meta name="description" content={meta.description} />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="author" content={SITE.name} />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="robots" content={meta.noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'} />
+    {!meta.noindex && <link rel="canonical" href={canonical} />}
+    <link rel="icon" type="image/svg+xml" href="/img/logo.svg" sizes="any" />
+    <link rel="icon" type="image/png" href="/img/logo-512.png" sizes="512x512" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/img/logo-180.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/Vazirmatn-Regular.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/Vazirmatn-Bold.woff2" crossorigin />
+
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:type" content={meta.type ?? 'website'} />
+    <meta property="og:locale" content="fa_IR" />
+    <meta property="og:title" content={meta.title} />
+    <meta property="og:description" content={meta.description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImg} />
+    <meta property="og:image:alt" content={meta.title} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={meta.title} />
+    <meta name="twitter:description" content={meta.description} />
+    <meta name="twitter:image" content={ogImg} />
+    <meta name="twitter:image:alt" content={meta.title} />
+    {meta.publishedTime && <meta property="article:published_time" content={meta.publishedTime} />}
+
+    <script type="application/ld+json" set:html={orgLd} />
+    <script type="application/ld+json" set:html={siteLd} />
+    {extraLd.map((j) => <script type="application/ld+json" set:html={j} />)}
+  </head>
+  <body>
+    <a class="skip-link" href="#main">پرش به محتوای اصلی</a>
+    <Header current={current} />
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <Footer />
+
+    <nav class="contact-rail" aria-label="راه‌های ارتباط سریع با کافه دانش" data-contact-rail>
+      <div class="contact-rail__links" id="contact-rail-links">
+      <a class="contact-rail__link contact-rail__link--whatsapp" href="https://wa.me/989165806207" target="_blank" rel="noopener noreferrer" aria-label="گفت‌وگو در واتساپ" title="واتساپ">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.4 3.6A11.7 11.7 0 0 0 2 17.7L.6 23.4l5.8-1.5A11.7 11.7 0 0 0 20.4 3.6ZM12 21a9.2 9.2 0 0 1-4.7-1.3l-.4-.2-3.4.9.9-3.3-.2-.4A9.2 9.2 0 1 1 12 21Zm5.1-6.9c-.3-.2-1.7-.9-2-.9s-.5-.2-.7.2-.8.9-1 1.1-.4.2-.7.1a7.5 7.5 0 0 1-2.2-1.4 8.2 8.2 0 0 1-1.5-1.9c-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.4.3-.6.1-.2 0-.4 0-.6-.1-.2-.7-1.6-1-2.1-.2-.5-.5-.4-.7-.4H7.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.1-1.2 2.6s1.2 3 1.4 3.2c.2.2 2.3 3.5 5.5 4.8.8.3 1.4.5 1.9.6.8.2 1.5.2 2 .1.6-.1 1.7-.7 2-1.3.2-.7.2-1.2.2-1.3-.1-.1-.3-.2-.6-.4Z"/></svg>
+        <span class="contact-rail__label">واتساپ</span>
+      </a>
+      <a class="contact-rail__link contact-rail__link--telegram" href="https://t.me/Bahadoranr" target="_blank" rel="noopener noreferrer" aria-label="تلگرام کافه دانش" title="تلگرام">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.7 4.2 18.5 20c-.2 1.1-.8 1.4-1.7.9l-4.7-3.5-2.3 2.2c-.3.3-.5.5-1 .5l.3-4.8 8.8-8c.4-.3-.1-.5-.6-.2L6.4 14l-4.6-1.5c-1-.3-1-1 .2-1.5L20 3.8c.9-.3 1.8.2 1.7.4Z"/></svg>
+        <span class="contact-rail__label">تلگرام</span>
+      </a>
+      <a class="contact-rail__link contact-rail__link--phone" href="tel:+989165806207" aria-label="تماس تلفنی" title="تماس">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 2.8 9.4 2a1.5 1.5 0 0 1 1.8 1l1.1 3.4a1.5 1.5 0 0 1-.4 1.6l-1.7 1.4a14.8 14.8 0 0 0 4.4 4.4l1.4-1.7a1.5 1.5 0 0 1 1.6-.4l3.4 1.1a1.5 1.5 0 0 1 1 1.8l-.8 2.8a2 2 0 0 1-2 1.5A16.6 16.6 0 0 1 3 4.8a2 2 0 0 1 1.5-2Z"/></svg>
+        <span class="contact-rail__label">تماس</span>
+      </a>
+      <a class="contact-rail__link contact-rail__link--instagram" href="https://www.instagram.com/cafedaneesh/?__pwa=1#" target="_blank" rel="noopener noreferrer" aria-label="اینستاگرام کافه دانش" title="اینستاگرام">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2.1"/><circle cx="12" cy="12" r="4.1" fill="none" stroke="currentColor" stroke-width="2.1"/><circle cx="17.6" cy="6.6" r="1.2" fill="currentColor" stroke="none"/></svg>
+        <span class="contact-rail__label">اینستاگرام</span>
+      </a>
+      </div>
+      <button class="contact-rail__toggle" type="button" data-contact-toggle aria-label="بستن راه‌های ارتباطی" title="بستن راه‌های ارتباطی" aria-expanded="true" aria-controls="contact-rail-links"><svg class="contact-rail__icon-close" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg><svg class="contact-rail__icon-open" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5" /></svg></button>
+    </nav>
+
+    <script is:inline>
+      (() => {
+        const send = (message) => {
+          try { fetch('/api/errors', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source: 'browser', path: location.pathname, message: String(message || 'خطای مرورگر').slice(0, 700), severity: 'error' }), keepalive: true }); } catch {}
+        };
+        window.addEventListener('error', (event) => send(event.message || 'خطای اجرای اسکریپت'));
+        window.addEventListener('unhandledrejection', (event) => send(event.reason?.message || event.reason || 'خطای promise'));
+      })();
+    </script>
+
+    <script>
+      // ── باز و بسته کردن نوار شبکه‌های اجتماعی در تمام اندازه‌ها ──
+      const contactRail = document.querySelector<HTMLElement>('[data-contact-rail]');
+      const contactToggle = contactRail?.querySelector<HTMLButtonElement>('[data-contact-toggle]');
+      contactToggle?.addEventListener('click', () => {
+        const expanded = contactToggle.getAttribute('aria-expanded') === 'true';
+        contactToggle.setAttribute('aria-expanded', String(!expanded));
+        contactToggle.setAttribute('aria-label', expanded ? 'باز کردن راه‌های ارتباطی' : 'بستن راه‌های ارتباطی');
+        contactToggle.setAttribute('title', expanded ? 'باز کردن راه‌های ارتباطی' : 'بستن راه‌های ارتباطی');
+        contactRail?.classList.toggle('is-collapsed', expanded);
+      });
+
+      // ── انیمیشن ورود عناصر هنگام اسکرول (IntersectionObserver سبک) ──
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const els = document.querySelectorAll<HTMLElement>('[data-reveal]');
+      if (reduced) {
+        els.forEach((el) => el.classList.add('is-in'));
+      } else {
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((en) => {
+              if (en.isIntersecting) {
+                const el = en.target as HTMLElement;
+                const delay = Number(el.dataset.delay || 0);
+                window.setTimeout(() => el.classList.add('is-in'), delay);
+                io.unobserve(el);
+              }
+            });
+          },
+          { threshold: 0.14, rootMargin: '0px 0px -6% 0px' }
+        );
+        els.forEach((el) => io.observe(el));
+      }
+
+      // ── شمارنده آمار ──
+      const counters = document.querySelectorAll<HTMLElement>('[data-count]');
+      const fmt = (n: number) => new Intl.NumberFormat('fa-IR').format(n);
+      const runCounter = (el: HTMLElement) => {
+        const target = Number(el.dataset.count || 0);
+        if (reduced) { el.textContent = fmt(target); return; }
+        const dur = 1400;
+        const t0 = performance.now();
+        const tick = (t: number) => {
+          const p = Math.min(1, (t - t0) / dur);
+          const eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = fmt(Math.round(target * eased));
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      };
+      if (counters.length) {
+        const cio = new IntersectionObserver(
+          (entries) => entries.forEach((en) => {
+            if (en.isIntersecting) { runCounter(en.target as HTMLElement); cio.unobserve(en.target); }
+          }),
+          { threshold: 0.5 }
+        );
+        counters.forEach((c) => cio.observe(c));
+      }
+
+      // ── اندازه‌گیری دقیق اسکرول پیش‌نمایش نمونه‌کارها ──
+      document.querySelectorAll<HTMLElement>('[data-pf-item]').forEach((card) => {
+        const thumb = card.querySelector<HTMLElement>('.pf-card__thumb');
+        const image = card.querySelector<HTMLImageElement>('.pf-card__shot');
+        if (!thumb || !image) return;
+
+        const measurePreview = () => {
+          if (!image.naturalWidth || !image.naturalHeight) return;
+          const overflow = Math.max(0, image.getBoundingClientRect().height - thumb.clientHeight);
+          card.style.setProperty('--pf-scroll-offset', `-${Math.round(overflow)}px`);
+          card.classList.toggle('pf-card--scrollable', overflow > 8);
+        };
+
+        if (image.complete) measurePreview();
+        else image.addEventListener('load', measurePreview, { once: true });
+
+        if ('ResizeObserver' in window) {
+          const observer = new ResizeObserver(measurePreview);
+          observer.observe(thumb);
+          observer.observe(image);
+        } else {
+          window.addEventListener('resize', measurePreview, { passive: true });
+        }
+        requestAnimationFrame(measurePreview);
+      });
+
+      // ── آکاردئون FAQ ──
+      document.querySelectorAll<HTMLElement>('[data-accordion-item]').forEach((item) => {
+        const btn = item.querySelector<HTMLButtonElement>('[data-accordion-btn]');
+        const panel = item.querySelector<HTMLElement>('[data-accordion-panel]');
+        if (!btn || !panel) return;
+        btn.addEventListener('click', () => {
+          const open = item.classList.toggle('is-open');
+          btn.setAttribute('aria-expanded', String(open));
+          panel.setAttribute('aria-hidden', String(!open));
+        });
+      });
+
+      // ── فیلتر نمونه‌کارها ──
+      const filterBtns = document.querySelectorAll<HTMLButtonElement>('[data-pf-filter]');
+      filterBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          filterBtns.forEach((b) => b.classList.toggle('is-active', b === btn));
+          const cat = btn.dataset.pfFilter;
+          document.querySelectorAll<HTMLElement>('[data-pf-item]').forEach((card) => {
+            const show = cat === 'همه' || card.dataset.cat === cat;
+            card.style.display = show ? '' : 'none';
+          });
+        });
+      });
+
+      // ── ارسال فرم‌ها (تماس/مشاوره) ──
+      document.querySelectorAll<HTMLFormElement>('form[data-form]').forEach((form) => {
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const status = form.parentElement?.querySelector<HTMLElement>('.form-status');
+          const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+          const set = (cls: string, msg: string) => {
+            if (!status) return;
+            status.className = `form-status ${cls}`;
+            status.textContent = msg;
+          };
+          btn?.setAttribute('disabled', 'true');
+          const data = Object.fromEntries(new FormData(form).entries());
+          if (typeof data.service === 'string' && !data.plan_title) data.plan_title = data.service;
+          try {
+            const res = await fetch(form.dataset.action || '/api/contact', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data),
+            });
+            const payload = await res.json().catch(() => ({}));
+            if (!res.ok || payload.ok === false) {
+              set('is-err', payload.message || payload.error || 'ثبت درخواست انجام نشد. لطفاً اطلاعات را بررسی کنید.');
+              return;
+            }
+            set('is-ok', payload.message || 'درخواست شما با موفقیت ثبت شد. ✅');
+            form.reset();
+          } catch {
+            set('is-err', 'ارتباط با سرور برقرار نشد. لطفاً چند لحظه بعد دوباره تلاش کنید.');
+          } finally {
+            btn?.removeAttribute('disabled');
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

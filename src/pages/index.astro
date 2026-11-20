@@ -1,0 +1,347 @@
+---
+// صفحه اصلی کافه دانش — Hero با خط منحنی، عکس انسان و داشبورد + جایگاه برند: تخصص طراحی و توسعه وب‌سایت
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHead from '../components/SectionHead.astro';
+import PortfolioCard from '../components/PortfolioCard.astro';
+import PostCard from '../components/PostCard.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { getPosts, getPortfolio, PROS, STEPS, PRICING, MARQUEE_ITEMS, SITE, svcImg } from '../lib/content';
+import { jsonLdFaq, jsonLdBreadcrumb } from '../lib/seo';
+
+const posts = await getPosts();
+const portfolio = await getPortfolio();
+const showPf = portfolio.filter((p) => p.status === 'published').slice(0, 3);
+
+// سه مقالهٔ صفحهٔ اصلی ثابت است + توضیح به‌روزشدهٔ هر مقاله — عنوان، لینک، تاریخ و زمان مطالعه بدون تغییر می‌مانند
+const HOME_POST_EXCERPTS: Record<string, string> = {
+  'seo-content-guide': 'از انتخاب کلمه کلیدی و شناخت نیاز مخاطب تا ساختاردهی مقاله و انتشار؛ با مراحل تولید محتوایی آشنا شوید که هم برای کاربر ارزشمند است و هم ظرفیت دیده‌شدن در موتورهای جست‌وجو را تقویت می‌کند.',
+  'core-web-vitals-guide': 'با سه شاخص LCP، INP و CLS آشنا شوید و یاد بگیرید هرکدام چگونه تجربه بارگذاری، تعامل و پایداری بصری صفحات وب را ارزیابی می‌کنند.',
+  'site-speed-optimization': 'با راهکارهای عملی برای بهبود عملکرد سایت آشنا شوید؛ از بهینه‌سازی تصاویر و منابع صفحه تا بررسی هاست و کاهش عوامل مؤثر بر کندی بارگذاری.',
+};
+
+const latestPosts = ['seo-content-guide', 'core-web-vitals-guide', 'site-speed-optimization']
+  .map((slug) => posts.find((p) => p.slug === slug))
+  .filter((p): p is NonNullable<typeof p> => Boolean(p))
+  .map((p) => ({ ...p, excerpt: HOME_POST_EXCERPTS[p.slug] || p.excerpt }));
+
+// چهار پرسش تصمیم‌گیرندهٔ صفحهٔ اصلی — صفحهٔ اختصاصی FAQ با همان داده‌های قبلی خودش باقی است
+const homeFaq = [
+  { q: 'هزینه طراحی سایت چگونه مشخص می‌شود؟', a: 'پکیج‌های پایه کافه دانش با تعرفه مشخص و محدوده خدمات از پیش تعریف‌شده ارائه می‌شوند. برای پروژه‌های اختصاصی یا امکانات خارج از محدوده پکیج‌ها، ابتدا نیازمندی‌ها بررسی و سپس هزینه نهایی بر اساس حجم طراحی، امکانات فنی، تعداد صفحات و محدوده اجرا اعلام می‌شود.' },
+  { q: 'مدت اجرای پروژه به چه عواملی بستگی دارد؟', a: 'زمان اجرا به نوع وب‌سایت، امکانات موردنیاز، حجم محتوا و پیچیدگی فنی پروژه بستگی دارد. برای پکیج‌های شرکتی و فروشگاهی، زمان‌بندی اعلام‌شده در بخش تعرفه‌ها مبنا قرار می‌گیرد. آماده‌بودن اطلاعات و محتوای موردنیاز و بازبینی به‌موقع مراحل طراحی نیز در حفظ زمان‌بندی مؤثر است.' },
+  { q: 'سئو از چه مرحله‌ای باید شروع شود و چه زمانی نتیجه می‌دهد؟', a: 'سئوی فنی و ساختار اصولی باید از مرحله طراحی و توسعه سایت در نظر گرفته شود. پس از انتشار نیز تولید محتوای هدفمند، بهینه‌سازی صفحات و بررسی عملکرد جست‌وجو به‌صورت مستمر اهمیت دارد. زمان دستیابی به نتایج به رقابت حوزه فعالیت، وضعیت سایت، کیفیت محتوا و عوامل متعدد دیگر بستگی دارد و رتبه مشخص یا نتیجه فوری قابل تضمین نیست.' },
+  { q: 'پس از تحویل چه چیزهایی دریافت می‌کنم و مالکیت کد با کیست؟', a: 'در زمان تحویل، دسترسی‌های مدیریتی و آموزش‌های موردتوافق ارائه می‌شوند. محدوده تحویل فایل‌ها، سورس‌کد، دسترسی‌ها، مجوز ابزارها و شرایط مالکیت پروژه باید پیش از شروع همکاری در قرارداد مشخص شود تا هر دو طرف درباره حقوق و تعهدات خود شفافیت داشته باشند.' },
+];
+
+// سه حوزهٔ تخصص اصلی — متن‌ها مخصوص صفحهٔ اصلی است؛ لینک هر حوزه به صفحهٔ خدمت ثابت می‌ماند
+const HOME_SERVICES = [
+  { slug: 'company-website', cat: 'سایت شرکتی', t: 'طراحی سایت شرکتی', d: 'برای معرفی حرفه‌ای کسب‌وکار، نمایش خدمات، معرفی توانمندی‌ها، ارائه نمونه‌کار و دریافت درخواست مشتریان.' },
+  { slug: 'ecommerce', cat: 'فروشگاه اینترنتی', t: 'طراحی فروشگاه اینترنتی', d: 'برای عرضه محصولات، مدیریت کالاها و سفارش‌ها، اتصال درگاه پرداخت و فراهم‌کردن تجربه خرید آسان و قابل اعتماد.' },
+  { slug: 'custom-web', cat: 'وب‌اپلیکیشن اختصاصی', t: 'طراحی سامانه و وب‌اپلیکیشن اختصاصی', d: 'برای کسب‌وکارهایی که به پنل‌های مدیریتی، فرایندهای اختصاصی و قابلیت‌هایی فراتر از یک وب‌سایت معمولی نیاز دارند.' },
+];
+
+const marqueeItems = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
+
+const meta = {
+  title: 'کافه دانش | طراحی سایت شرکتی، فروشگاهی و تخصصی پوشاک',
+  description: 'کافه دانش طراحی سایت شرکتی، فروشگاه اینترنتی و سامانه‌های اختصاصی را انجام می‌دهد؛ با تمرکز ویژه بر فروشگاه آنلاین لباس برای بوتیک‌ها، مزون‌ها و برندهای پوشاک. برای بررسی نیاز کسب‌وکار و دریافت مشاوره اقدام کنید.',
+  path: '/',
+};
+---
+<BaseLayout meta={meta} current="/" extraJsonLd={[jsonLdFaq(homeFaq), jsonLdBreadcrumb([{ name: 'خانه', url: '/' }])]}>
+  <!-- ═══════════ HERO ═══════════ -->
+  <section class="hero" id="top" aria-label="معرفی کافه دانش">
+    <!-- خط منحنی عبوری از وسط Hero — به سبک ساسمیکس -->
+    <svg class="hero__ribbon" viewBox="0 0 1440 760" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <path d="M-90 470 C 260 200, 640 640, 950 430 S 1400 260, 1560 400" stroke="rgba(11,18,51,0.20)" stroke-width="170" fill="none" stroke-linecap="round" />
+      <path d="M-70 640 C 320 420, 760 720, 1120 560 S 1460 470, 1560 590" stroke="rgba(255,255,255,0.10)" stroke-width="88" fill="none" stroke-linecap="round" />
+      <path d="M-60 160 C 420 380, 900 90, 1520 300" stroke="rgba(255,255,255,0.08)" stroke-width="62" fill="none" stroke-linecap="round" />
+    </svg>
+    <span class="hero__glow hero__glow--1" aria-hidden="true"></span>
+    <span class="hero__glow hero__glow--2" aria-hidden="true"></span>
+    <svg class="hero__sparkle" style="top:14%;left:6%" width="30" height="30" viewBox="0 0 24 24" fill="#FFD7E8" aria-hidden="true"><path d="M12 0c.9 6.7 4.4 10.2 12 12-7.6 1.8-11.1 5.3-12 12-.9-6.7-4.4-10.2-12-12C7.6 10.2 11.1 6.7 12 0Z"/></svg>
+    <svg class="hero__sparkle hero__sparkle--b" style="top:60%;right:4%" width="22" height="22" viewBox="0 0 24 24" fill="#ffffff" aria-hidden="true"><path d="M12 0c.9 6.7 4.4 10.2 12 12-7.6 1.8-11.1 5.3-12 12-.9-6.7-4.4-10.2-12-12C7.6 10.2 11.1 6.7 12 0Z"/></svg>
+
+    <div class="container hero__grid">
+      <div class="hero__content">
+        <h1 class="hero__title" data-reveal="up">
+          <span class="hero__title-main">طراحی سایت شرکتی و فروشگاهی؛</span>
+          <span class="hero__mark">اختصاصی، حرفه‌ای و توسعه‌پذیر</span>
+        </h1>
+        <p class="hero__text" data-reveal="up" data-delay="120">
+          از طراحی سایت شرکتی و فروشگاهی تا وب‌اپلیکیشن اختصاصی؛ با تمرکز ویژه بر فروشگاه‌های پوشاک، بوتیک‌ها و مزون‌ها.
+        </p>
+        <div class="hero__btns" data-reveal="up" data-delay="240">
+          <a href="/consult" class="btn btn--lg">درخواست مشاوره و سفارش پروژه</a>
+          <a href="/portfolio" class="btn btn--ghost btn--lg">
+            مشاهده نمونه‌کارها
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" /></svg>
+          </a>
+        </div>
+        <ul class="hero__points" data-reveal="up" data-delay="340">
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg> طراحی متناسب با هویت برند و نیاز واقعی کسب‌وکار</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg> ساختار فنی استاندارد و سئوی اصولی از ابتدا</li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg> تحویل مرحله‌ای، پشتیبانی و امکان توسعه و مدیریت سایت</li>
+        </ul>
+      </div>
+
+      <div class="hero__media" data-reveal="zoom" data-delay="200">
+        <!-- داشبورد ماکاپ — مانند سایت فعلی -->
+        <div class="hero__dash" role="img" aria-label="پیش‌نمایش نمایشی داشبورد مدیریت سایت کافه دانش">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#f6f7fd;border-bottom:1px solid var(--line)">
+            <span style="display:inline-flex;gap:6px" aria-hidden="true">
+              <i style="width:10px;height:10px;border-radius:50%;background:#ff5f57"></i>
+              <i style="width:10px;height:10px;border-radius:50%;background:#febc2e"></i>
+              <i style="width:10px;height:10px;border-radius:50%;background:#28c840"></i>
+            </span>
+            <span dir="ltr" style="font-size:.72rem;color:var(--mut);background:#fff;border:1px solid var(--line);border-radius:99px;padding:2px 12px">panel.cdanesh.ir</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 16px 4px">
+            <div style="border-radius:10px;background:var(--peach);padding:10px 12px">
+              <small style="color:var(--mut);font-size:.68rem">بازدید امروز</small>
+              <b style="display:block;color:var(--navy);font-size:1.05rem">۱,۲۴۸</b>
+            </div>
+            <div style="border-radius:10px;background:var(--lavender);padding:10px 12px">
+              <small style="color:var(--mut);font-size:.68rem">درخواست جدید</small>
+              <b style="display:block;color:var(--purple);font-size:1.05rem">۱۸</b>
+            </div>
+            <div style="border-radius:10px;background:var(--mint);padding:10px 12px">
+              <small style="color:var(--mut);font-size:.68rem">پروژه فعال</small>
+              <b style="display:block;color:var(--mint-ink);font-size:1.05rem">۷</b>
+            </div>
+          </div>
+          <div style="padding:10px 16px 16px">
+            <p style="font-size:.74rem;color:var(--navy);font-weight:700;margin:0 0 8px">روند بازدید هفته گذشته <span style="color:var(--mut);font-weight:500">(۷ روز)</span></p>
+            <div style="display:flex;align-items:flex-end;gap:7px;height:88px" aria-hidden="true">
+              {[38, 62, 46, 74, 52, 88, 66].map((h, i) => (
+                <span style={`flex:1;height:${h}%;border-radius:6px 6px 3px 3px;background:${i % 2 ? 'var(--grad-btn-hover)' : 'linear-gradient(to top,#ece2fd,var(--purple-light))'}`}></span>
+              ))}
+            </div>
+            <div style="margin-top:12px;display:grid;gap:7px">
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:.72rem;color:var(--navy);background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 10px">
+                <span>پروژه در مرحلهٔ طراحی</span><span class="badge badge--ok">در جریان</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:.72rem;color:var(--navy);background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 10px">
+                <span>درخواست مشاوره جدید</span><span class="badge badge--soon">در انتظار</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- عکس انسانی: تیم کافه دانش در محیط کار -->
+        <figure class="hero__photo-ring" style="margin:0">
+          <img
+            src="/img/ai/hero-team.webp"
+            alt="تصویر مفهومی از فضای طراحی و توسعه وب‌سایت در کافه دانش"
+            width="480" height="571"
+            fetchpriority="high" decoding="async"
+          />
+        </figure>
+
+        <!-- کارت‌های شناور -->
+        <div class="hero__chip hero__chip--a" aria-hidden="true">
+          <span class="hero__chip-ico">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z" /><path d="m2 17 10 5 10-5M2 12l10 5 10-5" /></svg>
+          </span>
+          <span>طراحی <b>اختصاصی</b>، توسعه <b>فنی</b>، تجربه کاربری <b>UI/UX</b><small>تخصص اصلی کافه دانش</small></span>
+        </div>
+        <div class="hero__chip hero__chip--b" aria-hidden="true">
+          <span class="hero__chip-ico" style="background:var(--mint);color:var(--mint-ink)">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+          </span>
+          <span>{SITE.url.replace('https://', '')} — نمونه طراحی<small>تحویل مرحله‌ای و شفاف</small></span>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- نوار متحرک پروژه‌ها — باند گرادیانی با لبهٔ پایین موجی -->
+  <div class="marquee-band marquee-band--projects">
+    <div class="marquee marquee--hero">
+      <div class="marquee__track">
+        {marqueeItems.map((m) => (
+          <span class="marquee__item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c.9 6.7 4.4 10.2 12 12-7.6 1.8-11.1 5.3-12 12-.9-6.7-4.4-10.2-12-12C7.6 10.2 11.1 6.7 12 0Z" /></svg>
+            {m}
+          </span>
+        ))}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════ نوار آمار ═══════════ -->
+  <section class="section--tight wave-host" aria-label="کافه دانش در یک نگاه">
+    <div class="container">
+      <div class="stats">
+        <div class="stat" data-reveal="up">
+          <span class="stat__ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5-10-5Z" /><path d="m2 17 10 5 10-5M2 12l10 5 10-5" /></svg></span>
+          <p class="stat__num"><span data-count="10">۰</span></p>
+          <p class="stat__label">وب‌سایت ساخته و منتشرشده</p>
+        </div>
+        <div class="stat" data-reveal="up" data-delay="120">
+          <span class="stat__ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4.5" /><circle cx="12" cy="12" r="1" /></svg></span>
+          <p class="stat__num"><span data-count="3">۰</span></p>
+          <p class="stat__label">پکیج طراحی سایت با تعرفه شفاف</p>
+        </div>
+        <div class="stat" data-reveal="up" data-delay="240">
+          <span class="stat__ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" /></svg></span>
+          <p class="stat__num"><span data-count="6">۰</span></p>
+          <p class="stat__label">مرحله از درخواست تا تحویل</p>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ═══════════ تخصص اصلی: طراحی و توسعه وب‌سایت ═══════════ -->
+  <section class="section bg-lavender" aria-labelledby="svc-title">
+    <div class="container">
+      <SectionHead title="طراحی و توسعه وب‌سایت برای کسب‌وکار شما" sub="از معرفی حرفه‌ای کسب‌وکار تا فروش آنلاین و سامانه‌های اختصاصی، راهکار دیجیتال متناسب با نیاز واقعی شما طراحی و توسعه می‌دهیم؛ با توجه به تجربه کاربری، عملکرد فنی و امکانات موردنیاز هر پروژه." center />
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px" class="svc-grid">
+        {HOME_SERVICES.map((s, i) => (
+          <a href={`/services/${s.slug}`} class="svc-card" data-reveal="up" data-delay={String((i % 3) * 80)} style="color:inherit">
+            <div class="svc-card__media">
+              <img src={svcImg(s.slug)} alt={`${s.t} — خدمت کافه دانش`} width="480" height="300" loading="lazy" decoding="async" />
+              <span class="svc-card__cat">{s.cat}</span>
+            </div>
+            <div class="svc-card__body">
+              <h3>{s.t}</h3>
+              <p>{s.d}</p>
+              <span class="svc-card__more">
+                جزئیات خدمت
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m0 0 6 6m-6-6 6-6" /></svg>
+              </span>
+            </div>
+          </a>
+        ))}
+      </div>
+      <!-- خدمات مکمل به‌صورت نوار فشرده در ادامه خدمات اصلی — جایگاه برند: طراحی اول، سئو و پشتیبانی مکمل -->
+      <p class="compl-strip" data-reveal="up">
+        <span class="compl-strip__label">خدمات مکمل پس از راه‌اندازی:</span>
+        <a href="/services/seo">سئو تکنیکال و محتوایی</a>
+        <a href="/services/content">تولید محتوای تخصصی</a>
+        <a href="/services/speed-optimization">بهینه‌سازی سرعت</a>
+        <a href="/services/support">مدیریت و پشتیبانی سایت</a>
+      </p>
+    </div>
+
+  </section>
+
+
+  <!-- ═══════════ تخصص بازار: فروشگاه اینترنتی پوشاک ═══════════ -->
+  <section class="section apparel-focus" aria-labelledby="apparel-focus-title">
+    <div class="container">
+      <div class="apparel-focus__intro">
+        <span class="apparel-focus__eyebrow">تخصص ویژه کافه دانش</span>
+        <h2 id="apparel-focus-title">طراحی فروشگاه اینترنتی ویژه بوتیک‌ها، مزون‌ها و برندهای پوشاک</h2>
+        <p>اگر فروش لباس شما به مراجعه حضوری یا سفارش‌های پراکنده در دایرکت محدود شده، یک فروشگاه اینترنتی متناسب با فرایند واقعی کسب‌وکارتان می‌تواند مسیر معرفی محصول، ثبت سفارش و فروش به مشتریان سراسر ایران را منظم‌تر کند.</p>
+      </div>
+      <div class="apparel-focus__grid">
+        <article class="apparel-focus__card"><span aria-hidden="true">01</span><h3>مدیریت دقیق محصولات</h3><p>دسته‌بندی لباس‌ها، تعریف رنگ و سایز، نمایش موجودی و صفحه محصولی که به سؤال‌های خریدار پاسخ بدهد.</p></article>
+        <article class="apparel-focus__card"><span aria-hidden="true">02</span><h3>مسیر سفارش روشن</h3><p>سبد خرید، پرداخت آنلاین و پیگیری سفارش؛ به‌جای گم‌شدن درخواست‌ها میان پیام‌های پراکنده.</p></article>
+        <article class="apparel-focus__card"><span aria-hidden="true">03</span><h3>متناسب با مدل کسب‌وکار</h3><p>راهکار متناسب با خرده‌فروشی، فروش عمده، مزون و سفارش دوخت؛ امکانات بر اساس نیازسنجی تعیین می‌شوند.</p></article>
+      </div>
+      <div class="apparel-focus__actions">
+        <a class="btn btn--lg" href="/services/clothing-store">جزئیات طراحی سایت پوشاک</a>
+        <a class="btn btn--outline btn--lg" href="/consult?service=clothing-store">مشاوره راه‌اندازی فروشگاه لباس</a>
+      </div>
+      <p class="apparel-focus__note">این تخصص در کنار خدمات عمومی طراحی سایت شرکتی، فروشگاهی و سامانه‌های اختصاصی ارائه می‌شود.</p>
+    </div>
+  </section>
+
+  <!-- ═══════════ FAQ ═══════════ -->
+  <section class="section" aria-labelledby="faq-title">
+    <div class="container">
+      <SectionHead tag="سؤالات متداول" title="سؤالات متداول؛ پیش از شروع همکاری چه چیزهایی باید بدانید؟" center />
+      <div class="faq-wrap">
+        {homeFaq.map((f, i) => (
+          <div class:list={['faq-item', { 'is-open': i === 0 }]} data-accordion-item data-reveal="up" data-delay={String(i * 60)}>
+            <button class="faq-item__btn" type="button" data-accordion-btn aria-expanded={i === 0 ? 'true' : 'false'}>
+              {f.q}
+              <span class="faq-item__sign" aria-hidden="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+              </span>
+            </button>
+            <div class="faq-item__panel" data-accordion-panel aria-hidden={i === 0 ? 'false' : 'true'}>
+              <div class="faq-item__panel-inner">{f.a}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style="text-align:center;margin-top:30px" data-reveal="up">
+        <a href="/faq" class="btn btn--outline">مشاهده همه سؤالات متداول</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ مجله ═══════════ -->
+  <section class="section bg-lavender" aria-labelledby="blog-title">
+    <div class="container">
+      <SectionHead tag="مجله کافه دانش" title="دانش کاربردی برای حضور بهتر در دنیای دیجیتال" sub="راهنماها و مطالب تخصصی درباره طراحی و توسعه وب‌سایت، سئو و تولید محتوای هدفمند؛ برای تصمیم‌گیری بهتر و تقویت حضور آنلاین کسب‌وکار شما." />
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px" class="blog-grid">
+        {latestPosts.map((p, i) => (
+          <PostCard post={p} delay={String(i * 90)} />
+        ))}
+      </div>
+      <div style="text-align:center;margin-top:34px" data-reveal="up">
+        <a href="/blog" class="btn btn--outline btn--lg">مشاهده همه مقالات</a>
+      </div>
+    </div>
+
+  </section>
+
+  <CtaBand sub="در جلسه مشاوره اولیه، درباره اهداف، نیازها و امکانات موردنظر شما گفت‌وگو می‌کنیم و مسیر مناسب اجرای پروژه را همراه با برآورد اولیه و محدوده خدمات مشخص می‌کنیم." />
+</BaseLayout>
+
+<style is:global>
+  .marquee-band { position: relative; padding-block: 14px 16px; }
+  .hero { border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: 0; }
+  .marquee-band--projects {
+    margin-top: -2px;
+    padding-bottom: 16px;
+    background: linear-gradient(132deg, #171b43 0%, #30205f 52%, #4b287b 100%);
+    border-top: 0;
+  }
+  .marquee-band--projects .marquee__item { color: #f8f5ff; }
+  .marquee-band--projects .marquee__item svg { color: #ff91bd; }
+  .svc-grid, .price-grid, .blog-grid, .compl-grid, .home-four-row { grid-template-columns: 1fr; }
+  @media (min-width: 700px) {
+    .svc-grid { grid-template-columns: repeat(2, 1fr); }
+    .price-grid { grid-template-columns: repeat(2, 1fr); }
+    .blog-grid { grid-template-columns: repeat(2, 1fr); }
+    .compl-grid { grid-template-columns: repeat(2, 1fr); }
+    .home-four-row { grid-template-columns: 1fr !important; }
+    .home-four-row img, .home-four-row > div { order: initial !important; }
+  }
+  @media (min-width: 1020px) {
+    .svc-grid { grid-template-columns: repeat(3, 1fr); }
+    .price-grid { grid-template-columns: repeat(3, 1fr); }
+    .blog-grid { grid-template-columns: repeat(3, 1fr); }
+    .compl-grid { grid-template-columns: repeat(3, 1fr); }
+  .compl-strip {
+    margin: 30px 0 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+    gap: 6px 14px; text-align: center; color: var(--mut); font-size: .95rem;
+  }
+  .compl-strip__label { font-weight: 700; color: var(--navy); }
+  .compl-strip a { color: var(--purple); font-weight: 600; text-decoration: none; border-bottom: 1px dashed rgba(124, 77, 255, .35); padding-bottom: 2px; transition: color .15s, border-color .15s; }
+  .compl-strip a:hover { color: var(--pink); border-color: var(--pink); }
+    .home-four-row { grid-template-columns: inherit !important; }
+  }
+</style>
+
+<style>
+  .apparel-focus { background: #fbf9ff; }
+  .apparel-focus__intro { max-width: 820px; margin: 0 auto 30px; text-align: center; }
+  .apparel-focus__eyebrow { display: inline-flex; padding: 6px 13px; border-radius: 999px; background: #eee7ff; color: #6041a5; font-size: .84rem; font-weight: 800; margin-bottom: 12px; }
+  .apparel-focus__intro h2 { margin: 0 0 12px; color: var(--navy); font-size: clamp(1.45rem, 3vw, 2.1rem); line-height: 1.7; }
+  .apparel-focus__intro p { margin: 0; color: var(--mut); line-height: 2.1; }
+  .apparel-focus__grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; }
+  .apparel-focus__card { min-width: 0; padding: 23px; border: 1px solid var(--line); border-radius: var(--r-lg); background: #fff; box-shadow: var(--shadow-soft); }
+  .apparel-focus__card > span { display: inline-grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--lavender); color: var(--purple); font-weight: 800; font-size: .8rem; }
+  .apparel-focus__card h3 { margin: 14px 0 8px; color: var(--navy); font-size: 1.05rem; }
+  .apparel-focus__card p { margin: 0; color: var(--mut); line-height: 2; font-size: .92rem; }
+  .apparel-focus__actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+  .apparel-focus__note { margin: 16px 0 0; text-align: center; color: var(--mut); font-size: .84rem; }
+  @media(max-width:760px) { .apparel-focus__grid { grid-template-columns: 1fr; } .apparel-focus__card { padding: 19px; } .apparel-focus__actions { display: grid; grid-template-columns: 1fr; } .apparel-focus__actions .btn { width: 100%; } .apparel-focus__intro { text-align: right; } }
+</style>

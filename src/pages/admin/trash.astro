@@ -1,0 +1,76 @@
+---
+export const prerender = false;
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="سطل زباله" crumb="سیستم مدیریت › سطل زباله">
+  <style>
+    .trash-wrap{max-width:1450px;margin:auto;padding:22px}
+    .trash-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+    .trash-head h2{margin:0;font-size:18px}.trash-head p{margin:5px 0 0;color:var(--a-muted);font-size:12px;line-height:1.8}
+    .trash-table{width:100%;border-collapse:collapse;min-width:650px}
+    .trash-table th,.trash-table td{padding:12px 10px;border-bottom:1px solid var(--a-line);text-align:right;font-size:12.5px;vertical-align:middle}
+    .trash-table th{color:var(--a-muted);font-weight:700;background:#fafaff}
+    .trash-actions{display:flex;gap:6px;flex-wrap:wrap}
+    @media(max-width:600px){.trash-wrap{padding:12px}}
+  </style>
+  <div class="trash-wrap">
+    <header class="trash-head">
+      <div><h2>موارد حذف‌شده</h2><p>حذف از بخش‌های پنل ابتدا به این قسمت منتقل می‌شود. امکان بازیابی وجود دارد؛ حذف قطعی غیرقابل‌بازگشت است.</p></div>
+      <button type="button" class="btn btn-ghost btn-sm" id="trash-refresh">↻ تازه‌سازی</button>
+    </header>
+    <section class="panel">
+      <div class="table-scroll">
+        <table class="trash-table">
+          <thead><tr><th>بخش</th><th>عنوان / نام</th><th>شناسه</th><th>تاریخ حذف</th><th>عملیات</th></tr></thead>
+          <tbody id="trash-rows"><tr><td colspan="5">در حال بارگذاری…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const body = document.getElementById('trash-rows') as HTMLElement;
+      const labels: Record<string,string> = {posts:'مقاله',pages:'صفحه',categories:'دسته‌بندی',projects:'نمونه‌کار',services:'خدمت',plans:'تعرفه',faqs:'سؤال متداول',testimonials:'نظر مشتری',messages:'پیام',media:'رسانه'};
+      const dateFa = (value: string) => {
+        const d = new Date(value);
+        return Number.isNaN(d.getTime()) ? '—' : new Intl.DateTimeFormat('fa-IR-u-ca-persian',{dateStyle:'medium',timeStyle:'short'}).format(d);
+      };
+      async function load() {
+        body.innerHTML='<tr><td colspan="5">در حال بارگذاری…</td></tr>';
+        try {
+          const r=await fetch('/api/admin/system?view=trash',{cache:'no-store'}),j=await r.json();
+          if(!r.ok||!j.ok) throw new Error(j.message||'دریافت سطل زباله ناموفق بود');
+          body.innerHTML='';
+          if(!j.rows.length){body.innerHTML='<tr><td colspan="5">سطل زباله خالی است.</td></tr>';return;}
+          j.rows.forEach((item:any)=>{
+            let snap=item.snapshot||{};
+            if(typeof snap==='string'){try{snap=JSON.parse(snap);}catch{snap={};}}
+            const tr=document.createElement('tr');
+            const entity=document.createElement('td');entity.textContent=labels[item.entity]||item.entity;
+            const title=document.createElement('td');title.textContent=String(snap.title||snap.name||snap.question||snap.filename||snap.slug||'بدون عنوان');
+            const id=document.createElement('td');id.textContent=String(item.entity_id);
+            const date=document.createElement('td');date.textContent=dateFa(item.deleted_at);
+            const actions=document.createElement('td'),wrap=document.createElement('div');wrap.className='trash-actions';
+            const restore=document.createElement('button');restore.type='button';restore.className='btn btn-gold btn-sm';restore.textContent='بازیابی';
+            restore.addEventListener('click',async()=>{
+              if(!confirm('این مورد به بخش اصلی بازگردانده شود؟'))return;
+              restore.disabled=true;
+              try{const rr=await fetch('/api/admin/system',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:item.id})}),jj=await rr.json();if(!rr.ok||!jj.ok)throw new Error(jj.message||'بازیابی ناموفق بود');await load();}
+              catch(e){alert((e as Error).message);restore.disabled=false;}
+            });
+            const purge=document.createElement('button');purge.type='button';purge.className='btn btn-danger btn-sm';purge.textContent='حذف قطعی';
+            purge.addEventListener('click',async()=>{
+              if(!confirm('این مورد برای همیشه حذف شود؟ این عملیات قابل بازگشت نیست.'))return;
+              purge.disabled=true;
+              try{const rr=await fetch('/api/admin/system?id='+encodeURIComponent(item.id),{method:'DELETE'}),jj=await rr.json();if(!rr.ok||!jj.ok)throw new Error(jj.message||'حذف قطعی ناموفق بود');await load();}
+              catch(e){alert((e as Error).message);purge.disabled=false;}
+            });
+            wrap.append(restore,purge);actions.appendChild(wrap);tr.append(entity,title,id,date,actions);body.appendChild(tr);
+          });
+        }catch(e){body.innerHTML='<tr><td colspan="5">'+String((e as Error).message||'خطا در بارگذاری')+'</td></tr>';}
+      }
+      document.getElementById('trash-refresh')?.addEventListener('click',load);
+      load();
+    });
+  </script>
+</AdminLayout>

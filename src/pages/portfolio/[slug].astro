@@ -1,0 +1,114 @@
+---
+// صفحه جزئیات نمونه‌کار — با پیش‌نمایش تمام‌صفحه، وضعیت واقعی انتشار و لینک نسخه زنده
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PortfolioCard from '../../components/PortfolioCard.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { getPortfolio, getPortfolioItem } from '../../lib/content';
+import { pfStatusLabel } from '../../lib/types';
+import { jsonLdBreadcrumb } from '../../lib/seo';
+
+export const prerender = false;
+
+const slug = Astro.params.slug ?? '';
+const item = await getPortfolioItem(slug);
+if (!item) return Astro.redirect('/404');
+
+const all = await getPortfolio();
+const others = all.filter((p) => p.slug !== slug).slice(0, 3);
+const isLive = item.status === 'published' && item.liveUrl;
+
+const screenshotPreview = item.liveUrl?.trim()
+  ? `https://v1.screenshot.11ty.dev/${encodeURIComponent(item.liveUrl.trim())}/medium/9:16/bigger/`
+  : '';
+const storedPreview = item.preview?.trim() || '';
+const previewSrc = storedPreview || screenshotPreview;
+const fallbackPreview = storedPreview ? screenshotPreview : '';
+
+const meta = {
+  title: `${item.title} | نمونه‌کار کافه دانش`,
+  description: item.excerpt,
+  path: `/portfolio/${item.slug}`,
+  image: item.cover || item.preview || undefined,
+};
+---
+<BaseLayout meta={meta} current="/portfolio" extraJsonLd={[jsonLdBreadcrumb([{ name: 'خانه', url: '/' }, { name: 'نمونه‌کارها', url: '/portfolio' }, { name: item.title, url: meta.path }])]}>
+
+
+  <section class="section">
+    <div class="container pf-detail">
+      <div>
+        <figure style="margin:0;border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-float)">
+          {previewSrc && (
+            <img
+              src={previewSrc}
+              data-fallback={fallbackPreview}
+              onerror="if(this.dataset.fallback){const fallback=this.dataset.fallback;this.dataset.fallback='';this.src=fallback;}else{this.style.display='none';this.nextElementSibling.hidden=false;}"
+              alt={`${item.title} — پیش‌نمایش کامل صفحه نمونه‌کار کافه دانش`}
+              width="900"
+              height="1200"
+              loading="lazy"
+              decoding="async"
+              style="width:100%;display:block"
+            />
+          )}
+          <div hidden={Boolean(previewSrc)} role="img" aria-label={`${item.title} — پیش‌نمایش در انتظار تصویر`} style="aspect-ratio:3/4;min-height:320px;display:grid;place-content:center;gap:12px;text-align:center;padding:28px;background:linear-gradient(145deg,#17152b,#33245b);color:#fff">
+            <strong style="font-size:1.5rem">{item.title}</strong>
+            <span style="opacity:.75">پروژه منتشرشده با Astro روی Vercel</span>
+          </div>
+        </figure>
+
+        <div style="display:grid;gap:14px;margin-top:26px" data-reveal="up">
+          <h1 style="font-size:clamp(1.6rem,3vw,2.1rem);margin:0">{item.title}</h1>
+          <h2 style="font-size:1.35rem">درباره این پروژه</h2>
+          <p style="color:var(--body);max-width:70ch">{item.description || item.excerpt}</p>
+          <p style="color:var(--mut);font-size:.94rem;max-width:70ch">
+            {isLive
+              ? 'این پروژه به‌صورت زنده روی زیرساخت Vercel منتشر شده است. برای مشاهده نسخه کامل از دکمه مشاهده وب‌سایت استفاده کنید.'
+              : 'این نمونه به‌صورت مفهومی توسط تیم کافه‌دانش ساخته شده تا کیفیت اجرا را از نزدیک ببینید؛ نسخه عمومی ندارد.'}
+          </p>
+        </div>
+
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:24px" data-reveal="up">
+          <span class="pf-card__tags" style="display:flex;gap:8px;flex-wrap:wrap">
+            <span class="badge badge--ok">{pfStatusLabel[item.status]}</span>
+            <span class="badge" style="background:var(--lavender);color:var(--purple)">{item.category}</span>
+            {item.tags.map((t) => <span class="badge" style="background:var(--lavender);color:var(--purple)">{t}</span>)}
+          </span>
+        </div>
+
+        {isLive && (
+          <div style="margin-top:26px;padding:22px;border-radius:var(--r-lg);background:var(--mint);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px" data-reveal="up">
+            <div>
+              <h3 style="margin:0 0 4px;font-size:1.05rem">نسخهٔ آنلاین پروژه</h3>
+              <p style="margin:0;font-size:.9rem;color:var(--mint-ink)">این پیوند شما را به نسخهٔ عمومی منتشرشدهٔ پروژه هدایت می‌کند.</p>
+            </div>
+            <a href={item.liveUrl} target="_blank" rel="noopener" class="btn">
+              مشاهده وب‌سایت
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" /></svg>
+            </a>
+          </div>
+        )}
+      </div>
+
+      <aside class="pf-aside">
+        <h2 style="font-size:1.2rem">پروژه‌های دیگر کافه دانش</h2>
+        <div style="display:grid;gap:20px">
+          {others.map((p) => (
+            <PortfolioCard item={p} />
+          ))}
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <CtaBand title="پروژه‌ای شبیه این می‌خواهید؟" sub="از جلسه مشاوره رایگان شروع کنید؛ نیازتان را می‌شنویم و مسیر دقیق را پیشنهاد می‌دهیم." />
+</BaseLayout>
+
+<style is:global>
+  .pf-detail { display: grid; grid-template-columns: 1fr; gap: 40px; }
+  @media (min-width: 1060px) {
+    /* سایدبار باریک‌تر (استاندارد) + چسبیده تا انتهای محتوا و پیش از فوتر */
+    .pf-detail { grid-template-columns: minmax(0, 1fr) 320px; align-items: start; }
+    .pf-aside { position: sticky; top: 92px; }
+  }
+</style>

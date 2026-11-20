@@ -1,0 +1,458 @@
+---
+// صفحه مقاله — محتوای کامل + JSON-LD مقاله + مقالات مرتبط
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Blocks from '../../components/Blocks.astro';
+import PostCard from '../../components/PostCard.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { getPost, getRelatedPosts, postWordCount, postReadMinutes, injectHtmlHeadingIds } from '../../lib/content';
+import type { Post } from '../../lib/types';
+import { jsonLdArticle, jsonLdBreadcrumb, jsonLdFaq } from '../../lib/seo';
+
+export const prerender = false;
+
+const slug = Astro.params.slug ?? '';
+const post = await getPost(slug) as Post | undefined;
+if (!post) return Astro.redirect('/404');
+
+const related = getRelatedPosts(slug, 3);
+const fa = (n: number | string) => new Intl.NumberFormat('fa-IR').format(Number(n));
+
+// شناسه‌ها و فهرست مطالب پس از جداسازی FAQ از همان بلوک‌های مقاله محاسبه می‌شوند.
+type TocItem = { text: string; level: string; id: string };
+
+// زمان مطالعه و شمارش واژه — همیشه از محتوای واقعی محاسبه می‌شود، نه مقدار قدیمی دیتابیس
+const wordCount = postWordCount(post);
+const readMinutes = postReadMinutes(post);
+
+// برای مقالهٔ طراحی سایت فروشگاهی لباس، بخش پرسش‌های متداول را از بدنه جدا می‌کنیم
+// تا در قالب آکاردئون نمایش داده شود؛ محتوای پرسش‌ها در دادهٔ مقاله حفظ و بازاستفاده می‌شود.
+const isClothingDesignArticle =
+  slug === 'clothing-store-website-design' ||
+  (post.category === 'پوشاک و مد' && /طراحی سایت.*(لباس|پوشاک)|فروشگاهی.*لباس/.test(post.title));
+
+const faqHeadingPattern = /س[ؤو]الات\s*متداول|پرسش(?:‌|\s)?های?\s*متداول/i;
+const plainFaqText = (value: string) => String(value || '')
+  .replace(/<br\s*\/?\s*>/gi, ' ')
+  .replace(/<[^>]*>/g, ' ')
+  .replace(/&nbsp;/g, ' ')
+  .replace(/&amp;/g, '&')
+  .replace(/&quot;/g, '"')
+  .replace(/&#39;/g, "'")
+  .replace(/\s+/g, ' ')
+  .trim();
+
+const clothingFaqFallback = [
+  { q: 'هزینه طراحی سایت فروشگاهی لباس به چه عواملی بستگی دارد؟', a: 'هزینه به تعداد محصولات و تنوع آن‌ها، مدیریت رنگ و سایز، طراحی رابط کاربری، امکانات پنل مدیریت، روش‌های پرداخت و ارسال و اتصال‌های موردنیاز بستگی دارد. پس از مشخص‌شدن محدوده پروژه می‌توان برآورد دقیق‌تری ارائه کرد.' },
+  { q: 'برای فروشگاه اینترنتی لباس چه امکاناتی ضروری است؟', a: 'معمولاً صفحه محصول کامل، دسته‌بندی مناسب، جست‌وجو و فیلتر، انتخاب رنگ و سایز، نمایش موجودی هر تنوع، سبد خرید، ثبت سفارش و پنل مدیریت محصولات و سفارش‌ها اهمیت دارند. امکانات نهایی باید با مدل فروش بوتیک یا مزون هماهنگ شوند.' },
+  { q: 'آیا می‌توان موجودی هر رنگ و سایز را جداگانه مدیریت کرد؟', a: 'بله؛ در صورت پیاده‌سازی ساختار تنوع محصول، هر ترکیب رنگ و سایز می‌تواند شناسه و موجودی مستقل داشته باشد. این موضوع کمک می‌کند گزینه‌های ناموجود به‌درستی غیرفعال شوند و خطای ثبت سفارش کاهش پیدا کند.' },
+  { q: 'آیا امکان پرداخت آنلاین و تعیین روش ارسال وجود دارد؟', a: 'فروشگاه می‌تواند متناسب با نیاز کسب‌وکار به درگاه پرداخت و روش‌های ارسال موردتوافق متصل شود. انتخاب سرویس‌ها، هزینه ارسال، محدوده پوشش و قواعد سفارش باید پیش از توسعه مشخص شوند.' },
+  { q: 'چطور صفحات محصولات لباس برای گوگل بهینه می‌شوند؟', a: 'ساختار قابل خزش، نشانی‌های روشن، عنوان و توضیحات اختصاصی، اطلاعات کامل محصول، تصاویر بهینه، لینک‌سازی داخلی و داده‌های ساختاریافته مرتبط از اجزای مهم سئوی فروشگاه هستند. رعایت این موارد به معنی تضمین رتبه مشخص در گوگل نیست.' },
+  { q: 'طراحی و راه‌اندازی فروشگاه اینترنتی لباس چقدر زمان می‌برد؟', a: 'زمان اجرا به حجم محصولات، آماده‌بودن تصاویر و اطلاعات، امکانات اختصاصی، اتصال به سرویس‌های بیرونی و سرعت بازبینی مراحل بستگی دارد. زمان‌بندی دقیق پس از نیازسنجی و تعیین محدوده تحویل اعلام می‌شود.' },
+];
+
+let articleBlocks = [...post.blocks];
+let faqItems: Array<{ q: string; a: string }> = [];
+
+if (isClothingDesignArticle) {
+  // حالت اول: FAQ درون یک بلوک HTML قدیمی ذخیره شده است.
+  const htmlIndex = articleBlocks.findIndex((block) => {
+    const value = block as unknown as { t?: string; x?: string };
+    const headings = [...(value.x || '').matchAll(/<h[23]\b[^>]*>([\s\S]*?)<\/h[23]>/gi)];
+    return value.t === 'html' && headings.some((heading) => faqHeadingPattern.test(plainFaqText(heading[1])));
+  });
+
+  if (htmlIndex >= 0) {
+    const htmlBlock = articleBlocks[htmlIndex] as unknown as { t: string; x: string };
+    const heading = [...htmlBlock.x.matchAll(/<h[23]\b[^>]*>([\s\S]*?)<\/h[23]>/gi)]
+      .find((match) => faqHeadingPattern.test(plainFaqText(match[1])));
+    if (heading && heading.index != null) {
+      const afterHeading = htmlBlock.x.slice(heading.index + heading[0].length);
+      const nextSection = afterHeading.search(/<h2\b/i);
+      const faqMarkup = nextSection >= 0 ? afterHeading.slice(0, nextSection) : afterHeading;
+      const questionPattern = /<h[34]\b[^>]*>([\s\S]*?)<\/h[34]>([\s\S]*?)(?=<h[34]\b|<h2\b|$)/gi;
+      for (const match of faqMarkup.matchAll(questionPattern)) {
+        const q = plainFaqText(match[1]);
+        const a = plainFaqText(match[2]);
+        if (q && a) faqItems.push({ q, a });
+      }
+      if (faqItems.length) {
+        const before = htmlBlock.x.slice(0, heading.index);
+        const after = nextSection >= 0 ? afterHeading.slice(nextSection) : '';
+        articleBlocks[htmlIndex] = { ...htmlBlock, x: before + after } as typeof articleBlocks[number];
+      }
+    }
+  }
+
+  // حالت دوم: FAQ در بلوک‌های ساختاریافته (H2، H3 و پاراگراف‌ها) ذخیره شده است.
+  if (!faqItems.length) {
+    const faqStart = articleBlocks.findIndex((block) => {
+      const value = block as unknown as { t?: string; x?: string };
+      return value.t === 'h2' && faqHeadingPattern.test(value.x || '');
+    });
+    if (faqStart >= 0) {
+      let faqEnd = articleBlocks.findIndex((block, index) => {
+        const value = block as unknown as { t?: string };
+        return index > faqStart && value.t === 'h2';
+      });
+      if (faqEnd < 0) faqEnd = articleBlocks.length;
+      const sectionBlocks = articleBlocks.slice(faqStart + 1, faqEnd);
+      let current: { q: string; a: string } | null = null;
+      const flush = () => {
+        if (current?.q && current.a.trim()) faqItems.push({ q: current.q, a: current.a.trim() });
+        current = null;
+      };
+      for (const block of sectionBlocks) {
+        const value = block as unknown as { t?: string; x?: string; items?: string[] };
+        if (value.t === 'h3' || value.t === 'h4') {
+          flush();
+          current = { q: plainFaqText(value.x || ''), a: '' };
+        } else if (current && (value.t === 'p' || value.t === 'blockquote')) {
+          current.a += (current.a ? ' ' : '') + plainFaqText(value.x || '');
+        } else if (current && (value.t === 'ul' || value.t === 'ol')) {
+          current.a += (current.a ? ' ' : '') + (value.items || []).map(plainFaqText).join('؛ ');
+        } else if (current && value.t === 'html') {
+          current.a += (current.a ? ' ' : '') + plainFaqText(value.x || '');
+        }
+      }
+      flush();
+      if (faqItems.length) articleBlocks = [...articleBlocks.slice(0, faqStart), ...articleBlocks.slice(faqEnd)];
+    }
+  }
+
+  // اگر نسخهٔ مقاله هنوز FAQ ساختاریافته ندارد، پرسش‌های متداول کاربردی به آن افزوده می‌شوند.
+  if (!faqItems.length) faqItems = clothingFaqFallback;
+}
+
+// تعدادی از مقاله‌های قدیمی به‌صورت سند کامل HTML ذخیره شده‌اند.
+ // عنوان و تصویر شاخص در قالب اصلی نمایش داده می‌شوند؛ پوستهٔ واردشده را از بدنه حذف می‌کنیم.
+const articleCoverUrl = String(post.cover || '').trim().replace(/&amp;/g, '&');
+const normalizeImageUrl = (value: string) => {
+  const raw = String(value || '').trim().replace(/&amp;/g, '&');
+  try {
+    const url = new URL(raw, Astro.site);
+    return (url.origin + url.pathname).replace(/\/+$/, '').toLowerCase();
+  } catch {
+    return raw.split(/[?#]/)[0].replace(/\/+$/, '').toLowerCase();
+  }
+};
+const sameAsArticleCover = (value: string) =>
+  Boolean(articleCoverUrl && normalizeImageUrl(value) === normalizeImageUrl(articleCoverUrl));
+
+// اگر تصویر شاخص در محتوای مقاله هم استفاده شده باشد، فقط تکرارهای اضافه حذف می‌شوند.
+// یک نسخه از تصویر در متن مقاله حفظ می‌شود و نسخهٔ شاخص نیز بالای سایدبار قرار می‌گیرد.
+let keptCoverImageInBody = false;
+const normalizeLegacyArticleHtml = (html: string) => {
+  let normalized = html
+    .replace(/<!doctype\b[^>]*>/gi, '')
+    .replace(/<title\b[^>]*>[\s\S]*?<\/title>\s*/i, '')
+    .replace(/<meta\b[^>]*>/gi, '')
+    .replace(/<link\b[^>]*>/gi, '')
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<\/?(?:html|head|body)\b[^>]*>/gi, '');
+
+  normalized = normalized.replace(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i, (heading) => {
+    const text = heading.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    return plainFaqText(text) === plainFaqText(post.title) ? '' : heading;
+  });
+
+  normalized = normalized.replace(/<img\b[^>]*>/gi, (image) => {
+    const src = image.match(/\bsrc\s*=\s*["']([^"']+)["']/i)?.[1] || '';
+    if (!sameAsArticleCover(src)) return image;
+    if (!keptCoverImageInBody) {
+      keptCoverImageInBody = true;
+      return image;
+    }
+    return '';
+  });
+  return normalized;
+};
+articleBlocks = articleBlocks.map((block) => {
+  if (block.t === 'html') return { ...block, x: normalizeLegacyArticleHtml(block.x) };
+  if (block.t === 'img' && sameAsArticleCover(block.src)) {
+    if (!keptCoverImageInBody) {
+      keptCoverImageInBody = true;
+      return block;
+    }
+    return null;
+  }
+  return block;
+}).filter(Boolean) as typeof articleBlocks;
+
+const visibleToc: TocItem[] = [];
+articleBlocks.forEach((block, index) => {
+  const blk = block as unknown as { t?: string; x?: string };
+  if (blk.t === 'h2' || blk.t === 'h3') {
+    visibleToc.push({ text: blk.x || '', level: blk.t, id: `content-heading-${index + 1}` });
+  } else if (blk.t === 'html') {
+    visibleToc.push(...injectHtmlHeadingIds(blk.x || '', index).headings
+      .filter((h) => h.level !== 'h4')
+      .map((h) => ({ text: h.text, level: h.level, id: h.id })));
+  }
+});
+// فهرست کناری فقط سرفصل‌های اصلی را نشان می‌دهد؛ تیترهای فرعی در آن تکرار نمی‌شوند.
+for (let i = visibleToc.length - 1; i >= 0; i--) {
+  if (visibleToc[i].level !== 'h2') visibleToc.splice(i, 1);
+}
+const sidebarToc = visibleToc.length > 6
+  ? [...visibleToc.slice(0, 5), visibleToc[visibleToc.length - 1]]
+  : visibleToc;
+
+// لینک‌سازی داخلی: هر مقاله به خدمات مرتبط با موضوع خودش لینک می‌دهد
+const CATEGORY_SERVICES: Record<string, Array<{ href: string; t: string }>> = {
+  'سئو': [{ href: '/services/seo', t: 'خدمات سئو سایت' }, { href: '/services/content-strategy', t: 'استراتژی و تقویم محتوایی' }],
+  'تولید محتوا': [{ href: '/services/content', t: 'تولید محتوای سایت' }, { href: '/services/seo', t: 'خدمات سئو' }],
+  'طراحی سایت': [{ href: '/services/company-website', t: 'طراحی سایت شرکتی' }, { href: '/services/ecommerce', t: 'طراحی فروشگاه اینترنتی' }],
+  'طراحی UI/UX': [{ href: '/services/ui-ux', t: 'طراحی رابط و تجربه کاربری' }, { href: '/services/company-website', t: 'طراحی سایت شرکتی' }],
+  'هوش مصنوعی': [{ href: '/services/custom-web', t: 'طراحی وب‌سایت اختصاصی' }, { href: '/services/support', t: 'مدیریت و پشتیبانی سایت' }],
+  'کسب‌وکار و رشد آنلاین': [{ href: '/services/seo', t: 'خدمات سئو' }, { href: '/services/support', t: 'مدیریت و پشتیبانی سایت' }],
+};
+const categoryServices = slug === 'clothing-store-website-design' || post.category === 'پوشاک و مد'
+  ? [
+      { href: '/services/clothing-store', t: 'طراحی سایت پوشاک برای بوتیک و مزون' },
+      { href: '/services/ecommerce', t: 'طراحی فروشگاه اینترنتی' },
+      { href: '/portfolio', t: 'مشاهده نمونه‌کارهای فروشگاهی' },
+    ]
+  : CATEGORY_SERVICES[post.category] || CATEGORY_SERVICES['طراحی سایت'];
+
+const meta = {
+  title: `${post.title} | مجله کافه دانش`,
+  description: post.excerpt,
+  path: `/blog/${post.slug}`,
+  type: 'article' as const,
+  image: post.cover,
+  publishedTime: post.date || undefined,
+};
+---
+<BaseLayout
+  meta={meta}
+  current="/blog"
+  extraJsonLd={[
+    jsonLdArticle({
+      title: post.title, description: post.excerpt, path: meta.path, image: post.cover,
+      datePublished: post.date, dateFa: post.dateFa, readMinutes, category: post.category,
+      wordCount, keywords: [post.category, ...post.title.split(/[؟?،؛\s]+/).filter((w) => w.length > 3).slice(0, 6)],
+    }),
+    jsonLdBreadcrumb([
+      { name: 'خانه', url: '/' }, { name: 'مجله', url: '/blog' }, { name: post.title, url: meta.path },
+    ]),
+    ...(faqItems.length ? [jsonLdFaq(faqItems)] : []),
+  ]}
+>
+  <section class="page-hero">
+    <svg class="hero__ribbon" viewBox="0 0 1440 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <path d="M-40 120 C 260 320, 620 60, 900 200 S 1380 330, 1520 210" stroke="rgba(11,18,51,0.16)" stroke-width="130" fill="none" stroke-linecap="round" />
+      <path d="M-60 330 C 300 130, 700 380, 1080 240 S 1420 120, 1540 260" stroke="rgba(255,255,255,0.10)" stroke-width="72" fill="none" stroke-linecap="round" />
+    </svg>
+    <div class="container">
+      <h1 data-reveal="up" style="max-width:24ch;margin-inline:auto">{post.title}</h1>
+      <div class="post-hero-meta" data-reveal="up" data-delay="120">
+        <span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3" /><path d="M8 3v4m8-4v4M3 10h18" /></svg>
+          {post.dateFa || '—'}
+        </span>
+        <span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 3" /></svg>
+          {fa(readMinutes)} دقیقه مطالعه
+        </span>
+        <span class="badge" style="background:rgba(255,255,255,.18);color:#fff">{post.category}</span>
+      </div>
+    </div>
+  </section>
+
+  <div class:list={['container', 'article-page-layout', { 'article-page-layout--with-toc': Boolean(post.cover) || sidebarToc.length > 0 }]}>
+    {(post.cover || sidebarToc.length > 0) && (
+      <aside class="article-sidebar" aria-label="راهنمای مطالعه مقاله">
+        {post.cover && (
+          <figure class="article-sidebar__cover">
+            <img src={post.cover} alt={`تصویر شاخص مقاله: ${post.title}`} width="720" height="405" decoding="async" fetchpriority="high" />
+          </figure>
+        )}
+        {sidebarToc.length > 0 && <details class="article-toc" aria-label="فهرست مطالب" data-toc>
+          <summary class="article-toc__toggle">
+            <strong>سرفصل‌های مهم</strong>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+          </summary>
+          <div class="article-toc__body">
+            <ul>{sidebarToc.map((item) => <li><a href={`#${item.id}`}>{item.text}</a></li>)}</ul>
+          </div>
+        </details>}
+        <div class="article-sidebar__cta">
+          <span class="article-sidebar__cta-kicker">مشاوره و نیازسنجی پروژه</span>
+          <strong>{isClothingDesignArticle ? 'برای فروش آنلاین پوشاک برنامه دارید؟' : 'برای وب‌سایت کسب‌وکارتان برنامه دارید؟'}</strong>
+          <p>نیازها و امکانات موردنظر را بررسی می‌کنیم و مسیر مناسب اجرا را پیشنهاد می‌دهیم.</p>
+          <a href="/consult" class="btn btn--sm">درخواست مشاوره</a>
+          {isClothingDesignArticle && <a href="/services/clothing-store" class="article-sidebar__cta-link">جزئیات طراحی سایت پوشاک</a>}
+        </div>
+      </aside>
+    )}
+    <div class="article-page-main">
+      <section class="section--tight article-main-section">
+        <div class="article-content">
+          <Blocks blocks={articleBlocks} />
+          {faqItems.length > 0 && (
+            <section class="article-faq" aria-labelledby="article-faq-title">
+              <div class="article-faq__head">
+                <span>پاسخ به پرسش‌های مهم</span>
+                <h2 id="article-faq-title">سؤالات متداول درباره طراحی سایت فروشگاهی لباس</h2>
+                <p>برای دیدن پاسخ هر پرسش، عنوان آن را انتخاب کنید.</p>
+              </div>
+              <div class="article-faq__list">
+                {faqItems.map((item) => (
+                  <details class="article-faq__item">
+                    <summary>
+                      <span>{item.q}</span>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+                    </summary>
+                    <div class="article-faq__answer"><p>{item.a}</p></div>
+                  </details>
+                ))}
+              </div>
+            </section>
+          )}
+          <aside class="article-services" aria-label="خدمات مرتبط با این مقاله">
+            <strong>خدمات مرتبط با این موضوع در کافه دانش:</strong>
+            <span class="article-services__links">
+              {categoryServices.map((item) => <a href={item.href}>{item.t}</a>)}
+            </span>
+          </aside>
+          <div class="article-actions">
+            <span style="font-weight:700;color:var(--navy)">نوشتهٔ تیم کافه دانش</span>
+            <div>
+              <button type="button" class="btn btn--outline btn--sm" id="article-share">اشتراک‌گذاری مقاله</button>
+              <a href="/consult" class="btn btn--sm">مشاوره رایگان برای پروژه شما</a>
+            </div>
+            <p id="article-share-status" aria-live="polite"></p>
+          </div>
+          <nav class="article-crumbs" aria-label="مسیر صفحه">
+            <a href="/">خانه</a><span aria-hidden="true">/</span><a href="/blog">مجله</a><span aria-hidden="true">/</span><span aria-current="page">{post.category}</span>
+          </nav>
+        </div>
+      </section>
+    </div>
+  </div>
+  <section class="section bg-soft article-related" aria-labelledby="related-title">
+    <div class="container">
+      <div class="section-head">
+        <h2 class="section-head__title" style="font-size:1.5rem">مقالات مرتبط با این موضوع</h2>
+        <p>مطالب تکمیلی و مرتبط با موضوع این مقاله</p>
+      </div>
+      <div class="pf-grid">
+        {related.map((item, i) => <PostCard post={item} delay={String(i * 80)} />)}
+      </div>
+    </div>
+  </section>
+  <CtaBand />
+</BaseLayout>
+
+<script>
+  // فهرست مطالب: سایدبار باز در دسکتاپ و آکاردئون بسته در موبایل
+  // جزئیات فهرست با رفتار بومی HTML باز و بسته می‌شود؛ JS فقط حالت اولیه دسکتاپ را تنظیم می‌کند.
+  const toc = document.querySelector<HTMLDetailsElement>('[data-toc]');
+  if (toc && window.matchMedia('(min-width: 981px)').matches) {
+    toc.open = true;
+  }
+
+  const shareButton = document.getElementById('article-share') as HTMLButtonElement | null;
+  const shareStatus = document.getElementById('article-share-status');
+  shareButton?.addEventListener('click', async () => {
+    const shareData = { title: document.title, text: document.querySelector('meta[name="description"]')?.getAttribute('content') || document.title, url: window.location.href };
+    try {
+      if (navigator.share) await navigator.share(shareData);
+      else {
+        await navigator.clipboard.writeText(shareData.url);
+        if (shareStatus) shareStatus.textContent = 'پیوند مقاله کپی شد.';
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return;
+      if (shareStatus) shareStatus.textContent = 'اشتراک‌گذاری انجام نشد؛ نشانی صفحه را از نوار مرورگر کپی کنید.';
+    }
+  });
+</script>
+<style>
+  .article-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;margin-top:44px;padding-top:22px;border-top:1px solid var(--line)}
+  .article-services{max-width:900px;margin:30px auto 0;padding:16px 22px;border:1px dashed var(--line);border-radius:var(--r-lg);display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;background:rgba(255,255,255,.6)}
+  .article-services strong{color:var(--navy);font-size:.94rem}
+  .article-services__links{display:flex;flex-wrap:wrap;gap:8px}
+  .article-services__links a{color:var(--purple);font-weight:700;font-size:.9rem;text-decoration:none;background:var(--lavender);border-radius:99px;padding:6px 14px;transition:color .15s,background .15s}
+  .article-services__links a:hover{color:#fff;background:var(--purple)}
+  .article-actions>div{display:flex;flex-wrap:wrap;gap:10px}
+  .article-actions p{width:100%;margin:0;color:var(--mut);font-size:.84rem}
+  .article-crumbs{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin-top:26px;padding-top:18px;border-top:1px solid var(--line);font-size:.78rem;color:var(--mut);opacity:.78}
+  .article-crumbs a{color:var(--mut);text-decoration:none}
+  .article-crumbs a:hover{color:var(--purple);opacity:1}
+</style>
+
+<style>
+  .article-page-layout {
+    display: grid; grid-template-columns: minmax(0,1fr);
+    align-items: stretch; gap: var(--layout-gap); direction: ltr;
+  }
+  .article-page-layout--with-toc { grid-template-columns: var(--article-sidebar-width) minmax(0,1fr); }
+  .article-sidebar { min-width: 0; position: sticky; top: 108px; align-self: start; direction: rtl; display: grid; gap: 14px; }
+  .article-sidebar__cover { margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: #fff; box-shadow: var(--shadow-soft); }
+  .article-sidebar__cover img { display: block; width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+  .article-sidebar__related { display: grid; gap: 8px; padding: 17px 16px; border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(145deg,#fff,#f4f0ff); box-shadow: var(--shadow-soft); text-decoration: none; transition: transform .2s ease, box-shadow .2s ease; }
+  .article-sidebar__related:hover { transform: translateY(-3px); box-shadow: var(--shadow-card); }
+  .article-sidebar__related span { color: var(--pink-dark); font-size: .76rem; font-weight: 800; }
+  .article-sidebar__related strong { color: var(--navy); font-size: .9rem; line-height: 1.9; }
+  .article-sidebar__related small { color: var(--purple); font-size: .78rem; font-weight: 800; }
+  .article-page-main { min-width: 0; direction: rtl; }
+  .article-main-section { padding-top: clamp(24px,3vw,38px); }
+  .article-content { min-width: 0; width: 100%; }
+  .article-content .prose {
+    max-width: 100%; width: 100%; margin: 0;
+    font-size: var(--reading-font-size);
+    line-height: var(--reading-line-height);
+  }
+  .article-content .prose h2, .article-content .prose h3 { scroll-margin-top: 112px; }
+  .article-toc { margin: 0; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: #fff; box-shadow: var(--shadow-soft); }
+  .article-toc__toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0; cursor: pointer; text-align: right; list-style: none; }
+  .article-toc__toggle::-webkit-details-marker { display: none; }
+  .article-toc__toggle::marker { content: ""; }
+  .article-toc__toggle strong { color: var(--navy); font-size: 1rem; }
+  .article-toc__toggle svg { color: var(--purple); transition: transform .25s var(--ease); flex: none; }
+  .article-toc[open] > .article-toc__toggle svg { transform: rotate(180deg); }
+  .article-toc__body { margin-top: 12px; }
+  .article-toc ul { margin: 0; padding: 0 18px 0 0; display: grid; gap: 8px; line-height: 1.9; list-style: disc; overflow: visible; }
+  .article-toc li { color: var(--purple); padding-right: 1px; }
+  .article-toc a { color: #394052; text-decoration: none; font-size: .9rem; display: block; line-height: 1.9; }
+  .article-toc a:hover { color: var(--purple); }
+  .article-sidebar__cta { margin-top: 16px; padding: 18px 16px; border-radius: 16px; background: linear-gradient(145deg,#f4edff,#fff4f8); border: 1px solid rgba(124,77,255,.12); display: grid; gap: 9px; box-shadow: var(--shadow-soft); direction: rtl; }
+  .article-sidebar__cta-kicker { color: var(--pink-dark); font-size: .76rem; font-weight: 800; }
+  .article-sidebar__cta strong { color: var(--navy); font-size: .94rem; line-height: 1.8; }
+  .article-sidebar__cta p { color: var(--mut); font-size: .82rem; line-height: 1.9; margin: 0; }
+  .article-sidebar__cta .btn { width: 100%; margin-top: 3px; }
+  .article-sidebar__cta-link { color: var(--purple); font-size: .8rem; font-weight: 700; text-align: center; text-decoration: none; }
+  .article-related { margin-top: 0; }
+  .article-related .section-head { max-width: 100%; }
+  .article-related .pf-grid { grid-template-columns: repeat(3,minmax(0,1fr)); align-items: stretch; gap: 22px; }
+  .article-faq { margin: 44px 0 0; padding-top: 30px; border-top: 1px solid var(--line); }
+  .article-faq__head { margin-bottom: 18px; }
+  .article-faq__head > span { display: inline-block; color: var(--pink-dark); font-size: .84rem; font-weight: 800; margin-bottom: 6px; }
+  .article-faq__head h2 { color: var(--navy); font-size: clamp(1.25rem,2.2vw,1.65rem); margin: 0 0 7px; }
+  .article-faq__head p { color: var(--mut); font-size: .9rem; margin: 0; }
+  .article-faq__list { display: grid; gap: 10px; }
+  .article-faq__item { border: 1px solid var(--line); border-radius: 13px; background: #fff; overflow: hidden; transition: border-color .2s,box-shadow .2s; }
+  .article-faq__item[open] { border-color: var(--lavender-deep); box-shadow: var(--shadow-soft); }
+  .article-faq__item summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 58px; padding: 13px 17px; color: var(--navy); font-weight: 700; font-size: .94rem; cursor: pointer; }
+  .article-faq__item summary::-webkit-details-marker { display: none; }
+  .article-faq__item summary svg { flex: none; color: var(--purple); width: 19px; height: 19px; transition: transform .2s ease; }
+  .article-faq__item[open] summary svg { transform: rotate(45deg); }
+  .article-faq__answer { padding: 0 17px 15px; color: var(--body); font-size: .92rem; line-height: 2; }
+  .article-faq__answer p { margin: 0; }
+  @media (max-width: 1100px) {
+    .article-related .pf-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  }
+  @media (max-width: 980px) {
+    .article-page-layout--with-toc { grid-template-columns: minmax(0,1fr); gap: 18px; }
+    .article-sidebar { position: static; }
+  }
+  @media (max-width: 760px) {
+    .article-page-layout { gap: 14px; }
+    .article-toc { padding: 13px 14px; }
+    .article-sidebar__cta { padding: 15px; }
+    .article-related .pf-grid { grid-template-columns: minmax(0,1fr); gap: 16px; }
+    .article-main-section { padding-top: 22px; }
+  }
+</style>
