@@ -145,7 +145,11 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
       let cm: any = null;
       let sourceMode = false;
       let slugTouched = !!slug.value;
-      let selectedVisualBlock: HTMLElement | null = null;\n      const recoveryKey = 'cdanesh-post-recovery-' + (form.dataset.id || 'new');\n      const recovery = (() => { try{return JSON.parse(localStorage.getItem(recoveryKey)||'null')}catch{return null} })();\n      if(recovery && Date.now()-recovery.updatedAt < 86400000 && confirm('نسخهٔ ذخیره‌شدهٔ خودکار بازیابی شود؟')) { title.value=recovery.title||title.value; slug.value=recovery.slug||slug.value; (form.elements.namedItem('excerpt') as HTMLTextAreaElement).value=recovery.excerpt||''; visual.innerHTML=recovery.content||visual.innerHTML; source.value=visual.innerHTML; (document.getElementById('cover-image') as HTMLInputElement).value=recovery.cover_image||''; (form.elements.namedItem('seo_title') as HTMLInputElement).value=recovery.seo_title||''; (form.elements.namedItem('seo_description') as HTMLTextAreaElement).value=recovery.seo_description||''; }\n      let recoveryTimer:number; const saveRecovery=()=>{window.clearTimeout(recoveryTimer); recoveryTimer=window.setTimeout(()=>{try{localStorage.setItem(recoveryKey,JSON.stringify({title:title.value,slug:slug.value,excerpt:(form.elements.namedItem('excerpt') as HTMLTextAreaElement).value,content:sourceMode?(cm?cm.getValue():source.value):getVisualHtml(),cover_image:(document.getElementById('cover-image') as HTMLInputElement).value,seo_title:(form.elements.namedItem('seo_title') as HTMLInputElement).value,seo_description:(form.elements.namedItem('seo_description') as HTMLTextAreaElement).value,updatedAt:Date.now()}))}catch{}},1000)}; form.addEventListener('input',saveRecovery); form.addEventListener('change',saveRecovery);
+      let selectedVisualBlock: HTMLElement | null = null;
+      const recoveryKey = 'cdanesh-post-recovery-' + (form.dataset.id || 'new');
+      const recovery = (() => { try{return JSON.parse(localStorage.getItem(recoveryKey)||'null')}catch{return null} })();
+      if(recovery && Date.now()-recovery.updatedAt < 86400000 && confirm('نسخهٔ ذخیره‌شدهٔ خودکار بازیابی شود؟')) { title.value=recovery.title||title.value; slug.value=recovery.slug||slug.value; (form.elements.namedItem('excerpt') as HTMLTextAreaElement).value=recovery.excerpt||''; visual.innerHTML=recovery.content||visual.innerHTML; source.value=visual.innerHTML; (document.getElementById('cover-image') as HTMLInputElement).value=recovery.cover_image||''; (form.elements.namedItem('seo_title') as HTMLInputElement).value=recovery.seo_title||''; (form.elements.namedItem('seo_description') as HTMLTextAreaElement).value=recovery.seo_description||''; }
+      let recoveryTimer:number; const saveRecovery=()=>{window.clearTimeout(recoveryTimer); recoveryTimer=window.setTimeout(()=>{try{localStorage.setItem(recoveryKey,JSON.stringify({title:title.value,slug:slug.value,excerpt:(form.elements.namedItem('excerpt') as HTMLTextAreaElement).value,content:sourceMode?(cm?cm.getValue():source.value):getVisualHtml(),cover_image:(document.getElementById('cover-image') as HTMLInputElement).value,seo_title:(form.elements.namedItem('seo_title') as HTMLInputElement).value,seo_description:(form.elements.namedItem('seo_description') as HTMLTextAreaElement).value,updatedAt:Date.now()}))}catch{}},1000)}; form.addEventListener('input',saveRecovery); form.addEventListener('change',saveRecovery);
       const topLevelVisualBlock = (target: Node | null): HTMLElement | null => {
         if (!target) return null;
         let element = target instanceof HTMLElement ? target : target.parentElement;
@@ -304,7 +308,8 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
           og_image: (form.elements.namedItem('og_image') as HTMLInputElement).value,
           published_at: (form.elements.namedItem('published_at') as HTMLInputElement).value ? new Date((form.elements.namedItem('published_at') as HTMLInputElement).value).toISOString() : null
         };
-        if (!data.title || !data.slug) return showNotice('عنوان و اسلاگ مقاله الزامی است.', false);\n        if (nextStatus === 'published' && (!String(data.seo_title || '').trim() || !String(data.seo_description || '').trim())) { const seo = document.querySelector('.seo-details') as HTMLDetailsElement; if (seo) seo.open = true; return showNotice('برای انتشار، عنوان سئو و توضیحات متا را تکمیل کنید.', false); }
+        if (!data.title || !data.slug) return showNotice('عنوان و اسلاگ مقاله الزامی است.', false);
+        if (nextStatus === 'published' && (!String(data.seo_title || '').trim() || !String(data.seo_description || '').trim())) { const seo = document.querySelector('.seo-details') as HTMLDetailsElement; if (seo) seo.open = true; return showNotice('برای انتشار، عنوان سئو و توضیحات متا را تکمیل کنید.', false); }
         if (nextStatus === 'scheduled' && !data.published_at) return showNotice('برای زمان‌بندی، تاریخ و ساعت انتشار را تعیین کنید.', false);
         if (nextStatus === 'published' && !confirm('مقاله منتشر شود و در سایت عمومی نمایش داده شود؟')) return;
         const isNew = form.dataset.isNew === '1';
@@ -316,7 +321,8 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
           const result = await response.json();
           if (!response.ok || !result.ok) return showNotice(result.message || result.error || 'ذخیره ناموفق بود',false);
           const saved = result.data || {};
-          showNotice(nextStatus === 'published' ? 'مقاله منتشر شد.' : 'پیش‌نویس ذخیره شد.');\n          try { localStorage.removeItem(recoveryKey); } catch {}
+          showNotice(nextStatus === 'published' ? 'مقاله منتشر شد.' : 'پیش‌نویس ذخیره شد.');
+          try { localStorage.removeItem(recoveryKey); } catch {}
           if (isNew && saved.id) { window.location.href = '/admin/posts/' + encodeURIComponent(saved.slug || data.slug); return; }
           form.dataset.isNew = '0'; form.dataset.id = String(saved.id || form.dataset.id);
           const select = document.getElementById('post-status') as HTMLSelectElement; select.value = nextStatus;

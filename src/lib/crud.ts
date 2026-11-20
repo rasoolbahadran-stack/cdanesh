@@ -71,7 +71,8 @@ export function makeCreate(cfg: EntityConfig) {
   return async (request: Request): Promise<Response> => {
     if (!admin(request)) return unauthorized();
     try {
-      const body = await readJson(request);\n      if (cfg.table === 'posts' && body.status === 'published' && (!str(body.seo_title,200).trim() || !str(body.seo_description,400).trim())) return fail('برای انتشار مقاله، عنوان سئو و توضیحات متا الزامی است.', 'SEO_REQUIRED', 400);
+      const body = await readJson(request);
+      if (cfg.table === 'posts' && body.status === 'published' && (!str(body.seo_title,200).trim() || !str(body.seo_description,400).trim())) return fail('برای انتشار مقاله، عنوان سئو و توضیحات متا الزامی است.', 'SEO_REQUIRED', 400);
       const missing = cfg.required.find((r) => str(body[r.key]).length < (r.min || 1));
       if (missing) return fail(`«${missing.label}» الزامی است${missing.min ? ` (حداقل ${missing.min} کاراکتر)` : ''}`, 'VALIDATION');
 
