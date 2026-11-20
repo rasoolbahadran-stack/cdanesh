@@ -138,9 +138,7 @@ const normalizeImageUrl = (value: string) => {
 const sameAsArticleCover = (value: string) =>
   Boolean(articleCoverUrl && normalizeImageUrl(value) === normalizeImageUrl(articleCoverUrl));
 
-// اگر تصویر شاخص در محتوای مقاله هم استفاده شده باشد، فقط تکرارهای اضافه حذف می‌شوند.
-// یک نسخه از تصویر در متن مقاله حفظ می‌شود و نسخهٔ شاخص نیز بالای سایدبار قرار می‌گیرد.
-let keptCoverImageInBody = false;
+// تصویر شاخص فقط در جایگاه مستقل خود نمایش داده می‌شود؛ تکرار همان فایل از بدنه حذف می‌شود.
 const normalizeLegacyArticleHtml = (html: string) => {
   let normalized = html
     .replace(/<!doctype\b[^>]*>/gi, '')
@@ -158,24 +156,13 @@ const normalizeLegacyArticleHtml = (html: string) => {
 
   normalized = normalized.replace(/<img\b[^>]*>/gi, (image) => {
     const src = image.match(/\bsrc\s*=\s*["']([^"']+)["']/i)?.[1] || '';
-    if (!sameAsArticleCover(src)) return image;
-    if (!keptCoverImageInBody) {
-      keptCoverImageInBody = true;
-      return image;
-    }
-    return '';
+    return sameAsArticleCover(src) ? '' : image;
   });
   return normalized;
 };
 articleBlocks = articleBlocks.map((block) => {
   if (block.t === 'html') return { ...block, x: normalizeLegacyArticleHtml(block.x) };
-  if (block.t === 'img' && sameAsArticleCover(block.src)) {
-    if (!keptCoverImageInBody) {
-      keptCoverImageInBody = true;
-      return block;
-    }
-    return null;
-  }
+  if (block.t === 'img' && sameAsArticleCover(block.src)) return null;
   return block;
 }).filter(Boolean) as typeof articleBlocks;
 
@@ -239,7 +226,7 @@ const meta = {
     ...(faqItems.length ? [jsonLdFaq(faqItems)] : []),
   ]}
 >
-  <section class="page-hero">
+  <section class="page-hero article-page-hero">
     <svg class="hero__ribbon" viewBox="0 0 1440 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       <path d="M-40 120 C 260 320, 620 60, 900 200 S 1380 330, 1520 210" stroke="rgba(11,18,51,0.16)" stroke-width="130" fill="none" stroke-linecap="round" />
       <path d="M-60 330 C 300 130, 700 380, 1080 240 S 1420 120, 1540 260" stroke="rgba(255,255,255,0.10)" stroke-width="72" fill="none" stroke-linecap="round" />

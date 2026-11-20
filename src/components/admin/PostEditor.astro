@@ -13,6 +13,10 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
     .post-editor-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
     .post-editor-head h1{margin:0;font-size:22px}
     .post-form-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px}
+    .post-form-grid>div:first-child{display:contents}
+    .post-form-grid>div:first-child>section:first-child{grid-column:1;grid-row:1}
+    .post-form-grid>div:first-child>section:nth-child(2){grid-column:1/-1;grid-row:2}
+    .post-form-grid>aside{grid-column:2;grid-row:1 / span 2}
     .post-panel{background:#fff;border:1px solid var(--a-line);border-radius:16px;padding:18px;box-shadow:0 8px 22px rgba(30,35,80,.04);min-width:0}
     .post-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     .post-field{display:grid;gap:6px;min-width:0}.post-field.full{grid-column:1/-1}
@@ -39,7 +43,7 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
     .save-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
     .seo-details{margin-top:14px;border:1px solid var(--a-line);border-radius:12px;padding:12px}
     .seo-details summary{font-weight:800;cursor:pointer}
-    @media(max-width:900px){.post-form-grid{grid-template-columns:1fr}.post-editor-page{padding:14px}}
+    @media(max-width:900px){.post-form-grid{grid-template-columns:1fr}.post-form-grid>div:first-child{display:grid}.post-form-grid>div:first-child>section:first-child,.post-form-grid>div:first-child>section:nth-child(2),.post-form-grid>aside{grid-column:1;grid-row:auto}.post-editor-page{padding:14px}}
     @media(max-width:600px){.post-fields{grid-template-columns:1fr}.post-field.full{grid-column:auto}.editor-visual,.CodeMirror{min-height:340px;height:340px}}
   </style>
   <div class="post-editor-page">
@@ -209,7 +213,9 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
         htmlTab.classList.add('active'); visualTab.classList.remove('active'); sourceMode = true;
         if ((window as any).CodeMirror) {
           if (!cm) { cm = (window as any).CodeMirror.fromTextArea(source, { mode:'htmlmixed', lineNumbers:true, lineWrapping:true, direction:'ltr', indentUnit:2, tabSize:2, viewportMargin:Infinity }); }
-          cm.setValue(source.value); cm.refresh();
+          cm.setValue(source.value);
+          if (!(cm as any).__recoveryBound) { cm.on('change', () => saveRecovery()); (cm as any).__recoveryBound = true; }
+          cm.refresh();
         }
         state.textContent = 'حالت ویرایش مستقیم HTML';
       };
@@ -288,7 +294,9 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
         try { const r=await fetch('/api/admin/slug',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:title.value})}); const j=await r.json(); if(j.ok){slug.value=j.slug;slugTouched=true;} else showNotice(j.message||'تولید اسلاگ ممکن نشد',false); }
         catch { showNotice('ارتباط با سرویس برقرار نشد',false); }
       });
-      visual.addEventListener('input', countWords); countWords();
+      visual.addEventListener('input', () => { countWords(); saveRecovery(); });
+      source.addEventListener('input', saveRecovery);
+      countWords();
       async function save(nextStatus: string) {
         const html = sourceMode ? (cm ? cm.getValue() : source.value) : getVisualHtml();
         const data: Record<string, unknown> = {

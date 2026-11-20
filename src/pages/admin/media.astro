@@ -15,7 +15,7 @@ const mediaCount = await q<{ c: number }>('SELECT count(*)::int AS c FROM media'
     <div class="panel-head">
       <h2>🖼 کتابخانه رسانه ({faNum(mediaCount)} فایل)</h2>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <input type="search" id="media-search" placeholder="جست‌وجوی نام یا متن جایگزین…" style="border:1.5px solid var(--a-line);border-radius:10px;padding:7px 14px;font-family:inherit;font-size:12.5px" />
+        <input type="search" id="media-search" placeholder="جست‌وجوی نام اصلی فایل یا متن جایگزین…" style="border:1.5px solid var(--a-line);border-radius:10px;padding:7px 14px;font-family:inherit;font-size:12.5px" />
         <select id="media-sort" style="border:1.5px solid var(--a-line);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:12.5px">
           <option value="newest">جدیدترین</option>
           <option value="oldest">قدیمی‌ترین</option>

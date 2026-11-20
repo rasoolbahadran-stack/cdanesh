@@ -25,9 +25,10 @@ export function storageKind(): 'blob' | 'local' {
 }
 
 function safeName(original: string): string {
-  const ext = path.extname(original || '').toLowerCase().replace(/[^a-z0-9.]/g, '');
-  const base = crypto.randomBytes(8).toString('hex');
-  return `${base}${ext || '.bin'}`;
+  const parsed = path.parse(path.basename(original || 'image'));
+  const ext = parsed.ext.toLowerCase().replace(/[^a-z0-9.]/g, '') || '.bin';
+  const base = parsed.name.normalize('NFKC').replace(/[^\p{L}\p{N}._-]+/gu, '-').replace(/^[.-]+|[.-]+$/g, '').slice(0, 60) || 'image';
+  return `${base}-${crypto.randomBytes(4).toString('hex')}${ext}`;
 }
 
 export interface SaveResult {

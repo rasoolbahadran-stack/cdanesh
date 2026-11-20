@@ -967,7 +967,7 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 
 /* دکمه بازگشت بالا */
 .to-top {
-  position: fixed; bottom: 22px; left: 22px; z-index: 800;
+  position: fixed; bottom: 22px; right: 22px; left: auto; z-index: 800;
   width: 46px; height: 46px; border-radius: 50%; border: 0;
   background: #fff; color: var(--pink-dark); box-shadow: var(--shadow-float);
   display: grid; place-items: center;
@@ -1414,7 +1414,8 @@ span {
   .to-top {
     width: 42px;
     height: 42px;
-    left: 14px;
+    right: 14px;
+    left: auto;
     bottom: calc(14px + env(safe-area-inset-bottom));
   }
 
@@ -1910,4 +1911,30 @@ main {
     height: 15px;
     flex: none;
   }
+}
+
+
+/* اصلاحات نهایی مقاله، فوتر موبایل و موقعیت ثابت دکمه بازگشت */
+.article-page-hero {
+  padding-top: clamp(104px, 11vw, 138px) !important;
+  padding-bottom: clamp(28px, 3.5vw, 42px) !important;
+  border-bottom-left-radius: 28px !important;
+  border-bottom-right-radius: 28px !important;
+}
+.article-page-hero h1 { font-size: clamp(1.45rem, 3vw, 2.25rem) !important; line-height: 1.65; }
+.article-page-hero .post-hero-meta { margin-top: 6px; font-size: .82rem; }
+.prose table { display:block; width:max-content; min-width:100%; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+@media (max-width: 760px) {
+  .footer__top { grid-template-columns:1fr 1fr; gap:12px 14px; padding-block:16px 12px; }
+  .footer__about { grid-column:1/-1; }
+  .footer__about p { display:none; }
+  .footer__reach { justify-content:center; }
+  .footer__reach-link { padding:5px 10px; font-size:.76rem; }
+  .footer__heading { margin-bottom:7px; font-size:.82rem; }
+  .footer__list { gap:5px; font-size:.75rem; }
+  .footer__list li:nth-child(n + 5) { display:none; }
+  .footer__contact { grid-column:1/-1; text-align:center; }
+  .footer__contact p,.footer__contact-alt { display:none; }
+  .footer__contact .btn { width:auto; min-width:0; padding:8px 18px; }
+  .footer__bottom { padding-block:9px 12px; font-size:.72rem; }
 }
