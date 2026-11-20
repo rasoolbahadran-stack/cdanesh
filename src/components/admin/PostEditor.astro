@@ -13,10 +13,9 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
     .post-editor-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
     .post-editor-head h1{margin:0;font-size:22px}
     .post-form-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;grid-template-areas:"fields sidebar" "editor editor";gap:16px;align-items:start}
-    .post-form-grid>div:first-child{display:contents}
-    .post-form-grid>div:first-child>section:first-child{grid-area:fields;min-width:0}
-    .post-form-grid>div:first-child>section:nth-child(2){grid-area:editor;grid-column:1/-1;width:100%;min-width:0;justify-self:stretch}
+    .post-form-grid>div:first-child{grid-area:fields;min-width:0;display:grid;gap:14px}
     .post-form-grid>aside{grid-area:sidebar;grid-column:auto;grid-row:auto}
+    .post-form-grid>.post-editor-fullwidth{grid-area:editor;grid-column:1/-1;width:100%;min-width:0;justify-self:stretch}
     .post-panel{min-width:0;width:100%;background:#fff;border:1px solid var(--a-line);border-radius:16px;padding:18px;box-shadow:0 8px 22px rgba(30,35,80,.04);min-width:0}
     .post-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     .post-field{display:grid;gap:6px;min-width:0}.post-field.full{grid-column:1/-1}
@@ -43,7 +42,7 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
     .save-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
     .seo-details{margin-top:14px;border:1px solid var(--a-line);border-radius:12px;padding:12px}
     .seo-details summary{font-weight:800;cursor:pointer}
-    @media(max-width:900px){.post-form-grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"fields" "sidebar" "editor"}.post-form-grid>div:first-child{display:contents}.post-form-grid>div:first-child>section:first-child,.post-form-grid>div:first-child>section:nth-child(2),.post-form-grid>aside{grid-column:1;grid-row:auto}.post-editor-page{padding:14px}}
+    @media(max-width:900px){.post-form-grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"fields" "sidebar" "editor"}.post-form-grid>div:first-child,.post-form-grid>aside,.post-form-grid>.post-editor-fullwidth{grid-column:1;grid-row:auto}.post-editor-page{padding:14px}}
     @media(max-width:600px){.post-fields{grid-template-columns:1fr}.post-field.full{grid-column:auto}.editor-visual,.CodeMirror{min-height:340px;height:340px}}
   </style>
   <div class="post-editor-page">
@@ -66,7 +65,8 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
               <div class="post-field full"><label for="post-excerpt">توضیح کوتاه مقاله</label><textarea id="post-excerpt" name="excerpt" rows="3" maxlength="600">{value('excerpt')}</textarea></div>
             </div>
           </section>
-          <section class="post-panel">
+        </div>
+        <section class="post-panel post-editor-fullwidth">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px"><h2 style="margin:0;font-size:16px">متن مقاله</h2><span id="word-count" style="font-size:11px;color:var(--a-muted)">۰ کلمه</span></div>
             <div class="editor-box">
               <div class="editor-tabs"><button type="button" id="tab-visual" class="active">ویرایش بصری</button><button type="button" id="tab-html">ویرایش کد HTML</button><span style="margin-inline-start:auto;font-size:11px;color:var(--a-muted);align-self:center">تغییرات دو حالت همگام می‌شود</span></div>
@@ -89,8 +89,7 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
                 <div class="post-field full"><label style="display:flex;align-items:center;gap:9px"><input type="checkbox" name="noindex" value="1" checked={isChecked(post.noindex)} style="width:18px;height:18px" /> عدم ایندکس مقاله توسط موتورهای جست‌وجو (noindex)</label></div>
               </div>
             </details>
-          </section>
-        </div>
+        </section>
         <aside style="display:grid;gap:14px;align-content:start">
           <section class="post-panel">
             <h2 style="font-size:15px;margin:0 0 12px">تصویر شاخص</h2>
