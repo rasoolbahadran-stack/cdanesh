@@ -5,6 +5,7 @@
    و هویت کافه‌دانش. اگر داده‌ای وجود ندارد، حالت خالی مناسب نمایش داده می‌شود. */
 export const prerender = false;
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import { ADMIN_ICONS } from '../../lib/admin-icons';
 import { q } from '../../lib/db';
 import { dbAvailable } from '../../lib/cms-db';
 
@@ -89,9 +90,9 @@ const mediaMB = counts.mediaBytes ? (counts.mediaBytes / (1024 * 1024)).toFixed(
 /* ── دونات SVG (سبک زرین) — وضعیت مقاله‌ها ── */
 const DONUT_R = 54, DONUT_C = 2 * Math.PI * DONUT_R;
 const donutData = [
-  { label: 'منتشرشده', value: counts.published, color: '#e23c8e' },
+  { label: 'منتشرشده', value: counts.published, color: '#f4257b' },
   { label: 'پیش‌نویس', value: counts.draft, color: '#f2a541' },
-  { label: 'زمان‌بندی‌شده', value: counts.scheduled, color: '#4046b3' },
+  { label: 'زمان‌بندی‌شده', value: counts.scheduled, color: '#6d4ae0' },
 ].filter((d) => d.value > 0);
 const donutSegments: string[] = [];
 {
@@ -121,13 +122,13 @@ let trendLine = '', trendArea = '', trendDots: string[] = [], trendGrid: string[
     trendArea = `${CP.l},${(CP.t + ih).toFixed(1)} ${pts.join(' ')} ${x(data.length - 1).toFixed(1)},${(CP.t + ih).toFixed(1)}`;
   }
   data.forEach((d, i) => {
-    trendDots.push(`<circle cx="${x(i).toFixed(1)}" cy="${y(d.created + d.published).toFixed(1)}" r="3.4" fill="#fff" stroke="#e23c8e" stroke-width="2.2"><title>${d.label}: ${fa(d.created + d.published)} فعالیت</title></circle>`);
-    trendLabels.push(`<text x="${x(i).toFixed(1)}" y="${CHART_H - 7}" text-anchor="middle" font-size="10" fill="#83868f">${d.label}</text>`);
+    trendDots.push(`<circle cx="${x(i).toFixed(1)}" cy="${y(d.created + d.published).toFixed(1)}" r="3.4" fill="#fff" stroke="#f4257b" stroke-width="2.2"><title>${d.label}: ${fa(d.created + d.published)} فعالیت</title></circle>`);
+    trendLabels.push(`<text x="${x(i).toFixed(1)}" y="${CHART_H - 7}" text-anchor="middle" font-size="10" fill="#5f6b85">${d.label}</text>`);
   });
   for (let g = 0; g <= 3; g++) {
     const v = (max * g) / 3, yy = y(v);
-    trendGrid.push(`<line x1="${CP.l}" x2="${CHART_W - CP.r}" y1="${yy.toFixed(1)}" y2="${yy.toFixed(1)}" stroke="#e7e9ee" stroke-width="1" stroke-dasharray="${g ? '3 5' : ''}"/>`);
-    trendGrid.push(`<text x="${CP.l - 6}" y="${(yy + 3).toFixed(1)}" text-anchor="end" font-size="9.5" fill="#a3a6b0">${fa(Math.round(v))}</text>`);
+    trendGrid.push(`<line x1="${CP.l}" x2="${CHART_W - CP.r}" y1="${yy.toFixed(1)}" y2="${yy.toFixed(1)}" stroke="#e5e8ef" stroke-width="1" stroke-dasharray="${g ? '3 5' : ''}"/>`);
+    trendGrid.push(`<text x="${CP.l - 6}" y="${(yy + 3).toFixed(1)}" text-anchor="end" font-size="9.5" fill="#8b94a8">${fa(Math.round(v))}</text>`);
   }
 }
 const trendHasData = weekly.some((d) => d.created + d.published > 0);
@@ -137,13 +138,13 @@ const maxCat = Math.max(...categoryBars.map((c) => c.count), 1);
 
 const typeLabel: Record<string, string> = { create: 'ایجاد', update: 'ویرایش', delete: 'حذف', publish: 'انتشار', login: 'ورود', security: 'امنیت', restore: 'بازیابی' };
 const entityLabel: Record<string, string> = { posts: 'مقاله', pages: 'صفحه', media: 'رسانه', messages: 'پیام', settings: 'تنظیمات', auth: 'احراز هویت', users: 'کاربر', categories: 'دسته‌بندی', services: 'خدمت', projects: 'نمونه‌کار', plans: 'پلن', faqs: 'سؤال', testimonials: 'نظر' };
-const typeIcon: Record<string, string> = { create: '✚', update: '✎', delete: '♲', publish: '📣', login: '🔓', security: '🛡', restore: '♻️' };
+const typeIcon: Record<string, string> = { create: ADMIN_ICONS.plus, update: ADMIN_ICONS.edit, delete: ADMIN_ICONS.trash, publish: ADMIN_ICONS.megaphone, login: ADMIN_ICONS.external, security: ADMIN_ICONS.shield, restore: ADMIN_ICONS.restore, upload: ADMIN_ICONS.upload, 'export': ADMIN_ICONS.copy };
 
 const kpiCards = [
-  { href: '/admin/posts', icon: '📝', cls: 'k-pink', label: 'مقاله منتشرشده', value: fa(counts.published), sub: `${fa(counts.draft)} پیش‌نویس · ${fa(counts.scheduled)} زمان‌بندی` },
-  { href: '/admin/pages', icon: '📄', cls: 'k-purple', label: 'صفحه منتشرشده', value: fa(counts.pagesPub), sub: `${fa(counts.pagesDraft)} پیش‌نویس` },
-  { href: '/admin/portfolio', icon: '◇', cls: 'k-green', label: 'نمونه‌کار منتشرشده', value: fa(counts.portfolio), sub: `${fa(counts.services)} خدمت ثبت‌شده` },
-  { href: '/admin/messages', icon: '💬', cls: 'k-blue', label: 'درخواست و پیام', value: fa(counts.messages), sub: `${fa(counts.unread)} خوانده‌نشده` },
+  { href: '/admin/posts', icon: ADMIN_ICONS.posts, cls: 'k-pink', label: 'مقاله منتشرشده', value: fa(counts.published), sub: `${fa(counts.draft)} پیش‌نویس · ${fa(counts.scheduled)} زمان‌بندی` },
+  { href: '/admin/pages', icon: ADMIN_ICONS.pages, cls: 'k-purple', label: 'صفحه منتشرشده', value: fa(counts.pagesPub), sub: `${fa(counts.pagesDraft)} پیش‌نویس` },
+  { href: '/admin/portfolio', icon: ADMIN_ICONS.portfolio, cls: 'k-green', label: 'نمونه‌کار منتشرشده', value: fa(counts.portfolio), sub: `${fa(counts.services)} خدمت ثبت‌شده` },
+  { href: '/admin/messages', icon: ADMIN_ICONS.messages, cls: 'k-blue', label: 'درخواست و پیام', value: fa(counts.messages), sub: `${fa(counts.unread)} خوانده‌نشده` },
 ];
 
 const lastActivity = activity.length ? faDate(activity[0].created_at, true) : '—';
@@ -159,11 +160,12 @@ const lastActivity = activity.length ? faDate(activity[0].created_at, true) : '�
     .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
     .kpi{background:var(--a-surface);border:1px solid var(--a-line);border-radius:15px;padding:15px 17px;display:flex;align-items:center;gap:12px;text-decoration:none;transition:box-shadow .18s,transform .18s;box-shadow:0 8px 24px rgba(23,25,64,.04)}
     .kpi:hover{box-shadow:var(--a-shadow);transform:translateY(-2px)}
-    .kpi .kpi-ic{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;font-size:20px;flex:none}
-    .kpi.k-pink .kpi-ic{background:var(--a-gold-soft)}
-    .kpi.k-purple .kpi-ic{background:var(--a-blue-soft)}
-    .kpi.k-green .kpi-ic{background:var(--a-green-soft)}
-    .kpi.k-blue .kpi-ic{background:var(--a-amber-soft)}
+    .kpi .kpi-ic{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;flex:none}
+    .kpi .kpi-ic svg{width:21px;height:21px}
+    .kpi.k-pink .kpi-ic{background:var(--a-brand-soft);color:var(--a-brand-strong)}
+    .kpi.k-purple .kpi-ic{background:var(--a-purple-soft);color:var(--a-purple)}
+    .kpi.k-green .kpi-ic{background:var(--a-green-soft);color:var(--a-green)}
+    .kpi.k-blue .kpi-ic{background:var(--a-blue-soft);color:var(--a-blue)}
     .kpi small{color:var(--a-muted);font-size:11.5px;display:block}
     .kpi b{font-size:19px;color:var(--a-navy);line-height:1.6;display:block}
     .kpi .kpi-sub{font-size:10.5px;color:var(--a-muted);display:block}
@@ -180,12 +182,12 @@ const lastActivity = activity.length ? faDate(activity[0].created_at, true) : '�
     .dot{width:11px;height:11px;border-radius:4px;flex:none}
     /* نوار توزیع */
     .bar-list{display:grid;gap:13px}
-    .bar-head{display:flex;justify-content:space-between;font-size:12.5px;color:#555a73;margin-bottom:5px}
+    .bar-head{display:flex;justify-content:space-between;font-size:12.5px;color:#5f6b85;margin-bottom:5px}
     .bar-track{height:9px;border-radius:20px;background:var(--a-soft);overflow:hidden}
-    .bar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--a-purple),var(--a-gold))}
+    .bar-fill{height:100%;border-radius:20px;background:var(--a-brand)}
     /* وضعیت سیستم */
     .sys-list{display:grid;gap:9px}
-    .sys-item{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:12px;font-size:12.5px;background:var(--a-soft);color:#454866}
+    .sys-item{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:12px;font-size:12.5px;background:var(--a-soft);color:#5f6b85}
     .sys-item.ok{background:var(--a-green-soft);color:var(--a-green)}
     .sys-item.warn{background:var(--a-amber-soft);color:var(--a-amber)}
     .sys-item.err{background:var(--a-red-soft);color:var(--a-red)}
@@ -193,14 +195,16 @@ const lastActivity = activity.length ? faDate(activity[0].created_at, true) : '�
     /* فعالیت‌ها */
     .act-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px dashed var(--a-line)}
     .act-row:last-child{border-bottom:0}
-    .act-ic{width:30px;height:30px;border-radius:10px;background:var(--a-blue-soft);display:grid;place-items:center;font-size:13px;flex:none}
-    .act-row b{font-size:12.5px;color:#3d405e;display:block;font-weight:600}
+    .act-ic{width:30px;height:30px;border-radius:10px;background:var(--a-blue-soft);color:var(--a-blue);display:grid;place-items:center;flex:none}
+    .act-ic svg{width:15px;height:15px}
+    .act-row b{font-size:12.5px;color:#1d2333;display:block;font-weight:600}
     .act-row small{color:var(--a-muted);font-size:10.5px}
     /* میانبرها */
     .short-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
-    .short{display:flex;flex-direction:column;align-items:center;gap:7px;padding:13px 8px;border:1px solid var(--a-line);border-radius:13px;background:var(--a-surface);text-decoration:none;font-size:11.5px;font-weight:700;color:#454866;transition:border-color .15s,box-shadow .15s}
-    .short:hover{border-color:var(--a-gold);box-shadow:0 8px 20px rgba(226,60,142,.10)}
-    .short i{font-style:normal;font-size:19px}
+    .short{display:flex;flex-direction:column;align-items:center;gap:7px;padding:13px 8px;border:1px solid var(--a-line);border-radius:13px;background:var(--a-surface);text-decoration:none;font-size:11.5px;font-weight:700;color:#5f6b85;transition:border-color .15s,box-shadow .15s}
+    .short:hover{border-color:var(--a-brand);box-shadow:0 8px 20px rgba(244,37,123,.12);color:var(--a-brand-strong)}
+    .short i{font-style:normal;display:inline-flex}
+    .short i svg{width:18px;height:18px;color:var(--a-brand-strong)}
     .empty-note{padding:26px;text-align:center;color:var(--a-muted);font-size:12.5px}
     .chart-wrap{direction:ltr}
     @media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.grid-2,.grid-2e{grid-template-columns:1fr}.short-grid{grid-template-columns:repeat(3,1fr)}}
@@ -225,7 +229,7 @@ const lastActivity = activity.length ? faDate(activity[0].created_at, true) : '�
     <section class="kpi-grid">
       {kpiCards.map((k) => (
         <a class={`kpi ${k.cls}`} href={k.href}>
-          <span class="kpi-ic">{k.icon}</span>
+          <span class="kpi-ic" set:html={k.icon} />
           <span><small>{k.label}</small><b>{k.value}</b><span class="kpi-sub">{k.sub}</span></span>
         </a>
       ))}
@@ -238,13 +242,13 @@ const lastActivity = activity.length ? faDate(activity[0].created_at, true) : '�
           <svg class="chart-wrap" viewBox={`0 0 ${CHART_W} ${CHART_H}`} style="width:100%;height:auto" role="img" aria-label="نمودار روند ایجاد و انتشار مقاله">
             <defs>
               <linearGradient id="trend-grad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#e23c8e" stop-opacity=".30"></stop>
-                <stop offset="1" stop-color="#e23c8e" stop-opacity="0"></stop>
+                <stop offset="0" stop-color="#f4257b" stop-opacity=".30"></stop>
+                <stop offset="1" stop-color="#f4257b" stop-opacity="0"></stop>
               </linearGradient>
             </defs>
             <Fragment set:html={trendGrid.join('')} />
             {trendArea && <polygon points={trendArea} fill="url(#trend-grad)"></polygon>}
-            {trendLine && <polyline points={trendLine} fill="none" stroke="#e23c8e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></polyline>}
+            {trendLine && <polyline points={trendLine} fill="none" stroke="#f4257b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></polyline>}
             <Fragment set:html={trendDots.join('')} />
             <Fragment set:html={trendLabels.join('')} />
           </svg>
@@ -259,10 +263,10 @@ const lastActivity = activity.length ? faDate(activity[0].created_at, true) : '�
         {totalPosts > 0 ? (
           <div class="donut-row">
             <svg viewBox="0 0 140 140" style="width:150px;height:150px;flex:none" role="img" aria-label="نمودار دایره‌ای وضعیت مقاله‌ها">
-              <circle cx="70" cy="70" r={DONUT_R} fill="none" stroke="#eff1f3" stroke-width="21"></circle>
+              <circle cx="70" cy="70" r={DONUT_R} fill="none" stroke="#eef0f5" stroke-width="21"></circle>
               <Fragment set:html={donutSegments.join('')} />
               <text x="70" y="66" text-anchor="middle" font-size="20" font-weight="800" fill="#171940">{fa(totalPosts)}</text>
-              <text x="70" y="86" text-anchor="middle" font-size="10" fill="#83868f">مجموع مقاله‌ها</text>
+              <text x="70" y="86" text-anchor="middle" font-size="10" fill="#5f6b85">مجموع مقاله‌ها</text>
             </svg>
             <div class="legend">
               {donutData.map((d) => (
@@ -313,7 +317,7 @@ const lastActivity = activity.length ? faDate(activity[0].created_at, true) : '�
         {activity.length ? (
           activity.map((item) => (
             <div class="act-row">
-              <span class="act-ic">{typeIcon[String(item.type)] || '•'}</span>
+              <span class="act-ic" set:html={typeIcon[String(item.type)] || ADMIN_ICONS.activity} />
               <span>
                 <b>{String(item.title || (typeLabel[String(item.type)] || 'فعالیت') + ' ' + (entityLabel[String(item.entity)] || 'محتوا'))}</b>
                 <small>{faDate(item.created_at, true)}</small>
@@ -328,18 +332,18 @@ const lastActivity = activity.length ? faDate(activity[0].created_at, true) : '�
       <div class="card">
         <h3>⚡ میانبرهای کاربردی</h3>
         <div class="short-grid">
-          <a class="short" href="/admin/posts/new"><i>✎</i>مقاله جدید</a>
-          <a class="short" href="/admin/pages"><i>▤</i>صفحات سایت</a>
-          <a class="short" href="/admin/categories"><i>▦</i>دسته‌بندی‌ها</a>
-          <a class="short" href="/admin/portfolio"><i>◇</i>نمونه‌کارها</a>
-          <a class="short" href="/admin/services"><i>⌘</i>خدمات</a>
-          <a class="short" href="/admin/messages"><i>✉</i>پیام‌ها</a>
-          <a class="short" href="/admin/media"><i>▧</i>رسانه‌ها</a>
-          <a class="short" href="/admin/pricing"><i>＄</i>تعرفه‌ها</a>
-          <a class="short" href="/admin/faq"><i>؟</i>سؤالات متداول</a>
-          <a class="short" href="/admin/testimonials"><i>☆</i>نظرات</a>
-          <a class="short" href="/admin/settings?tab=security"><i>🔒</i>تغییر رمز</a>
-          <a class="short" href="/admin/trash"><i>♲</i>سطل زباله</a>
+          <a class="short" href="/admin/posts/new"><i set:html={ADMIN_ICONS.posts} />مقاله جدید</a>
+          <a class="short" href="/admin/pages"><i set:html={ADMIN_ICONS.pages} />صفحات سایت</a>
+          <a class="short" href="/admin/categories"><i set:html={ADMIN_ICONS.categories} />دسته‌بندی‌ها</a>
+          <a class="short" href="/admin/portfolio"><i set:html={ADMIN_ICONS.portfolio} />نمونه‌کارها</a>
+          <a class="short" href="/admin/services"><i set:html={ADMIN_ICONS.services} />خدمات</a>
+          <a class="short" href="/admin/messages"><i set:html={ADMIN_ICONS.messages} />پیام‌ها</a>
+          <a class="short" href="/admin/media"><i set:html={ADMIN_ICONS.media} />رسانه‌ها</a>
+          <a class="short" href="/admin/pricing"><i set:html={ADMIN_ICONS.pricing} />تعرفه‌ها</a>
+          <a class="short" href="/admin/faq"><i set:html={ADMIN_ICONS.faq} />سؤالات متداول</a>
+          <a class="short" href="/admin/testimonials"><i set:html={ADMIN_ICONS.testimonials} />نظرات</a>
+          <a class="short" href="/admin/settings?tab=security"><i set:html={ADMIN_ICONS.lock} />تغییر رمز</a>
+          <a class="short" href="/admin/trash"><i set:html={ADMIN_ICONS.trash} />سطل زباله</a>
         </div>
       </div>
     </section>

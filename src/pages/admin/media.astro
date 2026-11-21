@@ -48,7 +48,7 @@ const mediaCount = await q<{ c: number }>('SELECT count(*)::int AS c FROM media'
     <div class="modal" style="width:min(560px,100%)">
       <div class="modal-head"><h3>ویرایش تصویر</h3><button class="btn btn-ghost btn-sm" data-close>بستن ✕</button></div>
       <div class="modal-body">
-        <img id="media-modal-img" src="" alt="" style="width:100%;max-height:260px;object-fit:contain;border-radius:12px;border:1px solid var(--a-line);background:#f6f6fb" />
+        <img id="media-modal-img" src="" alt="" style="width:100%;max-height:260px;object-fit:contain;border-radius:12px;border:1px solid var(--a-line);background:#fafbfd" />
         <div style="display:grid;gap:10px;margin-top:14px;font-size:13px">
           <div><b>نام فایل:</b> <span id="media-modal-name" dir="ltr" style="color:var(--a-muted)"></span></div>
           <div><b>حجم:</b> <span id="media-modal-size"></span></div>
@@ -189,7 +189,7 @@ const mediaCount = await q<{ c: number }>('SELECT count(*)::int AS c FROM media'
       /* ناحیهٔ کشیدن و رها کردن */
       const dropZone = document.getElementById('media-drop') as HTMLElement;
       dropZone.addEventListener('click', () => fileInput.click());
-      dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--a-gold)'; dropZone.style.background = 'rgba(226,60,142,.05)'; });
+      dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--a-gold)'; dropZone.style.background = 'rgba(244,37,123,.05)'; });
       dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'var(--a-line)'; dropZone.style.background = ''; });
       dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
