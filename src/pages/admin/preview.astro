@@ -4,6 +4,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
 import { q, q1 } from '../../lib/db';
+import { renderArticleHtml } from '../../lib/article-html';
 
 type EntityType = 'posts' | 'pages' | 'services' | 'projects';
 const rawType = String(Astro.url.searchParams.get('type') || 'posts');
@@ -62,7 +63,8 @@ const previewMeta = {
           </div>
         )}
         <div class="article-body mt-2">
-          <article class="prose-fa" data-reveal="up" set:html={String(row.content || '<p>محتوایی ثبت نشده است.</p>')} />
+          {/* امن‌سازی + پشتیبانی از سندهای کامل legacy — همان خط لوله صفحهٔ مقاله */}
+          <article class="prose-fa" data-reveal="up" set:html={renderArticleHtml(String(row.content || ''), { postTitle: String(row.title || '') }) || '<p>محتوایی ثبت نشده است.</p>'} />
         </div>
       </div>
     </section>
