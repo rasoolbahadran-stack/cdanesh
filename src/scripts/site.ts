@@ -558,7 +558,7 @@
     if (image.complete) measurePreview();
     else image.addEventListener('error', () => card.classList.add('pf-card--image-error'), { once: true });
 
-    if ('ResizeObserver' in window) {
+    if (typeof ResizeObserver !== 'undefined') {
       const observer = new ResizeObserver(measurePreview);
       observer.observe(thumb);
       observer.observe(image);

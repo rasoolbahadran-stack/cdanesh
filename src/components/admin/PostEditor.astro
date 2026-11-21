@@ -232,7 +232,7 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
       htmlTab.addEventListener('click', toSource);
       document.querySelectorAll('[data-command]').forEach((button) => button.addEventListener('click', () => {
         const b = button as HTMLElement; visual.focus();
-        const cmd = b.dataset.command || ''; const val = b.dataset.value || null;
+        const cmd = b.dataset.command || ''; const val = b.dataset.value || undefined;
         document.execCommand(cmd, false, val);
         countWords();
       }));

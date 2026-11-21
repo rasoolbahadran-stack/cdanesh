@@ -179,7 +179,7 @@ const extraLd = extraJsonLd.map((j) => JSON.stringify(j));
         if (image.complete) measurePreview();
         else image.addEventListener('load', measurePreview, { once: true });
 
-        if ('ResizeObserver' in window) {
+        if (typeof ResizeObserver !== 'undefined') {
           const observer = new ResizeObserver(measurePreview);
           observer.observe(thumb);
           observer.observe(image);

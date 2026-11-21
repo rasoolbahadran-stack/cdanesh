@@ -5,10 +5,15 @@ import Blocks from '../components/Blocks.astro';
 import CtaBand from '../components/CtaBand.astro';
 import { getPage } from '../lib/content';
 import { jsonLdBreadcrumb } from '../lib/seo';
+import type { Block } from '../lib/types';
 
-type AboutBlock = { t: string; x?: string; items?: string[] };
 const page = getPage('about')!;
-const blocks = page.blocks as unknown as AboutBlock[];
+const blocks: Block[] = [...(page.blocks || [])];
+/* دسترسی امن به متن بلوک‌های متنی در اتحاد Block */
+const xOf = (index: number): string => {
+  const b = blocks[index];
+  return b && 'x' in b ? b.x : '';
+};
 const locIdx = blocks.findIndex((b) => b.t === 'h2' && (b.x || '').startsWith('کجا هستیم'));
 const reasonsIdx = blocks.findIndex((b) => b.t === 'h2' && (b.x || '').startsWith('پنج دلیل'));
 const stepsIdx = blocks.findIndex((b) => b.t === 'h2' && (b.x || '').startsWith('شش مرحله'));
@@ -24,14 +29,14 @@ const collectItems = (start: number, end: number) => {
   const items: Array<{ title: string; description: string }> = [];
   for (let i = start; i < end; i++) {
     if (blocks[i].t !== 'h3') continue;
-    items.push({ title: blocks[i].x || '', description: blocks[i + 1]?.t === 'p' ? blocks[i + 1].x || '' : '' });
+    items.push({ title: xOf(i), description: blocks[i + 1]?.t === 'p' ? xOf(i + 1) : '' });
   }
   return items;
 };
 const reasons = collectItems(reasonsIdx + 1, stepsIdx);
 const steps = collectItems(stepsIdx + 1, ctaIdx > stepsIdx ? ctaIdx : blocks.length);
-const ctaTitle = ctaIdx >= 0 ? blocks[ctaIdx].x : 'برای طراحی سایت کسب‌وکارتان آماده‌اید؟';
-const ctaSub = ctaIdx >= 0 && blocks[ctaIdx + 1]?.t === 'p' ? blocks[ctaIdx + 1].x : 'نیازهای پروژه را بررسی می‌کنیم و مسیر مناسب اجرا را پیشنهاد می‌دهیم.';
+const ctaTitle = ctaIdx >= 0 ? xOf(ctaIdx) : 'برای طراحی سایت کسب‌وکارتان آماده‌اید؟';
+const ctaSub = ctaIdx >= 0 && blocks[ctaIdx + 1]?.t === 'p' ? xOf(ctaIdx + 1) : 'نیازهای پروژه را بررسی می‌کنیم و مسیر مناسب اجرا را پیشنهاد می‌دهیم.';
 
 const meta = {
   title: 'درباره کافه دانش | استودیو طراحی و توسعه وب‌سایت در بوشهر',
@@ -85,7 +90,7 @@ const meta = {
     <div class="container about-duo">
       <section class="about-duo__panel" aria-labelledby="about-reasons-title">
         <div class="about-duo__head">
-          <h2 id="about-reasons-title">{blocks[reasonsIdx]?.x || 'پنج دلیل که نتیجه کار را متمایز می‌کند'}</h2>
+          <h2 id="about-reasons-title">{xOf(reasonsIdx) || 'پنج دلیل که نتیجه کار را متمایز می‌کند'}</h2>
         </div>
         <div class="about-duo__list">
           {reasons.map((item, i) => (
@@ -98,7 +103,7 @@ const meta = {
       </section>
       <section class="about-duo__panel" aria-labelledby="about-steps-title">
         <div class="about-duo__head">
-          <h2 id="about-steps-title">{blocks[stepsIdx]?.x || 'شش مرحله شفاف، از درخواست تا تحویل'}</h2>
+          <h2 id="about-steps-title">{xOf(stepsIdx) || 'شش مرحله شفاف، از درخواست تا تحویل'}</h2>
         </div>
         <div class="about-duo__list">
           {steps.map((item, i) => (

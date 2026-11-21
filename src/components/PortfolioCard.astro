@@ -3,7 +3,7 @@
 import type { PortfolioItem } from '../lib/types';
 import { pfStatusLabel } from '../lib/types';
 
-interface Props { item: PortfolioItem; delay?: number }
+interface Props { item: PortfolioItem; delay?: number | string }
 const { item, delay = 0 } = Astro.props;
 
 const badgeClass =

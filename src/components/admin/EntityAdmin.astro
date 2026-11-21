@@ -434,7 +434,7 @@ const hasSeo = config.fields.some((f) => SEO_KEYS.includes(f.key));
       if (seoWrap) bind(seoWrap);
       bindGallery();
       editingItem = item || null;
-      const historyBtn = document.getElementById('ent-history-btn') as HTMLAnchorElement;
+      const historyBtn = document.getElementById('ent-history-btn');
       if (historyBtn) {
         const available = Boolean(editingId) && ['posts', 'pages'].includes(cfg.entity);
         historyBtn.style.display = available ? 'inline-flex' : 'none';

@@ -4,8 +4,10 @@
 interface Props {
   title: string;
   sub?: string;
+  /** نوار اطلاعاتی کوچک زیر توضیح (مثلاً وضعیت انتشار در پیش‌نمایش مدیریتی) */
+  meta?: string[];
 }
-const { title, sub } = Astro.props;
+const { title, sub, meta = [] } = Astro.props;
 ---
 <section class="page-hero">
   <svg class="hero__ribbon" viewBox="0 0 1440 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -16,6 +18,12 @@ const { title, sub } = Astro.props;
   <div class="container">
     <h1 data-reveal="up">{title}</h1>
     {sub && <p data-reveal="up" data-delay="120">{sub}</p>}
+    {meta.length > 0 && <div class="page-hero__meta">{meta.map((m) => <span>{m}</span>)}</div>}
     <slot />
   </div>
 </section>
+
+<style>
+  .page-hero__meta{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
+  .page-hero__meta span{background:rgba(255,255,255,.16);color:#fff;border-radius:99px;padding:4px 13px;font-size:.8rem;font-weight:700}
+</style>
