@@ -72,7 +72,7 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
             <div class="editor-box">
               <div class="editor-tabs"><button type="button" id="tab-visual" class="active">ویرایش بصری</button><button type="button" id="tab-html">ویرایش کد HTML</button><span style="margin-inline-start:auto;font-size:11px;color:var(--a-muted);align-self:center">تغییرات دو حالت همگام می‌شود</span></div>
               <div class="editor-tools" id="visual-tools">
-                <button type="button" data-command="formatBlock" data-value="h2">تیتر اصلی</button><button type="button" data-command="formatBlock" data-value="h3">تیتر فرعی</button><button type="button" data-command="formatBlock" data-value="p">پاراگراف</button><button type="button" data-command="bold"><b>پررنگ</b></button><button type="button" data-command="italic"><i>مورب</i></button><button type="button" data-command="insertUnorderedList">فهرست</button><button type="button" data-command="insertOrderedList">فهرست شماره‌ای</button><button type="button" id="insert-quote">نقل‌قول</button><button type="button" id="insert-image">＋ افزودن تصویر از رسانه‌ها</button><button type="button" id="insert-link">لینک</button><button type="button" id="block-move-up" title="انتقال بلوک انتخاب‌شده به بالا">↑ بلوک</button><button type="button" id="block-move-down" title="انتقال بلوک انتخاب‌شده به پایین">↓ بلوک</button><button type="button" id="block-duplicate" title="تکثیر بلوک انتخاب‌شده">▣ تکثیر</button><button type="button" id="block-delete" title="حذف بلوک انتخاب‌شده">⌫ حذف</button>
+                <button type="button" data-command="formatBlock" data-value="h2">تیتر اصلی</button><button type="button" data-command="formatBlock" data-value="h3">تیتر فرعی</button><button type="button" data-command="formatBlock" data-value="p">پاراگراف</button><button type="button" data-command="bold"><b>پررنگ</b></button><button type="button" data-command="italic"><i>مورب</i></button><button type="button" data-command="insertUnorderedList">فهرست</button><button type="button" data-command="insertOrderedList">فهرست شماره‌ای</button><button type="button" id="insert-quote">نقل‌قول</button><button type="button" id="insert-table" title="درج جدول سه‌ستونه با سربرگ">▦ جدول</button><button type="button" id="insert-divider" title="خط جداکننده افقی">― جداکننده</button><button type="button" id="insert-image">＋ افزودن تصویر از رسانه‌ها</button><button type="button" id="insert-link">لینک</button><button type="button" id="block-move-up" title="انتقال بلوک انتخاب‌شده به بالا">↑ بلوک</button><button type="button" id="block-move-down" title="انتقال بلوک انتخاب‌شده به پایین">↓ بلوک</button><button type="button" id="block-duplicate" title="تکثیر بلوک انتخاب‌شده">▣ تکثیر</button><button type="button" id="block-delete" title="حذف بلوک انتخاب‌شده">⌫ حذف</button><button type="button" id="preview-post" title="نمایش مقاله در قالب واقعی سایت">👁 پیش‌نمایش</button>
               </div>
               <div id="visual-editor" class="editor-visual" contenteditable="true" set:html={value('content')}></div>
               <textarea id="html-editor" class="editor-source" spellcheck="false">{value('content')}</textarea>
@@ -236,7 +236,47 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
         document.execCommand(cmd, false, val);
         countWords();
       }));
-      document.getElementById('insert-quote')?.addEventListener('click', () => { visual.focus(); document.execCommand('formatBlock', false, 'blockquote'); });
+            document.getElementById('insert-divider')?.addEventListener('click', () => { visual.focus(); document.execCommand('insertHorizontalRule', false); countWords(); showNotice('جداکننده درج شد.'); });
+      document.getElementById('insert-table')?.addEventListener('click', () => {
+        visual.focus();
+        const rows = Math.max(2, Math.min(8, Number(prompt('تعداد ردیف جدول (شامل سربرگ):', '3')) || 3));
+        const cols = Math.max(2, Math.min(6, Number(prompt('تعداد ستون جدول:', '3')) || 3));
+        let table = '<figure class="content-table"><table><thead><tr>';
+        for (let c = 0; c < cols; c++) table += '<th>سربرگ ' + (c + 1) + '</th>';
+        table += '</tr></thead><tbody>';
+        for (let r = 1; r < rows; r++) {
+          table += '<tr>';
+          for (let c = 0; c < cols; c++) table += '<td>سلول</td>';
+          table += '</tr>';
+        }
+        table += '</tbody></table></figure><p></p>';
+        document.execCommand('insertHTML', false, table);
+        countWords();
+        showNotice('جدول درج شد؛ سلول‌ها را ویرایش کنید.');
+      });
+      document.getElementById('preview-post')?.addEventListener('click', async () => {
+        const currentId = form.dataset.id;
+        const isOpenNew = form.dataset.isNew === '1';
+        /* پیش‌نمایش فقط برای مقالهٔ ذخیره‌شده معنا دارد؛ برای مقالهٔ جدید ابتدا پیش‌نویس ذخیره می‌شود */
+        if (isOpenNew || !currentId) {
+          if (!title.value.trim() || !slug.value.trim()) return showNotice('برای پیش‌نمایش، ابتدا عنوان و اسلاگ را تکمیل کنید تا پیش‌نویس ذخیره شود.', false);
+          showNotice('در حال ذخیرهٔ پیش‌نویس برای پیش‌نمایش…');
+          const html2 = sourceMode ? (cm ? cm.getValue() : source.value) : getVisualHtml();
+          const payload = { title: title.value.trim(), slug: slug.value.trim(), excerpt: (form.elements.namedItem('excerpt') as HTMLTextAreaElement).value, content: html2, cover_image: cover.value, status: 'draft', author: (form.elements.namedItem('author') as HTMLInputElement).value.trim() || 'مدیر کافه‌دانش', reading_time: Number((form.elements.namedItem('reading_time') as HTMLInputElement).value || 6), seo_title: 'پیش‌نمایش: ' + title.value.trim(), seo_description: 'پیش‌نمایش موقت مقاله — این نسخه منتشر نمی‌شود.' };
+          try {
+            const r = await fetch('/api/admin/posts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            const j = await r.json();
+            if (!r.ok || !j.ok) return showNotice(j.message || 'ذخیرهٔ پیش‌نویس برای پیش‌نمایش ناموفق بود', false);
+            const saved = j.data || {};
+            form.dataset.isNew = '0'; form.dataset.id = String(saved.id || '');
+            window.open('/admin/preview?type=posts&id=' + saved.id, '_blank');
+            showNotice('پیش‌نویس موقت ساخته شد و پیش‌نمایش در تب جدید باز شد. پس از پایان کار، مقاله را از فهرست حذف یا ویرایش کنید.');
+          } catch { showNotice('ارتباط با سرور برقرار نشد.', false); }
+          return;
+        }
+        window.open('/admin/preview?type=posts&id=' + currentId, '_blank');
+      });
+document.getElementById('insert-quote')?.addEventListener('click', () => { visual.focus(); document.execCommand('formatBlock', false, 'blockquote'); });
       document.getElementById('insert-link')?.addEventListener('click', () => { const href = prompt('آدرس لینک را وارد کنید'); if (href) { visual.focus(); document.execCommand('createLink', false, href); } });
       let imageSelectionRange: Range | null = null;
       document.getElementById('insert-image')?.addEventListener('click', () => {
