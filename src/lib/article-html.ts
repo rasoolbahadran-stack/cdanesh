@@ -3,30 +3,21 @@
    ---------------------------------------------------------------------------
    برخی مقاله‌های قدیمی (مانند «boutique-website-setup» در دیتابیس تولیدی)
    به‌جای بلوک ساختاریافته، یک «سند کامل HTML» (با doctype/head/title/style)
-   در ستون content دارند؛ برخی حتی ساختار ناقص/خراب. پردازشگر قبلی در دو لایه
+   در ستون content دارند؛ برخی حتی ساختار ناقص/خراب. پردازشگر قدیمی در دو لایه
    (sanitize هنگام خواندن + حذف تگ‌به‌تگ هنگام رندر) بدنه را نابود می‌کرد و
    صفحه مقاله خالی رندر می‌شد.
 
-   این ماژول یک خط لوله یکپارچه می‌دهد:
-   ۱) حذف جفت‌تگ‌های غیرنمایشی (script/style/iframe/object/embed) با محتوا
-   ۲) استخراج بدنه از سند کامل (</head> یا <body> تا </body>)
-   ۳) بازکردن (unwrap) فرم‌ها و دکمه‌ها — متن داخل آن‌ها می‌ماند، خودشان حذف
-      می‌شوند؛ برخلاف sanitize قبلی که «کل محتوای داخل فرم» را حذف می‌کرد
-   ۴) فیلتر attributeها (رویدادها، javascript:، …) روی تگ‌های مجاز ویرایشگر
-   ۵) حذف h1 تکراری با عنوان مقاله و تصویر شاخص تکراری از بدنه
-   ۶) «فالت‌بک محافظه‌کار»: اگر خروجی تقریباً خالی ولی ورودی پرمحتوا باشد،
+   خط لولهٔ یکپارچهٔ فعلی:
+   ۱) استخراج بدنه از سند کامل (</head> یا <body> تا </body>)
+   ۲) پاک‌سازی پوستهٔ head (عنوان/متا/لینک باقی‌مانده)
+   ۳) امن‌سازی «پارسرمحور» با src/lib/html-sanitize.ts — تگ اجرایی (script/
+      style/iframe/…) همراه محتوا حذف، فرم/دکمه باز می‌شوند و متن می‌ماند،
+      event handler و URL خطرناک حذف
+   ۴) حذف h1 تکراری با عنوان مقاله و تصویر شاخص تکراری از بدنه
+   ۵) «فالت‌بک محافظه‌کار»: اگر خروجی تقریباً خالی ولی ورودی پرمحتوا باشد،
       نسخهٔ حداقلی و امنِ کل سند رندر می‌شود تا صفحه خالی نماند
    ========================================================================== */
-
-/* تگ‌های مجاز محتوای مقاله — همان لیست ویرایشگر پنل */
-const ALLOWED_TAGS = new Set([
-  'p', 'br', 'hr', 'h1', 'h2', 'h3', 'h4', 'strong', 'em', 'b', 'i', 'u', 'ul', 'ol', 'li', 'a', 'img',
-  'blockquote', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'div', 'span', 'figure', 'figcaption',
-  'section', 'article', 'main', 'aside', 'header', 'footer', 'nav', 'h5', 'h6', 'small', 'sub', 'sup', 'pre', 'code',
-]);
-
-const URL_ATTRS = new Set(['href', 'src']);
-const KEEP_ATTRS = new Set(['alt', 'title', 'class', 'id', 'target', 'rel', 'loading', 'decoding', 'width', 'height', 'colspan', 'rowspan', 'dir', 'lang']);
+import { sanitizeHtmlHtml } from './html-sanitize';
 
 /* متن قابل مشاهدهٔ یک تکه HTML برای سنجش پر‌محتوا بودن */
 export function visibleTextLength(html: string): number {
@@ -39,62 +30,18 @@ export function visibleTextLength(html: string): number {
     .length;
 }
 
-/* ── گام ۱: حذف کامنت‌ها، doctype، تگ‌های تکی head و جفت‌تگ‌های غیرنمایشی ── */
-function stripNonVisibleTags(html: string): string {
+/* ── پاک‌سازی پوستهٔ head: فقط ساختار سند، نه امن‌سازی (آن کار پارسر است) ── */
+function stripHeadShell(html: string): string {
   return String(html || '')
-    .replace(/<!--[\s\S]*?-->/g, '')
     .replace(/<!doctype\b[^>]*>/gi, '')
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, '')
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, '')
-    .replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe\s*>/gi, '')
-    .replace(/<object\b[^>]*>[\s\S]*?<\/object\s*>/gi, '')
-    .replace(/<embed\b[^>]*>/gi, '')
+    .replace(/<title\b[^>]*>[\s\S]*?<\/title\s*>/gi, '')
     .replace(/<meta\b[^>]*>/gi, '')
     .replace(/<link\b[^>]*>/gi, '')
-    .replace(/<input\b[^>]*>/gi, '')
-    .replace(/<\/?(?:html|head|body|title)\b[^>]*>/gi, '')
-    .replace(/<\/(?:title|script|style|iframe|object|embed)>/gi, '');
+    .replace(/<\/?(?:html|head|body)\b[^>]*>/gi, '')
+    .replace(/<\/(?:title|script|style|iframe|object|embed|form|button|select|option|textarea|label|fieldset|legend|datalist)>/gi, '');
 }
 
-/* ── گام ۳: بازکردن فرم/دکمه/جدول‌های رفتاری — متن داخل حفظ می‌شود ── */
-function unwrapFormTags(html: string): string {
-  return String(html || '')
-    .replace(/<\/?(form|button|select|option|textarea|label|fieldset|legend|datalist)\b[^>]*>/gi, '');
-}
-
-/* ── گام ۴: فیلتر امن attributeها و تگ‌ها ── */
-function sanitizeAttributes(html: string): string {
-  return String(html || '').replace(/<([a-zA-Z][a-zA-Z0-9]*)((?:\s+[^<>]*?)?)\/?>/g, (m, tag: string, attrs: string) => {
-    const t = tag.toLowerCase();
-    /* تگ‌های ممنوع باقی‌مانده حذف می‌شوند (متن داخلشان حفظ شده است) */
-    if (!ALLOWED_TAGS.has(t)) return '';
-    const safeAttrs: string[] = [];
-    const attrRe = /([a-zA-Z-]+)\s*=\s*"([^"]*)"|([a-zA-Z-]+)\s*=\s*'([^']*)'/g;
-    let am: RegExpExecArray | null;
-    while ((am = attrRe.exec(attrs)) !== null) {
-      const name = (am[1] || am[3] || '').toLowerCase();
-      const value = am[2] ?? am[4] ?? '';
-      if (name.startsWith('on')) continue;
-      if (name === 'style') {
-        if (/expression|javascript:/i.test(value)) continue;
-        safeAttrs.push(`style="${value.replace(/"/g, '&quot;')}"`);
-        continue;
-      }
-      if (URL_ATTRS.has(name)) {
-        if (/^\s*(javascript|vbscript):/i.test(value)) continue;
-        safeAttrs.push(`${name}="${value.replace(/"/g, '&quot;')}"`);
-        continue;
-      }
-      if (KEEP_ATTRS.has(name)) {
-        safeAttrs.push(`${name}="${value.replace(/"/g, '&quot;')}"`);
-      }
-    }
-    void m;
-    return `<${t}${safeAttrs.length ? ' ' + safeAttrs.join(' ') : ''}>`;
-  });
-}
-
-/* ── گام ۲: استخراج بدنهٔ سند کامل ── */
+/* ── استخراج بدنهٔ سند کامل ── */
 function extractDocumentBody(html: string): string {
   let out = String(html || '');
 
@@ -174,23 +121,23 @@ export function renderArticleHtml(rawHtml: string, opts: ArticleHtmlOptions = {}
 
   const looksLikeDocument = /<!doctype\s*html|<html[\s>]|<head[\s>]|<body[\s>]|<\/head>|<\/body>/i.test(input);
 
-  /* مسیر اصلی: بدنهٔ سند کامل → پاک‌سازی → فیلتر امن */
+  /* مسیر اصلی: بدنهٔ سند کامل → پاک‌سازی پوسته → امن‌سازی پارسرمحور */
   const body = looksLikeDocument ? extractDocumentBody(input) : input;
-  let cleaned = sanitizeAttributes(unwrapFormTags(stripNonVisibleTags(body)));
+  const shelled = stripHeadShell(body);
+  let cleaned = sanitizeHtmlHtml(shelled);
   cleaned = dedupeTitleAndCover(cleaned, opts, site);
 
   /* فالت‌بک محافظه‌کار: اگر پردازش محتوا را تقریباً کامل حذف کرده ولی سند
      اصلی پر‌متن بوده، نسخهٔ حداقلی و امنِ کل سند رندر می‌شود. */
-  const inputText = visibleTextLength(sanitizeAttributes(unwrapFormTags(stripNonVisibleTags(input))));
+  const inputText = visibleTextLength(sanitizeHtmlHtml(stripHeadShell(input)));
   const outputText = visibleTextLength(cleaned);
   if (outputText < 200 && inputText > 800) {
-    let fallback = sanitizeAttributes(unwrapFormTags(stripNonVisibleTags(input)));
-    fallback = dedupeTitleAndCover(fallback, opts, site);
+    const fallback = dedupeTitleAndCover(sanitizeHtmlHtml(stripHeadShell(input)), opts, site);
     return fallback.trim();
   }
 
   return cleaned.trim();
 }
 
-/* سازگاری با نام قبلی داخل blog/[slug] */
+/* سازگاری با نام قبلی */
 export const normalizeLegacyArticleHtml = renderArticleHtml;
