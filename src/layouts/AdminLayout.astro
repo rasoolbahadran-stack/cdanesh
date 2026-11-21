@@ -1,36 +1,38 @@
 ---
 import '../styles/global.css';
 import '../styles/admin.css';
+import { ADMIN_ICONS } from '../lib/admin-icons';
 interface Props { title:string; crumb?:string; newMessages?:number }
 const {title,crumb,newMessages=0}=Astro.props;
 const path=Astro.url.pathname;
 const adminUser=String(Astro.locals.admin?.u||'مدیر سایت');
+const ICONS=ADMIN_ICONS;
 const groups = [
   {
     label: 'مدیریت سایت',
     items: [
-      { href: '/admin', label: 'داشبورد', icon: '⌂', key: 'dashboard' },
-      { href: '/admin/pages', label: 'صفحات سایت', icon: '▤', key: 'pages' },
-      { href: '/admin/posts', label: 'مقاله‌ها', icon: '✎', key: 'posts' },
-      { href: '/admin/categories', label: 'دسته‌بندی‌ها', icon: '▦', key: 'categories' },
-      { href: '/admin/portfolio', label: 'نمونه‌کارها', icon: '◇', key: 'portfolio' },
-      { href: '/admin/services', label: 'خدمات', icon: '⌘', key: 'services' },
-      { href: '/admin/pricing', label: 'تعرفه‌ها', icon: '＄', key: 'pricing' },
-      { href: '/admin/faq', label: 'سؤالات متداول', icon: '?', key: 'faq' },
-      { href: '/admin/testimonials', label: 'نظرات مشتریان', icon: '☆', key: 'testimonials' },
-      { href: '/admin/media', label: 'کتابخانه رسانه', icon: '▧', key: 'media' },
+      { href: '/admin', label: 'داشبورد', icon: 'dashboard', key: 'dashboard' },
+      { href: '/admin/pages', label: 'صفحات سایت', icon: 'pages', key: 'pages' },
+      { href: '/admin/posts', label: 'مقاله‌ها', icon: 'posts', key: 'posts' },
+      { href: '/admin/categories', label: 'دسته‌بندی‌ها', icon: 'categories', key: 'categories' },
+      { href: '/admin/portfolio', label: 'نمونه‌کارها', icon: 'portfolio', key: 'portfolio' },
+      { href: '/admin/services', label: 'خدمات', icon: 'services', key: 'services' },
+      { href: '/admin/pricing', label: 'تعرفه‌ها', icon: 'pricing', key: 'pricing' },
+      { href: '/admin/faq', label: 'سؤالات متداول', icon: 'faq', key: 'faq' },
+      { href: '/admin/testimonials', label: 'نظرات مشتریان', icon: 'testimonials', key: 'testimonials' },
+      { href: '/admin/media', label: 'کتابخانه رسانه', icon: 'media', key: 'media' },
     ],
   },
   {
     label: 'ارتباط و ابزارها',
     items: [
-      { href: '/admin/messages', label: 'درخواست‌ها و پیام‌ها', icon: '✉', key: 'messages' },
-      { href: '/admin/assistant', label: 'دستیار هوشمند', icon: '✧', key: 'assistant' },
-      { href: '/admin/activity', label: 'گزارش فعالیت', icon: '◷', key: 'activity' },
-      { href: '/admin/trash', label: 'سطل زباله', icon: '♲', key: 'trash' },
-      { href: '/admin/errors', label: 'گزارش خطاها', icon: '⚒', key: 'errors' },
-      { href: '/admin/settings', label: 'تنظیمات عمومی', icon: '⚙', key: 'settings' },
-      { href: '/admin/settings?tab=seo', label: 'تنظیمات سئو', icon: '◎', key: 'seo' },
+      { href: '/admin/messages', label: 'درخواست‌ها و پیام‌ها', icon: 'messages', key: 'messages' },
+      { href: '/admin/assistant', label: 'دستیار هوشمند', icon: 'assistant', key: 'assistant' },
+      { href: '/admin/activity', label: 'گزارش فعالیت', icon: 'activity', key: 'activity' },
+      { href: '/admin/trash', label: 'سطل زباله', icon: 'trash', key: 'trash' },
+      { href: '/admin/errors', label: 'گزارش خطاها', icon: 'errors', key: 'errors' },
+      { href: '/admin/settings', label: 'تنظیمات عمومی', icon: 'settings', key: 'settings' },
+      { href: '/admin/settings?tab=seo', label: 'تنظیمات سئو', icon: 'seo', key: 'seo' },
     ],
   },
 ];
@@ -61,7 +63,7 @@ path.startsWith('/admin/errors')?'errors':path.startsWith('/admin/settings')?(As
           class:list={['side-link', active === item.key && 'active']}
           aria-current={active === item.key ? 'page' : undefined}
         >
-          <i class="ico" aria-hidden="true">{item.icon}</i>
+          <i class="ico" aria-hidden="true" set:html={ICONS[item.icon]} />
           <span class="txt">{item.label}</span>
           {item.key === 'messages' && newMessages > 0 && <span class="side-badge">{newMessages}</span>}
         </a>
@@ -70,14 +72,14 @@ path.startsWith('/admin/errors')?'errors':path.startsWith('/admin/settings')?(As
   </section>
 ))}
 <div class="side-foot">
-<a class="side-link" href="/" target="_blank" rel="noopener"><i class="ico">↗</i><span class="txt">مشاهده سایت</span></a>
+<a class="side-link" href="/" target="_blank" rel="noopener"><i class="ico" aria-hidden="true" set:html={ICONS.external} /><span class="txt">مشاهده سایت</span></a>
 <div class="side-user"><span class="avatar">{adminUser.slice(0,1)}</span><span><b>{adminUser}</b><small>مدیر سامانه</small></span></div>
-<form id="logout-form"><button class="side-link side-logout" type="submit"><i class="ico">⇥</i><span class="txt">خروج امن از پنل</span></button></form>
-<button type="button" class="side-collapse" aria-label="جمع‌کردن منو"><i class="sc-ico">‹</i><span class="txt">جمع‌کردن منو</span></button>
+<form id="logout-form"><button class="side-link side-logout" type="submit"><i class="ico" aria-hidden="true" set:html={ICONS.logout} /><span class="txt">خروج امن از پنل</span></button></form>
+<button type="button" class="side-collapse" aria-label="جمع‌کردن منو"><i class="sc-ico" set:html={ICONS.collapse} /><span class="txt">جمع‌کردن منو</span></button>
 </div></aside><div class="side-scrim"></div>
-<main class="admin-main"><header class="admin-topbar"><button type="button" class="side-open-m" aria-label="بازکردن منو">☰ <span>منو</span></button>
+<main class="admin-main"><header class="admin-topbar"><button type="button" class="side-open-m" aria-label="بازکردن منو"><i class="ico" aria-hidden="true" set:html={ICONS.menu} /> <span>منو</span></button>
 <div class="admin-topbar__heading"><h1>{title}</h1>{crumb&&<div class="crumb">{crumb}</div>}</div>
-<div class="actions"><span class="top-status"><i></i> اتصال مدیریت فعال</span><a class="btn btn-ghost btn-sm" href="/admin/assistant">دستیار هوشمند ✧</a><a class="btn btn-ghost btn-sm" href="/" target="_blank" rel="noopener">مشاهده سایت ↗</a></div>
+<div class="actions"><span class="top-status"><i></i> اتصال مدیریت فعال</span><a class="btn btn-ghost btn-sm" href="/admin/assistant"><i class="ico" aria-hidden="true" set:html={ICONS.assistant} /> <span>دستیار هوشمند</span></a><a class="btn btn-ghost btn-sm" href="/" target="_blank" rel="noopener"><i class="ico" aria-hidden="true" set:html={ICONS.external} /> <span>مشاهده سایت</span></a></div>
 </header><div class="admin-content"><slot/></div><footer class="admin-footer"><span>کافه دانش · مدیریت یکپارچه محتوا</span><span>Astro + PostgreSQL</span></footer></main>
 </div><script>
 import '../scripts/admin.ts';
