@@ -11,7 +11,10 @@ import crypto from 'node:crypto';
 const COOKIE_NAME = 'cd_admin';
 const SESSION_MS = 1000 * 60 * 60 * 12; // ۱۲ ساعت
 
-function configuredPasswordHash(): string {
+/* هش رمز پیکربندی‌شده: ADMIN_PASSWORD_HASH یا (سازگاری قدیم) هشِ ADMIN_PASSWORD.
+   تغییر رمز از پنل نیز باید همین مرجع را ببیند تا وقتی فقط ADMIN_PASSWORD تنظیم
+   شده است، ادمین بتواند رمز خود را تغییر دهد. */
+export function configuredPasswordHash(): string {
   const hash = process.env.ADMIN_PASSWORD_HASH || '';
   if (hash) return hash;
 

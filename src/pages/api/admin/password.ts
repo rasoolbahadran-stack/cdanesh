@@ -9,7 +9,7 @@
    --------------------------------------------------------------------------- */
 import type { APIRoute } from 'astro';
 import { fail, unauthorized, serverError, readJson, str } from '../../../lib/http';
-import { sessionFromCookies, sha256, isSecureRequest, refreshSession, setDbPasswordHash } from '../../../lib/auth';
+import { sessionFromCookies, sha256, isSecureRequest, refreshSession, setDbPasswordHash, configuredPasswordHash } from '../../../lib/auth';
 import { q1 } from '../../../lib/db';
 import { logActivity } from '../../../lib/seed';
 
@@ -27,12 +27,23 @@ export const POST: APIRoute = async (ctx) => {
     if (next.length < 8) return fail('رمز جدید باید حداقل ۸ کاراکتر باشد', 'WEAK');
     if (next !== next2) return fail('تکرار رمز جدید با رمز جدید یکسان نیست', 'MISMATCH');
 
-    /* رمز فعلی: اول هش دیتابیس (اگر هست)، بعد متغیر محیطی */
+    /* جلوگیری از رمزهای بسیار ضعیف/پرتکرار و رمز بدون تنوع کاراکتر */
+    const weakList = new Set([
+      '12345678', '123456789', '1234567890', 'password', 'password1', 'qwerty123',
+      'admin123', 'admin1234', 'iloveyou', '11111111', '00000000', 'abcdefgh',
+      'cdanesh', 'cdanesh123', 'cdanesh1234', 'aaaaaaaa', 'asdfghjk', 'letmein123',
+    ]);
+    if (weakList.has(next.toLowerCase())) return fail('این رمز بسیار ضعیف و پرتکرار است؛ رمز قوی‌تری انتخاب کنید', 'WEAK_COMMON');
+    const classes = [/[a-z]/, /[A-Z]/, /[0-9]/, /[^a-zA-Z0-9]/].filter((r) => r.test(next)).length;
+    if (classes < 2) return fail('رمز جدید باید حداقل دو نوع کاراکتر داشته باشد (حرف، عدد یا نماد)', 'WEAK_VARIETY');
+
+    /* رمز فعلی: اول هش دیتابیس (اگر هست)، بعد مرجع محیطی (ADMIN_PASSWORD_HASH
+       یا — سازگاری قدیم — ADMIN_PASSWORD)؛ همان مرجعی که ورود استفاده می‌کند */
     const user = await q1<{ username: string; password_hash: string }>(
       'SELECT username, password_hash FROM users WHERE username = $1',
       [session.u],
     );
-    const envHash = process.env.ADMIN_PASSWORD_HASH || '';
+    const envHash = configuredPasswordHash();
     const dbHash = user?.password_hash || '';
     const currentHash = sha256(current);
     const okCurrent = dbHash ? currentHash === dbHash : envHash ? currentHash === envHash : false;
