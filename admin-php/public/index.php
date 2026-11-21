@@ -1,6 +1,16 @@
 <?php
 declare(strict_types=1);
 
+/*
+ * Legacy PHP admin retired.
+ * Keep this Vercel project only as a compatibility redirect so admin.cdanesh.ir
+ * and its old deployment URLs land on the single active Astro admin.
+ */
+$canonicalAdmin = 'https://cdanesh.ir/admin/login?next=%2Fadmin';
+header('Location: ' . $canonicalAdmin, true, 302);
+exit;
+
+
 /**
  * Cafe Danesh — PHP admin application
  * Kept isolated under /admin-php; it never rewrites Astro routes or public pages.
