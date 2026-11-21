@@ -130,7 +130,7 @@ const isActive = (href: string) =>
 
   // ── منوی موبایل ──
   const menu = document.querySelector('[data-mobile-menu]');
-  const burger = document.querySelector('[data-burger]');
+  const burger = document.querySelector<HTMLElement>('[data-burger]');
   const closeButton = menu?.querySelector<HTMLButtonElement>('[data-menu-close]');
   const openMenu = (open: boolean) => {
     menu?.classList.toggle('is-open', open);

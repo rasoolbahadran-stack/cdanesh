@@ -3,6 +3,7 @@
    خروجی همهٔ عملیات نوشتن: {ok, error?, message?, data?}
    پیام خطا فارسی و قابل‌نمایش به مدیر است.
    ========================================================================== */
+import { sanitizeHtmlHtml } from './html-sanitize';
 
 export function ok(data: unknown = null, message = ''): Response {
   return new Response(JSON.stringify({ ok: true, message, data }), {
@@ -45,6 +46,10 @@ export function str(v: unknown, max = 500): string {
 }
 
 export function num(v: unknown, fallback = 0): number {
+  /* نکتهٔ حیاتی: Number(null) و Number('') در جاوااسکریپت ۰ می‌دهند نه NaN؛
+     بدون این گارد، «مقدار پیش‌فرض» هرگز اعمال نمی‌شد و مثلاً فهرست ادمین بدون
+     پارامتر limit با LIMIT 1 اجرا می‌شد (علت اصلی نمایش تک‌ردیفی بخش‌ها). */
+  if (v === null || v === undefined || v === '') return fallback;
   const n = Number(v);
   return Number.isFinite(n) ? n : fallback;
 }
@@ -91,46 +96,12 @@ export function requireFields(obj: Record<string, unknown>, fields: { key: strin
 }
 
 /* ---------- امن‌سازی HTML محتوای ویرایشگر ----------
-   فقط تگ‌های مجاز ویرایشگر نگه داشته می‌شوند؛ script/iframe/رویدادها حذف می‌شوند. */
-const ALLOWED_TAGS = new Set([
-  'p','br','hr','h2','h3','h4','strong','em','b','i','u','ul','ol','li','a','img',
-  'blockquote','table','thead','tbody','tr','th','td','div','span','figure','figcaption',
-]);
-const URL_ATTRS = new Set(['href', 'src']);
-
+   پیاده‌سازی پارسرمحور در src/lib/html-sanitize.ts؛ این تابع فقط نقطهٔ
+   اتصال همهٔ مسیرهای نوشتن است (CRUD عمومی، مقاله‌ها، رسانه، …).
+   تفاوت کلیدی با نسخهٔ Regex قبلی: تگ‌های فرم/دکمه به‌جای حذفِ «همراه با
+   کل متن داخلشان»، باز می‌شوند (unwrap) و متن مقاله حفظ می‌شود. */
 export function sanitizeHtml(html: string): string {
-  let out = String(html || '');
-  out = out.replace(/<!--[\s\S]*?-->/g, '');
-  out = out.replace(/<(script|style|iframe|object|embed|form|input|button|link|meta)[\s\S]*?<\/\1>/gi, '');
-  out = out.replace(/<(script|style|iframe|object|embed|form|input|button|link|meta)[^>]*\/?>/gi, '');
-  out = out.replace(/<([a-zA-Z][a-zA-Z0-9]*)((?:\s+[^<>]*?)?)\/?>/g, (m, tag: string, attrs: string) => {
-    const t = tag.toLowerCase();
-    if (!ALLOWED_TAGS.has(t)) return '';
-    const safeAttrs: string[] = [];
-    const attrRe = /([a-zA-Z-]+)\s*=\s*"([^"]*)"|([a-zA-Z-]+)\s*=\s*'([^']*)'/g;
-    let am: RegExpExecArray | null;
-    while ((am = attrRe.exec(attrs)) !== null) {
-      const name = (am[1] || am[3] || '').toLowerCase();
-      const value = am[2] ?? am[4] ?? '';
-      if (name.startsWith('on')) continue;
-      if (name === 'style') {
-        if (/expression|javascript:/i.test(value)) continue;
-        safeAttrs.push(`style="${value.replace(/"/g, '&quot;')}"`);
-        continue;
-      }
-      if (URL_ATTRS.has(name)) {
-        if (/^\s*(javascript|data(?!:image\/)|vbscript):/i.test(value)) continue;
-        safeAttrs.push(`${name}="${value.replace(/"/g, '&quot;')}"`);
-        continue;
-      }
-      if (name === 'target' || name === 'rel' || name === 'alt' || name === 'title' || name === 'class' || name === 'loading' || name === 'decoding' || name === 'width' || name === 'height' || name === 'colspan' || name === 'rowspan') {
-        safeAttrs.push(`${name}="${value.replace(/"/g, '&quot;')}"`);
-      }
-    }
-    void m;
-    return `<${t}${safeAttrs.length ? ' ' + safeAttrs.join(' ') : ''}>`;
-  });
-  return out;
+  return sanitizeHtmlHtml(html);
 }
 
 export function stripTags(html: string, max = 260): string {

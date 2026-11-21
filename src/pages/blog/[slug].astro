@@ -5,6 +5,7 @@ import Blocks from '../../components/Blocks.astro';
 import PostCard from '../../components/PostCard.astro';
 import CtaBand from '../../components/CtaBand.astro';
 import { getPost, getRelatedPosts, postWordCount, postReadMinutes, injectHtmlHeadingIds } from '../../lib/content';
+import { normalizeLegacyArticleHtml } from '../../lib/article-html';
 import type { Post } from '../../lib/types';
 import { jsonLdArticle, jsonLdBreadcrumb, jsonLdFaq } from '../../lib/seo';
 
@@ -124,9 +125,11 @@ if (isClothingDesignArticle) {
 }
 
 // تعدادی از مقاله‌های قدیمی به‌صورت سند کامل HTML ذخیره شده‌اند.
- // عنوان و تصویر شاخص در قالب اصلی نمایش داده می‌شوند؛ پوستهٔ واردشده را از بدنه حذف می‌کنیم.
+ // عنوان و تصویر شاخص در قالب اصلی نمایش داده می‌شوند؛ پردازش مقاوم سند
+ // (استخراج بدنه + فالت‌بک محافظه‌کار) از src/lib/article-html.ts می‌آید
+ // تا مقاله‌هایی با سند خراب (مانند boutique-website-setup) خالی رندر نشوند.
 const articleCoverUrl = String(post.cover || '').trim().replace(/&amp;/g, '&');
-const normalizeImageUrl = (value: string) => {
+const normalizeCoverUrl = (value: string) => {
   const raw = String(value || '').trim().replace(/&amp;/g, '&');
   try {
     const url = new URL(raw, Astro.site);
@@ -135,36 +138,17 @@ const normalizeImageUrl = (value: string) => {
     return raw.split(/[?#]/)[0].replace(/\/+$/, '').toLowerCase();
   }
 };
-const sameAsArticleCover = (value: string) =>
-  Boolean(articleCoverUrl && normalizeImageUrl(value) === normalizeImageUrl(articleCoverUrl));
+const coverNormalized = articleCoverUrl ? normalizeCoverUrl(articleCoverUrl) : '';
 
-// تصویر شاخص فقط در جایگاه مستقل خود نمایش داده می‌شود؛ تکرار همان فایل از بدنه حذف می‌شود.
-const normalizeLegacyArticleHtml = (html: string) => {
-  let normalized = html
-    .replace(/<!doctype\b[^>]*>/gi, '')
-    .replace(/<title\b[^>]*>[\s\S]*?<\/title>\s*/i, '')
-    .replace(/<meta\b[^>]*>/gi, '')
-    .replace(/<link\b[^>]*>/gi, '')
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
-    .replace(/<\/?(?:html|head|body)\b[^>]*>/gi, '');
-
-  normalized = normalized.replace(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i, (heading) => {
-    const text = heading.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-    return plainFaqText(text) === plainFaqText(post.title) ? '' : heading;
-  });
-
-  normalized = normalized.replace(/<img\b[^>]*>/gi, (image) => {
-    const src = image.match(/\bsrc\s*=\s*["']([^"']+)["']/i)?.[1] || '';
-    return sameAsArticleCover(src) ? '' : image;
-  });
-  return normalized;
-};
+// بلوک تصویر مستقلی که همان تصویر شاخص است نمایش داده نمی‌شود (تکراری نیست)
 articleBlocks = articleBlocks.map((block) => {
-  if (block.t === 'html') return { ...block, x: normalizeLegacyArticleHtml(block.x) };
-  if (block.t === 'img' && sameAsArticleCover(block.src)) return null;
+  if (block.t === 'html') return { ...block, x: normalizeLegacyArticleHtml(block.x, { postTitle: post.title, articleCoverUrl }) };
   return block;
-}).filter(Boolean) as typeof articleBlocks;
+}).filter((block) => {
+  const blk = block as unknown as { t?: string; src?: string };
+  if (blk.t === 'img' && blk.src && coverNormalized) return normalizeCoverUrl(blk.src) !== coverNormalized;
+  return true;
+}) as typeof articleBlocks;
 
 const visibleToc: TocItem[] = [];
 articleBlocks.forEach((block, index) => {

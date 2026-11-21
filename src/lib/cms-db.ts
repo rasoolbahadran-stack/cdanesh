@@ -33,7 +33,11 @@ function parseBlocks(content: string): unknown[] {
     const parsed = JSON.parse(content);
     if (Array.isArray(parsed)) return parsed;
   } catch { /* محتوای قدیمی HTML است، نه JSON بلوک‌ها */ }
-  return [{ t: 'html', x: sanitizeHtml(content) }];
+  /* محتوای legacy عمداً خام نگه داشته می‌شود؛ امن‌سازی و پردازش «سند کامل»
+     در نقطهٔ رندر با renderArticleHtml (src/lib/article-html.ts) انجام می‌شود.
+     sanitizeHtml در همین نقطه، محتوای داخل فرم/دکمه و سندهای ناقص را نابود
+     می‌کرد و مقاله‌هایی مانند boutique-website-setup خالی رندر می‌شدند. */
+  return [{ t: 'html', x: content }];
 }
 
 /** وجود DATABASE_URL یعنی CMS می‌تواند از Neon استفاده کند. */

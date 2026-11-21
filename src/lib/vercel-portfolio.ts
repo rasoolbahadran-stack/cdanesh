@@ -189,7 +189,7 @@ async function fetchPortfolioFromVercel(
     project.name !== 'cdanesh-galaxe',
   );
 
-  const checked = await Promise.all(astroProjects.map(async (project) => {
+  const checked: Array<{ project: VercelProject; sort: number; liveUrl: string } | null> = await Promise.all(astroProjects.map(async (project) => {
     const [details, deployment, domains] = await Promise.all([
       (async () => {
         const url = new URL(`https://api.vercel.com/v9/projects/${encodeURIComponent(project.id)}`);

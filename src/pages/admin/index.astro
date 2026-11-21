@@ -1,148 +1,347 @@
 ---
+/* داشبورد مدیریت کافه‌دانش — همهٔ اعداد از دیتابیس واقعی می‌آیند.
+   اجزای بصری الهام‌گرفته از پنل زرین‌گهر (KPI با چیپ آیکون، دونات SVG با
+   راهنما، نمودار خطی ناحیه‌ای، نوارهای توزیع، پنل وضعیت سیستم) با پالت
+   و هویت کافه‌دانش. اگر داده‌ای وجود ندارد، حالت خالی مناسب نمایش داده می‌شود. */
 export const prerender = false;
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { q } from '../../lib/db';
+import { dbAvailable } from '../../lib/cms-db';
 
-const session = Astro.locals.admin;
 const fa = (n: unknown) => new Intl.NumberFormat('fa-IR').format(Number(n) || 0);
-let counts = { published: 0, draft: 0, scheduled: 0, pages: 0, messages: 0, unread: 0, portfolio: 0, services: 0, categories: 0, plans: 0, faqs: 0, testimonials: 0, media: 0 };
-let activity: Array<Record<string, unknown>> = [];
+const faDate = (v: unknown, withTime = false) => {
+  try {
+    return new Intl.DateTimeFormat('fa-IR-u-ca-persian', withTime ? { dateStyle: 'medium', timeStyle: 'short' } : { dateStyle: 'medium' }).format(new Date(String(v)));
+  } catch { return '—'; }
+};
+
+const dbUp = dbAvailable();
+const dbKind = dbUp ? (String(process.env.DATABASE_URL || '').startsWith('postgres') ? 'PostgreSQL (Neon)' : 'PostgreSQL') : 'PGlite محلی';
+
+type Row = Record<string, unknown>;
 let dbOk = true;
+
+/* ── آمار کل ── */
+let counts = { published: 0, draft: 0, scheduled: 0, pagesPub: 0, pagesDraft: 0, services: 0, servicesDraft: 0, portfolio: 0, categories: 0, plans: 0, faqs: 0, testimonials: 0, media: 0, mediaBytes: 0, messages: 0, unread: 0, errorsOpen: 0 };
+let activity: Row[] = [];
+let weekly: Array<{ label: string; created: number; published: number; total: number }> = [];
+let categoryBars: Array<{ name: string; count: number }> = [];
+
 try {
-  const [p, pg, m, pr, sv, ct, pl, fq, ts, md, a] = await Promise.all([
-    q<{ published: number; draft: number; scheduled: number }>(`SELECT
-      COUNT(*) FILTER (WHERE status='published')::int AS published,
+  const [p, pg, sv, pr, ct, pl, fq, ts, md, ms, er, ac, catRows] = await Promise.all([
+    q<Row>(`SELECT COUNT(*) FILTER (WHERE status='published')::int AS published,
       COUNT(*) FILTER (WHERE status='draft')::int AS draft,
       COUNT(*) FILTER (WHERE status='scheduled')::int AS scheduled FROM posts`),
-    q<{ pages: number }>(`SELECT COUNT(*)::int AS pages FROM pages WHERE status='published'`),
-    q<{ messages: number; unread: number }>(`SELECT
-      COUNT(*) FILTER (WHERE status <> 'archived')::int AS messages,
+    q<Row>(`SELECT COUNT(*) FILTER (WHERE status='published')::int AS pages_pub,
+      COUNT(*) FILTER (WHERE status='draft')::int AS pages_draft FROM pages`),
+    q<Row>(`SELECT COUNT(*)::int AS services, COUNT(*) FILTER (WHERE status='draft')::int AS draft FROM services`),
+    q<Row>(`SELECT COUNT(*) FILTER (WHERE status='published')::int AS portfolio FROM projects`),
+    q<Row>(`SELECT COUNT(*)::int AS categories FROM categories`),
+    q<Row>(`SELECT COUNT(*)::int AS plans FROM plans`),
+    q<Row>(`SELECT COUNT(*)::int AS faqs FROM faqs`),
+    q<Row>(`SELECT COUNT(*)::int AS testimonials FROM testimonials`),
+    q<Row>(`SELECT COUNT(*)::int AS media, COALESCE(SUM(size),0)::bigint AS bytes FROM media`),
+    q<Row>(`SELECT COUNT(*) FILTER (WHERE status <> 'archived')::int AS messages,
       COUNT(*) FILTER (WHERE status = 'new')::int AS unread FROM messages`),
-    q<{ portfolio: number }>(`SELECT COUNT(*)::int AS portfolio FROM projects WHERE status='published'`),
-    q<{ services: number }>(`SELECT COUNT(*)::int AS services FROM services`),
-    q<{ categories: number }>(`SELECT COUNT(*)::int AS categories FROM categories`),
-    q<{ plans: number }>(`SELECT COUNT(*)::int AS plans FROM plans`),
-    q<{ faqs: number }>(`SELECT COUNT(*)::int AS faqs FROM faqs`),
-    q<{ testimonials: number }>(`SELECT COUNT(*)::int AS testimonials FROM testimonials`),
-    q<{ media: number }>(`SELECT COUNT(*)::int AS media FROM media`),
-    q<Record<string, unknown>>(`SELECT type, entity, title, created_at FROM activity ORDER BY created_at DESC LIMIT 7`)
+    q<Row>(`SELECT COUNT(*) FILTER (WHERE status <> 'resolved')::int AS open FROM error_reports`),
+    q<Row>(`SELECT type, entity, title, created_at FROM activity ORDER BY created_at DESC LIMIT 8`),
+    q<Row>(`SELECT c.name, COUNT(p.id)::int AS count FROM categories c
+      LEFT JOIN posts p ON p.category_id = c.id AND p.status = 'published'
+      GROUP BY c.id, c.name HAVING COUNT(p.id) > 0 ORDER BY count DESC, c.name LIMIT 6`),
   ]);
+
   counts = {
-    published: Number(p[0]?.published || 0),
-    draft: Number(p[0]?.draft || 0),
-    scheduled: Number(p[0]?.scheduled || 0),
-    pages: Number(pg[0]?.pages || 0),
-    messages: Number(m[0]?.messages || 0),
-    unread: Number(m[0]?.unread || 0),
-    portfolio: Number(pr[0]?.portfolio || 0),
-    services: Number(sv[0]?.services || 0), categories: Number(ct[0]?.categories || 0),
-    plans: Number(pl[0]?.plans || 0), faqs: Number(fq[0]?.faqs || 0),
-    testimonials: Number(ts[0]?.testimonials || 0), media: Number(md[0]?.media || 0),
+    published: Number(p[0]?.published || 0), draft: Number(p[0]?.draft || 0), scheduled: Number(p[0]?.scheduled || 0),
+    pagesPub: Number(pg[0]?.pages_pub || 0), pagesDraft: Number(pg[0]?.pages_draft || 0),
+    services: Number(sv[0]?.services || 0), servicesDraft: Number(sv[0]?.draft || 0),
+    portfolio: Number(pr[0]?.portfolio || 0), categories: Number(ct[0]?.categories || 0),
+    plans: Number(pl[0]?.plans || 0), faqs: Number(fq[0]?.faqs || 0), testimonials: Number(ts[0]?.testimonials || 0),
+    media: Number(md[0]?.media || 0), mediaBytes: Number(md[0]?.bytes || 0),
+    messages: Number(ms[0]?.messages || 0), unread: Number(ms[0]?.unread || 0),
+    errorsOpen: Number(er[0]?.open || 0),
   };
-  activity = a;
+  activity = ac;
+  categoryBars = catRows.map((r) => ({ name: String(r.name || 'بدون نام'), count: Number(r.count || 0) }));
+
+  /* روند ۸ هفتهٔ اخیر: ایجاد و انتشار مقاله (داده واقعی) */
+  const trendRows = await q<Row>(`
+    SELECT d.wk,
+      COUNT(*) FILTER (WHERE created_at >= d.wk AND created_at < d.wk + interval '7 days')::int AS created,
+      COUNT(*) FILTER (WHERE published_at >= d.wk AND published_at < d.wk + interval '7 days')::int AS published
+    FROM generate_series(
+      (date_trunc('week', now() - interval '7 weeks'))::timestamptz,
+      date_trunc('week', now())::timestamptz,
+      interval '7 days'
+    ) AS d(wk)
+    LEFT JOIN posts ON true
+    GROUP BY d.wk ORDER BY d.wk`);
+  weekly = trendRows.map((r) => {
+    const wk = new Date(String(r.wk));
+    const label = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { month: 'long', day: 'numeric' }).format(wk);
+    const created = Number(r.created || 0), published = Number(r.published || 0);
+    return { label, created, published, total: created + published };
+  });
 } catch { dbOk = false; }
+
 const totalPosts = counts.published + counts.draft + counts.scheduled;
-const safeTotal = Math.max(1, totalPosts);
-const pubPct = Math.round(counts.published / safeTotal * 100);
-const draftPct = Math.round(counts.draft / safeTotal * 100);
-const scheduledPct = Math.max(0, 100 - pubPct - draftPct);
-const typeLabel: Record<string, string> = { create: 'ایجاد', update: 'ویرایش', delete: 'حذف', publish: 'انتشار' };
-const entityLabel: Record<string, string> = { posts: 'مقاله', pages: 'صفحه', media: 'رسانه', messages: 'پیام', settings: 'تنظیمات' };
+const mediaMB = counts.mediaBytes ? (counts.mediaBytes / (1024 * 1024)).toFixed(1) : '0';
+
+/* ── دونات SVG (سبک زرین) — وضعیت مقاله‌ها ── */
+const DONUT_R = 54, DONUT_C = 2 * Math.PI * DONUT_R;
+const donutData = [
+  { label: 'منتشرشده', value: counts.published, color: '#e23c8e' },
+  { label: 'پیش‌نویس', value: counts.draft, color: '#f2a541' },
+  { label: 'زمان‌بندی‌شده', value: counts.scheduled, color: '#4046b3' },
+].filter((d) => d.value > 0);
+const donutSegments: string[] = [];
+{
+  let acc = 0;
+  const total = Math.max(totalPosts, 1);
+  for (const d of donutData) {
+    const frac = d.value / total;
+    donutSegments.push(`<circle cx="70" cy="70" r="${DONUT_R}" fill="none" stroke="${d.color}" stroke-width="21"
+      stroke-dasharray="${(frac * DONUT_C).toFixed(2)} ${DONUT_C.toFixed(2)}" stroke-dashoffset="${(-acc * DONUT_C).toFixed(2)}"
+      transform="rotate(-90 70 70)"/>`);
+    acc += frac;
+  }
+}
+
+/* ── نمودار خطی SVG (سبک زرین: ناحیهٔ گرادیان + نقطه‌ها) ── */
+const CHART_W = 600, CHART_H = 210, CP = { t: 12, r: 12, b: 26, l: 36 };
+let trendLine = '', trendArea = '', trendDots: string[] = [], trendGrid: string[] = [], trendLabels: string[] = [];
+{
+  const data = weekly;
+  const iw = CHART_W - CP.l - CP.r, ih = CHART_H - CP.t - CP.b;
+  const max = Math.max(...data.map((d) => d.created + d.published), 1) * 1.15;
+  const x = (i: number) => CP.l + (data.length === 1 ? iw / 2 : (iw * i) / (data.length - 1));
+  const y = (v: number) => CP.t + ih - ih * (v / max);
+  const pts = data.map((d, i) => `${x(i).toFixed(1)},${y(d.created + d.published).toFixed(1)}`);
+  if (data.some((d) => d.created + d.published > 0)) {
+    trendLine = pts.join(' ');
+    trendArea = `${CP.l},${(CP.t + ih).toFixed(1)} ${pts.join(' ')} ${x(data.length - 1).toFixed(1)},${(CP.t + ih).toFixed(1)}`;
+  }
+  data.forEach((d, i) => {
+    trendDots.push(`<circle cx="${x(i).toFixed(1)}" cy="${y(d.created + d.published).toFixed(1)}" r="3.4" fill="#fff" stroke="#e23c8e" stroke-width="2.2"><title>${d.label}: ${fa(d.created + d.published)} فعالیت</title></circle>`);
+    trendLabels.push(`<text x="${x(i).toFixed(1)}" y="${CHART_H - 7}" text-anchor="middle" font-size="10" fill="#83868f">${d.label}</text>`);
+  });
+  for (let g = 0; g <= 3; g++) {
+    const v = (max * g) / 3, yy = y(v);
+    trendGrid.push(`<line x1="${CP.l}" x2="${CHART_W - CP.r}" y1="${yy.toFixed(1)}" y2="${yy.toFixed(1)}" stroke="#e7e9ee" stroke-width="1" stroke-dasharray="${g ? '3 5' : ''}"/>`);
+    trendGrid.push(`<text x="${CP.l - 6}" y="${(yy + 3).toFixed(1)}" text-anchor="end" font-size="9.5" fill="#a3a6b0">${fa(Math.round(v))}</text>`);
+  }
+}
+const trendHasData = weekly.some((d) => d.created + d.published > 0);
+
+/* ── نوارهای توزیع دسته‌بندی‌ها ── */
+const maxCat = Math.max(...categoryBars.map((c) => c.count), 1);
+
+const typeLabel: Record<string, string> = { create: 'ایجاد', update: 'ویرایش', delete: 'حذف', publish: 'انتشار', login: 'ورود', security: 'امنیت', restore: 'بازیابی' };
+const entityLabel: Record<string, string> = { posts: 'مقاله', pages: 'صفحه', media: 'رسانه', messages: 'پیام', settings: 'تنظیمات', auth: 'احراز هویت', users: 'کاربر', categories: 'دسته‌بندی', services: 'خدمت', projects: 'نمونه‌کار', plans: 'پلن', faqs: 'سؤال', testimonials: 'نظر' };
+const typeIcon: Record<string, string> = { create: '✚', update: '✎', delete: '♲', publish: '📣', login: '🔓', security: '🛡', restore: '♻️' };
+
+const kpiCards = [
+  { href: '/admin/posts', icon: '📝', cls: 'k-pink', label: 'مقاله منتشرشده', value: fa(counts.published), sub: `${fa(counts.draft)} پیش‌نویس · ${fa(counts.scheduled)} زمان‌بندی` },
+  { href: '/admin/pages', icon: '📄', cls: 'k-purple', label: 'صفحه منتشرشده', value: fa(counts.pagesPub), sub: `${fa(counts.pagesDraft)} پیش‌نویس` },
+  { href: '/admin/portfolio', icon: '◇', cls: 'k-green', label: 'نمونه‌کار منتشرشده', value: fa(counts.portfolio), sub: `${fa(counts.services)} خدمت ثبت‌شده` },
+  { href: '/admin/messages', icon: '💬', cls: 'k-blue', label: 'درخواست و پیام', value: fa(counts.messages), sub: `${fa(counts.unread)} خوانده‌نشده` },
+];
+
+const lastActivity = activity.length ? faDate(activity[0].created_at, true) : '—';
 ---
 <AdminLayout title="داشبورد مدیریت کافه دانش">
   <style>
-    .dash-wrap{padding:28px;max-width:1500px;margin:auto}
-    .dash-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
-    .dash-head h1{font-size:clamp(21px,2.4vw,30px);margin:0;color:#202345}
-    .dash-head p{margin:4px 0 0;color:#777b91}
-    .dash-shortcuts{display:flex;flex-wrap:wrap;gap:8px}
-    .dash-shortcuts a{padding:9px 14px;border-radius:11px;background:#fff;border:1px solid #e5e7ef;color:#454866;font-weight:700;font-size:13px}
-    .dash-shortcuts a.primary{background:linear-gradient(120deg,#6a2bda,#a35eec);color:#fff;border:0}
-    .dash-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:18px}
-    .dash-stat{background:#fff;border:1px solid #e9eaf1;border-radius:17px;padding:18px;box-shadow:0 8px 24px rgba(34,35,80,.045)}
-    .dash-stat span{color:#777b91;font-size:12px}.dash-stat b{display:block;font-size:27px;line-height:1.5;color:#272949}
-    .dash-stat i{font-style:normal;font-size:22px;float:left}
-    .dash-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:16px}
-    .dash-panel{background:#fff;border:1px solid #e8e9f1;border-radius:18px;padding:20px;box-shadow:0 8px 24px rgba(34,35,80,.045)}
-    .dash-panel h2{font-size:16px;margin:0 0 16px;color:#292b4d}
-    .donut-row{display:flex;align-items:center;gap:28px;flex-wrap:wrap}
-    .donut{width:190px;height:190px;border-radius:50%;display:grid;place-items:center;flex:none;position:relative}
-    .donut:after{content:"";position:absolute;inset:24px;background:#fff;border-radius:50%}
-    .donut-center{position:relative;z-index:1;text-align:center;color:#777b91;font-size:12px}
-    .donut-center b{display:block;font-size:28px;color:#272949}
-    .donut-legend{display:grid;gap:13px;min-width:180px;flex:1}
-    .legend-item{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#555a73;font-size:13px}
-    .legend-item span:first-child{display:flex;align-items:center;gap:9px}
-    .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
-    .bar-list{display:grid;gap:14px}
-    .bar-head{display:flex;justify-content:space-between;font-size:12.5px;color:#646980;margin-bottom:5px}
-    .bar-track{height:9px;border-radius:20px;background:#f0f1f6;overflow:hidden}
-    .bar-fill{height:100%;border-radius:20px}
-    .activity-list{display:grid;gap:0}
-    .activity-row{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid #f0f1f5}
-    .activity-row:last-child{border:0}
-    .activity-icon{width:32px;height:32px;border-radius:10px;background:#f0edff;display:grid;place-items:center;flex:none}
-    .activity-row b{font-size:12.5px;color:#3d405e}.activity-row small{display:block;color:#888ca0;font-size:11px}
-    .dash-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:16px}
-    .dash-tile{padding:14px;border-radius:14px;background:#f6f5ff;border:1px solid #ebe8ff}
-    .dash-tile b{display:block;font-size:21px;color:#4b3d94}.dash-tile span{font-size:11.5px;color:#77728f}
-    @media(max-width:900px){.dash-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-grid{grid-template-columns:1fr}}
-    @media(max-width:520px){.dash-wrap{padding:16px}.dash-stats{gap:9px}.dash-stat{padding:13px}.dash-stat b{font-size:22px}.donut{width:160px;height:160px}.dash-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    .dash{padding:26px;max-width:1500px;margin:auto;display:grid;gap:16px}
+    .dash-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    .dash-head h2{margin:0;font-size:21px;color:var(--a-navy)}
+    .dash-head p{margin:4px 0 0;color:var(--a-muted);font-size:12.5px}
+    .dash-actions{display:flex;gap:8px;flex-wrap:wrap}
+    /* KPI با چیپ آیکون — الگوی زرین */
+    .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+    .kpi{background:var(--a-surface);border:1px solid var(--a-line);border-radius:15px;padding:15px 17px;display:flex;align-items:center;gap:12px;text-decoration:none;transition:box-shadow .18s,transform .18s;box-shadow:0 8px 24px rgba(23,25,64,.04)}
+    .kpi:hover{box-shadow:var(--a-shadow);transform:translateY(-2px)}
+    .kpi .kpi-ic{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;font-size:20px;flex:none}
+    .kpi.k-pink .kpi-ic{background:var(--a-gold-soft)}
+    .kpi.k-purple .kpi-ic{background:var(--a-blue-soft)}
+    .kpi.k-green .kpi-ic{background:var(--a-green-soft)}
+    .kpi.k-blue .kpi-ic{background:var(--a-amber-soft)}
+    .kpi small{color:var(--a-muted);font-size:11.5px;display:block}
+    .kpi b{font-size:19px;color:var(--a-navy);line-height:1.6;display:block}
+    .kpi .kpi-sub{font-size:10.5px;color:var(--a-muted);display:block}
+    .grid-2{display:grid;grid-template-columns:1.6fr 1fr;gap:16px}
+    .grid-2e{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .card{background:var(--a-surface);border:1px solid var(--a-line);border-radius:16px;padding:18px;box-shadow:0 8px 24px rgba(23,25,64,.04)}
+    .card h3{font-size:14px;margin:0 0 14px;color:var(--a-navy);display:flex;align-items:center;gap:8px}
+    .card h3 .more{margin-inline-start:auto;font-size:11px;color:var(--a-gold-3);font-weight:700;text-decoration:none}
+    /* دونات */
+    .donut-row{display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center}
+    .legend{display:grid;gap:10px;min-width:150px;flex:1}
+    .legend-item{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--a-ink)}
+    .legend-item span:first-child{display:flex;align-items:center;gap:8px}
+    .dot{width:11px;height:11px;border-radius:4px;flex:none}
+    /* نوار توزیع */
+    .bar-list{display:grid;gap:13px}
+    .bar-head{display:flex;justify-content:space-between;font-size:12.5px;color:#555a73;margin-bottom:5px}
+    .bar-track{height:9px;border-radius:20px;background:var(--a-soft);overflow:hidden}
+    .bar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--a-purple),var(--a-gold))}
+    /* وضعیت سیستم */
+    .sys-list{display:grid;gap:9px}
+    .sys-item{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:12px;font-size:12.5px;background:var(--a-soft);color:#454866}
+    .sys-item.ok{background:var(--a-green-soft);color:var(--a-green)}
+    .sys-item.warn{background:var(--a-amber-soft);color:var(--a-amber)}
+    .sys-item.err{background:var(--a-red-soft);color:var(--a-red)}
+    .sys-item b{margin-inline-start:auto;font-weight:800}
+    /* فعالیت‌ها */
+    .act-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px dashed var(--a-line)}
+    .act-row:last-child{border-bottom:0}
+    .act-ic{width:30px;height:30px;border-radius:10px;background:var(--a-blue-soft);display:grid;place-items:center;font-size:13px;flex:none}
+    .act-row b{font-size:12.5px;color:#3d405e;display:block;font-weight:600}
+    .act-row small{color:var(--a-muted);font-size:10.5px}
+    /* میانبرها */
+    .short-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+    .short{display:flex;flex-direction:column;align-items:center;gap:7px;padding:13px 8px;border:1px solid var(--a-line);border-radius:13px;background:var(--a-surface);text-decoration:none;font-size:11.5px;font-weight:700;color:#454866;transition:border-color .15s,box-shadow .15s}
+    .short:hover{border-color:var(--a-gold);box-shadow:0 8px 20px rgba(226,60,142,.10)}
+    .short i{font-style:normal;font-size:19px}
+    .empty-note{padding:26px;text-align:center;color:var(--a-muted);font-size:12.5px}
+    .chart-wrap{direction:ltr}
+    @media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.grid-2,.grid-2e{grid-template-columns:1fr}.short-grid{grid-template-columns:repeat(3,1fr)}}
+    @media(max-width:560px){.dash{padding:14px}.kpi-grid{grid-template-columns:1fr}.short-grid{grid-template-columns:repeat(2,1fr)}.dash-head{align-items:flex-start}}
   </style>
-  
-        <div class="dash-wrap">
-          <header class="dash-head">
-            <div><h1>به پنل مدیریت یکپارچه کافه دانش خوش آمدید 👋</h1><p>وضعیت محتوا، ارتباط با مشتریان و ابزارهای مدیریت سایت در یک نگاه</p></div>
-            <div class="dash-shortcuts">
-              <a class="primary" href="/admin/posts/new">＋ مقاله جدید</a>
-              <a href="/admin/pages">مدیریت صفحات</a>
-              <a href="/admin/media">افزودن تصویر</a>
+
+  <div class="dash">
+    <header class="dash-head">
+      <div>
+        <h2>به پنل مدیریت کافه دانش خوش آمدید 👋</h2>
+        <p>نمای کامل محتوا، ارتباط با مشتریان و سلامت سیستم — همهٔ اعداد از دیتابیس واقعی سایت</p>
+      </div>
+      <div class="dash-actions">
+        <a class="btn btn-gold btn-sm" href="/admin/posts/new">＋ مقاله جدید</a>
+        <a class="btn btn-ghost btn-sm" href="/admin/pages">صفحه جدید</a>
+        <a class="btn btn-ghost btn-sm" href="/admin/media">آپلود رسانه</a>
+      </div>
+    </header>
+
+    {!dbOk && <div class="form-status is-err" style="display:flex">اتصال به پایگاه داده برقرار نیست؛ آمار داشبورد در دسترس نیست. DATABASE_URL را بررسی کنید.</div>}
+
+    <section class="kpi-grid">
+      {kpiCards.map((k) => (
+        <a class={`kpi ${k.cls}`} href={k.href}>
+          <span class="kpi-ic">{k.icon}</span>
+          <span><small>{k.label}</small><b>{k.value}</b><span class="kpi-sub">{k.sub}</span></span>
+        </a>
+      ))}
+    </section>
+
+    <section class="grid-2">
+      <div class="card">
+        <h3>📈 روند محتوا — ۸ هفتهٔ اخیر <a class="more" href="/admin/posts">همهٔ مقاله‌ها ‹</a></h3>
+        {trendHasData ? (
+          <svg class="chart-wrap" viewBox={`0 0 ${CHART_W} ${CHART_H}`} style="width:100%;height:auto" role="img" aria-label="نمودار روند ایجاد و انتشار مقاله">
+            <defs>
+              <linearGradient id="trend-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#e23c8e" stop-opacity=".30"></stop>
+                <stop offset="1" stop-color="#e23c8e" stop-opacity="0"></stop>
+              </linearGradient>
+            </defs>
+            <Fragment set:html={trendGrid.join('')} />
+            {trendArea && <polygon points={trendArea} fill="url(#trend-grad)"></polygon>}
+            {trendLine && <polyline points={trendLine} fill="none" stroke="#e23c8e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></polyline>}
+            <Fragment set:html={trendDots.join('')} />
+            <Fragment set:html={trendLabels.join('')} />
+          </svg>
+        ) : (
+          <div class="empty-note">هنوز محتوایی در هفته‌های اخیر ثبت نشده است؛ پس از ایجاد یا انتشار مقاله، روند اینجا نمایش داده می‌شود.</div>
+        )}
+        <p style="margin:8px 0 0;font-size:11px;color:var(--a-muted)">مجموع فعالیت هفتگی = ایجاد + انتشار مقاله (دادهٔ واقعی)</p>
+      </div>
+
+      <div class="card">
+        <h3>🧭 وضعیت انتشار مقاله‌ها <a class="more" href="/admin/posts">مدیریت ‹</a></h3>
+        {totalPosts > 0 ? (
+          <div class="donut-row">
+            <svg viewBox="0 0 140 140" style="width:150px;height:150px;flex:none" role="img" aria-label="نمودار دایره‌ای وضعیت مقاله‌ها">
+              <circle cx="70" cy="70" r={DONUT_R} fill="none" stroke="#eff1f3" stroke-width="21"></circle>
+              <Fragment set:html={donutSegments.join('')} />
+              <text x="70" y="66" text-anchor="middle" font-size="20" font-weight="800" fill="#171940">{fa(totalPosts)}</text>
+              <text x="70" y="86" text-anchor="middle" font-size="10" fill="#83868f">مجموع مقاله‌ها</text>
+            </svg>
+            <div class="legend">
+              {donutData.map((d) => (
+                <div class="legend-item"><span><i class="dot" style={`background:${d.color}`}></i>{d.label}</span><b>{fa(d.value)}</b></div>
+              ))}
             </div>
-          </header>
-          {!dbOk && <div class="form-status is-err" style="display:flex;margin-bottom:16px">اتصال به پایگاه داده برقرار نیست. آمار داشبورد در دسترس نیست.</div>}
-          <section class="dash-stats">
-<a class="dash-stat" href="/admin/posts"><i>📝</i><span>مقاله منتشرشده</span><b>{fa(counts.published)}</b></a>
-<a class="dash-stat" href="/admin/pages"><i>📄</i><span>صفحه منتشرشده</span><b>{fa(counts.pages)}</b></a>
-<a class="dash-stat" href="/admin/portfolio"><i>◇</i><span>نمونه‌کار منتشرشده</span><b>{fa(counts.portfolio)}</b></a>
-<a class="dash-stat" href="/admin/services"><i>⌘</i><span>خدمات</span><b>{fa(counts.services)}</b></a>
-<a class="dash-stat" href="/admin/messages"><i>💬</i><span>درخواست و پیام</span><b>{fa(counts.messages)}</b></a>
-<a class="dash-stat" href="/admin/media"><i>▧</i><span>رسانه‌ها</span><b>{fa(counts.media)}</b></a></section>
-          <section class="dash-grid">
-            <div class="dash-panel">
-              <h2>وضعیت مقاله‌ها</h2>
-              <div class="donut-row">
-                <div class="donut" style={'background:conic-gradient(#6a2bda 0 ' + pubPct + '%, #f2a541 ' + pubPct + '% ' + (pubPct + draftPct) + '%, #29a6a0 ' + (pubPct + draftPct) + '% 100%)'}>
-                  <div class="donut-center"><b>{fa(totalPosts)}</b>مجموع مقاله‌ها</div>
-                </div>
-                <div class="donut-legend">
-                  <div class="legend-item"><span><i class="dot" style="background:#6a2bda"></i>منتشرشده</span><b>{fa(counts.published)}</b></div>
-                  <div class="legend-item"><span><i class="dot" style="background:#f2a541"></i>پیش‌نویس</span><b>{fa(counts.draft)}</b></div>
-                  <div class="legend-item"><span><i class="dot" style="background:#29a6a0"></i>زمان‌بندی‌شده</span><b>{fa(counts.scheduled)}</b></div>
-                </div>
+          </div>
+        ) : (
+          <div class="empty-note">هنوز مقاله‌ای ثبت نشده است؛ با دکمهٔ «مقاله جدید» اولین مقاله را بسازید.</div>
+        )}
+      </div>
+    </section>
+
+    <section class="grid-2e">
+      <div class="card">
+        <h3>🗂 مقالات منتشرشده در هر دسته <a class="more" href="/admin/categories">دسته‌بندی‌ها ‹</a></h3>
+        {categoryBars.length ? (
+          <div class="bar-list">
+            {categoryBars.map((c) => (
+              <div>
+                <div class="bar-head"><span>{c.name}</span><b>{fa(c.count)}</b></div>
+                <div class="bar-track"><div class="bar-fill" style={`width:${Math.max(6, (c.count / maxCat) * 100)}%`}></div></div>
               </div>
-              <div class="dash-tiles">
-<a class="dash-tile" href="/admin/posts?status=draft"><b>{fa(counts.draft)}</b><span>پیش‌نویس مقاله</span></a>
-<a class="dash-tile" href="/admin/posts?status=scheduled"><b>{fa(counts.scheduled)}</b><span>انتشار زمان‌بندی‌شده</span></a>
-<a class="dash-tile" href="/admin/messages"><b>{fa(counts.unread)}</b><span>پیام خوانده‌نشده</span></a>
-<a class="dash-tile" href="/admin/categories"><b>{fa(counts.categories)}</b><span>دسته‌بندی</span></a>
-<a class="dash-tile" href="/admin/pricing"><b>{fa(counts.plans)}</b><span>پلن تعرفه</span></a>
-<a class="dash-tile" href="/admin/faq"><b>{fa(counts.faqs)}</b><span>سؤال متداول</span></a>
-<a class="dash-tile" href="/admin/testimonials"><b>{fa(counts.testimonials)}</b><span>نظر مشتریان</span></a></div>
-            </div>
-            <div class="dash-panel">
-              <h2>نمای کلی محتوا</h2>
-              <div class="bar-list">
-                <div><div class="bar-head"><span>مقاله‌های منتشرشده</span><b>{fa(counts.published)}</b></div><div class="bar-track"><div class="bar-fill" style={'width:' + (totalPosts ? counts.published / totalPosts * 100 : 0) + '%;background:#6a2bda'}></div></div></div>
-                <div><div class="bar-head"><span>پیش‌نویس‌ها</span><b>{fa(counts.draft)}</b></div><div class="bar-track"><div class="bar-fill" style={'width:' + (totalPosts ? counts.draft / totalPosts * 100 : 0) + '%;background:#f2a541'}></div></div></div>
-                <div><div class="bar-head"><span>صفحه‌های سایت</span><b>{fa(counts.pages)}</b></div><div class="bar-track"><div class="bar-fill" style={'width:' + (counts.pages ? 100 : 0) + '%;background:#29a6a0'}></div></div></div>
-              </div>
-              <p style="color:#888ca0;font-size:11.5px;margin:18px 0 0">آمار بازدید فقط پس از اتصال ابزار تحلیل و دریافت داده واقعی نمایش داده خواهد شد.</p>
-            </div>
-          </section>
-          <section class="dash-panel" style="margin-top:16px">
-            <h2>آخرین فعالیت‌های پنل</h2>
-            {activity.length ? <div class="activity-list">{activity.map((item) => <div class="activity-row"><div class="activity-icon">📝</div><div><b>{String(item.title || (typeLabel[String(item.type)] || 'فعالیت') + ' ' + (entityLabel[String(item.entity)] || 'محتوا'))}</b><small>{new Intl.DateTimeFormat('fa-IR-u-ca-persian', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(String(item.created_at)))}</small></div></div>)}</div> : <p style="margin:0;color:#85899b;font-size:13px">هنوز فعالیتی ثبت نشده است.</p>}
-          </section>
+            ))}
+          </div>
+        ) : (
+          <div class="empty-note">هنوز دسته‌بندی دارای مقالهٔ منتشرشده وجود ندارد.</div>
+        )}
+      </div>
+
+      <div class="card">
+        <h3>🩺 وضعیت سیستم</h3>
+        <div class="sys-list">
+          <div class:list={['sys-item', dbUp ? 'ok' : 'err']}>🗄 اتصال دیتابیس ({dbKind})<b>{dbUp ? 'برقرار' : 'قطع'}</b></div>
+          <div class:list={['sys-item', counts.errorsOpen ? 'warn' : 'ok']}>⚒ گزارش خطای باز<b>{fa(counts.errorsOpen)}</b></div>
+          <div class:list={['sys-item', counts.unread ? 'warn' : 'ok']}>✉ پیام خوانده‌نشده<b>{fa(counts.unread)}</b></div>
+          <div class="sys-item">▧ رسانه‌های بارگذاری‌شده<b>{fa(counts.media)} · {fa(mediaMB)} مگابایت</b></div>
+          <div class="sys-item">🕒 آخرین فعالیت پنل<b>{lastActivity}</b></div>
+          <div class="sys-item">📦 محتوای ثبت‌شده<b>{fa(counts.pagesPub + counts.pagesDraft + counts.services + counts.portfolio + counts.plans + counts.faqs + counts.testimonials)} مورد</b></div>
         </div>
-      
+        {counts.errorsOpen > 0 && <a class="btn btn-ghost btn-sm" style="margin-top:10px" href="/admin/errors">بررسی گزارش خطاها</a>}
+      </div>
+    </section>
+
+    <section class="grid-2e">
+      <div class="card">
+        <h3>◷ آخرین فعالیت‌های پنل <a class="more" href="/admin/activity">گزارش کامل ‹</a></h3>
+        {activity.length ? (
+          activity.map((item) => (
+            <div class="act-row">
+              <span class="act-ic">{typeIcon[String(item.type)] || '•'}</span>
+              <span>
+                <b>{String(item.title || (typeLabel[String(item.type)] || 'فعالیت') + ' ' + (entityLabel[String(item.entity)] || 'محتوا'))}</b>
+                <small>{faDate(item.created_at, true)}</small>
+              </span>
+            </div>
+          ))
+        ) : (
+          <div class="empty-note">هنوز فعالیتی ثبت نشده است.</div>
+        )}
+      </div>
+
+      <div class="card">
+        <h3>⚡ میانبرهای کاربردی</h3>
+        <div class="short-grid">
+          <a class="short" href="/admin/posts/new"><i>✎</i>مقاله جدید</a>
+          <a class="short" href="/admin/pages"><i>▤</i>صفحات سایت</a>
+          <a class="short" href="/admin/categories"><i>▦</i>دسته‌بندی‌ها</a>
+          <a class="short" href="/admin/portfolio"><i>◇</i>نمونه‌کارها</a>
+          <a class="short" href="/admin/services"><i>⌘</i>خدمات</a>
+          <a class="short" href="/admin/messages"><i>✉</i>پیام‌ها</a>
+          <a class="short" href="/admin/media"><i>▧</i>رسانه‌ها</a>
+          <a class="short" href="/admin/pricing"><i>＄</i>تعرفه‌ها</a>
+          <a class="short" href="/admin/faq"><i>؟</i>سؤالات متداول</a>
+          <a class="short" href="/admin/testimonials"><i>☆</i>نظرات</a>
+          <a class="short" href="/admin/settings?tab=security"><i>🔒</i>تغییر رمز</a>
+          <a class="short" href="/admin/trash"><i>♲</i>سطل زباله</a>
+        </div>
+      </div>
+    </section>
+  </div>
 </AdminLayout>

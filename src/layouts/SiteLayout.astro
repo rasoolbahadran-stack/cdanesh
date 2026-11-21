@@ -3,6 +3,7 @@
    صفحات قدیمی‌تر (پیش‌نمایش مقاله، صفحات ابری و نمونه‌کارهای مفهومی)
    همچنان از همین نام استفاده می‌کنند؛ حالا همه روی BaseLayout جدید سوار می‌شوند. */
 import BaseLayout from './BaseLayout.astro';
+import type { PageMeta } from '../lib/seo';
 
 interface Props {
   title: string;
@@ -13,10 +14,23 @@ interface Props {
   mainId?: string;
   activePath?: string;
 }
-const { title, description = '', robots = '', mainId = '', activePath = '' } = Astro.props;
+const { title, description = '', canonical = '', schemas = true, robots = '', mainId = '', activePath = '' } = Astro.props;
 const noIndex = robots.includes('noindex');
+
+/* BaseLayout به meta از نوع PageMeta نیاز دارد. نسخهٔ قبلی title/description را
+   مستقیم به BaseLayout می‌فرستاد؛ meta همیشه undefined بود و صفحاتی مثل
+   /article و پیش‌نمایش نمونه‌کارهای مفهومی روی Vercel با «Internal server
+   error» کرش می‌کردند. */
+void schemas;
+const rawPath = activePath || (canonical.startsWith('http') ? new URL(canonical).pathname : canonical) || '/';
+const meta: PageMeta = {
+  title,
+  description,
+  path: rawPath.startsWith('/') ? rawPath : `/${rawPath}`,
+  noindex: noIndex,
+};
 ---
-<BaseLayout title={title} description={description} noIndex={noIndex} activePath={activePath}>
+<BaseLayout meta={meta} current={activePath || '/'}>
   <div id={mainId || undefined}>
     <slot />
   </div>

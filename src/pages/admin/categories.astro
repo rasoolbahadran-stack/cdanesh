@@ -5,10 +5,11 @@ import EntityAdmin from '../../components/admin/EntityAdmin.astro';
 const config = {
   entity: 'categories',
   title: 'دسته‌بندی‌ها',
-  help: 'دسته‌بندی مقالات مجله؛ حذف دسته، مقالات را بدون دسته می‌کند ولی خودشان حذف نمی‌شوند.',
+  help: 'دسته‌بندی مقالات مجله؛ حذف دسته‌ای که مقاله دارد مجاز نیست — ابتدا دستهٔ مقاله‌ها را تغییر دهید.',
   columns: [
     { key: 'name', label: 'نام دسته' },
     { key: 'slug', label: 'اسلاگ' },
+    { key: 'post_count', label: 'مقالات', type: 'num' },
     { key: 'sort_order', label: 'ترتیب', type: 'num' },
   ],
   fields: [

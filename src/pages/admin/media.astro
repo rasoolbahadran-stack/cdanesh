@@ -22,9 +22,20 @@ const mediaCount = await q<{ c: number }>('SELECT count(*)::int AS c FROM media'
           <option value="size">حجم (بیشترین)</option>
           <option value="name">نام (الفبا)</option>
         </select>
+        <select id="media-kind" aria-label="فیلتر نوع فایل" style="border:1.5px solid var(--a-line);border-radius:10px;padding:7px 10px;font-family:inherit;font-size:12.5px">
+          <option value="">همه انواع</option>
+          <option value="webp">WebP</option>
+          <option value="png">PNG</option>
+          <option value="jpeg">JPEG</option>
+          <option value="gif">GIF</option>
+          <option value="svg">SVG</option>
+        </select>
         <input type="file" id="media-file" accept="image/webp,image/png,image/jpeg,image/gif,image/svg+xml" multiple style="display:none" />
         <button class="btn btn-gold btn-sm" id="media-upload" type="button">＋ بارگذاری تصویر</button>
       </div>
+    </div>
+    <div id="media-drop" style="margin:0 16px;border:2px dashed var(--a-line);border-radius:14px;padding:18px;text-align:center;color:var(--a-muted);font-size:12.5px;cursor:pointer;transition:.2s">
+      <b style="color:var(--a-ink)">فایل تصویر را اینجا رها کنید</b> یا برای انتخاب کلیک کنید — WebP/PNG/JPEG/GIF/SVG، حداکثر ۶ مگابایت
     </div>
     <div class="panel-body">
       <div class="media-grid" id="media-grid"></div>
@@ -80,7 +91,16 @@ const mediaCount = await q<{ c: number }>('SELECT count(*)::int AS c FROM media'
         if (sort !== 'newest') p.set('sort', sort);
         const j = await api('/api/admin/media?' + p.toString());
         grid.innerHTML = '';
-        const items = Array.isArray(j.data) ? j.data : [];
+        let items = Array.isArray(j.data) ? j.data : [];
+        /* فیلتر نوع فایل سمت کلاینت (بر اساس پسوند/نوع واقعی) */
+        const kindSel = (document.getElementById('media-kind') as HTMLSelectElement).value;
+        if (kindSel) {
+          items = items.filter((m: { url?: string }) => {
+            const url = String(m.url || '').toLowerCase().split(/[?#]/)[0];
+            if (url.startsWith('data:image/')) return url.includes('image/' + kindSel);
+            return url.endsWith('.' + kindSel);
+          });
+        }
         empty.style.display = items.length ? 'none' : 'block';
         items.forEach((m) => {
           const el = document.createElement('div');
@@ -89,12 +109,18 @@ const mediaCount = await q<{ c: number }>('SELECT count(*)::int AS c FROM media'
             <img src="${m.url}" alt="${(m.alt || m.filename || '').replace(/"/g, '&quot;')}" loading="lazy" />
             <div class="mi-name">${m.filename}</div>
             <div style="position:absolute;top:6px;inset-inline-end:6px;display:flex;gap:4px">
+              <button class="mi-copy" title="کپی آدرس تصویر">📋</button>
               <button class="mi-del" title="حذف">🗑</button>
             </div>
             <div style="position:absolute;bottom:30px;inset-inline-end:6px;font-size:11px;color:var(--a-muted)" dir="ltr">${faNum(Math.round((m.size || 0) / 1024))} KB</div>`;
           el.querySelector('.mi-del')!.addEventListener('click', (e) => {
             e.stopPropagation();
             del(m);
+          });
+          el.querySelector('.mi-copy')!.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            try { await navigator.clipboard.writeText(m.url); toast('آدرس تصویر کپی شد'); }
+            catch { open(m); toast('برای کپی از پنجرهٔ ویرایش استفاده کنید', 'err'); }
           });
           el.addEventListener('click', () => open(m));
           grid.appendChild(el);
@@ -119,8 +145,13 @@ const mediaCount = await q<{ c: number }>('SELECT count(*)::int AS c FROM media'
         current = { id: m.id, url: m.url };
         (document.getElementById('media-modal-img') as HTMLImageElement).src = m.url;
         document.getElementById('media-modal-name')!.textContent = m.filename || '';
-        document.getElementById('media-modal-size')!.textContent = faNum(Math.round((m.size || 0) / 1024)) + ' کیلوبایت';
         (document.getElementById('media-modal-url') as HTMLInputElement).value = m.url;
+        /* نمایش ابعاد واقعی تصویر */
+        const sizeEl = document.getElementById('media-modal-size')!;
+        sizeEl.textContent = faNum(Math.round((m.size || 0) / 1024)) + ' کیلوبایت';
+        const probe = new Image();
+        probe.onload = () => { sizeEl.textContent += ' — ابعاد: ' + faNum(probe.naturalWidth) + '×' + faNum(probe.naturalHeight); };
+        probe.src = m.url;
         (document.getElementById('media-modal-alt') as HTMLTextAreaElement).value = m.alt || '';
         document.getElementById('media-usage')!.textContent = 'برای بررسی استفادهٔ تصویر در محتوا، حذف را امتحان کنید — سیستم پیش از حذف هشدار می‌دهد.';
         modal.classList.add('open');
@@ -152,8 +183,19 @@ const mediaCount = await q<{ c: number }>('SELECT count(*)::int AS c FROM media'
         timer = setTimeout(load, 350);
       });
       document.getElementById('media-sort')!.addEventListener('change', load);
+      document.getElementById('media-kind')!.addEventListener('change', load);
 
       document.getElementById('media-upload')!.addEventListener('click', () => fileInput.click());
+      /* ناحیهٔ کشیدن و رها کردن */
+      const dropZone = document.getElementById('media-drop') as HTMLElement;
+      dropZone.addEventListener('click', () => fileInput.click());
+      dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--a-gold)'; dropZone.style.background = 'rgba(226,60,142,.05)'; });
+      dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'var(--a-line)'; dropZone.style.background = ''; });
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--a-line)'; dropZone.style.background = '';
+        if (e.dataTransfer?.files?.length) { fileInput.files = e.dataTransfer.files; fileInput.dispatchEvent(new Event('change')); }
+      });
       fileInput.addEventListener('change', async () => {
         if (!fileInput.files?.length) return;
         for (const f of Array.from(fileInput.files as FileList)) {

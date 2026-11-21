@@ -2,7 +2,7 @@
 import type { Post } from '../lib/types';
 import { postReadMinutes } from '../lib/content';
 
-interface Props { post: Post; delay?: number }
+interface Props { post: Post; delay?: number | string }
 const { post, delay = 0 } = Astro.props;
 const href = `/blog/${post.slug}`;
 ---
