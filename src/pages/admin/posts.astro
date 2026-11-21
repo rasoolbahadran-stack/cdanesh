@@ -9,14 +9,15 @@ const totals={all:rows.length,published:rows.filter(r=>r.status==='published').l
 ---
 <AdminLayout title="مدیریت مقاله‌ها" crumb="مدیریت محتوا › مقاله‌ها">
 <style>
-.posts-admin{max-width:1500px;margin:auto;width:100%}.posts-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:17px}
-.posts-head h2{margin:0 0 3px;font-size:20px}.posts-head p{margin:0;color:var(--a-muted);font-size:12px}
-.posts-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin-bottom:16px}.posts-stat{border:1px solid var(--a-line);border-radius:12px;background:var(--a-surface);padding:12px 15px}.posts-stat small{display:block;color:var(--a-muted)}.posts-stat b{font-size:22px;color:#fff}
-.posts-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.posts-tools input,.posts-tools select{border:1px solid var(--a-line);background:#0d162b;color:#edf2ff;border-radius:9px;padding:8px 10px;font:inherit;min-width:145px}.posts-tools input{min-width:230px}
-.posts-bulk{display:none;gap:8px;align-items:center;padding:10px 14px;background:#202b4b;border-bottom:1px solid var(--a-line);flex-wrap:wrap}.posts-bulk.show{display:flex}
-.posts-table{width:100%;min-width:880px;border-collapse:collapse}.posts-table th,.posts-table td{padding:12px 10px;border-bottom:1px solid var(--a-line);text-align:right;vertical-align:middle;font-size:12px}.posts-table th{background:#192542;color:#aebbd7;white-space:nowrap}
-.posts-title b{display:block;color:#f0f4ff}.posts-title small{display:block;color:#8798ba;direction:ltr;text-align:right}.posts-actions{display:flex;gap:5px;flex-wrap:wrap}
-.posts-actions a,.posts-actions button{border:1px solid #3a4b70;background:#243451;color:#dce5fa;border-radius:8px;padding:6px 9px;font:inherit;font-size:11px;white-space:nowrap;cursor:pointer}.posts-actions .danger{color:#ff9eb2;border-color:#674050;background:#3a263c}
+.posts-admin{max-width:1500px;margin:auto;width:100%}.posts-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.posts-head h2{margin:0 0 3px;font-size:20px;font-weight:800;color:var(--a-ink)}.posts-head p{margin:0;color:var(--a-muted);font-size:12.5px}
+.posts-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}.posts-stat{border:1px solid var(--a-line);border-radius:var(--a-radius);background:var(--a-surface);padding:13px 16px;box-shadow:var(--a-shadow);transition:border-color .2s}.posts-stat:hover{border-color:#cfd4e0}.posts-stat small{display:block;color:var(--a-muted)}.posts-stat b{font-size:22px;color:var(--a-ink);font-weight:800}
+.posts-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.posts-tools input,.posts-tools select{border:1px solid var(--a-line);background:#fff;color:var(--a-ink);border-radius:var(--a-radius-btn);padding:8px 12px;font:inherit;min-width:145px;transition:border-color .18s,box-shadow .18s}.posts-tools input:focus,.posts-tools select:focus{outline:none;border-color:var(--a-brand);box-shadow:0 0 0 3px var(--a-brand-soft)}.posts-tools input{min-width:230px}
+.posts-bulk{display:none;gap:8px;align-items:center;padding:10px 14px;background:var(--a-brand-soft);border-bottom:1px solid rgba(244,37,123,.25);flex-wrap:wrap}.posts-bulk.show{display:flex}.posts-bulk b{color:var(--a-brand-strong)}
+.posts-table{width:100%;min-width:880px;border-collapse:collapse}.posts-table th,.posts-table td{padding:12px 10px;border-bottom:1px solid var(--a-line);text-align:right;vertical-align:middle;font-size:12.5px}.posts-table th{background:var(--a-soft);color:var(--a-muted);font-size:11.5px;font-weight:700;white-space:nowrap}
+.posts-table tbody tr{transition:background .15s}.posts-table tbody tr:hover{background:var(--a-soft)}
+.posts-title b{display:block;color:var(--a-ink);font-weight:700}.posts-title small{display:block;color:var(--a-faint);direction:ltr;text-align:right}.posts-actions{display:flex;gap:5px;flex-wrap:wrap}
+.posts-actions a,.posts-actions button{border:1px solid var(--a-line);background:#fff;color:var(--a-muted);border-radius:8px;padding:6px 10px;font:inherit;font-size:11px;white-space:nowrap;cursor:pointer;transition:all .15s}.posts-actions a:hover,.posts-actions button:hover{color:var(--a-brand-strong);border-color:var(--a-brand);background:var(--a-brand-soft)}.posts-actions .danger{color:var(--a-red);border-color:var(--a-red-soft);background:var(--a-red-soft)}.posts-actions .danger:hover{color:#fff;border-color:var(--a-red);background:var(--a-red)}
 @media(max-width:750px){.posts-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.posts-tools{width:100%}.posts-tools input{flex:1;min-width:0}}
 </style>
 <div class="posts-admin">

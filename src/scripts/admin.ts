@@ -172,7 +172,7 @@ export function initEditor(containerId: string, initialHtml = ''): { getHtml: ()
   root.innerHTML = `
     <div class="editor-toolbar"></div>
     <div class="editor-area" contenteditable="true" data-placeholder="محتوای صفحه را اینجا بنویسید…"></div>
-    <textarea class="html-source" spellcheck="false" style="display:none;width:100%;min-height:360px;padding:14px;direction:ltr;text-align:left;font:13px/1.8 Consolas,monospace;background:#faf9ff;border:1px solid var(--a-line);border-radius:0 0 10px 10px;tab-size:2"></textarea>
+    <textarea class="html-source" spellcheck="false" style="display:none;width:100%;min-height:360px;padding:14px;direction:ltr;text-align:left;font:13px/1.8 Consolas,monospace;background:#10132a;color:#e3e6f5;border:1px solid var(--a-line);border-radius:0 0 10px 10px;tab-size:2"></textarea>
     <div class="editor-footer">
       <span class="ed-count">۰ کلمه</span>
       <span class="ed-status"></span>
