@@ -1,9 +1,10 @@
 export const prerender = false;
 import type { APIRoute } from 'astro';
-import { upsertPost, deletePost, listAdminPosts } from '../../../lib/cms-db';
+import { upsertPost, listAdminPosts } from '../../../lib/cms-db';
 import { ENTITIES } from '../../../lib/entities';
-import { makeCreate } from '../../../lib/crud';
+import { makeCreate, makeDelete } from '../../../lib/crud';
 import { bool } from '../../../lib/http';
+import { q1 } from '../../../lib/db';
 import { sessionFromCookies } from '../../../lib/auth';
 
 /* بررسی دوم احراز هویت در خودِ عملیات (دفاع در عمق) — میان‌افزار هم چک می‌کند */
@@ -49,7 +50,13 @@ export const DELETE: APIRoute = async ({ request }) => {
     const b = await request.json().catch(() => ({}));
     const slug = clean(b.slug, 120);
     if (!slug) return new Response(JSON.stringify({ ok: false, error: 'اسلاگ الزامی است' }), { status: 400 });
-    await deletePost(slug);
-    return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } });
+    /* هم‌سویی با مسیر پنل: حذف مقاله به سطل زباله می‌رود و قابل بازیابی است،
+       نه حذف قطعی از دیتابیس. منطق snapshot و بازیابی از makeDelete عمومی می‌آید. */
+    const row = await q1<{ id: number }>('SELECT id FROM posts WHERE slug = $1', [slug]);
+    if (!row?.id) return new Response(JSON.stringify({ ok: false, error: 'مقاله با این اسلاگ پیدا نشد' }), { status: 404 });
+    const idUrl = new URL('/api/admin/posts/' + row.id, request.url);
+    return makeDelete(ENTITIES.posts)(
+      new Request(idUrl, { headers: { cookie: request.headers.get('cookie') || '' } }),
+    );
   } catch { return new Response(JSON.stringify({ ok: false, error: 'حذف مقاله ناموفق بود' }), { status: 500 }); }
 };
