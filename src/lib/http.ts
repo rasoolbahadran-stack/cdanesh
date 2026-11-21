@@ -45,6 +45,10 @@ export function str(v: unknown, max = 500): string {
 }
 
 export function num(v: unknown, fallback = 0): number {
+  /* نکتهٔ حیاتی: Number(null) و Number('') در جاوااسکریپت ۰ می‌دهند نه NaN؛
+     بدون این گارد، «مقدار پیش‌فرض» هرگز اعمال نمی‌شد و مثلاً فهرست ادمین بدون
+     پارامتر limit با LIMIT 1 اجرا می‌شد (علت اصلی نمایش تک‌ردیفی بخش‌ها). */
+  if (v === null || v === undefined || v === '') return fallback;
   const n = Number(v);
   return Number.isFinite(n) ? n : fallback;
 }

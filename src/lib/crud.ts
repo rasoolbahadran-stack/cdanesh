@@ -149,6 +149,24 @@ export function makeDelete(cfg: EntityConfig) {
     try {
       const id = num(new URL(request.url).pathname.split('/').pop(), 0);
       if (!id) return fail('شناسه رکورد معتبر نیست', 'BAD_ID', 400);
+
+      /* دسته‌بندی دارای مقاله وابسته حذف نمی‌شود؛ ابتدا دستهٔ مقاله‌ها باید تغییر کند.
+         این «مدیریت مناسب حذف دستهٔ دارای محتوا» است تا مقالات بی‌سرنخ نمانند. */
+      if (cfg.table === 'categories') {
+        const dep = await q1<{ count: number }>(
+          'SELECT COUNT(*)::int AS count FROM posts WHERE category_id = $1',
+          [id],
+        );
+        const attached = Number(dep?.count || 0);
+        if (attached > 0) {
+          return fail(
+            `این دسته‌بندی به ${attached} مقاله متصل است؛ ابتدا دستهٔ مقاله‌ها را تغییر دهید یا آن‌ها را حذف کنید، سپس دسته‌بندی را حذف نمایید.`,
+            'CATEGORY_IN_USE',
+            409,
+          );
+        }
+      }
+
       await q(`CREATE TABLE IF NOT EXISTS cdanesh_admin_trash (
         id bigserial PRIMARY KEY, entity text NOT NULL, entity_id bigint NOT NULL,
         snapshot jsonb NOT NULL, deleted_at timestamptz NOT NULL DEFAULT now(), restored_at timestamptz
