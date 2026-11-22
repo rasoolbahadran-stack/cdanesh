@@ -6,6 +6,7 @@ import PostCard from '../../components/PostCard.astro';
 import CtaBand from '../../components/CtaBand.astro';
 import { getPost, getRelatedPosts, postWordCount, postReadMinutes, injectHtmlHeadingIds } from '../../lib/content';
 import { normalizeLegacyArticleHtml } from '../../lib/article-html';
+import { extractArticleFaq } from '../../lib/article-faq';
 import type { Post } from '../../lib/types';
 import { jsonLdArticle, jsonLdBreadcrumb, jsonLdFaq } from '../../lib/seo';
 
@@ -31,17 +32,6 @@ const isClothingDesignArticle =
   slug === 'clothing-store-website-design' ||
   (post.category === 'پوشاک و مد' && /طراحی سایت.*(لباس|پوشاک)|فروشگاهی.*لباس/.test(post.title));
 
-const faqHeadingPattern = /س[ؤو]الات\s*متداول|پرسش(?:‌|\s)?های?\s*متداول/i;
-const plainFaqText = (value: string) => String(value || '')
-  .replace(/<br\s*\/?\s*>/gi, ' ')
-  .replace(/<[^>]*>/g, ' ')
-  .replace(/&nbsp;/g, ' ')
-  .replace(/&amp;/g, '&')
-  .replace(/&quot;/g, '"')
-  .replace(/&#39;/g, "'")
-  .replace(/\s+/g, ' ')
-  .trim();
-
 const clothingFaqFallback = [
   { q: 'هزینه طراحی سایت فروشگاهی لباس به چه عواملی بستگی دارد؟', a: 'هزینه به تعداد محصولات و تنوع آن‌ها، مدیریت رنگ و سایز، طراحی رابط کاربری، امکانات پنل مدیریت، روش‌های پرداخت و ارسال و اتصال‌های موردنیاز بستگی دارد. پس از مشخص‌شدن محدوده پروژه می‌توان برآورد دقیق‌تری ارائه کرد.' },
   { q: 'برای فروشگاه اینترنتی لباس چه امکاناتی ضروری است؟', a: 'معمولاً صفحه محصول کامل، دسته‌بندی مناسب، جست‌وجو و فیلتر، انتخاب رنگ و سایز، نمایش موجودی هر تنوع، سبد خرید، ثبت سفارش و پنل مدیریت محصولات و سفارش‌ها اهمیت دارند. امکانات نهایی باید با مدل فروش بوتیک یا مزون هماهنگ شوند.' },
@@ -52,77 +42,17 @@ const clothingFaqFallback = [
 ];
 
 let articleBlocks = [...post.blocks];
-let faqItems: Array<{ q: string; a: string }> = [];
 
-if (isClothingDesignArticle) {
-  // حالت اول: FAQ درون یک بلوک HTML قدیمی ذخیره شده است.
-  const htmlIndex = articleBlocks.findIndex((block) => {
-    const value = block as unknown as { t?: string; x?: string };
-    const headings = [...(value.x || '').matchAll(/<h[23]\b[^>]*>([\s\S]*?)<\/h[23]>/gi)];
-    return value.t === 'html' && headings.some((heading) => faqHeadingPattern.test(plainFaqText(heading[1])));
-  });
-
-  if (htmlIndex >= 0) {
-    const htmlBlock = articleBlocks[htmlIndex] as unknown as { t: string; x: string };
-    const heading = [...htmlBlock.x.matchAll(/<h[23]\b[^>]*>([\s\S]*?)<\/h[23]>/gi)]
-      .find((match) => faqHeadingPattern.test(plainFaqText(match[1])));
-    if (heading && heading.index != null) {
-      const afterHeading = htmlBlock.x.slice(heading.index + heading[0].length);
-      const nextSection = afterHeading.search(/<h2\b/i);
-      const faqMarkup = nextSection >= 0 ? afterHeading.slice(0, nextSection) : afterHeading;
-      const questionPattern = /<h[34]\b[^>]*>([\s\S]*?)<\/h[34]>([\s\S]*?)(?=<h[34]\b|<h2\b|$)/gi;
-      for (const match of faqMarkup.matchAll(questionPattern)) {
-        const q = plainFaqText(match[1]);
-        const a = plainFaqText(match[2]);
-        if (q && a) faqItems.push({ q, a });
-      }
-      if (faqItems.length) {
-        const before = htmlBlock.x.slice(0, heading.index);
-        const after = nextSection >= 0 ? afterHeading.slice(nextSection) : '';
-        articleBlocks[htmlIndex] = { ...htmlBlock, x: before + after } as typeof articleBlocks[number];
-      }
-    }
-  }
-
-  // حالت دوم: FAQ در بلوک‌های ساختاریافته (H2، H3 و پاراگراف‌ها) ذخیره شده است.
-  if (!faqItems.length) {
-    const faqStart = articleBlocks.findIndex((block) => {
-      const value = block as unknown as { t?: string; x?: string };
-      return value.t === 'h2' && faqHeadingPattern.test(value.x || '');
-    });
-    if (faqStart >= 0) {
-      let faqEnd = articleBlocks.findIndex((block, index) => {
-        const value = block as unknown as { t?: string };
-        return index > faqStart && value.t === 'h2';
-      });
-      if (faqEnd < 0) faqEnd = articleBlocks.length;
-      const sectionBlocks = articleBlocks.slice(faqStart + 1, faqEnd);
-      let current: { q: string; a: string } | null = null;
-      const flush = () => {
-        if (current?.q && current.a.trim()) faqItems.push({ q: current.q, a: current.a.trim() });
-        current = null;
-      };
-      for (const block of sectionBlocks) {
-        const value = block as unknown as { t?: string; x?: string; items?: string[] };
-        if (value.t === 'h3' || value.t === 'h4') {
-          flush();
-          current = { q: plainFaqText(value.x || ''), a: '' };
-        } else if (current && (value.t === 'p' || value.t === 'blockquote')) {
-          current.a += (current.a ? ' ' : '') + plainFaqText(value.x || '');
-        } else if (current && (value.t === 'ul' || value.t === 'ol')) {
-          current.a += (current.a ? ' ' : '') + (value.items || []).map(plainFaqText).join('؛ ');
-        } else if (current && value.t === 'html') {
-          current.a += (current.a ? ' ' : '') + plainFaqText(value.x || '');
-        }
-      }
-      flush();
-      if (faqItems.length) articleBlocks = [...articleBlocks.slice(0, faqStart), ...articleBlocks.slice(faqEnd)];
-    }
-  }
-
-  // اگر نسخهٔ مقاله هنوز FAQ ساختاریافته ندارد، پرسش‌های متداول کاربردی به آن افزوده می‌شوند.
-  if (!faqItems.length) faqItems = clothingFaqFallback;
-}
+/* استخراج عمومی بخش «سؤالات متداول» از بلوک‌های مقاله — برای همه مقاله‌ها.
+   هر سه الگوی رایج (بلوک ساختاریافته، سند HTML با تیتر FAQ و
+   <section class="faq"> با faq-answer) پشتیبانی می‌شود و بخش یافته‌شده
+   از بدنه حذف و در قالب آکاردئون استاندارد صفحه مقاله رندر می‌گردد. */
+const faqExtraction = extractArticleFaq(articleBlocks);
+articleBlocks = faqExtraction.blocks as typeof articleBlocks;
+let faqItems: Array<{ q: string; a: string }> = faqExtraction.items;
+const faqHeadingText = faqExtraction.heading;
+/* پرسش‌های متداول کاربردی مقالهٔ فروشگاه لباس در صورت نبود FAQ ساختاریافته حفظ می‌شود */
+if (isClothingDesignArticle && !faqItems.length) faqItems = clothingFaqFallback;
 
 // تعدادی از مقاله‌های قدیمی به‌صورت سند کامل HTML ذخیره شده‌اند.
  // عنوان و تصویر شاخص در قالب اصلی نمایش داده می‌شوند؛ پردازش مقاوم سند
@@ -265,7 +195,7 @@ const meta = {
             <section class="article-faq" aria-labelledby="article-faq-title">
               <div class="article-faq__head">
                 <span>پاسخ به پرسش‌های مهم</span>
-                <h2 id="article-faq-title">سؤالات متداول درباره طراحی سایت فروشگاهی لباس</h2>
+                <h2 id="article-faq-title">{faqHeadingText || (isClothingDesignArticle ? 'سؤالات متداول درباره طراحی سایت فروشگاهی لباس' : 'سؤالات متداول')}</h2>
                 <p>برای دیدن پاسخ هر پرسش، عنوان آن را انتخاب کنید.</p>
               </div>
               <div class="article-faq__list">

@@ -3,7 +3,7 @@
    جدول تازه‌ای به نام portfolio ایجاد نمی‌کند و داده‌های فعلی را حذف نمی‌کند. */
 import { env } from './env';
 import { q, q1 } from './db';
-import { sanitizeHtml, slugify } from './http';
+import { slugify } from './http';
 
 type Row = Record<string, unknown>;
 
@@ -113,7 +113,11 @@ export async function upsertPost(post: {
   if (!categoryRow?.id) throw new Error('دسته‌بندی مقاله ذخیره نشد');
 
   const status = post.published ? 'published' : 'draft';
-  const safeContent = sanitizeHtml(textValue(post.content));
+  /* محتوای مقاله «خام» ذخیره می‌شود؛ امن‌سازی واقعی در نقطهٔ رندر با
+     sanitizeHtmlHtml (پارسرمحور) انجام می‌شود. به‌ازای هر ذخیره، pre-sanitize
+     سندهای legacy را نابود می‌کرد و بدنهٔ مقاله‌هایی مانند boutique-website-setup
+     خالی می‌ماند — داده در لحظهٔ نوشتن هرگز تخریب نمی‌شود. */
+  const safeContent = textValue(post.content);
   await q(
     `INSERT INTO posts
        (title, slug, excerpt, content, cover_image, category_id, status, reading_time, published_at)
