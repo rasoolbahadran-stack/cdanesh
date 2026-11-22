@@ -30,7 +30,12 @@ export function visibleTextLength(html: string): number {
     .length;
 }
 
-/* ── پاک‌سازی پوستهٔ head: فقط ساختار سند، نه امن‌سازی (آن کار پارسر است) ── */
+/* ── پاک‌سازی پوستهٔ head: فقط ساختار سند، نه امن‌سازی (آن کار پارسر است) ──
+   دقت: تگ‌های اجرایی (script/style/iframe/…) اینجا دست نمی‌خورند؛ حذف تگ
+   پایانی‌شان در گذشته تگ بازِ یتیم باقی می‌گذاشت و sanitizeHtmlHtml از آن
+   نقطه «کل بدنه همراه محتوا» را حذف می‌کرد — علت اصلی خالی‌ماندن مقاله‌های
+   legacy مانند boutique-website-setup. حذف کامل script/style با خودِ پارسر
+   انجام می‌شود که جفت‌بودن تگ‌ها را درست ردیابی می‌کند. */
 function stripHeadShell(html: string): string {
   return String(html || '')
     .replace(/<!doctype\b[^>]*>/gi, '')
@@ -38,7 +43,7 @@ function stripHeadShell(html: string): string {
     .replace(/<meta\b[^>]*>/gi, '')
     .replace(/<link\b[^>]*>/gi, '')
     .replace(/<\/?(?:html|head|body)\b[^>]*>/gi, '')
-    .replace(/<\/(?:title|script|style|iframe|object|embed|form|button|select|option|textarea|label|fieldset|legend|datalist)>/gi, '');
+    .replace(/<\/title\s*>/gi, '');
 }
 
 /* ── استخراج بدنهٔ سند کامل ── */
@@ -62,6 +67,14 @@ function extractDocumentBody(html: string): string {
   /* ۳) برش تا پایان سند */
   const htmlClose = out.toLowerCase().lastIndexOf('</html>');
   if (htmlClose >= 0) out = out.slice(0, htmlClose);
+
+  /* ۴) محافظت در برابر سندهای ناقص: اگر محتوای واقعی مقاله قبل از </head>
+     مانده باشد (سند بدون <body> یا با تودرتویی خراب)، برش بعد از </head>
+     بدنهٔ خالی می‌دهد و مقاله خالی رندر می‌شد. در این حالت کل سند به
+     خط پاک‌سازی سپرده می‌شود؛ stripHeadShell پوسته را می‌زُداید. */
+  if (visibleTextLength(out) < 200 && visibleTextLength(String(html || '')) > 800) {
+    return String(html || '');
+  }
 
   return out;
 }
@@ -128,11 +141,17 @@ export function renderArticleHtml(rawHtml: string, opts: ArticleHtmlOptions = {}
   cleaned = dedupeTitleAndCover(cleaned, opts, site);
 
   /* فالت‌بک محافظه‌کار: اگر پردازش محتوا را تقریباً کامل حذف کرده ولی سند
-     اصلی پر‌متن بوده، نسخهٔ حداقلی و امنِ کل سند رندر می‌شود. */
-  const inputText = visibleTextLength(sanitizeHtmlHtml(stripHeadShell(input)));
+     اصلی پر‌متن بوده، نسخهٔ حداقلی و امنِ کل سند رندر می‌شود.
+     متن ورودی «قبل از امن‌سازی» هم سنجیده می‌شود؛ وگرنه سندی که
+     امن‌ساز همهٔ متنش را داخل تگ‌های اجرایی می‌یابد، فالت‌بک را از دست می‌داد. */
+  const shellStripped = stripHeadShell(input);
+  const inputText = Math.max(
+    visibleTextLength(shellStripped),
+    visibleTextLength(sanitizeHtmlHtml(shellStripped)),
+  );
   const outputText = visibleTextLength(cleaned);
   if (outputText < 200 && inputText > 800) {
-    const fallback = dedupeTitleAndCover(sanitizeHtmlHtml(stripHeadShell(input)), opts, site);
+    const fallback = dedupeTitleAndCover(sanitizeHtmlHtml(shellStripped), opts, site);
     return fallback.trim();
   }
 
