@@ -116,9 +116,15 @@ function dedupeTitleAndCover(html: string, opts: ArticleHtmlOptions, site?: stri
   }
   const cover = opts.articleCoverUrl ? normalizeImgUrl(opts.articleCoverUrl, site) : '';
   if (cover) {
-    out = out.replace(/<img\b[^>]*>/gi, (image) => {
+    /* حذف «کاور تکراری» فقط برای تصویر لخت (بدون کپشن) — تصویری که بلافاصله
+       بعد از آن figcaption پر محتوا آمده، تصویر محتوایی واقعی مقاله است حتی
+       اگر فایلش با کاور یکی باشد (مانند figure مقالهٔ مزون/بوتیک) و باید حفظ شود. */
+    out = out.replace(/<img\b[^>]*>/gi, (image: string, offset: number, full: string) => {
       const src = image.match(/\bsrc\s*=\s*["']([^"']+)["']/i)?.[1] || '';
-      return normalizeImgUrl(src, site) === cover ? '' : image;
+      if (normalizeImgUrl(src, site) !== cover) return image;
+      const after = full.slice(offset + image.length, offset + image.length + 400);
+      if (/<figcaption\b[^>]*>\s*\S/i.test(after)) return image;
+      return '';
     });
   }
   return out;
