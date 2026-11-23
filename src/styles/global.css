@@ -659,6 +659,9 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
   gap: 12px;
   margin: 24px 0;
 }
+.article-faq__list.faq-accordion {
+  margin: 18px 0 0;
+}
 .faq-accordion details {
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -710,7 +713,6 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 }
 
 /* ── FAQ آکاردئون دکمه‌ای (صفحات اصلی و خدمات) ─────────────── */
-FAQ آکاردئون ───────────────────────────────────────────── */
 .faq-wrap { max-width: 860px; margin-inline: auto; display: grid; gap: 14px; }
 .faq-item {
   background: #fff; border-radius: var(--r-md); box-shadow: var(--shadow-soft);
