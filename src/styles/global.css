@@ -652,7 +652,65 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
     radial-gradient(300px 220px at 88% 100%, rgba(11, 18, 51, 0.3), transparent 70%);
 }
 
-/* ── FAQ آکاردئون ───────────────────────────────────────────── */
+/* ── آکاردئون بومی FAQ بر پایه details/summary ─────────────── */
+.faq-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 24px 0;
+}
+.faq-accordion details {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--white);
+  padding: 0 18px;
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.faq-accordion details[open] {
+  border-color: var(--lavender-deep);
+  box-shadow: var(--shadow-soft);
+}
+.faq-accordion summary {
+  position: relative;
+  cursor: pointer;
+  padding-block: 18px;
+  padding-inline-start: 32px;
+  font-weight: 700;
+  line-height: 1.9;
+  color: var(--navy);
+  text-align: start;
+  list-style: none;
+}
+.faq-accordion summary::-webkit-details-marker {
+  display: none;
+}
+.faq-accordion summary::after {
+  content: "+";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 500;
+  color: var(--purple);
+}
+.faq-accordion details[open] summary::after {
+  content: "−";
+}
+.faq-accordion details p {
+  margin: 0;
+  padding: 0 0 18px;
+  line-height: 2;
+  color: var(--body);
+}
+.faq-accordion .article-faq__answer {
+  font-size: 0.92rem;
+}
+
+/* ── FAQ آکاردئون دکمه‌ای (صفحات اصلی و خدمات) ─────────────── */
+FAQ آکاردئون ───────────────────────────────────────────── */
 .faq-wrap { max-width: 860px; margin-inline: auto; display: grid; gap: 14px; }
 .faq-item {
   background: #fff; border-radius: var(--r-md); box-shadow: var(--shadow-soft);
