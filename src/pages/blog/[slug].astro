@@ -198,12 +198,11 @@ const meta = {
                 <h2 id="article-faq-title">{faqHeadingText || (isClothingDesignArticle ? 'سؤالات متداول درباره طراحی سایت فروشگاهی لباس' : 'سؤالات متداول')}</h2>
                 <p>برای دیدن پاسخ هر پرسش، عنوان آن را انتخاب کنید.</p>
               </div>
-              <div class="article-faq__list">
+              <div class="article-faq__list faq-accordion">
                 {faqItems.map((item) => (
                   <details class="article-faq__item">
                     <summary>
                       <span>{item.q}</span>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
                     </summary>
                     <div class="article-faq__answer"><p>{item.a}</p></div>
                   </details>
@@ -333,15 +332,6 @@ const meta = {
   .article-faq__head > span { display: inline-block; color: var(--pink-dark); font-size: .84rem; font-weight: 800; margin-bottom: 6px; }
   .article-faq__head h2 { color: var(--navy); font-size: clamp(1.25rem,2.2vw,1.65rem); margin: 0 0 7px; }
   .article-faq__head p { color: var(--mut); font-size: .9rem; margin: 0; }
-  .article-faq__list { display: grid; gap: 10px; }
-  .article-faq__item { border: 1px solid var(--line); border-radius: 13px; background: #fff; overflow: hidden; transition: border-color .2s,box-shadow .2s; }
-  .article-faq__item[open] { border-color: var(--lavender-deep); box-shadow: var(--shadow-soft); }
-  .article-faq__item summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 58px; padding: 13px 17px; color: var(--navy); font-weight: 700; font-size: .94rem; cursor: pointer; }
-  .article-faq__item summary::-webkit-details-marker { display: none; }
-  .article-faq__item summary svg { flex: none; color: var(--purple); width: 19px; height: 19px; transition: transform .2s ease; }
-  .article-faq__item[open] summary svg { transform: rotate(45deg); }
-  .article-faq__answer { padding: 0 17px 15px; color: var(--body); font-size: .92rem; line-height: 2; }
-  .article-faq__answer p { margin: 0; }
   @media (max-width: 1100px) {
     .article-related .pf-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   }
