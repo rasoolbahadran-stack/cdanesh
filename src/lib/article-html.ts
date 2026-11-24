@@ -79,6 +79,112 @@ function extractDocumentBody(html: string): string {
   return out;
 }
 
+/* استخراج CSS محدود از style داخلی مقاله؛ هیچ استایل سراسری یا منبع خارجی پذیرفته نمی‌شود. */
+const ARTICLE_CSS_PROPERTIES = new Set([
+  'color','background','background-color','border','border-top','border-right','border-bottom','border-left',
+  'border-color','border-width','border-style','border-radius','box-shadow','padding','padding-top',
+  'padding-right','padding-bottom','padding-left','padding-inline','padding-block','margin','margin-top',
+  'margin-right','margin-bottom','margin-left','margin-inline','margin-block','font-size','font-weight',
+  'font-family','font-style','line-height','text-align','text-decoration','text-underline-offset','direction',
+  'display','width','min-width','max-width','height','min-height','max-height','aspect-ratio','object-fit',
+  'object-position','overflow','overflow-x','overflow-y','vertical-align','align-items','justify-content',
+  'gap','flex','flex-basis','flex-grow','flex-shrink','transition','transform','opacity','filter','outline',
+  'outline-offset','cursor','list-style','box-sizing',
+]);
+
+function matchingCssBrace(css: string, openIndex: number): number {
+  let depth = 0, quote = '', escaped = false;
+  for (let i = openIndex; i < css.length; i++) {
+    const ch = css[i];
+    if (escaped) { escaped = false; continue; }
+    if (ch === '\\\\' && quote) { escaped = true; continue; }
+    if (quote) { if (ch === quote) quote = ''; continue; }
+    if (ch === '"' || ch === "'") { quote = ch; continue; }
+    if (ch === '{') depth++;
+    else if (ch === '}') { depth--; if (depth === 0) return i; }
+  }
+  return -1;
+}
+
+function splitCssTopLevel(value: string, delimiter: string): string[] {
+  const parts: string[] = [];
+  let start = 0, depth = 0, quote = '';
+  for (let i = 0; i < value.length; i++) {
+    const ch = value[i];
+    if (quote) { if (ch === quote && value[i - 1] !== '\\\\') quote = ''; continue; }
+    if (ch === '"' || ch === "'") { quote = ch; continue; }
+    if (ch === '(' || ch === '[') depth++;
+    else if (ch === ')' || ch === ']') depth = Math.max(0, depth - 1);
+    else if (ch === delimiter && depth === 0) { parts.push(value.slice(start, i)); start = i + 1; }
+  }
+  parts.push(value.slice(start));
+  return parts;
+}
+
+function sanitizeArticleCssDeclarations(raw: string): string {
+  const safe: string[] = [];
+  for (const declaration of splitCssTopLevel(raw, ';')) {
+    const colon = declaration.indexOf(':');
+    if (colon <= 0) continue;
+    const property = declaration.slice(0, colon).trim().toLowerCase();
+    const value = declaration.slice(colon + 1).trim();
+    if (!ARTICLE_CSS_PROPERTIES.has(property) || !value) continue;
+    if (/url\\s*\\(|expression|javascript:|vbscript:|data:|@import|behavior|binding/i.test(value)) continue;
+    if (/[{}<>\\\\]/.test(value) || !/^[a-zA-Z0-9\\s#.,%()+*/:'"!_-]+$/.test(value)) continue;
+    safe.push(`${property}:${value}`);
+  }
+  return safe.join(';');
+}
+
+function sanitizeArticleCssRules(rawCss: string): string {
+  const css = String(rawCss || '').replace(/\\/\\*[\\s\\S]*?\\*\\//g, '').slice(0, 30000);
+  const output: string[] = [];
+  let cursor = 0;
+  while (cursor < css.length) {
+    const open = css.indexOf('{', cursor);
+    if (open < 0) break;
+    const header = css.slice(cursor, open).trim();
+    const close = matchingCssBrace(css, open);
+    if (close < 0) break;
+    const body = css.slice(open + 1, close);
+    cursor = close + 1;
+    if (!header) continue;
+    if (/^@media\\b/i.test(header)) {
+      const query = header.replace(/^@media\\s*/i, '').trim();
+      if (!/^\\(\\s*(?:min|max)-width\\s*:\\s*\\d+(?:\\.\\d+)?(?:px|em|rem)\\s*\\)$/i.test(query)) continue;
+      const nested = sanitizeArticleCssRules(body);
+      if (nested) output.push(`@media ${query}{${nested}}`);
+      continue;
+    }
+    if (header.startsWith('@')) continue;
+    const selectors = splitCssTopLevel(header, ',').map((item) => item.trim());
+    if (!selectors.length || selectors.length > 20) continue;
+    const scoped: string[] = [];
+    let invalid = false;
+    for (const selector of selectors) {
+      if (!selector || !/^[a-zA-Z0-9_# .>+~:*()[\\]="'-]+$/.test(selector)) { invalid = true; break; }
+      if (/(^|[\\s>+~])(?:html|body|:root|:host)(?=$|[\\s.#:[>+~])/i.test(selector)) { invalid = true; break; }
+      if (/:has\\s*\\(|:global|:deep|::part|::slotted|:visited/i.test(selector)) { invalid = true; break; }
+      scoped.push(selector.startsWith('.article-html') || selector.startsWith('article.article-html')
+        ? `.article-content ${selector}`
+        : `.article-content .article-html ${selector}`);
+    }
+    if (invalid) continue;
+    const declarations = sanitizeArticleCssDeclarations(body);
+    if (declarations) output.push(`${scoped.join(',')}{${declarations}}`);
+  }
+  return output.join('');
+}
+
+function extractArticleCss(html: string): { html: string; css: string } {
+  const styles: string[] = [];
+  const withoutStyles = String(html || '').replace(/<style\\b[^>]*>([\\s\\S]*?)<\\/style\\s*>/gi, (_match, css: string) => {
+    if (css && styles.length < 12) styles.push(css);
+    return '';
+  });
+  return { html: withoutStyles, css: styles.map(sanitizeArticleCssRules).filter(Boolean).join('') };
+}
+
 const textOf = (html: string) =>
   String(html || '')
     .replace(/<[^>]*>/g, ' ')
@@ -140,9 +246,12 @@ export function renderArticleHtml(rawHtml: string, opts: ArticleHtmlOptions = {}
 
   const looksLikeDocument = /<!doctype\s*html|<html[\s>]|<head[\s>]|<body[\s>]|<\/head>|<\/body>/i.test(input);
 
-  /* مسیر اصلی: بدنهٔ سند کامل → پاک‌سازی پوسته → امن‌سازی پارسرمحور */
-  const body = looksLikeDocument ? extractDocumentBody(input) : input;
-  const shelled = stripHeadShell(body);
+  /* CSSهای head یا بدنه را پیش از استخراج سند جدا می‌کنیم؛ خود HTML همچنان از sanitizer عبور می‌کند. */
+  const extractedInput = extractArticleCss(input);
+  const body = looksLikeDocument ? extractDocumentBody(extractedInput.html) : extractedInput.html;
+  const extractedBody = extractArticleCss(body);
+  const shelled = stripHeadShell(extractedBody.html);
+  const articleCss = [extractedInput.css, extractedBody.css].filter(Boolean).join('');
   let cleaned = sanitizeHtmlHtml(shelled);
   cleaned = dedupeTitleAndCover(cleaned, opts, site);
 
@@ -158,9 +267,14 @@ export function renderArticleHtml(rawHtml: string, opts: ArticleHtmlOptions = {}
   const outputText = visibleTextLength(cleaned);
   if (outputText < 200 && inputText > 800) {
     const fallback = dedupeTitleAndCover(sanitizeHtmlHtml(shellStripped), opts, site);
-    return fallback.trim();
+    cleaned = fallback.trim();
   }
 
+  if (articleCss && cleaned) {
+    const hasArticleRoot = /class\\s*=\\s*["'][^"']*\\barticle-html\\b/i.test(cleaned);
+    const articleBody = hasArticleRoot ? cleaned : `<article class="article-html">${cleaned}</article>`;
+    cleaned = `<style data-article-style="scoped">${articleCss}</style>${articleBody}`;
+  }
   return cleaned.trim();
 }
 

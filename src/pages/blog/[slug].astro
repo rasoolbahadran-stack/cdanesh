@@ -91,13 +91,8 @@ articleBlocks.forEach((block, index) => {
       .map((h) => ({ text: h.text, level: h.level, id: h.id })));
   }
 });
-// فهرست کناری فقط سرفصل‌های اصلی را نشان می‌دهد؛ تیترهای فرعی در آن تکرار نمی‌شوند.
-for (let i = visibleToc.length - 1; i >= 0; i--) {
-  if (visibleToc[i].level !== 'h2') visibleToc.splice(i, 1);
-}
-const sidebarToc = visibleToc.length > 6
-  ? [...visibleToc.slice(0, 5), visibleToc[visibleToc.length - 1]]
-  : visibleToc;
+// همهٔ H2 و H3ها نمایش داده می‌شوند؛ تعداد زیاد سرفصل‌ها باعث حذف موارد میانی نمی‌شود.
+const sidebarToc = visibleToc.filter((item) => item.level === 'h2' || item.level === 'h3');
 
 // لینک‌سازی داخلی: هر مقاله به خدمات مرتبط با موضوع خودش لینک می‌دهد
 const CATEGORY_SERVICES: Record<string, Array<{ href: string; t: string }>> = {
@@ -140,6 +135,9 @@ const meta = {
     ...(faqItems.length ? [jsonLdFaq(faqItems)] : []),
   ]}
 >
+  <div class="article-reading-progress" data-article-progress role="progressbar" aria-label="میزان مطالعه مقاله" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <span data-article-progress-fill></span>
+  </div>
   <section class="page-hero article-page-hero">
     <svg class="hero__ribbon" viewBox="0 0 1440 460" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       <path d="M-40 120 C 260 320, 620 60, 900 200 S 1380 330, 1520 210" stroke="rgba(11,18,51,0.16)" stroke-width="130" fill="none" stroke-linecap="round" />
@@ -163,27 +161,32 @@ const meta = {
 
   <div class:list={['container', 'article-page-layout', { 'article-page-layout--with-toc': Boolean(post.cover) || sidebarToc.length > 0 }]}>
     {(post.cover || sidebarToc.length > 0) && (
-      <aside class="article-sidebar" aria-label="راهنمای مطالعه مقاله">
-        {post.cover && (
-          <figure class="article-sidebar__cover">
-            <img src={post.cover} alt={`تصویر شاخص مقاله: ${post.title}`} width="720" height="405" decoding="async" fetchpriority="high" />
-          </figure>
-        )}
-        {sidebarToc.length > 0 && <details class="article-toc" aria-label="فهرست مطالب" data-toc>
-          <summary class="article-toc__toggle">
-            <strong>سرفصل‌های مهم</strong>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
-          </summary>
-          <div class="article-toc__body">
-            <ul>{sidebarToc.map((item) => <li><a href={`#${item.id}`}>{item.text}</a></li>)}</ul>
+      <aside class="article-sidebar" aria-label="راهنمای مطالعه مقاله" data-article-sidebar>
+        <button type="button" class="article-sidebar__handle" data-sidebar-handle aria-expanded="true" aria-controls="article-sidebar-content" aria-label="جمع یا باز کردن سایدبار مقاله">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 5-7 7 7 7" /></svg>
+        </button>
+        <div class="article-sidebar__content" id="article-sidebar-content">
+          {post.cover && (
+            <figure class="article-sidebar__cover">
+              <img src={post.cover} alt={`تصویر شاخص مقاله: ${post.title}`} width="720" height="405" decoding="async" fetchpriority="high" />
+            </figure>
+          )}
+          {sidebarToc.length > 0 && <details class="article-toc" aria-label="فهرست مطالب" data-toc>
+            <summary class="article-toc__toggle">
+              <strong>سرفصل‌های مهم</strong>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+            </summary>
+            <div class="article-toc__body">
+              <ul>{sidebarToc.map((item) => <li class={item.level === 'h3' ? 'article-toc__item article-toc__item--sub' : 'article-toc__item'}><a href={`#${item.id}`}>{item.text}</a></li>)}</ul>
+            </div>
+          </details>}
+          <div class="article-sidebar__cta">
+            <span class="article-sidebar__cta-kicker">مشاوره و نیازسنجی پروژه</span>
+            <strong>{isClothingDesignArticle ? 'برای فروش آنلاین پوشاک برنامه دارید؟' : 'برای وب‌سایت کسب‌وکارتان برنامه دارید؟'}</strong>
+            <p>نیازهای پروژه‌تان را بفرستید تا راهکار و مسیر اجرای مناسب را پیشنهاد دهیم.</p>
+            <a href="/consult" class="btn btn--sm">درخواست مشاوره</a>
+            {isClothingDesignArticle && <a href="/services/clothing-store" class="article-sidebar__cta-link">جزئیات طراحی سایت پوشاک</a>}
           </div>
-        </details>}
-        <div class="article-sidebar__cta">
-          <span class="article-sidebar__cta-kicker">مشاوره و نیازسنجی پروژه</span>
-          <strong>{isClothingDesignArticle ? 'برای فروش آنلاین پوشاک برنامه دارید؟' : 'برای وب‌سایت کسب‌وکارتان برنامه دارید؟'}</strong>
-          <p>نیازها و امکانات موردنظر را بررسی می‌کنیم و مسیر مناسب اجرا را پیشنهاد می‌دهیم.</p>
-          <a href="/consult" class="btn btn--sm">درخواست مشاوره</a>
-          {isClothingDesignArticle && <a href="/services/clothing-store" class="article-sidebar__cta-link">جزئیات طراحی سایت پوشاک</a>}
         </div>
       </aside>
     )}
@@ -254,6 +257,67 @@ const meta = {
     toc.open = true;
   }
 
+  // نوار پیشرفت مطالعه: فقط بدنه مقاله مبنای درصد خواندن است.
+  const progress = document.querySelector<HTMLElement>('[data-article-progress]');
+  const progressFill = document.querySelector<HTMLElement>('[data-article-progress-fill]');
+  const articleContent = document.querySelector<HTMLElement>('.article-content');
+  const updateArticleProgress = () => {
+    if (!progress || !progressFill || !articleContent) return;
+    const top = window.scrollY + articleContent.getBoundingClientRect().top;
+    const bottom = top + articleContent.offsetHeight;
+    const start = Math.max(0, top - window.innerHeight * 0.18);
+    const end = Math.max(start + 1, bottom - window.innerHeight * 0.22);
+    const percent = Math.max(0, Math.min(100, ((window.scrollY - start) / (end - start)) * 100));
+    progressFill.style.transform = `scaleX(${percent / 100})`;
+    progress.setAttribute('aria-valuenow', String(Math.round(percent)));
+  };
+  updateArticleProgress();
+  window.addEventListener('scroll', updateArticleProgress, { passive: true });
+  window.addEventListener('resize', updateArticleProgress);
+
+  // سایدبار دسکتاپ با Hover و جهت اسکرول: پایین‌رفتن آن را جمع و ورود موس/بالارفتن آن را باز می‌کند.
+  const articleLayout = document.querySelector<HTMLElement>('.article-page-layout--with-toc');
+  const articleSidebar = document.querySelector<HTMLElement>('[data-article-sidebar]');
+  const sidebarHandle = document.querySelector<HTMLButtonElement>('[data-sidebar-handle]');
+  const desktopSidebar = () => window.matchMedia('(min-width: 981px)').matches;
+  let previousScrollY = window.scrollY;
+  let sidebarHideTimer = 0;
+  const setSidebarCollapsed = (collapsed: boolean) => {
+    if (!desktopSidebar() || !articleLayout || !articleSidebar || !sidebarHandle) return;
+    if (collapsed && articleSidebar.contains(document.activeElement)) return;
+    articleSidebar.classList.toggle('is-collapsed', collapsed);
+    articleLayout.classList.toggle('article-page-layout--sidebar-collapsed', collapsed);
+    sidebarHandle.setAttribute('aria-expanded', String(!collapsed));
+  };
+  sidebarHandle?.addEventListener('click', () => {
+    setSidebarCollapsed(!articleSidebar?.classList.contains('is-collapsed'));
+  });
+  articleSidebar?.addEventListener('pointerenter', () => {
+    if (!desktopSidebar()) return;
+    window.clearTimeout(sidebarHideTimer);
+    setSidebarCollapsed(false);
+  });
+  articleSidebar?.addEventListener('pointerleave', () => {
+    if (!desktopSidebar()) return;
+    window.clearTimeout(sidebarHideTimer);
+    sidebarHideTimer = window.setTimeout(() => {
+      if (!articleSidebar.matches(':hover')) setSidebarCollapsed(true);
+    }, 900);
+  });
+  window.addEventListener('scroll', () => {
+    if (!desktopSidebar() || !articleSidebar || articleSidebar.matches(':hover')) {
+      previousScrollY = window.scrollY;
+      return;
+    }
+    const current = window.scrollY;
+    if (current > previousScrollY + 5) setSidebarCollapsed(true);
+    else if (current < previousScrollY - 5 && current > 80) setSidebarCollapsed(false);
+    previousScrollY = current;
+  }, { passive: true });
+  window.addEventListener('resize', () => {
+    if (!desktopSidebar()) setSidebarCollapsed(false);
+  });
+
   const shareButton = document.getElementById('article-share') as HTMLButtonElement | null;
   const shareStatus = document.getElementById('article-share-status');
   shareButton?.addEventListener('click', async () => {
@@ -285,75 +349,82 @@ const meta = {
 </style>
 
 <style>
-  .article-page-layout {
-    display: grid; grid-template-columns: minmax(0,1fr);
-    align-items: stretch; gap: var(--layout-gap); direction: ltr;
+  .article-reading-progress { position:fixed; inset:0 0 auto; height:4px; z-index:9999; background:rgba(12,18,48,.08); pointer-events:none; }
+  .article-reading-progress span { display:block; width:100%; height:100%; transform:scaleX(0); transform-origin:right center; background:linear-gradient(90deg,#9b6bff,#5b35c7); will-change:transform; }
+  .article-page-layout { display:grid; grid-template-columns:minmax(0,1fr); align-items:stretch; gap:var(--layout-gap); direction:ltr; }
+  .article-page-layout--with-toc { grid-template-columns:var(--article-sidebar-width) minmax(0,1fr); transition:grid-template-columns .24s ease; }
+  .article-page-layout--sidebar-collapsed { grid-template-columns:46px minmax(0,1fr); }
+  .article-sidebar { min-width:0; position:sticky; top:88px; align-self:start; direction:rtl; display:block; max-height:calc(100vh - 104px); z-index:4; }
+  .article-sidebar__content { display:grid; gap:10px; opacity:1; visibility:visible; transition:opacity .18s ease,visibility .18s ease; }
+  .article-sidebar.is-collapsed .article-sidebar__content { opacity:0; visibility:hidden; pointer-events:none; }
+  .article-sidebar__handle { position:absolute; left:-42px; top:0; width:36px; height:42px; display:grid; place-items:center; border:1px solid var(--line); border-radius:12px 0 0 12px; background:#fff; color:var(--purple); box-shadow:var(--shadow-soft); cursor:pointer; transition:background .18s,color .18s,transform .18s; }
+  .article-sidebar__handle:hover { background:var(--purple); color:#fff; }
+  .article-sidebar.is-collapsed .article-sidebar__handle svg { transform:rotate(180deg); }
+  .article-sidebar__cover { margin:0; overflow:hidden; border:1px solid var(--line); border-radius:16px; background:#fff; box-shadow:var(--shadow-soft); }
+  .article-sidebar__cover img { display:block; width:100%; aspect-ratio:16/7; max-height:132px; object-fit:cover; }
+  .article-page-main { min-width:0; direction:rtl; }
+  .article-main-section { padding-top:clamp(24px,3vw,38px); }
+  .article-content { min-width:0; width:100%; }
+  .article-content .prose { max-width:100%; width:100%; margin:0; font-size:var(--reading-font-size); line-height:var(--reading-line-height); }
+  .article-content .prose h2, .article-content .prose h3 { scroll-margin-top:96px; }
+  .article-toc { margin:0; padding:14px; border:1px solid var(--line); border-radius:16px; background:#fff; box-shadow:var(--shadow-soft); }
+  .article-toc__toggle { width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:0; cursor:pointer; text-align:right; list-style:none; }
+  .article-toc__toggle::-webkit-details-marker { display:none; }
+  .article-toc__toggle::marker { content:""; }
+  .article-toc__toggle strong { color:var(--navy); font-size:1rem; }
+  .article-toc__toggle svg { color:var(--purple); transition:transform .25s var(--ease); flex:none; }
+  .article-toc[open] > .article-toc__toggle svg { transform:rotate(180deg); }
+  .article-toc__body { margin-top:10px; max-height:min(22vh,190px); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:var(--lavender-deep) transparent; }
+  .article-toc ul { margin:0; padding:0 18px 0 0; display:grid; gap:6px; line-height:1.8; list-style:disc; }
+  .article-toc li { color:var(--purple); padding-right:1px; }
+  .article-toc__item--sub { padding-right:13px !important; list-style-type:circle; }
+  .article-toc a { color:#394052; text-decoration:none; font-size:.86rem; display:block; line-height:1.8; }
+  .article-toc__item--sub a { font-size:.81rem; color:var(--mut); }
+  .article-toc a:hover { color:var(--purple); }
+  .article-sidebar__cta { margin-top:0; padding:13px 14px; border-radius:15px; background:linear-gradient(145deg,#f4edff,#fff4f8); border:1px solid rgba(124,77,255,.12); display:grid; gap:7px; box-shadow:var(--shadow-soft); direction:rtl; }
+  .article-sidebar__cta-kicker { color:var(--pink-dark); font-size:.74rem; font-weight:800; }
+  .article-sidebar__cta strong { color:var(--navy); font-size:.9rem; line-height:1.7; }
+  .article-sidebar__cta p { color:var(--mut); font-size:.78rem; line-height:1.75; margin:0; }
+  .article-sidebar__cta .btn { width:100%; min-height:38px; margin-top:2px; }
+  .article-sidebar__cta-link { color:var(--purple); font-size:.78rem; font-weight:700; text-align:center; text-decoration:none; }
+  .article-sidebar__related { display:grid; gap:8px; padding:17px 16px; border:1px solid var(--line); border-radius:16px; background:linear-gradient(145deg,#fff,#f4f0ff); box-shadow:var(--shadow-soft); text-decoration:none; transition:transform .2s ease,box-shadow .2s ease; }
+  .article-sidebar__related:hover { transform:translateY(-3px); box-shadow:var(--shadow-card); }
+  .article-sidebar__related span { color:var(--pink-dark); font-size:.76rem; font-weight:800; }
+  .article-sidebar__related strong { color:var(--navy); font-size:.9rem; line-height:1.9; }
+  .article-sidebar__related small { color:var(--purple); font-size:.78rem; font-weight:800; }
+  .article-related { margin-top:0; }
+  .article-related .section-head { max-width:100%; }
+  .article-related .pf-grid { grid-template-columns:repeat(3,minmax(0,1fr)); align-items:stretch; gap:22px; }
+  .article-faq { margin:44px 0 0; padding-top:30px; border-top:1px solid var(--line); }
+  .article-faq__head { margin-bottom:18px; }
+  .article-faq__head > span { display:inline-block; color:var(--pink-dark); font-size:.84rem; font-weight:800; margin-bottom:6px; }
+  .article-faq__head h2 { color:var(--navy); font-size:clamp(1.25rem,2.2vw,1.65rem); margin:0 0 7px; }
+  .article-faq__head p { color:var(--mut); font-size:.9rem; margin:0; }
+  .article-faq__list { display:grid; gap:10px; }
+  .article-faq__item { border:1px solid var(--line); border-radius:13px; background:#fff; overflow:hidden; transition:border-color .2s,box-shadow .2s; }
+  .article-faq__item[open] { border-color:var(--lavender-deep); box-shadow:var(--shadow-soft); }
+  .article-faq__item summary { list-style:none; display:flex; align-items:center; justify-content:space-between; gap:14px; min-height:58px; padding:13px 17px; color:var(--navy); font-weight:700; font-size:.94rem; cursor:pointer; }
+  .article-faq__item summary::-webkit-details-marker { display:none; }
+  .article-faq__item summary svg { flex:none; color:var(--purple); width:19px; height:19px; transition:transform .2s ease; }
+  .article-faq__item[open] summary svg { transform:rotate(45deg); }
+  .article-faq__answer { padding:0 17px 15px; color:var(--body); font-size:.92rem; line-height:2; }
+  .article-faq__answer p { margin:0; }
+  @media (max-width:1100px) { .article-related .pf-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  @media (max-width:980px) {
+    .article-page-layout--with-toc { grid-template-columns:minmax(0,1fr); gap:18px; }
+    .article-sidebar { position:static; max-height:none; }
+    .article-sidebar__handle { display:none; }
+    .article-sidebar__content { display:grid; visibility:visible !important; opacity:1 !important; }
+    .article-toc__body { max-height:260px; }
   }
-  .article-page-layout--with-toc { grid-template-columns: var(--article-sidebar-width) minmax(0,1fr); }
-  .article-sidebar { min-width: 0; position: sticky; top: 108px; align-self: start; direction: rtl; display: grid; gap: 14px; }
-  .article-sidebar__cover { margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: #fff; box-shadow: var(--shadow-soft); }
-  .article-sidebar__cover img { display: block; width: 100%; aspect-ratio: 16/9; object-fit: cover; }
-  .article-sidebar__related { display: grid; gap: 8px; padding: 17px 16px; border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(145deg,#fff,#f4f0ff); box-shadow: var(--shadow-soft); text-decoration: none; transition: transform .2s ease, box-shadow .2s ease; }
-  .article-sidebar__related:hover { transform: translateY(-3px); box-shadow: var(--shadow-card); }
-  .article-sidebar__related span { color: var(--pink-dark); font-size: .76rem; font-weight: 800; }
-  .article-sidebar__related strong { color: var(--navy); font-size: .9rem; line-height: 1.9; }
-  .article-sidebar__related small { color: var(--purple); font-size: .78rem; font-weight: 800; }
-  .article-page-main { min-width: 0; direction: rtl; }
-  .article-main-section { padding-top: clamp(24px,3vw,38px); }
-  .article-content { min-width: 0; width: 100%; }
-  .article-content .prose {
-    max-width: 100%; width: 100%; margin: 0;
-    font-size: var(--reading-font-size);
-    line-height: var(--reading-line-height);
+  @media (max-width:760px) {
+    .article-page-layout { gap:14px; }
+    .article-toc { padding:13px 14px; }
+    .article-sidebar__cta { padding:13px; }
+    .article-related .pf-grid { grid-template-columns:minmax(0,1fr); gap:16px; }
+    .article-main-section { padding-top:22px; }
   }
-  .article-content .prose h2, .article-content .prose h3 { scroll-margin-top: 112px; }
-  .article-toc { margin: 0; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: #fff; box-shadow: var(--shadow-soft); }
-  .article-toc__toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0; cursor: pointer; text-align: right; list-style: none; }
-  .article-toc__toggle::-webkit-details-marker { display: none; }
-  .article-toc__toggle::marker { content: ""; }
-  .article-toc__toggle strong { color: var(--navy); font-size: 1rem; }
-  .article-toc__toggle svg { color: var(--purple); transition: transform .25s var(--ease); flex: none; }
-  .article-toc[open] > .article-toc__toggle svg { transform: rotate(180deg); }
-  .article-toc__body { margin-top: 12px; }
-  .article-toc ul { margin: 0; padding: 0 18px 0 0; display: grid; gap: 8px; line-height: 1.9; list-style: disc; overflow: visible; }
-  .article-toc li { color: var(--purple); padding-right: 1px; }
-  .article-toc a { color: #394052; text-decoration: none; font-size: .9rem; display: block; line-height: 1.9; }
-  .article-toc a:hover { color: var(--purple); }
-  .article-sidebar__cta { margin-top: 16px; padding: 18px 16px; border-radius: 16px; background: linear-gradient(145deg,#f4edff,#fff4f8); border: 1px solid rgba(124,77,255,.12); display: grid; gap: 9px; box-shadow: var(--shadow-soft); direction: rtl; }
-  .article-sidebar__cta-kicker { color: var(--pink-dark); font-size: .76rem; font-weight: 800; }
-  .article-sidebar__cta strong { color: var(--navy); font-size: .94rem; line-height: 1.8; }
-  .article-sidebar__cta p { color: var(--mut); font-size: .82rem; line-height: 1.9; margin: 0; }
-  .article-sidebar__cta .btn { width: 100%; margin-top: 3px; }
-  .article-sidebar__cta-link { color: var(--purple); font-size: .8rem; font-weight: 700; text-align: center; text-decoration: none; }
-  .article-related { margin-top: 0; }
-  .article-related .section-head { max-width: 100%; }
-  .article-related .pf-grid { grid-template-columns: repeat(3,minmax(0,1fr)); align-items: stretch; gap: 22px; }
-  .article-faq { margin: 44px 0 0; padding-top: 30px; border-top: 1px solid var(--line); }
-  .article-faq__head { margin-bottom: 18px; }
-  .article-faq__head > span { display: inline-block; color: var(--pink-dark); font-size: .84rem; font-weight: 800; margin-bottom: 6px; }
-  .article-faq__head h2 { color: var(--navy); font-size: clamp(1.25rem,2.2vw,1.65rem); margin: 0 0 7px; }
-  .article-faq__head p { color: var(--mut); font-size: .9rem; margin: 0; }
-  .article-faq__list { display: grid; gap: 10px; }
-  .article-faq__item { border: 1px solid var(--line); border-radius: 13px; background: #fff; overflow: hidden; transition: border-color .2s,box-shadow .2s; }
-  .article-faq__item[open] { border-color: var(--lavender-deep); box-shadow: var(--shadow-soft); }
-  .article-faq__item summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 58px; padding: 13px 17px; color: var(--navy); font-weight: 700; font-size: .94rem; cursor: pointer; }
-  .article-faq__item summary::-webkit-details-marker { display: none; }
-  .article-faq__item summary svg { flex: none; color: var(--purple); width: 19px; height: 19px; transition: transform .2s ease; }
-  .article-faq__item[open] summary svg { transform: rotate(45deg); }
-  .article-faq__answer { padding: 0 17px 15px; color: var(--body); font-size: .92rem; line-height: 2; }
-  .article-faq__answer p { margin: 0; }
-  @media (max-width: 1100px) {
-    .article-related .pf-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  }
-  @media (max-width: 980px) {
-    .article-page-layout--with-toc { grid-template-columns: minmax(0,1fr); gap: 18px; }
-    .article-sidebar { position: static; }
-  }
-  @media (max-width: 760px) {
-    .article-page-layout { gap: 14px; }
-    .article-toc { padding: 13px 14px; }
-    .article-sidebar__cta { padding: 15px; }
-    .article-related .pf-grid { grid-template-columns: minmax(0,1fr); gap: 16px; }
-    .article-main-section { padding-top: 22px; }
+  @media (prefers-reduced-motion:reduce) {
+    .article-page-layout--with-toc, .article-sidebar__content, .article-sidebar__handle { transition:none; }
   }
 </style>

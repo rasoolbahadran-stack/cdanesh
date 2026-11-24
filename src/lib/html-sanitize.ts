@@ -20,6 +20,7 @@ const KEEP_TAGS = new Set([
   'ul', 'ol', 'li', 'a', 'img', 'blockquote', 'table', 'thead', 'tbody', 'tfoot',
   'tr', 'th', 'td', 'div', 'span', 'figure', 'figcaption', 'pre', 'code',
   'small', 'sub', 'sup', 'section', 'article', 'main', 'aside', 'header', 'footer', 'nav', 'caption',
+  'details', 'summary',
 ]);
 
 /** تگ‌هایی که «تگشان» حذف می‌شود ولی متن داخلشان می‌ماند (فرم/دکمه/پوسته) */
@@ -38,10 +39,64 @@ const VOID_TAGS = new Set(['br', 'hr', 'img', 'input', 'area', 'base', 'col', 's
 /** attributeهای مجاز عمومی */
 const KEEP_ATTRS = new Set([
   'alt', 'title', 'class', 'id', 'dir', 'lang', 'colspan', 'rowspan', 'width', 'height',
-  'loading', 'decoding', 'start', 'type', 'rel',
+  'loading', 'decoding', 'start', 'type', 'rel', 'open', 'role', 'tabindex',
+  'aria-label', 'aria-labelledby', 'aria-controls', 'aria-expanded', 'aria-hidden',
 ]);
 /** attributeهای URL که پروتکلشان بررسی می‌شود */
 const URL_ATTRS = new Set(['href', 'src', 'srcset', 'poster', 'cite']);
+
+const SAFE_INLINE_STYLE_PROPERTIES = new Set([
+  'color','background','background-color','border','border-top','border-right','border-bottom','border-left',
+  'border-color','border-width','border-style','border-radius','box-shadow','padding','padding-top',
+  'padding-right','padding-bottom','padding-left','padding-inline','padding-block','margin','margin-top',
+  'margin-right','margin-bottom','margin-left','margin-inline','margin-block','font-size','font-weight',
+  'font-family','font-style','line-height','text-align','text-decoration','text-underline-offset','direction',
+  'display','width','min-width','max-width','height','min-height','max-height','aspect-ratio','object-fit',
+  'object-position','overflow','overflow-x','overflow-y','vertical-align','align-items','justify-content',
+  'gap','flex','flex-basis','flex-grow','flex-shrink','transition','transform','opacity','outline',
+  'outline-offset','cursor','list-style','box-sizing',
+]);
+
+function splitCssDeclarations(value: string): string[] {
+  const parts: string[] = [];
+  let start = 0, depth = 0, quote = '', escaped = false;
+  for (let i = 0; i < value.length; i++) {
+    const ch = value[i];
+    if (escaped) { escaped = false; continue; }
+    if (ch === '\\\\' && quote) { escaped = true; continue; }
+    if (quote) { if (ch === quote) quote = ''; continue; }
+    if (ch === '"' || ch === "'") { quote = ch; continue; }
+    if (ch === '(') depth++;
+    else if (ch === ')') depth = Math.max(0, depth - 1);
+    else if (ch === ';' && depth === 0) { parts.push(value.slice(start, i)); start = i + 1; }
+  }
+  parts.push(value.slice(start));
+  return parts;
+}
+
+function safeCssValue(property: string, rawValue: string): string | null {
+  const value = rawValue.trim();
+  if (!value || /url\\s*\\(|expression|javascript:|vbscript:|data:|@import|behavior|binding/i.test(value)) return null;
+  if (/[{}<>\\\\]/.test(value) || !/^[a-zA-Z0-9\\s#.,%()+*/:'"!_-]+$/.test(value)) return null;
+  if (property.startsWith('--')) {
+    if (!/^--content-image-(?:width|height|radius|fit)$/.test(property)) return null;
+    if (!/^(?:auto|cover|contain|(?:\\d+(?:\\.\\d+)?)(?:px|%|rem|em))$/.test(value)) return null;
+  } else if (!SAFE_INLINE_STYLE_PROPERTIES.has(property)) return null;
+  return value;
+}
+
+function sanitizeInlineStyle(rawStyle: string): string {
+  const declarations: string[] = [];
+  for (const declaration of splitCssDeclarations(String(rawStyle || ''))) {
+    const colon = declaration.indexOf(':');
+    if (colon <= 0) continue;
+    const property = declaration.slice(0, colon).trim().toLowerCase();
+    if (!/^(?:[a-z][a-z-]*|--[a-z][a-z0-9-]*)$/.test(property)) continue;
+    const value = safeCssValue(property, declaration.slice(colon + 1));
+    if (value) declarations.push(`${property}: ${value}`);
+  }
+  return declarations.join('; ');
+}
 
 function safeUrl(value: string): string | null {
   const raw = String(value || '').trim().replace(/&amp;/g, '&');
@@ -192,8 +247,8 @@ function renderOpenTag(tag: string, attrs: Array<{ name: string; value: string }
       continue;
     }
     if (name === 'style') {
-      if (/expression|javascript:/i.test(value)) continue;
-      safe.push(`style="${value.replace(/"/g, '&quot;')}"`);
+      const style = sanitizeInlineStyle(value);
+      if (style) safe.push(`style="${style.replace(/"/g, '&quot;')}"`);
       continue;
     }
     if (name === 'target') {

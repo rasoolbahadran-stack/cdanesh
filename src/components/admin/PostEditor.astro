@@ -43,6 +43,11 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
     .save-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
     .seo-details{margin-top:14px;border:1px solid var(--a-line);border-radius:12px;padding:12px}
     .seo-details summary{font-weight:800;cursor:pointer}
+    .post-page-jump{position:fixed;left:22px;bottom:24px;z-index:260;display:grid;gap:8px}
+    .post-page-jump button{width:42px;height:42px;border:1px solid var(--a-line);border-radius:13px;background:#fff;color:var(--a-purple);box-shadow:0 8px 24px rgba(24,24,60,.14);font-size:21px;font-weight:800;cursor:pointer;transition:transform .18s,background .18s,color .18s}
+    .post-page-jump button:hover{transform:translateY(-2px);background:var(--a-purple);color:#fff}
+    .post-page-jump button:focus-visible{outline:3px solid var(--a-purple-soft);outline-offset:3px}
+    @media(max-width:600px){.post-page-jump{left:12px;bottom:14px}.post-page-jump button{width:38px;height:38px}}
     @media(max-width:900px){.post-form-grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"fields" "sidebar" "editor"}.post-form-grid>div:first-child,.post-form-grid>aside,.post-form-grid>.post-editor-fullwidth{grid-column:1;grid-row:auto}.post-editor-page{padding:14px}}
     @media(max-width:600px){.post-fields{grid-template-columns:1fr}.post-field.full{grid-column:auto}.editor-visual,.CodeMirror{min-height:340px;height:340px}}
   </style>
@@ -108,6 +113,10 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
         </aside>
       </div>
     </form>
+    <nav class="post-page-jump" aria-label="پیمایش سریع صفحه مقاله">
+      <button type="button" id="post-scroll-top" title="رفتن به ابتدای صفحه" aria-label="رفتن به ابتدای صفحه">↑</button>
+      <button type="button" id="post-scroll-bottom" title="رفتن به انتهای صفحه" aria-label="رفتن به انتهای صفحه">↓</button>
+    </nav>
     <div class="modal-scrim image-style-scrim" id="post-image-style" aria-hidden="true">
     <section class="modal image-style-modal" role="dialog" aria-modal="true" aria-labelledby="image-style-title">
       <div class="modal-head"><h3 id="image-style-title">تنظیم اندازه و استایل تصویر</h3><button type="button" class="btn btn-ghost btn-sm" id="image-style-cancel">انصراف</button></div>
@@ -135,6 +144,8 @@ const isChecked = (v: unknown) => v === true || v === 1 || v === '1' || v === 't
   <script>
     import '../../scripts/admin.ts';
     document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('post-scroll-top')?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+      document.getElementById('post-scroll-bottom')?.addEventListener('click', () => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }));
       const form = document.getElementById('post-editor-form') as HTMLFormElement;
       const visual = document.getElementById('visual-editor') as HTMLElement;
       const source = document.getElementById('html-editor') as HTMLTextAreaElement;
