@@ -267,15 +267,20 @@ const meta = {
 
   // سایدبار در تمام مدت مقاله ثابت می‌ماند و با Hover یا اسکرول جمع نمی‌شود.
 
-  // جلوگیری از کوچک‌نمایی با میانبرها فقط در صفحه مقاله؛ سایر صفحات آزاد می‌مانند.
+  // حداقل زوم هدف ۶۷٪؛ میانبرهای کوچک‌نمایی پس از چهار پله از ۱۰۰٪ متوقف می‌شوند.
+  // این محافظ فقط روی صفحه مقاله فعال است و در سایر مسیرها هیچ دخالتی ندارد.
+  let articleZoomOutSteps = 0;
+  const zoomOutKeys = ['-', '_'];
   window.addEventListener('keydown', (event) => {
-    if ((event.ctrlKey || event.metaKey) && !event.altKey &&
-      (event.key === '-' || event.key === '_' || event.code === 'Minus' || event.code === 'NumpadSubtract')) {
-      event.preventDefault();
-    }
+    if (!(event.ctrlKey || event.metaKey) || event.altKey ||
+      !(zoomOutKeys.includes(event.key) || event.code === 'Minus' || event.code === 'NumpadSubtract')) return;
+    if (articleZoomOutSteps >= 4) event.preventDefault();
+    else articleZoomOutSteps += 1;
   });
   window.addEventListener('wheel', (event) => {
-    if (event.ctrlKey || event.metaKey) event.preventDefault();
+    if (!(event.ctrlKey || event.metaKey) || event.deltaY <= 0) return;
+    if (articleZoomOutSteps >= 4) event.preventDefault();
+    else articleZoomOutSteps += 1;
   }, { passive: false });
 
   const shareButton = document.getElementById('article-share') as HTMLButtonElement | null;
