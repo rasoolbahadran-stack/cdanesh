@@ -35,7 +35,7 @@ export const ENTITIES: Record<string, EntityConfig> = {
       title: N.text(200),
       slug: N.text(120),
       excerpt: N.text(400),
-      content: N.html,
+      content: N.articleHtml,
       cover_image: N.text(500),
       category_id: N.int,
       tags: ((v) => (Array.isArray(v) ? v.map((t) => String(t).trim()).filter(Boolean).slice(0, 10) : [])) as typeof N.json,

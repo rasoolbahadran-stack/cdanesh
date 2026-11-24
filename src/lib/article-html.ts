@@ -82,7 +82,7 @@ function extractDocumentBody(html: string): string {
 /* استخراج CSS محدود از style داخلی مقاله؛ هیچ استایل سراسری یا منبع خارجی پذیرفته نمی‌شود. */
 const ARTICLE_CSS_PROPERTIES = new Set([
   'color','background','background-color','border','border-top','border-right','border-bottom','border-left',
-  'border-color','border-width','border-style','border-radius','box-shadow','padding','padding-top',
+  'border-color','border-width','border-style','border-collapse','border-radius','box-shadow','padding','padding-top',
   'padding-right','padding-bottom','padding-left','padding-inline','padding-block','margin','margin-top',
   'margin-right','margin-bottom','margin-left','margin-inline','margin-block','font-size','font-weight',
   'font-family','font-style','line-height','text-align','text-decoration','text-underline-offset','direction',
@@ -271,7 +271,7 @@ export function renderArticleHtml(rawHtml: string, opts: ArticleHtmlOptions = {}
   }
 
   if (articleCss && cleaned) {
-    const hasArticleRoot = /class\\s*=\\s*["'][^"']*\\barticle-html\\b/i.test(cleaned);
+    const hasArticleRoot = /class\s*=\s*["'][^"']*\barticle-html\b/i.test(cleaned);
     const articleBody = hasArticleRoot ? cleaned : `<article class="article-html">${cleaned}</article>`;
     cleaned = `<style data-article-style="scoped">${articleCss}</style>${articleBody}`;
   }

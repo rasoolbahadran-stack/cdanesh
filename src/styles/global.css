@@ -82,6 +82,16 @@ ul, ol { padding-inline-start: 1.4em; }
 button { font-family: inherit; cursor: pointer; }
 input, textarea, select { font-family: inherit; font-size: 1rem; }
 ::selection { background: rgba(244, 37, 123, 0.18); }
+
+/* انتخاب متن در صفحات مقاله: آبی، مستقل از رنگ انتخاب متن سایر صفحات */
+html[data-article-page="true"] ::selection {
+  background: rgba(59, 130, 246, 0.28);
+  color: #0f172a;
+}
+html[data-article-page="true"] ::-moz-selection {
+  background: rgba(59, 130, 246, 0.28);
+  color: #0f172a;
+}
 :focus-visible { outline: 2.5px solid var(--purple-light); outline-offset: 2px; border-radius: 4px; }
 
 @font-face {

@@ -13,6 +13,8 @@ export type Normalizer = (v: unknown, body: Record<string, unknown>) => unknown;
 export const N = {
   text: (max = 500) => ((v: unknown) => str(v, max)) as Normalizer,
   html: ((v: unknown) => sanitizeHtml(String(v ?? ''))) as Normalizer,
+  // محتوای مقاله خام ذخیره می‌شود؛ پاک‌سازی HTML و CSS محدود در زمان رندر انجام می‌شود.
+  articleHtml: ((v: unknown) => String(v ?? '')) as Normalizer,
   plain: ((v: unknown) => stripTags(String(v ?? ''), 400)) as Normalizer,
   slug: ((v: unknown, body: Record<string, unknown>, from?: string) => slugify(str(v) || str(body[from || 'title']) || 'item')) as unknown as Normalizer,
   int: ((v: unknown) => num(v, 0)) as Normalizer,
