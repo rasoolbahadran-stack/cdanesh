@@ -83,16 +83,16 @@ articleBlocks = articleBlocks.map((block) => {
 const visibleToc: TocItem[] = [];
 articleBlocks.forEach((block, index) => {
   const blk = block as unknown as { t?: string; x?: string };
-  if (blk.t === 'h2' || blk.t === 'h3') {
-    visibleToc.push({ text: blk.x || '', level: blk.t, id: `content-heading-${index + 1}` });
+  if (blk.t === 'h2') {
+    visibleToc.push({ text: blk.x || '', level: 'h2', id: `content-heading-${index + 1}` });
   } else if (blk.t === 'html') {
     visibleToc.push(...injectHtmlHeadingIds(blk.x || '', index).headings
-      .filter((h) => h.level !== 'h4')
-      .map((h) => ({ text: h.text, level: h.level, id: h.id })));
+      .filter((heading) => heading.level === 'h2')
+      .map((heading) => ({ text: heading.text, level: 'h2', id: heading.id })));
   }
 });
-// همهٔ H2 و H3ها نمایش داده می‌شوند؛ تعداد زیاد سرفصل‌ها باعث حذف موارد میانی نمی‌شود.
-const sidebarToc = visibleToc.filter((item) => item.level === 'h2' || item.level === 'h3');
+// فهرست سایدبار فقط شامل تیترهای اصلی H2 است.
+const sidebarToc = visibleToc;
 
 // لینک‌سازی داخلی: هر مقاله به خدمات مرتبط با موضوع خودش لینک می‌دهد
 const CATEGORY_SERVICES: Record<string, Array<{ href: string; t: string }>> = {
@@ -162,24 +162,18 @@ const meta = {
   <div class:list={['container', 'article-page-layout', { 'article-page-layout--with-toc': Boolean(post.cover) || sidebarToc.length > 0 }]}>
     {(post.cover || sidebarToc.length > 0) && (
       <aside class="article-sidebar" aria-label="راهنمای مطالعه مقاله" data-article-sidebar>
-        <button type="button" class="article-sidebar__handle" data-sidebar-handle aria-expanded="true" aria-controls="article-sidebar-content" aria-label="جمع یا باز کردن سایدبار مقاله">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 5-7 7 7 7" /></svg>
-        </button>
         <div class="article-sidebar__content" id="article-sidebar-content">
           {post.cover && (
             <figure class="article-sidebar__cover">
               <img src={post.cover} alt={`تصویر شاخص مقاله: ${post.title}`} width="720" height="405" decoding="async" fetchpriority="high" />
             </figure>
           )}
-          {sidebarToc.length > 0 && <details class="article-toc" aria-label="فهرست مطالب" data-toc>
-            <summary class="article-toc__toggle">
-              <strong>سرفصل‌های مهم</strong>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
-            </summary>
+          {sidebarToc.length > 0 && <section class="article-toc" aria-label="فهرست مطالب" data-toc>
+            <div class="article-toc__heading"><strong>سرفصل‌های مهم</strong></div>
             <div class="article-toc__body">
-              <ul>{sidebarToc.map((item) => <li class={item.level === 'h3' ? 'article-toc__item article-toc__item--sub' : 'article-toc__item'}><a href={`#${item.id}`}>{item.text}</a></li>)}</ul>
+              <ul>{sidebarToc.map((item) => <li class="article-toc__item"><a href={`#${item.id}`}>{item.text}</a></li>)}</ul>
             </div>
-          </details>}
+          </section>}
           <div class="article-sidebar__cta">
             <span class="article-sidebar__cta-kicker">مشاوره و نیازسنجی پروژه</span>
             <strong>{isClothingDesignArticle ? 'برای فروش آنلاین پوشاک برنامه دارید؟' : 'برای وب‌سایت کسب‌وکارتان برنامه دارید؟'}</strong>
@@ -250,12 +244,8 @@ const meta = {
 </BaseLayout>
 
 <script>
-  // فهرست مطالب: سایدبار باز در دسکتاپ و آکاردئون بسته در موبایل
-  // جزئیات فهرست با رفتار بومی HTML باز و بسته می‌شود؛ JS فقط حالت اولیه دسکتاپ را تنظیم می‌کند.
-  const toc = document.querySelector<HTMLDetailsElement>('[data-toc]');
-  if (toc && window.matchMedia('(min-width: 981px)').matches) {
-    toc.open = true;
-  }
+  // فهرست مطالب همیشه باز است؛ فقط بدنهٔ H2ها اسکرول داخلی دارد.
+  document.documentElement.dataset.articlePage = 'true';
 
   // نوار پیشرفت مطالعه: فقط بدنه مقاله مبنای درصد خواندن است.
   const progress = document.querySelector<HTMLElement>('[data-article-progress]');
@@ -275,48 +265,18 @@ const meta = {
   window.addEventListener('scroll', updateArticleProgress, { passive: true });
   window.addEventListener('resize', updateArticleProgress);
 
-  // سایدبار دسکتاپ با Hover و جهت اسکرول: پایین‌رفتن آن را جمع و ورود موس/بالارفتن آن را باز می‌کند.
-  const articleLayout = document.querySelector<HTMLElement>('.article-page-layout--with-toc');
-  const articleSidebar = document.querySelector<HTMLElement>('[data-article-sidebar]');
-  const sidebarHandle = document.querySelector<HTMLButtonElement>('[data-sidebar-handle]');
-  const desktopSidebar = () => window.matchMedia('(min-width: 981px)').matches;
-  let previousScrollY = window.scrollY;
-  let sidebarHideTimer = 0;
-  const setSidebarCollapsed = (collapsed: boolean) => {
-    if (!desktopSidebar() || !articleLayout || !articleSidebar || !sidebarHandle) return;
-    if (collapsed && articleSidebar.contains(document.activeElement)) return;
-    articleSidebar.classList.toggle('is-collapsed', collapsed);
-    articleLayout.classList.toggle('article-page-layout--sidebar-collapsed', collapsed);
-    sidebarHandle.setAttribute('aria-expanded', String(!collapsed));
-  };
-  sidebarHandle?.addEventListener('click', () => {
-    setSidebarCollapsed(!articleSidebar?.classList.contains('is-collapsed'));
-  });
-  articleSidebar?.addEventListener('pointerenter', () => {
-    if (!desktopSidebar()) return;
-    window.clearTimeout(sidebarHideTimer);
-    setSidebarCollapsed(false);
-  });
-  articleSidebar?.addEventListener('pointerleave', () => {
-    if (!desktopSidebar()) return;
-    window.clearTimeout(sidebarHideTimer);
-    sidebarHideTimer = window.setTimeout(() => {
-      if (!articleSidebar.matches(':hover')) setSidebarCollapsed(true);
-    }, 900);
-  });
-  window.addEventListener('scroll', () => {
-    if (!desktopSidebar() || !articleSidebar || articleSidebar.matches(':hover')) {
-      previousScrollY = window.scrollY;
-      return;
+  // سایدبار در تمام مدت مقاله ثابت می‌ماند و با Hover یا اسکرول جمع نمی‌شود.
+
+  // جلوگیری از کوچک‌نمایی با میانبرها فقط در صفحه مقاله؛ سایر صفحات آزاد می‌مانند.
+  window.addEventListener('keydown', (event) => {
+    if ((event.ctrlKey || event.metaKey) && !event.altKey &&
+      (event.key === '-' || event.key === '_' || event.code === 'Minus' || event.code === 'NumpadSubtract')) {
+      event.preventDefault();
     }
-    const current = window.scrollY;
-    if (current > previousScrollY + 5) setSidebarCollapsed(true);
-    else if (current < previousScrollY - 5 && current > 80) setSidebarCollapsed(false);
-    previousScrollY = current;
-  }, { passive: true });
-  window.addEventListener('resize', () => {
-    if (!desktopSidebar()) setSidebarCollapsed(false);
   });
+  window.addEventListener('wheel', (event) => {
+    if (event.ctrlKey || event.metaKey) event.preventDefault();
+  }, { passive: false });
 
   const shareButton = document.getElementById('article-share') as HTMLButtonElement | null;
   const shareStatus = document.getElementById('article-share-status');
@@ -352,14 +312,12 @@ const meta = {
   .article-reading-progress { position:fixed; inset:0 0 auto; height:4px; z-index:9999; background:rgba(12,18,48,.08); pointer-events:none; }
   .article-reading-progress span { display:block; width:100%; height:100%; transform:scaleX(0); transform-origin:right center; background:linear-gradient(90deg,#9b6bff,#5b35c7); will-change:transform; }
   .article-page-layout { display:grid; grid-template-columns:minmax(0,1fr); align-items:stretch; gap:var(--layout-gap); direction:ltr; }
-  .article-page-layout--with-toc { grid-template-columns:var(--article-sidebar-width) minmax(0,1fr); transition:grid-template-columns .24s ease; }
-  .article-page-layout--sidebar-collapsed { grid-template-columns:46px minmax(0,1fr); }
-  .article-sidebar { min-width:0; position:sticky; top:88px; align-self:start; direction:rtl; display:block; max-height:calc(100vh - 104px); z-index:4; }
-  .article-sidebar__content { display:grid; gap:10px; opacity:1; visibility:visible; transition:opacity .18s ease,visibility .18s ease; }
-  .article-sidebar.is-collapsed .article-sidebar__content { opacity:0; visibility:hidden; pointer-events:none; }
-  .article-sidebar__handle { position:absolute; left:-42px; top:0; width:36px; height:42px; display:grid; place-items:center; border:1px solid var(--line); border-radius:12px 0 0 12px; background:#fff; color:var(--purple); box-shadow:var(--shadow-soft); cursor:pointer; transition:background .18s,color .18s,transform .18s; }
-  .article-sidebar__handle:hover { background:var(--purple); color:#fff; }
-  .article-sidebar.is-collapsed .article-sidebar__handle svg { transform:rotate(180deg); }
+  .article-page-layout--with-toc { grid-template-columns:var(--article-sidebar-width) minmax(0,1fr); }
+  .article-sidebar { min-width:0; position:sticky; top:88px; align-self:stretch; direction:rtl; display:block; height:calc(100vh - 112px); height:calc(100dvh - 112px); min-height:420px; z-index:4; }
+  .article-sidebar__content { height:100%; min-height:0; display:grid; grid-template-rows:auto minmax(0,1fr) auto; gap:10px; }
+  .article-sidebar__cover { min-height:0; }
+  .article-sidebar__cover img { max-height:clamp(90px,16vh,150px); }
+  .article-sidebar__cta { min-height:0; align-content:center; }
   .article-sidebar__cover { margin:0; overflow:hidden; border:1px solid var(--line); border-radius:16px; background:#fff; box-shadow:var(--shadow-soft); }
   .article-sidebar__cover img { display:block; width:100%; aspect-ratio:16/7; max-height:132px; object-fit:cover; }
   .article-page-main { min-width:0; direction:rtl; }
@@ -367,19 +325,13 @@ const meta = {
   .article-content { min-width:0; width:100%; }
   .article-content .prose { max-width:100%; width:100%; margin:0; font-size:var(--reading-font-size); line-height:var(--reading-line-height); }
   .article-content .prose h2, .article-content .prose h3 { scroll-margin-top:96px; }
-  .article-toc { margin:0; padding:14px; border:1px solid var(--line); border-radius:16px; background:#fff; box-shadow:var(--shadow-soft); }
-  .article-toc__toggle { width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:0; cursor:pointer; text-align:right; list-style:none; }
-  .article-toc__toggle::-webkit-details-marker { display:none; }
-  .article-toc__toggle::marker { content:""; }
-  .article-toc__toggle strong { color:var(--navy); font-size:1rem; }
-  .article-toc__toggle svg { color:var(--purple); transition:transform .25s var(--ease); flex:none; }
-  .article-toc[open] > .article-toc__toggle svg { transform:rotate(180deg); }
-  .article-toc__body { margin-top:10px; max-height:min(22vh,190px); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:var(--lavender-deep) transparent; }
+  .article-toc { min-height:0; margin:0; padding:14px; border:1px solid var(--line); border-radius:16px; background:#fff; box-shadow:var(--shadow-soft); display:flex; flex-direction:column; }
+  .article-toc__heading { flex:none; padding-bottom:9px; border-bottom:1px solid var(--line); }
+  .article-toc__heading strong { color:var(--navy); font-size:1rem; }
+  .article-toc__body { flex:1; min-height:0; margin-top:9px; max-height:none; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:var(--lavender-deep) transparent; }
   .article-toc ul { margin:0; padding:0 18px 0 0; display:grid; gap:6px; line-height:1.8; list-style:disc; }
   .article-toc li { color:var(--purple); padding-right:1px; }
-  .article-toc__item--sub { padding-right:13px !important; list-style-type:circle; }
   .article-toc a { color:#394052; text-decoration:none; font-size:.86rem; display:block; line-height:1.8; }
-  .article-toc__item--sub a { font-size:.81rem; color:var(--mut); }
   .article-toc a:hover { color:var(--purple); }
   .article-sidebar__cta { margin-top:0; padding:13px 14px; border-radius:15px; background:linear-gradient(145deg,#f4edff,#fff4f8); border:1px solid rgba(124,77,255,.12); display:grid; gap:7px; box-shadow:var(--shadow-soft); direction:rtl; }
   .article-sidebar__cta-kicker { color:var(--pink-dark); font-size:.74rem; font-weight:800; }
@@ -412,9 +364,8 @@ const meta = {
   @media (max-width:1100px) { .article-related .pf-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
   @media (max-width:980px) {
     .article-page-layout--with-toc { grid-template-columns:minmax(0,1fr); gap:18px; }
-    .article-sidebar { position:static; max-height:none; }
-    .article-sidebar__handle { display:none; }
-    .article-sidebar__content { display:grid; visibility:visible !important; opacity:1 !important; }
+    .article-sidebar { position:static; height:auto; min-height:0; }
+    .article-sidebar__content { height:auto; grid-template-rows:auto minmax(140px,auto) auto; }
     .article-toc__body { max-height:260px; }
   }
   @media (max-width:760px) {
@@ -425,6 +376,6 @@ const meta = {
     .article-main-section { padding-top:22px; }
   }
   @media (prefers-reduced-motion:reduce) {
-    .article-page-layout--with-toc, .article-sidebar__content, .article-sidebar__handle { transition:none; }
+    .article-page-layout--with-toc, .article-sidebar__content { transition:none; }
   }
 </style>
