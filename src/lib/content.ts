@@ -158,14 +158,14 @@ export function injectHtmlHeadingIds(
 ): { html: string; headings: Array<{ text: string; level: string; id: string }> } {
   const headings: Array<{ text: string; level: string; id: string }> = [];
   let k = 0;
-  const out = String(html || '').replace(/<h([234])\\b([^>]*)>([\\s\\S]*?)<\\/h\\1\\s*>/gi, (_m, lvl: string, attrs: string, inner: string) => {
+  const out = String(html || '').replace(/<h([234])\b([^>]*)>([\s\S]*?)<\/h\1\s*>/gi, (_m, lvl: string, attrs: string, inner: string) => {
     k += 1;
-    const existingId = attrs.match(/\\bid\\s*=\\s*(["'])(.*?)\\1/i)?.[2]?.trim();
-    const id = existingId || `content-heading-${blockIndex + 1}-${k}`;
-    headings.push({ text: String(inner).replace(/<[^>]+>/g, '').trim(), level: `h${lvl}`, id });
-    const nextAttrs = existingId ? attrs : `${attrs} id="${id}"`;
-    return `<h${lvl}${nextAttrs}>${inner}</h${lvl}>`;
-  })
+    const existingId = attrs.match(/\bid\s*=\s*(["'])(.*?)\1/i)?.[2]?.trim();
+    const id = existingId || 'content-heading-' + (blockIndex + 1) + '-' + k;
+    headings.push({ text: String(inner).replace(/<[^>]+>/g, '').trim(), level: 'h' + lvl, id });
+    const nextAttrs = existingId ? attrs : attrs + ' id="' + id + '"';
+    return '<h' + lvl + nextAttrs + '>' + inner + '</h' + lvl + '>';
+  });
   return { html: out, headings };
 }
 

@@ -89,7 +89,7 @@ const ARTICLE_CSS_PROPERTIES = new Set([
   'display','width','min-width','max-width','height','min-height','max-height','aspect-ratio','object-fit',
   'object-position','overflow','overflow-x','overflow-y','vertical-align','align-items','justify-content',
   'gap','flex','flex-basis','flex-grow','flex-shrink','transition','transform','opacity','filter','outline',
-  'outline-offset','cursor','list-style','box-sizing',
+  'outline-offset','cursor','list-style','box-sizing','content',
 ]);
 
 function matchingCssBrace(css: string, openIndex: number): number {
@@ -97,7 +97,7 @@ function matchingCssBrace(css: string, openIndex: number): number {
   for (let i = openIndex; i < css.length; i++) {
     const ch = css[i];
     if (escaped) { escaped = false; continue; }
-    if (ch === '\\\\' && quote) { escaped = true; continue; }
+    if (ch === '\\' && quote) { escaped = true; continue; }
     if (quote) { if (ch === quote) quote = ''; continue; }
     if (ch === '"' || ch === "'") { quote = ch; continue; }
     if (ch === '{') depth++;
@@ -111,7 +111,7 @@ function splitCssTopLevel(value: string, delimiter: string): string[] {
   let start = 0, depth = 0, quote = '';
   for (let i = 0; i < value.length; i++) {
     const ch = value[i];
-    if (quote) { if (ch === quote && value[i - 1] !== '\\\\') quote = ''; continue; }
+    if (quote) { if (ch === quote && value[i - 1] !== '\\') quote = ''; continue; }
     if (ch === '"' || ch === "'") { quote = ch; continue; }
     if (ch === '(' || ch === '[') depth++;
     else if (ch === ')' || ch === ']') depth = Math.max(0, depth - 1);
@@ -129,15 +129,15 @@ function sanitizeArticleCssDeclarations(raw: string): string {
     const property = declaration.slice(0, colon).trim().toLowerCase();
     const value = declaration.slice(colon + 1).trim();
     if (!ARTICLE_CSS_PROPERTIES.has(property) || !value) continue;
-    if (/url\\s*\\(|expression|javascript:|vbscript:|data:|@import|behavior|binding/i.test(value)) continue;
-    if (/[{}<>\\\\]/.test(value) || !/^[a-zA-Z0-9\\s#.,%()+*/:'"!_-]+$/.test(value)) continue;
-    safe.push(`${property}:${value}`);
+    if (/url\s*\(|expression|javascript:|vbscript:|data:|@import|behavior|binding/i.test(value)) continue;
+    if (/[{}<>\\]/.test(value) || !/^[a-zA-Z0-9\s#.,%()+*/:'"!_-]+$/.test(value)) continue;
+    safe.push(property + ':' + value);
   }
   return safe.join(';');
 }
 
 function sanitizeArticleCssRules(rawCss: string): string {
-  const css = String(rawCss || '').replace(/\\/\\*[\\s\\S]*?\\*\\//g, '').slice(0, 30000);
+  const css = String(rawCss || '').replace(/\/\*[\s\S]*?\*\//g, '').slice(0, 30000);
   const output: string[] = [];
   let cursor = 0;
   while (cursor < css.length) {
@@ -149,11 +149,11 @@ function sanitizeArticleCssRules(rawCss: string): string {
     const body = css.slice(open + 1, close);
     cursor = close + 1;
     if (!header) continue;
-    if (/^@media\\b/i.test(header)) {
-      const query = header.replace(/^@media\\s*/i, '').trim();
-      if (!/^\\(\\s*(?:min|max)-width\\s*:\\s*\\d+(?:\\.\\d+)?(?:px|em|rem)\\s*\\)$/i.test(query)) continue;
+    if (/^@media\b/i.test(header)) {
+      const query = header.replace(/^@media\s*/i, '').trim();
+      if (!/^\(\s*(?:min|max)-width\s*:\s*\d+(?:\.\d+)?(?:px|em|rem)\s*\)$/i.test(query)) continue;
       const nested = sanitizeArticleCssRules(body);
-      if (nested) output.push(`@media ${query}{${nested}}`);
+      if (nested) output.push('@media ' + query + '{' + nested + '}');
       continue;
     }
     if (header.startsWith('@')) continue;
@@ -162,23 +162,23 @@ function sanitizeArticleCssRules(rawCss: string): string {
     const scoped: string[] = [];
     let invalid = false;
     for (const selector of selectors) {
-      if (!selector || !/^[a-zA-Z0-9_# .>+~:*()[\\]="'-]+$/.test(selector)) { invalid = true; break; }
-      if (/(^|[\\s>+~])(?:html|body|:root|:host)(?=$|[\\s.#:[>+~])/i.test(selector)) { invalid = true; break; }
-      if (/:has\\s*\\(|:global|:deep|::part|::slotted|:visited/i.test(selector)) { invalid = true; break; }
+      if (!selector || !/^[a-zA-Z0-9_# .>+~:*()\[\]="'-]+$/.test(selector)) { invalid = true; break; }
+      if (/(^|[\s>+~])(?:html|body|:root|:host)(?=$|[\s.#:[>+~])/i.test(selector)) { invalid = true; break; }
+      if (/:has\s*\(|:global|:deep|::part|::slotted|:visited/i.test(selector)) { invalid = true; break; }
       scoped.push(selector.startsWith('.article-html') || selector.startsWith('article.article-html')
-        ? `.article-content ${selector}`
-        : `.article-content .article-html ${selector}`);
+        ? '.article-content ' + selector
+        : '.article-content .article-html ' + selector);
     }
     if (invalid) continue;
     const declarations = sanitizeArticleCssDeclarations(body);
-    if (declarations) output.push(`${scoped.join(',')}{${declarations}}`);
+    if (declarations) output.push(scoped.join(',') + '{' + declarations + '}');
   }
   return output.join('');
 }
 
 function extractArticleCss(html: string): { html: string; css: string } {
   const styles: string[] = [];
-  const withoutStyles = String(html || '').replace(/<style\\b[^>]*>([\\s\\S]*?)<\\/style\\s*>/gi, (_match, css: string) => {
+  const withoutStyles = String(html || '').replace(/<style\b[^>]*>([\s\S]*?)<\/style\s*>/gi, (_match, css: string) => {
     if (css && styles.length < 12) styles.push(css);
     return '';
   });

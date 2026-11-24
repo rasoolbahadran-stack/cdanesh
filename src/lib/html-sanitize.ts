@@ -63,7 +63,7 @@ function splitCssDeclarations(value: string): string[] {
   for (let i = 0; i < value.length; i++) {
     const ch = value[i];
     if (escaped) { escaped = false; continue; }
-    if (ch === '\\\\' && quote) { escaped = true; continue; }
+    if (ch === '\\' && quote) { escaped = true; continue; }
     if (quote) { if (ch === quote) quote = ''; continue; }
     if (ch === '"' || ch === "'") { quote = ch; continue; }
     if (ch === '(') depth++;
@@ -76,11 +76,11 @@ function splitCssDeclarations(value: string): string[] {
 
 function safeCssValue(property: string, rawValue: string): string | null {
   const value = rawValue.trim();
-  if (!value || /url\\s*\\(|expression|javascript:|vbscript:|data:|@import|behavior|binding/i.test(value)) return null;
-  if (/[{}<>\\\\]/.test(value) || !/^[a-zA-Z0-9\\s#.,%()+*/:'"!_-]+$/.test(value)) return null;
+  if (!value || /url\s*\(|expression|javascript:|vbscript:|data:|@import|behavior|binding/i.test(value)) return null;
+  if (/[{}<>\\]/.test(value) || !/^[a-zA-Z0-9\s#.,%()+*/:'"!_-]+$/.test(value)) return null;
   if (property.startsWith('--')) {
     if (!/^--content-image-(?:width|height|radius|fit)$/.test(property)) return null;
-    if (!/^(?:auto|cover|contain|(?:\\d+(?:\\.\\d+)?)(?:px|%|rem|em))$/.test(value)) return null;
+    if (!/^(?:auto|cover|contain|(?:\d+(?:\.\d+)?)(?:px|%|rem|em))$/.test(value)) return null;
   } else if (!SAFE_INLINE_STYLE_PROPERTIES.has(property)) return null;
   return value;
 }
@@ -93,7 +93,7 @@ function sanitizeInlineStyle(rawStyle: string): string {
     const property = declaration.slice(0, colon).trim().toLowerCase();
     if (!/^(?:[a-z][a-z-]*|--[a-z][a-z0-9-]*)$/.test(property)) continue;
     const value = safeCssValue(property, declaration.slice(colon + 1));
-    if (value) declarations.push(`${property}: ${value}`);
+    if (value) declarations.push(property + ': ' + value);
   }
   return declarations.join('; ');
 }
