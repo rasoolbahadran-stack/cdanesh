@@ -1,0 +1,121 @@
+---
+/* مدیریت کاربران پنل — فقط نقش admin (کنترل هم در میان‌افزار و هم در API) */
+import AdminLayout from '../../layouts/AdminLayout.astro';
+const role = String(Astro.locals.admin?.role || 'admin');
+const meUid = Number(Astro.locals.admin?.uid || 0);
+---
+<AdminLayout title="مدیریت کاربران" crumb="حساب و دسترسی › مدیریت کاربران">
+  <div class="dash-grid" style="grid-template-columns: minmax(0,1.5fr) minmax(0,1fr)">
+    <section class="panel" style="min-width:0">
+      <div class="panel-head"><h2>👥 کاربران پنل</h2><span class="panel-sub">فعال‌سازی، نقش و بازنشانی رمز</span></div>
+      <div class="panel-body" style="overflow-x:auto">
+        <table class="tbl" id="users-tbl">
+          <thead><tr><th>نام کاربری</th><th>نام نمایشی</th><th>نقش</th><th>وضعیت</th><th>آخرین ورود</th><th>عملیات</th></tr></thead>
+          <tbody id="users-body"><tr><td colspan="6">در حال بارگذاری…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" style="min-width:0">
+      <div class="panel-head"><h2>➕ کاربر جدید</h2></div>
+      <div class="panel-body">
+        <form id="user-form" style="display:grid;gap:12px">
+          <div class="form-field"><label>نام کاربری (لاتین)</label><input name="username" required pattern="[a-zA-Z0-9._-]{3,64}" /></div>
+          <div class="form-field"><label>نام نمایشی</label><input name="display_name" /></div>
+          <div class="form-field"><label>رمز عبور اولیه</label><input name="password" type="password" required minlength="10" placeholder="حداقل ۱۰ کاراکتر؛ حروف + اعداد" autocomplete="new-password" /></div>
+          <div class="form-field"><label>نقش</label>
+            <select name="role">
+              <option value="editor">ویراستار محتوا</option>
+              <option value="admin">مدیر سیستم</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <button type="submit" class="btn btn-gold">ایجاد کاربر</button>
+            <span id="user-status" style="font-size:12px;color:var(--a-muted)"></span>
+          </div>
+          <div style="font-size:12.5px;color:var(--a-muted);line-height:2">
+            <b>نقش‌ها:</b> مدیر سیستم به همهٔ بخش‌ها از جمله تنظیمات و مدیریت کاربران دسترسی دارد؛ ویراستار فقط مدیریت محتوا و رسانه. رمز اولیه پس از ورود باید تغییر داده شود.
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <script define:vars={{ meUid }}>
+    document.addEventListener('DOMContentLoaded', () => {
+      const { api, toast } = window.CDA;
+      const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      const fmtDate = (v) => {
+        if (!v) return '—';
+        try { return new Intl.DateTimeFormat('fa-IR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(v)); } catch { return String(v); }
+      };
+
+      async function load() {
+        const body = document.getElementById('users-body');
+        try {
+          const r = await api('/api/admin/users', 'GET');
+          const rows = (r && r.data) || [];
+          if (!rows.length) { body.innerHTML = '<tr><td colspan="6">هنوز کاربری ثبت نشده است</td></tr>'; return; }
+          body.innerHTML = rows.map((u) => {
+            const active = u.is_active === 1 || u.is_active === true;
+            return `<tr>
+              <td><b>${esc(u.username)}</b>${Number(u.id) === Number(meUid) ? ' <span class="badge" style="background:#eef">شما</span>' : ''}</td>
+              <td>${esc(u.display_name || '—')}</td>
+              <td>${u.role === 'admin' ? 'مدیر سیستم' : 'ویراستار'}</td>
+              <td>${active ? '<span style="color:#15803d">● فعال</span>' : '<span style="color:#b91c1c">● غیرفعال</span>'}</td>
+              <td>${fmtDate(u.last_login_at)}</td>
+              <td style="white-space:nowrap">
+                <button class="btn btn-ghost btn-sm" data-act="toggle" data-id="${u.id}" data-active="${active ? 1 : 0}">${active ? 'غیرفعال' : 'فعال'}</button>
+                <button class="btn btn-ghost btn-sm" data-act="reset" data-id="${u.id}">بازنشانی رمز</button>
+                ${Number(u.id) === Number(meUid) ? '' : `<button class="btn btn-ghost btn-sm" data-act="del" data-id="${u.id}">حذف</button>`}
+              </td>
+            </tr>`;
+          }).join('');
+        } catch (e) {
+          body.innerHTML = '<tr><td colspan="6">بارگذاری فهرست کاربران ناموفق بود</td></tr>';
+        }
+      }
+
+      document.getElementById('users-tbl')?.addEventListener('click', async (ev) => {
+        const btn = ev.target.closest('button[data-act]');
+        if (!btn) return;
+        const id = Number(btn.dataset.id);
+        const act = btn.dataset.act;
+        try {
+          if (act === 'toggle') {
+            const r = await api('/api/admin/users', 'PATCH', { id, is_active: btn.dataset.active === '1' ? false : true });
+            toast(r?.message || 'ذخیره شد', r?.ok ? 'success' : 'error');
+          } else if (act === 'reset') {
+            const pw = prompt('رمز عبور جدید برای این کاربر (حداقل ۱۰ کاراکتر، حروف + اعداد):');
+            if (!pw) return;
+            const r = await api('/api/admin/users', 'PATCH', { id, password: pw });
+            toast(r?.message || 'انجام شد', r?.ok ? 'success' : 'error');
+          } else if (act === 'del') {
+            if (!confirm('این کاربر حذف شود؟')) return;
+            const r = await api('/api/admin/users?id=' + id, 'DELETE');
+            toast(r?.message || 'حذف شد', r?.ok ? 'success' : 'error');
+          }
+        } catch { toast('عملیات ناموفق بود', 'error'); }
+        load();
+      });
+
+      document.getElementById('user-form')?.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        const form = ev.currentTarget;
+        const fd = new FormData(form);
+        const status = document.getElementById('user-status');
+        try {
+          const r = await api('/api/admin/users', 'POST', {
+            username: fd.get('username'), display_name: fd.get('display_name'),
+            password: fd.get('password'), role: fd.get('role'),
+          });
+          toast(r?.message || 'انجام شد', r?.ok ? 'success' : 'error');
+          if (r?.ok) form.reset();
+        } catch { toast('ایجاد کاربر ناموفق بود', 'error'); }
+        load();
+      });
+
+      load();
+    });
+  </script>
+</AdminLayout>

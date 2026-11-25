@@ -1,0 +1,126 @@
+---
+/* حساب کاربری — اطلاعات نشست + تغییر رمز امن با نمایش/مخفی‌سازی */
+import AdminLayout from '../../layouts/AdminLayout.astro';
+const admin = Astro.locals.admin;
+const username = String(admin?.u || '');
+const role = String(admin?.role || 'admin');
+const forceChange = Astro.url.searchParams.get('force') === '1';
+const roleName = role === 'admin' ? 'مدیر سیستم' : 'ویراستار محتوا';
+---
+<AdminLayout title="حساب کاربری" crumb="حساب و دسترسی › حساب کاربری">
+  {forceChange && (
+    <div class="info-strip" style="margin-bottom:16px;border-inline-start:3px solid #d97706;background:#fffbeb">
+      <span>⚠️</span>
+      <span><b>تغییر رمز اولیه الزامی است.</b> برای ادامهٔ کار در پنل، رمز عبور اولیه را با یک رمز امن (حداقل ۱۰ کاراکتر، ترکیب حروف و اعداد) عوض کنید. پس از تغییر، به‌طور خودکار ادامه می‌دهید.</span>
+    </div>
+  )}
+  <div class="dash-grid" style="grid-template-columns: minmax(0,1.4fr) minmax(0,1fr)">
+    <section class="panel" style="min-width:0">
+      <div class="panel-head"><h2>🔐 تغییر رمز عبور</h2></div>
+      <div class="panel-body">
+        <div class="info-strip" style="margin:0 0 14px">
+          <span>🛡</span>
+          <span>رمز فعلی در سرور با هش یک‌طرفه بررسی می‌شود؛ هش رمز هرگز به مرورگر بازنمی‌گردد. پس از تغییر، <b>تمام نشست‌های قبلی باطل</b> می‌شوند و فقط همین نشست ادامه می‌یابد.</span>
+        </div>
+        <form id="pw-form" style="display:grid;gap:14px;max-width:520px">
+          <div class="form-field pw-wrap">
+            <label for="pw-current">رمز عبور فعلی</label>
+            <div class="pw-box">
+              <input id="pw-current" name="current" type="password" autocomplete="current-password" required />
+              <button type="button" class="pw-eye" data-target="pw-current" aria-label="نمایش رمز" title="نمایش / مخفی‌سازی"></button>
+            </div>
+          </div>
+          <div class="form-field pw-wrap">
+            <label for="pw-next">رمز عبور جدید <small style="color:var(--a-muted)">(حداقل ۱۰ کاراکتر؛ ترکیب حروف و اعداد)</small></label>
+            <div class="pw-box">
+              <input id="pw-next" name="next" type="password" autocomplete="new-password" required minlength="10" />
+              <button type="button" class="pw-eye" data-target="pw-next" aria-label="نمایش رمز" title="نمایش / مخفی‌سازی"></button>
+            </div>
+          </div>
+          <div class="form-field pw-wrap">
+            <label for="pw-next2">تکرار رمز عبور جدید</label>
+            <div class="pw-box">
+              <input id="pw-next2" name="next2" type="password" autocomplete="new-password" required minlength="10" />
+              <button type="button" class="pw-eye" data-target="pw-next2" aria-label="نمایش رمز" title="نمایش / مخفی‌سازی"></button>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <button type="submit" class="btn btn-gold">تغییر رمز عبور</button>
+            <span id="pw-status" style="font-size:12.5px;color:var(--a-muted)"></span>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="panel" style="min-width:0">
+      <div class="panel-head"><h2>👤 اطلاعات حساب</h2></div>
+      <div class="panel-body">
+        <div class="tbl-card" style="min-width:0">
+          <table class="tbl">
+            <tbody>
+              <tr><td>نام کاربری</td><td><b>{username || '—'}</b></td></tr>
+              <tr><td>نقش</td><td>{roleName}</td></tr>
+              <tr><td>نشست</td><td>کوکی امن HttpOnly — اعتبار ۱۲ ساعت</td></tr>
+              <tr><td>خروج اضطراری</td><td><button type="button" class="btn btn-ghost btn-sm" id="logout-btn">خروج از حساب</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="font-size:12.5px;color:var(--a-muted);line-height:2;margin-top:12px">
+          تلاش‌های ناموفق ورود در سرور ثبت می‌شود؛ پس از ۳ تلاش ناموفق، ورود به مدت ۱۵ دقیقه قفل می‌شود. ورودهای موفق و ناموفق با زمان و IP در «گزارش فعالیت» ثبت می‌گردند.
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const { api, toast } = (window as any).CDA;
+
+      /* نمایش/مخفی‌سازی مستقل هر فیلد رمز */
+      const EYE = '👁';
+      const EYE_OFF = '🙈';
+      document.querySelectorAll<HTMLButtonElement>('.pw-eye').forEach((btn) => {
+        btn.textContent = EYE_OFF;
+        btn.addEventListener('click', () => {
+          const input = document.getElementById(btn.dataset.target || '') as HTMLInputElement | null;
+          if (!input) return;
+          const show = input.type === 'password';
+          input.type = show ? 'text' : 'password';
+          btn.textContent = show ? EYE : EYE_OFF;
+          btn.setAttribute('aria-label', show ? 'مخفی‌سازی رمز' : 'نمایش رمز');
+        });
+      });
+
+      const form = document.getElementById('pw-form') as HTMLFormElement | null;
+      form?.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        const status = document.getElementById('pw-status');
+        const btn = form.querySelector<HTMLButtonElement>('button[type=submit]');
+        const fd = new FormData(form);
+        const body = { current: fd.get('current'), next: fd.get('next'), next2: fd.get('next2') };
+        if (String(body.next).length < 10) { toast('رمز جدید باید حداقل ۱۰ کاراکتر باشد', 'error'); return; }
+        if (String(body.next) !== String(body.next2)) { toast('تکرار رمز جدید مطابقت ندارد', 'error'); return; }
+        if (btn) btn.disabled = true;
+        if (status) status.textContent = 'در حال ذخیره…';
+        try {
+          const r = await api('/api/admin/password', 'POST', body);
+          if (r?.ok) {
+            toast(r.message || 'رمز تغییر کرد؛ نشست‌های دیگر باطل شدند', 'success');
+            setTimeout(() => window.location.assign('/admin/account'), 900);
+          } else {
+            toast(r?.message || 'تغییر رمز ناموفق بود', 'error');
+            if (status) status.textContent = '';
+          }
+        } catch {
+          toast('خطای شبکه در تغییر رمز', 'error');
+        } finally {
+          if (btn) btn.disabled = false;
+        }
+      });
+
+      document.getElementById('logout-btn')?.addEventListener('click', async () => {
+        try { await fetch('/api/auth/logout', { method: 'POST' }); } finally { window.location.assign('/admin/login'); }
+      });
+    });
+  </script>
+</AdminLayout>

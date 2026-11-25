@@ -1,18 +1,20 @@
 /* ==========================================================================
    کافه‌دانش — لایهٔ دیتابیس (قاعدهٔ حیاتی پروژه)
    ---------------------------------------------------------------------------
-   دو درایور با یک رابط یکسان:
-   • اگر DATABASE_URL تنظیم شده باشد → Postgres واقعی (Neon / Vercel Postgres)
+   سه درایور با یک رابط یکسان:
+   • اگر DATABASE_URL با mysql:// شروع شود → MySQL/MariaDB (استقرار cPanel/ایران‌هاست)
+   • اگر DATABASE_URL یک Postgres واقعی باشد → Postgres (Neon / Vercel Postgres)
    • در غیر این صورت → PGlite فقط برای پیش‌نمایش محلی
-   مایگریشن‌ها به‌صورت تراکنشی و با قفل دیتابیس اجرا می‌شوند تا دو نمونهٔ
-   هم‌زمان Vercel نتوانند یک مایگریشن را دوبار ثبت کنند.
+   مایگریشن‌ها اتمیک و با قفل دیتابیس اجرا می‌شوند تا دو نمونهٔ هم‌زمان
+   نتوانند یک مایگریشن را دوبار ثبت کنند.
    ========================================================================== */
 import { env } from './env';
+import { createMysqlDriver } from './db-mysql';
 
 type Row = Record<string, unknown>;
 
 interface DbDriver {
-  kind: 'postgres' | 'pglite';
+  kind: 'postgres' | 'pglite' | 'mysql';
   sql(text: string, params?: unknown[]): Promise<Row[]>;
   exec(text: string): Promise<void>;
   migrate(migrations: string[]): Promise<void>;
@@ -35,10 +37,16 @@ const g = globalThis as unknown as {
 };
 
 async function createDriver(): Promise<DbDriver> {
-  /* ─── حالت تولید: Postgres واقعی با DATABASE_URL ─── */
+  /* ─── حالت استقرار cPanel: MySQL / MariaDB با DATABASE_URL=mysql://… ─── */
   const dbUrl = env('DATABASE_URL') || '';
+  const isMysqlUrl = /^mysql:\/\//i.test(dbUrl);
   const isPgUrl = /^postgres(ql)?:\/\//i.test(dbUrl);
 
+  if (dbUrl && isMysqlUrl) {
+    return (await createMysqlDriver()) as DbDriver;
+  }
+
+  /* ─── حالت تولید: Postgres واقعی با DATABASE_URL ─── */
   if (dbUrl && isPgUrl) {
     const { Pool } = await import('pg');
     const pool = new Pool({
@@ -52,7 +60,12 @@ async function createDriver(): Promise<DbDriver> {
 
       async sql(text, params = []) {
         const result = await pool.query(text, params as never[]);
-        return result.rows as Row[];
+        const rows = result.rows as Row[];
+        /* هم‌سازی با درایور MySQL: دستور نوشتنی بدون RETURNING → affectedRows */
+        if (!rows.length && /^\s*(INSERT|UPDATE|DELETE)\b/i.test(text)) {
+          return [{ affectedRows: Number(result.rowCount ?? 0) }];
+        }
+        return rows;
       },
 
       async exec(text) {
@@ -110,7 +123,11 @@ async function createDriver(): Promise<DbDriver> {
 
     async sql(text, params = []) {
       const result = await lite.query(text, params as never[]);
-      return result.rows as Row[];
+      const rows = result.rows as Row[];
+      if (!rows.length && /^\s*(INSERT|UPDATE|DELETE)\b/i.test(text)) {
+        return [{ affectedRows: Number((result as unknown as { affectedRows?: number }).affectedRows ?? 0) }];
+      }
+      return rows;
     },
 
     async exec(text) {
@@ -182,4 +199,29 @@ export async function migrate(): Promise<void> {
 
 export function registerMigration(sqlText: string): void {
   MIGRATIONS.push(sqlText);
+}
+
+/* ---------- کمکی‌های سازگاری درایورها ---------- */
+
+/** فهرست ستون‌های واقعی یک جدول (برای بازیابی از سطل زباله و انتقال داده) */
+export async function getTableColumns(table: string): Promise<string[]> {
+  const d = await db();
+  if (d.kind === 'mysql') {
+    const rows = await d.sql(`SHOW COLUMNS FROM \`${table}\``);
+    return rows.map((r) => String((r as Record<string, unknown>).Field || '')).filter(Boolean);
+  }
+  const rows = await d.sql(
+    `SELECT column_name FROM information_schema.columns WHERE table_name = $1`,
+    [table],
+  );
+  return rows.map((r) => String((r as Record<string, unknown>).column_name || '')).filter(Boolean);
+}
+
+/** هم‌ترازکردن شمارندهٔ شناسهٔ خودکار پس از درج با شناسهٔ صریح (Postgres فقط) */
+export async function syncSequence(table: string): Promise<void> {
+  const d = await db();
+  if (d.kind === 'mysql') return; // MySQL با درج شناسهٔ صریح خودکار تنظیم می‌شود
+  await d.sql(
+    `SELECT setval(pg_get_serial_sequence('${table}', 'id'), GREATEST((SELECT COALESCE(MAX(id), 1) FROM ${table}), 1), true)`,
+  );
 }

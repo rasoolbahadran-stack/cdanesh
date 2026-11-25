@@ -10,16 +10,8 @@ export const prerender = false;
 
 const admin = (request: Request) => !!sessionFromCookies(request.headers.get('cookie') || '');
 
-async function ensureTrashTable() {
-  await q(`CREATE TABLE IF NOT EXISTS cdanesh_admin_trash (
-    id bigserial PRIMARY KEY,
-    entity text NOT NULL,
-    entity_id bigint NOT NULL,
-    snapshot jsonb NOT NULL,
-    deleted_at timestamptz NOT NULL DEFAULT now(),
-    restored_at timestamptz
-  )`);
-}
+/* جدول سطل زباله سازگار با هر سه درایور */
+const ensureTrashTable = () => import('../../../lib/trash').then((mm) => mm.ensureTrashTable());
 
 /* بررسی اینکه آیا فایل در محتوای سایت استفاده شده است */
 async function findUsage(url: string): Promise<string[]> {

@@ -110,15 +110,9 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         <span>🛡</span>
         <span>ورود با کوکی امن HttpOnly + محدودسازی تلاش ناموفق فعال است. رمز فعلی با متغیر محیطی <code>ADMIN_PASSWORD_HASH</code> یا رمز تغییر‌یافتهٔ دیتابیس کنترل می‌شود. پس از تغییر رمز، همهٔ مسیرهای مدیریتی و API همچنان در سمت سرور کنترل می‌شوند.</span>
       </div>
-      <form id="pw-form" style="display:grid;gap:14px;max-width:460px">
-        <div class="form-field"><label>رمز فعلی</label><input type="password" name="current" autocomplete="current-password" /></div>
-        <div class="form-field"><label>رمز جدید (حداقل ۸ کاراکتر)</label><input type="password" name="next" autocomplete="new-password" /></div>
-        <div class="form-field"><label>تکرار رمز جدید</label><input type="password" name="next2" autocomplete="new-password" /></div>
-        <div style="display:flex;gap:10px;align-items:center">
-          <button type="submit" class="btn btn-gold">تغییر رمز مدیر</button>
-          <span id="pw-status" style="font-size:12px;color:var(--a-muted)"></span>
-        </div>
-      </form>
+      <div style="display:grid;gap:10px">
+        <div>تغییر رمز عبور و مدیریت نشست به صفحهٔ <a class="btn btn-ghost btn-sm" href="/admin/account" style="display:inline-flex">حساب کاربری</a> منتقل شد (با سیاست رمز ≥۱۰ کاراکتر و ابطال نشست‌های قبلی).</div>
+      </div>
       <div style="font-size:12.5px;color:var(--a-muted);line-height:2">
         <b>وضعیت سیستم:</b> اتصال دیتابیس و ذخیره‌سازی تصاویر در داشبورد قابل بررسی است. هیچ رمز یا توکنی در این صفحه نمایش داده نمی‌شود.
       </div>
@@ -219,31 +213,6 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         else { status.textContent = '✕ ذخیره نشد'; status.style.color = 'var(--a-red)'; toast(r.message || 'ذخیره ناموفق بود', 'err'); }
       });
 
-      /* تغییر رمز مدیر */
-      document.getElementById('pw-form')!.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const f = e.target as HTMLFormElement;
-        const status = document.getElementById('pw-status')!;
-        const body = {
-          current: (f.querySelector('[name=current]') as HTMLInputElement).value,
-          next: (f.querySelector('[name=next]') as HTMLInputElement).value,
-          next2: (f.querySelector('[name=next2]') as HTMLInputElement).value,
-        };
-        if (body.next.length < 8) { toast('رمز جدید باید حداقل ۸ کاراکتر باشد', 'err'); return; }
-        if (body.next !== body.next2) { toast('تکرار رمز جدید مطابقت ندارد', 'err'); return; }
-        status.textContent = '⏳ در حال تغییر…';
-        const r = await api('/api/admin/password', 'POST', body);
-        if (r.ok) {
-          status.textContent = '✓ رمز تغییر کرد';
-          status.style.color = 'var(--a-green)';
-          toast(r.message || 'رمز مدیر تغییر کرد');
-          f.reset();
-        } else {
-          status.textContent = '✕ ' + (r.message || 'تغییر ناموفق بود');
-          status.style.color = 'var(--a-red)';
-          toast(r.message || 'تغییر رمز ناموفق بود', 'err');
-        }
-      });
     });
   </script>
 </AdminLayout>

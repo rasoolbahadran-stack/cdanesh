@@ -7,6 +7,7 @@ import { q, q1 } from './db';
 import { ok, fail, unauthorized, serverError, readJson, str, num, bool, slugify, sanitizeHtml, stripTags } from './http';
 import { sessionFromCookies } from './auth';
 import { logActivity } from './seed';
+import { moveToTrash } from './trash';
 
 export type Normalizer = (v: unknown, body: Record<string, unknown>) => unknown;
 
@@ -167,17 +168,8 @@ export function makeDelete(cfg: EntityConfig) {
         }
       }
 
-      await q(`CREATE TABLE IF NOT EXISTS cdanesh_admin_trash (
-        id bigserial PRIMARY KEY, entity text NOT NULL, entity_id bigint NOT NULL,
-        snapshot jsonb NOT NULL, deleted_at timestamptz NOT NULL DEFAULT now(), restored_at timestamptz
-      )`);
-      const moved = await q(
-        `WITH deleted AS (DELETE FROM ${cfg.table} WHERE id = $1 RETURNING *)
-         INSERT INTO cdanesh_admin_trash(entity, entity_id, snapshot)
-         SELECT $2, $1, to_jsonb(deleted) FROM deleted RETURNING id`,
-        [id, cfg.table],
-      );
-      if (!moved.length) return fail('رکورد پیدا نشد یا قابل حذف نیست', 'NOT_FOUND', 404);
+      const moved = await moveToTrash(cfg.table, id);
+      if (!moved) return fail('رکورد پیدا نشد یا قابل حذف نیست', 'NOT_FOUND', 404);
       await logActivity('delete', cfg.table, id, `${cfg.label} به سطل زباله منتقل شد`);
       return ok({ id }, `${cfg.label} به سطل زباله منتقل شد و قابل بازیابی است`);
     } catch (e) { return serverError(e); }

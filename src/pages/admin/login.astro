@@ -1,5 +1,9 @@
 ---
-/* ورود به پنل مدیریت */
+/* ورود به پنل مدیریت — طراحی اختصاصی مشکی و طلایی (لوکس، مینیمال، مدرن)
+   • فرم واقعی متصل به /api/auth/login؛ منطق احراز هویت بدون تغییر
+   • آیکون نمایش/مخفی‌سازی رمز، حالت Loading، بازخورد خطا (بدون افشای اطلاعات)
+   • کاملاً RTL و ریسپانسیو؛ بدون تصویر خارجی — همهٔ افکت‌ها CSS است
+*/
 import '../../styles/admin.css';
 ---
 <!doctype html>
@@ -11,9 +15,191 @@ import '../../styles/admin.css';
     <meta name="robots" content="noindex, nofollow" />
     <link rel="icon" type="image/svg+xml" href="/img/logo.svg" />
     <link rel="preload" as="font" type="font/woff2" href="/fonts/Vazirmatn-Regular.woff2" crossorigin />
-    <link rel="preload" as="font" type="font/woff2" href="/fonts/Vazirmatn-ExtraBold.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/Vazirmatn-Bold.woff2" crossorigin />
+    <style>
+      /* ─── هویت بصری: مشکی عمیق و مات + طلایی متالیک ─── */
+      :root {
+        --gold: #d4af37;
+        --gold-soft: #e9d38a;
+        --gold-deep: #9a7b1e;
+        --ink: #0b0b0e;
+        --ink-2: #131317;
+        --ink-3: #1b1b21;
+        --line: rgba(212, 175, 55, .22);
+        --line-soft: rgba(255, 255, 255, .07);
+        --txt: #ecebe6;
+        --txt-dim: #9d9c95;
+        --ok: #3ecf8e;
+        --err: #ef6a6a;
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0; padding: 0;
+        font-family: Vazirmatn, Tahoma, sans-serif;
+        background:
+          radial-gradient(1200px 600px at 85% -10%, rgba(212,175,55,.10), transparent 60%),
+          radial-gradient(900px 500px at 8% 110%, rgba(212,175,55,.07), transparent 55%),
+          linear-gradient(160deg, var(--ink) 0%, var(--ink-2) 55%, var(--ink) 100%);
+        color: var(--txt);
+        min-height: 100dvh;
+        display: flex; align-items: center; justify-content: center;
+        padding: clamp(16px, 4vw, 48px);
+        overflow-x: hidden;
+        position: relative;
+      }
+      /* نورهای محو طلایی + اشکال هندسی ظریف پس‌زمینه */
+      .bg-decor { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+      .bg-decor i { position: absolute; display: block; }
+      .bg-decor .glow-1 { width: 46vmax; height: 46vmax; top: -18vmax; left: -12vmax;
+        background: radial-gradient(circle, rgba(212,175,55,.12), transparent 65%); }
+      .bg-decor .glow-2 { width: 40vmax; height: 40vmax; bottom: -16vmax; right: -10vmax;
+        background: radial-gradient(circle, rgba(212,175,55,.09), transparent 65%); }
+      .bg-decor .ring { width: 34vmax; height: 34vmax; top: 8vmax; left: 6vmax;
+        border: 1px solid rgba(212,175,55,.10); border-radius: 50%;
+        transform: rotate(18deg); }
+      .bg-decor .ring::after { content: ""; position: absolute; inset: 12%;
+        border: 1px solid rgba(212,175,55,.07); border-radius: 50%; }
+      .bg-decor .grid { inset: 0; opacity: .5;
+        background-image: linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
+        background-size: clamp(34px, 5vw, 56px) clamp(34px, 5vw, 56px); }
+      .bg-decor .beam { top: 0; bottom: 0; width: 1px; left: 50%;
+        background: linear-gradient(180deg, transparent, rgba(212,175,55,.14), transparent); }
+
+      /* ─── کارت ورود ─── */
+      .login-wrap { position: relative; z-index: 2; width: 100%; max-width: 430px; }
+      .login-card {
+        position: relative;
+        background: linear-gradient(165deg, rgba(255,255,255,.045), rgba(255,255,255,.015) 45%), var(--ink-2);
+        border: 1px solid var(--line);
+        border-radius: clamp(16px, 3vw, 22px);
+        padding: clamp(24px, 5vw, 40px) clamp(20px, 4.6vw, 36px);
+        box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(0,0,0,.4), inset 0 1px 0 rgba(212,175,55,.16);
+        overflow: hidden;
+      }
+      .login-card::before { /* خط طلایی لبهٔ بالای کارت */
+        content: ""; position: absolute; top: 0; right: 10%; left: 10%; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(212,175,55,.75), transparent);
+      }
+      .brand-mini { display: flex; justify-content: center; margin-bottom: 14px; }
+      .brand-mark {
+        width: clamp(52px, 10vw, 62px); height: clamp(52px, 10vw, 62px);
+        border-radius: 16px; display: flex; align-items: center; justify-content: center;
+        font-weight: 800; font-size: clamp(22px, 5vw, 26px); color: var(--gold);
+        background: linear-gradient(150deg, var(--ink-3), var(--ink));
+        border: 1px solid var(--line);
+        box-shadow: inset 0 0 18px rgba(212,175,55,.12), 0 6px 18px rgba(0,0,0,.4);
+        position: relative;
+      }
+      .brand-mark i { position: absolute; width: 9px; height: 9px; border-radius: 50%;
+        background: var(--gold); bottom: -4px; inset-inline-start: -4px;
+        border: 2px solid var(--ink-2); box-shadow: 0 0 10px rgba(212,175,55,.7); }
+      h1 {
+        margin: 0 0 6px; text-align: center; font-weight: 800;
+        font-size: clamp(17px, 3.6vw, 20px); letter-spacing: .2px;
+        background: linear-gradient(180deg, #fdf6dd, var(--gold));
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+      }
+      .sub { text-align: center; color: var(--txt-dim); font-size: clamp(12px, 2.8vw, 13px); margin-bottom: clamp(18px, 4vw, 26px); }
+
+      .form-field { margin-bottom: 15px; }
+      .form-field label { display: block; font-size: 12.5px; color: var(--gold-soft); margin-bottom: 7px; letter-spacing: .3px; }
+      .pw-box { position: relative; }
+      .login-card input {
+        width: 100%; height: clamp(44px, 9vw, 48px);
+        background: rgba(0,0,0,.35);
+        border: 1px solid var(--line-soft);
+        border-radius: 12px; color: var(--txt);
+        padding: 0 14px; font-size: clamp(14px, 3.4vw, 15px); font-family: inherit;
+        transition: border-color .22s, box-shadow .22s, background .22s;
+        outline: none;
+      }
+      .login-card input::placeholder { color: #6c6b64; }
+      .login-card input:hover { border-color: rgba(212,175,55,.35); }
+      .login-card input:focus {
+        border-color: var(--gold);
+        background: rgba(0,0,0,.5);
+        box-shadow: 0 0 0 3px rgba(212,175,55,.14), 0 0 22px rgba(212,175,55,.10);
+      }
+      .login-card input:focus-visible { outline: none; }
+      .pw-box input { padding-inline-start: 14px; padding-inline-end: 46px; }
+      .pw-eye {
+        position: absolute; inset-inline-end: 6px; top: 50%; transform: translateY(-50%);
+        width: 36px; height: 36px; border: 0; border-radius: 10px;
+        background: transparent; color: var(--txt-dim); cursor: pointer;
+        display: flex; align-items: center; justify-content: center; font-size: 17px;
+        transition: color .2s, background .2s;
+      }
+      .pw-eye:hover { color: var(--gold); background: rgba(212,175,55,.08); }
+      .pw-eye:focus-visible { outline: 1px solid var(--gold); }
+
+      /* دکمهٔ ورود طلایی */
+      .btn-gold-lux {
+        position: relative; width: 100%;
+        height: clamp(46px, 9vw, 50px); margin-top: clamp(14px, 3vw, 20px);
+        border: 0; border-radius: 12px; cursor: pointer;
+        font-family: inherit; font-weight: 800; font-size: clamp(14px, 3.4vw, 15px);
+        color: #1a1406;
+        background: linear-gradient(135deg, #f1dc9a 0%, var(--gold) 38%, #b8912a 70%, #d8b64a 100%);
+        box-shadow: 0 8px 24px rgba(212,175,55,.28), inset 0 1px 0 rgba(255,255,255,.55);
+        transition: transform .16s ease, box-shadow .22s, filter .22s;
+        overflow: hidden;
+      }
+      .btn-gold-lux::after { /* درخشش عبوری */
+        content: ""; position: absolute; top: 0; bottom: 0; width: 45%;
+        inset-inline-start: -60%;
+        background: linear-gradient(100deg, transparent, rgba(255,255,255,.5), transparent);
+        transform: skewX(-18deg);
+        transition: inset-inline-start .55s ease;
+      }
+      .btn-gold-lux:hover { filter: brightness(1.06); box-shadow: 0 10px 30px rgba(212,175,55,.4), inset 0 1px 0 rgba(255,255,255,.6); }
+      .btn-gold-lux:hover::after { inset-inline-start: 115%; }
+      .btn-gold-lux:active { transform: translateY(1px) scale(.995); box-shadow: 0 4px 14px rgba(212,175,55,.3); }
+      .btn-gold-lux:disabled { opacity: .65; cursor: wait; filter: saturate(.8); }
+      .btn-gold-lux:focus-visible { outline: 2px solid var(--gold-soft); outline-offset: 2px; }
+
+      .spinner {
+        width: 16px; height: 16px; display: inline-block; vertical-align: -3px;
+        border: 2px solid rgba(20,15,4,.35); border-top-color: #1a1406; border-radius: 50%;
+        margin-inline-end: 8px; animation: spin .7s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      .form-msg {
+        display: none; margin-top: 14px;
+        font-size: 12.8px; line-height: 1.9;
+        border-radius: 10px; padding: 10px 12px;
+        border: 1px solid; animation: shake .35s ease;
+      }
+      .form-msg.err { color: var(--err); border-color: rgba(239,106,106,.4); background: rgba(239,106,106,.08); }
+      .form-msg.info { color: var(--ok); border-color: rgba(62,207,142,.35); background: rgba(62,207,142,.07); }
+      @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(4px); } 75% { transform: translateX(-4px); } }
+
+      .login-creds {
+        margin-top: 18px; padding-top: 14px;
+        border-top: 1px dashed var(--line-soft);
+        font-size: 11.6px; color: var(--txt-dim); line-height: 2; text-align: center;
+      }
+      .back-link { display: block; text-align: center; margin-top: 14px; font-size: 12px; color: var(--txt-dim); text-decoration: none; transition: color .2s; }
+      .back-link:hover { color: var(--gold); }
+
+      .foot-note { margin-top: 22px; text-align: center; font-size: 10.5px; color: #6c6b64; letter-spacing: .4px; }
+      .foot-note b { color: var(--gold-deep); font-weight: 700; }
+
+      @media (prefers-reduced-motion: reduce) {
+        .btn-gold-lux::after, .spinner, .form-msg { animation: none !important; transition: none !important; }
+      }
+      @media (max-width: 380px) {
+        .login-creds { font-size: 11px; }
+      }
+    </style>
   </head>
-  <body class="admin-body">
+  <body>
+    <div class="bg-decor" aria-hidden="true">
+      <i class="grid"></i><i class="glow-1"></i><i class="glow-2"></i><i class="ring"></i><i class="beam"></i>
+    </div>
+
     <div class="login-wrap">
       <div class="login-card">
         <div class="brand-mini">
@@ -21,58 +207,83 @@ import '../../styles/admin.css';
         </div>
         <h1>پنل مدیریت کافه‌دانش</h1>
         <div class="sub">برای ادامه، با حساب مدیریتی وارد شوید</div>
-        <form id="login-form">
-          <div class="form-field" style="margin-bottom:14px">
+
+        <form id="login-form" novalidate>
+          <div class="form-field">
             <label for="username">نام کاربری</label>
-            <input id="username" name="username" type="text" autocomplete="username" required placeholder="admin" />
+            <input id="username" name="username" type="text" autocomplete="username" required placeholder="نام کاربری مدیر" />
           </div>
           <div class="form-field">
             <label for="password">رمز عبور</label>
-            <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="••••••••" />
+            <div class="pw-box">
+              <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="••••••••••" />
+              <button type="button" class="pw-eye" id="pw-eye" aria-label="نمایش رمز" title="نمایش / مخفی‌سازی رمز">🙈</button>
+            </div>
           </div>
-          <div class="form-msg" style="display:none;margin-top:12px"></div>
-          <button type="submit" class="btn btn-gold btn-block" style="margin-top:18px" id="login-btn">ورود به پنل</button>
+          <div class="form-msg" id="login-msg"></div>
+          <button type="submit" class="btn-gold-lux" id="login-btn">ورود به پنل</button>
         </form>
+
         <div class="login-creds">
-          🔐 ورود فقط با اعتبارنامهٔ مدیریتی تنظیم‌شده در محیط امن سرور امکان‌پذیر است. از رمز آزمایشی یا محلی برای ورود به سایت اصلی استفاده نکنید.
+          🔐 ورود فقط با اعتبارنامهٔ مدیریتی امکان‌پذیر است. پس از ۳ تلاش ناموفق، ورود ۱۵ دقیقه مسدود می‌شود.
         </div>
-        <a href="/" style="display:block;text-align:center;margin-top:16px;font-size:12px;color:var(--a-muted)">← بازگشت به سایت</a>
+        <a href="/" class="back-link">← بازگشت به سایت</a>
       </div>
+      <div class="foot-note"><b>کافه‌دانش</b> · سامانه مدیریت یکپارچه محتوا</div>
     </div>
+
     <script>
       document.addEventListener('DOMContentLoaded', () => {
         const form = document.getElementById('login-form') as HTMLFormElement;
-        const msg = form.querySelector('.form-msg') as HTMLElement;
+        const msg = document.getElementById('login-msg') as HTMLElement;
         const btn = document.getElementById('login-btn') as HTMLButtonElement;
-        const params = new URLSearchParams(window.location.search);
-        form.addEventListener('submit', async (e) => {
-          e.preventDefault();
+        const eye = document.getElementById('pw-eye') as HTMLButtonElement;
+        const pw = document.getElementById('password') as HTMLInputElement;
+
+        eye.addEventListener('click', () => {
+          const show = pw.type === 'password';
+          pw.type = show ? 'text' : 'password';
+          eye.textContent = show ? '👁' : '🙈';
+          eye.setAttribute('aria-label', show ? 'مخفی‌سازی رمز' : 'نمایش رمز');
+        });
+
+        function showMsg(text: string, kind: string) {
+          msg.className = 'form-msg ' + kind;
+          msg.style.display = 'block';
+          msg.textContent = text;
+          msg.style.animation = 'none';
+          void msg.offsetWidth; /* ری‌استارت انیمیشن shake */
+          msg.style.animation = '';
+        }
+
+        form.addEventListener('submit', async (ev) => {
+          ev.preventDefault();
+          const username = (document.getElementById('username') as HTMLInputElement).value.trim();
+          const password = pw.value;
+          if (!username || !password) {
+            showMsg('نام کاربری و رمز عبور را کامل وارد کنید', 'err');
+            return;
+          }
           btn.disabled = true;
-          btn.textContent = 'در حال بررسی…';
+          btn.innerHTML = '<span class="spinner"></span>در حال بررسی…';
           msg.style.display = 'none';
           try {
             const res = await fetch('/api/auth/login', {
               method: 'POST',
               headers: { 'content-type': 'application/json' },
-              body: JSON.stringify({
-                username: (document.getElementById('username') as HTMLInputElement).value.trim(),
-                password: (document.getElementById('password') as HTMLInputElement).value,
-              }),
+              body: JSON.stringify({ username, password }),
             });
-            const j = await res.json();
-            if (j.ok) {
-              msg.className = 'form-msg';
-              msg.style.cssText = 'display:block;margin-top:12px;background:var(--a-green-soft);color:var(--a-green);border-radius:10px;padding:10px 14px';
-              msg.textContent = j.message || 'ورود موفق؛ در حال انتقال…';
-              window.location.href = params.get('next') || '/admin';
-            } else {
-              msg.className = 'form-msg';
-              msg.style.cssText = 'display:block;margin-top:12px;background:var(--a-red-soft);color:var(--a-red);border-radius:10px;padding:10px 14px';
-              msg.textContent = j.message || 'ورود ناموفق بود';
+            const j = await res.json().catch(() => ({}));
+            if (res.ok && j.ok) {
+              showMsg('خوش آمدید! در حال انتقال…', 'info');
+              const next = new URLSearchParams(location.search).get('next');
+              const target = j.data && j.data.mustChangePassword ? '/admin/account?force=1' : (next && next.startsWith('/admin') ? next : '/admin');
+              setTimeout(() => window.location.assign(target), 450);
+              return;
             }
-          } catch {
-            msg.textContent = 'خطای شبکه؛ دوباره تلاش کنید';
-            msg.style.display = 'block';
+            showMsg((j && j.message) || 'ورود ناموفق بود؛ دوباره تلاش کنید', 'err');
+          } catch (e) {
+            showMsg('خطای شبکه؛ اتصال اینترنت یا سرور را بررسی کنید', 'err');
           } finally {
             btn.disabled = false;
             btn.textContent = 'ورود به پنل';

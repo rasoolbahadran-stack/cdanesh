@@ -7,5 +7,5 @@ export const prerender = false;
 
 export const GET: APIRoute = async (ctx) => {
   const session = sessionFromCookies(ctx.request.headers.get('cookie') || '');
-  return ok(session ? { logged: true, username: session.u } : { logged: false });
+  return ok(session ? { logged: true, username: session.u, role: session.role, mustChangePassword: !!session.mcp } : { logged: false });
 };

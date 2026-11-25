@@ -6,8 +6,9 @@ import './schema'; // ثبت مایگریشن‌های پایه
 import './schema-v2';
 import './schema-v3'; // ثبت مایگریشن افزایشی (سئو، زمان‌بندی، گالری، پیام‌ها، رمز)
 import './schema-v4'; // گزارش خطا، ریدایرکت اسلاگ و تاریخچه محتوا
+import './schema-v5'; // امنیت حساب‌ها: نقش‌ها، قفل تلاش ورود، نسخهٔ رمز
 import { migrate } from './db';
-import { runSeed } from './seed';
+import { runSeed, ensureBootstrapAdmin } from './seed';
 import { runContentPatch } from './seed/content-patch';
 import { setDbPasswordHash } from './auth';
 import { q1 } from './db';
@@ -19,6 +20,7 @@ export function boot(): Promise<void> {
     g.__cd_boot = (async () => {
       await migrate();
       await runSeed();
+      await ensureBootstrapAdmin().catch((e) => console.warn('[cdanesh] bootstrap admin skipped:', e));
       // پچ محتوایی نسخه‌دار: به‌روزرسانی مقالات seed موجود در دیتابیس (idempotent)
       await runContentPatch().catch((e) => console.warn('[cdanesh] content patch skipped:', e));
       /* هش رمز مدیر ذخیره‌شده در دیتابیس (تغییر رمز از پنل) را در حافظه می‌آورد؛
@@ -28,6 +30,7 @@ export function boot(): Promise<void> {
           `SELECT password_hash FROM users WHERE username = $1`,
           [process.env.ADMIN_USERNAME || 'admin'],
         );
+        // توجه: ورود اصلی از جدول users انجام می‌شود؛ این فقط مرجع اضطراری محیطی است
         setDbPasswordHash(u?.password_hash || '');
       } catch { /* جدول users ممکن است هنوز ساخته نشده باشد؛ مشکلی ایجاد نمی‌کند */ }
       console.log('[cdanesh] database ready (migrate + seed)');

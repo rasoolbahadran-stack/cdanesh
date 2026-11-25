@@ -342,6 +342,36 @@ export async function runSeed(): Promise<void> {
   }
 }
 
+/* ---------- حساب مدیر اولیه (فقط یک‌بار، در نصب تازه) ----------
+   • فقط وقتی هیچ کاربر admin در دیتابیس نباشد ساخته می‌شود؛
+     نصب مجدد یا اجرای دوبارهٔ Migration هرگز حساب موجود را بازنمی‌سازد/بازنشانی نمی‌کند.
+   • رمز اولیه با bcrypt هش می‌شود و هرگز خام ذخیره نمی‌شود.
+   • پرچم must_change_password=1: مدیر پس از اولین ورود ملزم به تغییر رمز است.
+   • روی هاست، نصب‌کنندهٔ cPanel همین کار را با مقادیر انتخابی نصاب انجام می‌دهد. */
+export const BOOTSTRAP_ADMIN_USERNAME = 'azarakhsh';
+const BOOTSTRAP_ADMIN_INITIAL_PASSWORD = 'admin1234';
+
+export async function ensureBootstrapAdmin(): Promise<void> {
+  try {
+    // فقط مدیرِ واقعی (با رمز ذخیره‌شده) مانع ساخت حساب اولیه است؛
+    // ردیف placeholder با هش خالی قابل ورود نیست و حساب نمی‌شود.
+    const admins = await q<{ c: number }>("SELECT COUNT(*) AS c FROM users WHERE role = 'admin' AND password_hash <> ''");
+    if (Number(admins[0]?.c || 0) > 0) return; // حساب مدیر موجود است — دست نمی‌زنیم
+    const dupe = await q1('SELECT id FROM users WHERE username = $1', [BOOTSTRAP_ADMIN_USERNAME]);
+    if (dupe) return;
+    const { hashPassword } = await import('../auth');
+    const hash = await hashPassword(BOOTSTRAP_ADMIN_INITIAL_PASSWORD);
+    await q(
+      "INSERT INTO users (username, display_name, role, password_hash, must_change_password) VALUES ($1,$2,'admin',$3,1)",
+      [BOOTSTRAP_ADMIN_USERNAME, 'مدیر کافه‌دانش', hash],
+    );
+    console.log('[cdanesh] bootstrap admin created: ' + BOOTSTRAP_ADMIN_USERNAME + ' (must change password on first login)');
+    await logActivity('security', 'users', null, 'حساب مدیر اولیه ایجاد شد (تغییر رمز در اولین ورود الزامی است)');
+  } catch (e) {
+    console.warn('[cdanesh] bootstrap admin skipped:', (e as Error).message);
+  }
+}
+
 /* ---------- خواندن تنظیمات با مقدار پیش‌فرض ---------- */
 export async function getSiteSettings(): Promise<typeof SETTINGS_SEED> {
   const row = await q1<{ value: unknown }>('SELECT value FROM settings WHERE key = $1', [SETTINGS_KEY]);

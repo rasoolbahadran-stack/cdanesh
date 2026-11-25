@@ -22,18 +22,25 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   const path = context.url.pathname;
+  const isAdminPath = (p: string) => p === '/admin' || p.startsWith('/admin/');
   /* انتشار مقاله‌های زمان‌بندی‌شده در اولین درخواست پس از رسیدن موعد؛ حداکثر هر ۳۰ ثانیه در هر نمونه سرور */
   const scheduleRuntime = globalThis as unknown as { __cd_schedule_check?: number };
   if (!scheduleRuntime.__cd_schedule_check || Date.now() - scheduleRuntime.__cd_schedule_check > 30_000) {
     scheduleRuntime.__cd_schedule_check = Date.now();
     try {
+      /* الگوی سازگار با MySQL: اول انتخاب مقاله‌های موعدرسیده، بعد انتشار
+         با گارد status='scheduled' تا اجرای هم‌زمان/تکراری دوباره منتشر نکند. */
       const due = await q<{ id: number; title: string }>(
-        `UPDATE posts SET status='published', updated_at=now()
-          WHERE status='scheduled' AND published_at IS NOT NULL AND published_at <= now()
-          RETURNING id, title`
+        `SELECT id, title FROM posts WHERE status='scheduled' AND published_at IS NOT NULL AND published_at <= now() LIMIT 50`
       );
       for (const item of due) {
         try {
+          const done = await q(
+            `UPDATE posts SET status='published', updated_at=now() WHERE id=$1 AND status='scheduled'`,
+            [item.id],
+          );
+          const affected = Number(done[0]?.affectedRows ?? (done.length ? 1 : 0));
+          if (affected === 0) continue; // نمونهٔ دیگر هم‌زمان منتشر کرده است
           await q('INSERT INTO activity(type,entity,entity_id,title) VALUES($1,$2,$3,$4)',
             ['publish', 'posts', item.id, 'انتشار زمان‌بندی‌شده مقاله: ' + String(item.title || '').slice(0, 160)]);
         } catch (logError) { console.warn('[cdanesh] scheduled post activity log failed:', logError); }
@@ -41,8 +48,50 @@ export const onRequest = defineMiddleware(async (context, next) => {
     } catch (error) { console.warn('[cdanesh] scheduled publishing check failed:', error); }
   }
   const request = context.request;
-  const session = sessionFromCookies(request.headers.get('cookie') || '');
+  let session = sessionFromCookies(request.headers.get('cookie') || '');
+  /* اعتبارسنجی سمت سرور نشست‌های دیتابیسی: نسخهٔ رمز (vid) و فعال‌بودن کاربر.
+     تغییر رمز → pwd_version+1 → همهٔ کوکی‌های قبلی بی‌اعتبار می‌شوند. */
+  if (session && session.uid > 0) {
+    try {
+      const row = (await q<{ pwd_version: number; is_active: number | boolean; must_change_password: number | boolean }>(
+        'SELECT pwd_version, is_active, must_change_password FROM users WHERE id = $1',
+        [session.uid],
+      ))[0];
+      if (!row || !(row.is_active === 1 || row.is_active === true) || Number(row.pwd_version) !== Number(session.vid)) {
+        session = null;
+      } else {
+        session.mcp = row.must_change_password === 1 || row.must_change_password === true;
+      }
+    } catch { /* جدول آماده نیست — ادامه با امضای کوکی */ }
+  }
   context.locals.admin = session;
+
+  /* اجبار تغییر رمز اولیه: مدیرِ تازه‌نصب تا تغییر رمز فقط به حساب کاربری می‌رود */
+  const passwordChangeExempt =
+    path === '/api/admin/password' || path === '/api/auth/me' || path === '/api/auth/logout' ||
+    path === '/admin/account' || path === '/admin/login';
+  if (session && session.mcp && (isAdminPath(path) || path.startsWith('/api/admin')) && !passwordChangeExempt) {
+    if (path.startsWith('/api')) {
+      return new Response(JSON.stringify({ ok: false, error: 'PASSWORD_CHANGE_REQUIRED', message: 'برای ادامه ابتدا رمز عبور اولیه را تغییر دهید' }), {
+        status: 403, headers: { 'content-type': 'application/json; charset=utf-8' },
+      });
+    }
+    return context.redirect('/admin/account?force=1', 302);
+  }
+
+  /* کنترل دسترسی نقش‌ها: editor به تنظیمات سیستم، مدیریت کاربران و ابزارهای سیستمی دسترسی ندارد */
+  const editorBlockedPages = path.startsWith('/admin/settings') || path.startsWith('/admin/users');
+  const editorBlockedApis =
+    path.startsWith('/api/admin/settings') || path.startsWith('/api/admin/users') ||
+    path.startsWith('/api/admin/system') || path.startsWith('/api/admin/ai-config');
+  if (session && session.role !== 'admin' && (editorBlockedPages || editorBlockedApis)) {
+    if (path.startsWith('/api')) {
+      return new Response(JSON.stringify({ ok: false, error: 'FORBIDDEN', message: 'این بخش فقط برای مدیر سیستم است' }), {
+        status: 403, headers: { 'content-type': 'application/json; charset=utf-8' },
+      });
+    }
+    return context.redirect('/admin', 302);
+  }
 
   /* ---------- بررسی Origin برای POST/PUT/PATCH/DELETE (ضد CSRF) ----------
      جایگزین دقیق checkOrigin داخلی Astro: از هدرهای forwarded استفاده می‌کند
@@ -83,7 +132,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     } catch { /* در صورت نبود رکورد، مسیر اصلی ادامه می‌یابد */ }
   }
   /* مسیرهای مدیریتی */
-  const isAdminPage = path === '/admin' || path.startsWith('/admin/');
+  const isAdminPage = isAdminPath(path);
   const isAdminPageLogin = path === '/admin/login';
   const isAdminApi = path.startsWith('/api/admin');
 

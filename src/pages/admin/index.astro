@@ -17,7 +17,7 @@ const faDate = (v: unknown, withTime = false) => {
 };
 
 const dbUp = dbAvailable();
-const dbKind = dbUp ? (String(process.env.DATABASE_URL || '').startsWith('postgres') ? 'PostgreSQL (Neon)' : 'PostgreSQL') : 'PGlite محلی';
+const dbKind = dbUp ? (/^mysql:/i.test(String(process.env.DATABASE_URL || '')) ? 'MySQL/MariaDB (هاست)' : (/^postgres/i.test(String(process.env.DATABASE_URL || '')) ? 'PostgreSQL' : 'PGlite محلی')) : 'PGlite محلی';
 
 type Row = Record<string, unknown>;
 let dbOk = true;
@@ -30,21 +30,21 @@ let categoryBars: Array<{ name: string; count: number }> = [];
 
 try {
   const [p, pg, sv, pr, ct, pl, fq, ts, md, ms, er, ac, catRows] = await Promise.all([
-    q<Row>(`SELECT COUNT(*) FILTER (WHERE status='published')::int AS published,
-      COUNT(*) FILTER (WHERE status='draft')::int AS draft,
-      COUNT(*) FILTER (WHERE status='scheduled')::int AS scheduled FROM posts`),
-    q<Row>(`SELECT COUNT(*) FILTER (WHERE status='published')::int AS pages_pub,
-      COUNT(*) FILTER (WHERE status='draft')::int AS pages_draft FROM pages`),
-    q<Row>(`SELECT COUNT(*)::int AS services, COUNT(*) FILTER (WHERE status='draft')::int AS draft FROM services`),
-    q<Row>(`SELECT COUNT(*) FILTER (WHERE status='published')::int AS portfolio FROM projects`),
-    q<Row>(`SELECT COUNT(*)::int AS categories FROM categories`),
-    q<Row>(`SELECT COUNT(*)::int AS plans FROM plans`),
-    q<Row>(`SELECT COUNT(*)::int AS faqs FROM faqs`),
-    q<Row>(`SELECT COUNT(*)::int AS testimonials FROM testimonials`),
-    q<Row>(`SELECT COUNT(*)::int AS media, COALESCE(SUM(size),0)::bigint AS bytes FROM media`),
-    q<Row>(`SELECT COUNT(*) FILTER (WHERE status <> 'archived')::int AS messages,
-      COUNT(*) FILTER (WHERE status = 'new')::int AS unread FROM messages`),
-    q<Row>(`SELECT COUNT(*) FILTER (WHERE status <> 'resolved')::int AS open FROM error_reports`),
+    q<Row>(`SELECT SUM(CASE WHEN status='published' THEN 1 ELSE 0 END) AS published,
+      SUM(CASE WHEN status='draft' THEN 1 ELSE 0 END) AS draft,
+      SUM(CASE WHEN status='scheduled' THEN 1 ELSE 0 END) AS scheduled FROM posts`),
+    q<Row>(`SELECT SUM(CASE WHEN status='published' THEN 1 ELSE 0 END) AS pages_pub,
+      SUM(CASE WHEN status='draft' THEN 1 ELSE 0 END) AS pages_draft FROM pages`),
+    q<Row>(`SELECT COUNT(*) AS services, SUM(CASE WHEN status='draft' THEN 1 ELSE 0 END) AS draft FROM services`),
+    q<Row>(`SELECT SUM(CASE WHEN status='published' THEN 1 ELSE 0 END) AS portfolio FROM projects`),
+    q<Row>(`SELECT COUNT(*) AS categories FROM categories`),
+    q<Row>(`SELECT COUNT(*) AS plans FROM plans`),
+    q<Row>(`SELECT COUNT(*) AS faqs FROM faqs`),
+    q<Row>(`SELECT COUNT(*) AS testimonials FROM testimonials`),
+    q<Row>(`SELECT COUNT(*) AS media, COALESCE(SUM(size),0) AS bytes FROM media`),
+    q<Row>(`SELECT SUM(CASE WHEN status <> 'archived' THEN 1 ELSE 0 END) AS messages,
+      SUM(CASE WHEN status = 'new' THEN 1 ELSE 0 END) AS unread FROM messages`),
+    q<Row>(`SELECT SUM(CASE WHEN status <> 'resolved' THEN 1 ELSE 0 END) AS open FROM error_reports`),
     q<Row>(`SELECT type, entity, title, created_at FROM activity ORDER BY created_at DESC LIMIT 8`),
     q<Row>(`SELECT c.name, COUNT(p.id)::int AS count FROM categories c
       LEFT JOIN posts p ON p.category_id = c.id AND p.status = 'published'
@@ -65,21 +65,32 @@ try {
   categoryBars = catRows.map((r) => ({ name: String(r.name || 'بدون نام'), count: Number(r.count || 0) }));
 
   /* روند ۸ هفتهٔ اخیر: ایجاد و انتشار مقاله (داده واقعی) */
-  const trendRows = await q<Row>(`
-    SELECT d.wk,
-      COUNT(*) FILTER (WHERE created_at >= d.wk AND created_at < d.wk + interval '7 days')::int AS created,
-      COUNT(*) FILTER (WHERE published_at >= d.wk AND published_at < d.wk + interval '7 days')::int AS published
-    FROM generate_series(
-      (date_trunc('week', now() - interval '7 weeks'))::timestamptz,
-      date_trunc('week', now())::timestamptz,
-      interval '7 days'
-    ) AS d(wk)
-    LEFT JOIN posts ON true
-    GROUP BY d.wk ORDER BY d.wk`);
-  weekly = trendRows.map((r) => {
-    const wk = new Date(String(r.wk));
+  /* روند هفتگی به‌صورت محاسبهٔ سمت سرور اپلیکیشن (سازگار با MySQL و Postgres) */
+  const statsRows = await q<Row>(
+    `SELECT created_at, published_at FROM posts WHERE created_at >= DATE_SUB(now(), INTERVAL 56 DAY) OR published_at >= DATE_SUB(now(), INTERVAL 56 DAY)`
+  );
+  const startOfWeek = (d0: Date): Date => { const d = new Date(d0); const day = (d.getDay() + 6) % 7; d.setDate(d.getDate() - day); d.setHours(0, 0, 0, 0); return d; };
+  const weeks: Array<{ wk: Date; created: number; published: number }> = [];
+  {
+    const thisWeek = startOfWeek(new Date());
+    for (let i = 7; i >= 0; i--) {
+      const wk = new Date(thisWeek); wk.setDate(wk.getDate() - i * 7);
+      weeks.push({ wk, created: 0, published: 0 });
+    }
+    for (const r of statsRows) {
+      const c = r.created_at ? new Date(String(r.created_at)) : null;
+      const pub = r.published_at ? new Date(String(r.published_at)) : null;
+      for (const w of weeks) {
+        const end = new Date(w.wk); end.setDate(end.getDate() + 7);
+        if (c && c >= w.wk && c < end) w.created++;
+        if (pub && pub >= w.wk && pub < end) w.published++;
+      }
+    }
+  }
+  weekly = weeks.map((w) => {
+    const wk = w.wk;
     const label = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { month: 'long', day: 'numeric' }).format(wk);
-    const created = Number(r.created || 0), published = Number(r.published || 0);
+    const created = Number(w.created || 0), published = Number(w.published || 0);
     return { label, created, published, total: created + published };
   });
 } catch { dbOk = false; }

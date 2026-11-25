@@ -1,6 +1,6 @@
 export const prerender = false;
 import type { APIRoute } from 'astro';
-import { q, q1 } from '../../../lib/db';
+import { q, q1, getTableColumns, syncSequence } from '../../../lib/db';
 import { sessionFromCookies } from '../../../lib/auth';
 import { logActivity } from '../../../lib/seed';
 import { deleteImage } from '../../../lib/storage';
@@ -28,16 +28,9 @@ const asObject = (value: unknown): Record<string, any> => {
   }
   return {};
 };
-async function ensureTrashTable() {
-  await q(`CREATE TABLE IF NOT EXISTS cdanesh_admin_trash (
-    id bigserial PRIMARY KEY,
-    entity text NOT NULL,
-    entity_id bigint NOT NULL,
-    snapshot jsonb NOT NULL,
-    deleted_at timestamptz NOT NULL DEFAULT now(),
-    restored_at timestamptz
-  )`);
-}
+/* جدول سطل زباله: نسخهٔ سازگار با هر سه درایور از lib/trash (در MySQL
+   از مایگریشن پایه ساخته می‌شود و اجرای DDL PostgreSQL در اینجا خطا می‌داد) */
+const ensureTrashTable = () => import('../../../lib/trash').then((m) => m.ensureTrashTable());
 
 export const GET: APIRoute = async ({ request }) => {
   if (!allowed(request)) return json({ ok: false, message: 'ابتدا وارد پنل شوید' }, 401);
@@ -87,21 +80,33 @@ export const POST: APIRoute = async ({ request }) => {
     if (item.entity === 'media') {
       const exists = await q1('SELECT id FROM media WHERE id = $1', [id]);
       if (exists) return json({ ok: false, message: 'این رسانه هم‌اکنون در کتابخانه وجود دارد' }, 409);
+      const createdAtRaw = snapshot.created_at ? new Date(String(snapshot.created_at)) : null;
+      const createdAt = createdAtRaw && !isNaN(createdAtRaw.getTime()) ? createdAtRaw.toISOString().slice(0, 19).replace('T', ' ') : null;
       await q(
-        'INSERT INTO media (id, filename, url, mime, size, alt, created_at) VALUES ($1,$2,$3,$4,$5,$6,COALESCE($7::timestamptz, now()))',
-        [id, String(snapshot.filename || ''), String(snapshot.url || ''), String(snapshot.mime || 'application/octet-stream'), Number(snapshot.size) || 0, String(snapshot.alt || ''), snapshot.created_at || null],
+        'INSERT INTO media (id, filename, url, mime, size, alt, created_at) VALUES ($1,$2,$3,$4,$5,$6,COALESCE($7, now()))',
+        [id, String(snapshot.filename || ''), String(snapshot.url || ''), String(snapshot.mime || 'application/octet-stream'), Number(snapshot.size) || 0, String(snapshot.alt || ''), createdAt],
       );
-      await q("SELECT setval(pg_get_serial_sequence('media', 'id'), GREATEST((SELECT COALESCE(MAX(id), 1) FROM media), 1), true)");
+      await syncSequence('media');
     } else {
       const table = TABLES[item.entity];
       if (!table) return json({ ok: false, message: 'نوع این مورد قابل بازیابی نیست' }, 400);
       const exists = await q1(`SELECT id FROM ${table} WHERE id = $1`, [id]);
       if (exists) return json({ ok: false, message: 'رکوردی با این شناسه در حال حاضر وجود دارد' }, 409);
+      /* بازیابی سازگار با همهٔ درایورها: درج ستون‌به‌ستون بر اساس ستون‌های واقعی جدول */
+      const tableCols = await getTableColumns(table);
+      const usable = Object.keys(snapshot).filter((k) => /^[a-z_][a-z0-9_]*$/i.test(k) && tableCols.includes(k));
+      if (!usable.includes('id')) usable.unshift('id');
+      const ph = usable.map((_, i) => `$${i + 1}`).join(', ');
+      /* تاریخ‌های ISO ذخیره‌شده در snapshot به فرمت DATETIME MySQL تبدیل می‌شوند */
+      const isoToDate = (v: unknown): unknown =>
+        (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(v))
+          ? new Date(v).toISOString().slice(0, 19).replace('T', ' ')
+          : v;
       await q(
-        `INSERT INTO ${table} SELECT * FROM jsonb_populate_record(NULL::${table}, $1::jsonb)`,
-        [JSON.stringify(snapshot)],
+        `INSERT INTO ${table} (${usable.join(', ')}) VALUES (${ph})`,
+        usable.map((c) => (c === 'id' ? id : isoToDate(snapshot[c]))),
       );
-      await q(`SELECT setval(pg_get_serial_sequence('${table}', 'id'), GREATEST((SELECT COALESCE(MAX(id), 1) FROM ${table}), 1), true)`);
+      await syncSequence(table);
     }
     await q('UPDATE cdanesh_admin_trash SET restored_at = now() WHERE id = $1', [trashId]);
     await logActivity('restore', item.entity, id, 'مورد از سطل زباله بازیابی شد');

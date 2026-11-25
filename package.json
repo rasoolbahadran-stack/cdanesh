@@ -20,6 +20,8 @@
     "@electric-sql/pglite": "^0.3.5",
     "@vercel/blob": "^2.0.0",
     "astro": "^5.14.0",
+    "bcryptjs": "^3.0.3",
+    "mysql2": "^3.24.6",
     "pg": "^8.16.0"
   },
   "devDependencies": {

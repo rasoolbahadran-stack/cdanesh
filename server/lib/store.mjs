@@ -18,11 +18,18 @@ import { blobHead, blobPut, blobFetch, PUBLIC_MS, ADMIN_MS } from './blob-safe.m
 export const DB_MS = 20000; // سقف هر پرس‌وجوی دیتابیس
 
 /* ─── تشخیص حالت ───
-   فقط رشتهٔ اتصال واقعی Postgres معتبر است؛ هر مقدار دیگری (مقدار اشتباه،
-   آدرس فایل و…) نادیده گرفته می‌شود تا به‌جای خطا، به حالت سازگاری Blob برویم. */
-export function dbEnabled() {
+   رشتهٔ اتصال معتبر Postgres یا MySQL/MariaDB پذیرفته می‌شود؛ هر مقدار دیگری
+   (مقدار اشتباه، آدرس فایل و…) نادیده گرفته می‌شود تا به‌جای خطا، به حالت
+   سازگاری Blob برویم. روی هاست cPanel مسیر MySQL/MariaDB استفاده می‌شود. */
+export function dbKind() {
   const cs = process.env.DATABASE_URL || '';
-  return /^postgres(ql)?:\/\//i.test(cs);
+  if (/^mysql:\/\//i.test(cs)) return 'mysql';
+  if (/^postgres(ql)?:\/\//i.test(cs)) return 'pg';
+  return null;
+}
+
+export function dbEnabled() {
+  return dbKind() !== null;
 }
 
 /* ─── استخر اتصال (تنبل + یکی برای کل پروسه) ─── */
@@ -53,6 +60,51 @@ async function getPool() {
   return _pool;
 }
 
+/* ─── استخر MySQL/MariaDB (هاست cPanel) ─── */
+let _mysqlPool = null;
+let _mysqlSchemaPromise = null;
+
+async function getMysqlPool() {
+  if (_mysqlPool) return _mysqlPool;
+  const mysql = await import('mysql2/promise');
+  const cs = process.env.DATABASE_URL;
+  const u = new URL(cs);
+  _mysqlPool = mysql.createPool({
+    host: u.hostname || 'localhost',
+    port: Number(u.port || 3306),
+    user: decodeURIComponent(u.username || 'root'),
+    password: decodeURIComponent(u.password || ''),
+    database: decodeURIComponent(u.pathname.replace(/^\//, '')) || undefined,
+    waitForConnections: true,
+    connectionLimit: 3,
+    charset: 'utf8mb4_unicode_ci',
+    timezone: 'Z',
+    supportBigNumbers: true,
+  });
+  return _mysqlPool;
+}
+
+async function ensureSchemaMysql() {
+  if (!_mysqlSchemaPromise) {
+    _mysqlSchemaPromise = (async () => {
+      const pool = await getMysqlPool();
+      await withTimeout(pool.query(`CREATE TABLE IF NOT EXISTS cd_docs (
+        \`key\`   VARCHAR(190) PRIMARY KEY,
+        \`value\` JSON NOT NULL,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`), 15000);
+      await withTimeout(pool.query(`CREATE TABLE IF NOT EXISTS cd_revisions (
+        id       BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        doc_key  VARCHAR(190) NOT NULL,
+        \`data\` JSON NOT NULL,
+        saved_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        INDEX cd_revisions_doc_idx (doc_key, saved_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`), 15000);
+    })().catch(e => { _mysqlSchemaPromise = null; throw e; });
+  }
+  return _mysqlSchemaPromise;
+}
+
 async function withTimeout(p, ms) {
   let t;
   const timeout = new Promise((_, rej) => { t = setTimeout(() => rej(new Error('DB_TIMEOUT')), ms || DB_MS); });
@@ -62,6 +114,7 @@ async function withTimeout(p, ms) {
 
 /* ─── ساخت خودکار جدول‌ها (یک‌بار در هر پروسه) ─── */
 export async function ensureSchema() {
+  if (dbKind() === 'mysql') return ensureSchemaMysql();
   if (!_schemaPromise) {
     _schemaPromise = (async () => {
       const pool = await getPool();
@@ -90,6 +143,11 @@ export async function ensureSchema() {
 export async function pingDb() {
   if (!dbEnabled()) return { enabled: false, ok: false, error: 'NOT_CONFIGURED' };
   try {
+    if (dbKind() === 'mysql') {
+      const pool = await getMysqlPool();
+      await withTimeout(pool.query('SELECT 1'), 8000);
+      return { enabled: true, ok: true, error: '' };
+    }
     const pool = await getPool();
     await withTimeout(pool.query('SELECT 1'), 8000);
     return { enabled: true, ok: true, error: '' };
@@ -112,6 +170,12 @@ async function readDocBlob(key) {
 
 export async function readDoc(key, opts = {}) {
   if (dbEnabled()) {
+    if (dbKind() === 'mysql') {
+      const pool = await getMysqlPool();
+      await ensureSchemaMysql();
+      const [rows] = await withTimeout(pool.query('SELECT \`value\` FROM cd_docs WHERE \`key\` = ?', [key]), opts.ms);
+      return rows.length ? rows[0].value : null;
+    }
     const pool = await getPool();
     await ensureSchema();
     const r = await withTimeout(pool.query('SELECT value FROM cd_docs WHERE key = $1', [key]), opts.ms);
@@ -127,6 +191,15 @@ export async function readDoc(key, opts = {}) {
 
 export async function writeDoc(key, value, opts = {}) {
   if (dbEnabled()) {
+    if (dbKind() === 'mysql') {
+      const pool = await getMysqlPool();
+      await ensureSchemaMysql();
+      await withTimeout(pool.query(
+        'INSERT INTO cd_docs (\`key\`, \`value\`, updated_at) VALUES (?, ?, now()) ON DUPLICATE KEY UPDATE \`value\` = VALUES(\`value\`), updated_at = now()',
+        [key, JSON.stringify(value == null ? null : value)]
+      ), opts.ms || ADMIN_MS);
+      return;
+    }
     const pool = await getPool();
     await ensureSchema();
     await withTimeout(pool.query(
@@ -153,6 +226,28 @@ function isBlobNotFound(e) {
    fn(cur) → مقدار جدید؛ اگر fn خطا بدهد، هیچ تغییری نوشته نمی‌شود.
    خروجی: { prev, next } — prev مقدار پیش از تغییر (برای تاریخچهٔ نسخه‌ها). */
 export async function modifyDoc(key, fn, opts = {}) {
+  if (dbEnabled() && dbKind() === 'mysql') {
+    const pool = await getMysqlPool();
+    await ensureSchemaMysql();
+    const conn = await pool.getConnection();
+    try {
+      await withTimeout(conn.beginTransaction(), opts.ms);
+      const [rows] = await withTimeout(conn.query('SELECT \`value\` FROM cd_docs WHERE \`key\` = ? FOR UPDATE', [key]), opts.ms);
+      const prev = rows.length ? rows[0].value : null;
+      const next = await fn(prev);
+      await withTimeout(conn.query(
+        'INSERT INTO cd_docs (\`key\`, \`value\`, updated_at) VALUES (?, ?, now()) ON DUPLICATE KEY UPDATE \`value\` = VALUES(\`value\`), updated_at = now()',
+        [key, JSON.stringify(next)]
+      ), opts.ms);
+      await withTimeout(conn.commit(), opts.ms);
+      return { prev, next };
+    } catch (e) {
+      try { await conn.rollback(); } catch (e2) { /* noop */ }
+      throw e;
+    } finally {
+      conn.release();
+    }
+  }
   if (dbEnabled()) {
     const pool = await getPool();
     await ensureSchema();
@@ -189,6 +284,25 @@ export function revisionsSupported() {
 
 export async function addRevision(docKey, data, opts = {}) {
   if (!dbEnabled()) return false;
+  if (dbKind() === 'mysql') {
+    const pool = await getMysqlPool();
+    await ensureSchemaMysql();
+    await withTimeout(pool.query(
+      'INSERT INTO cd_revisions (doc_key, \`data\`) VALUES (?, ?)',
+      [docKey, JSON.stringify(data)]
+    ), opts.ms || ADMIN_MS);
+    /* نگه‌داری ۱۰ نسخهٔ آخر برای هر سند (الگوی سازگار با MySQL) */
+    await withTimeout(pool.query(
+      `DELETE FROM cd_revisions
+        WHERE doc_key = ?
+          AND id NOT IN (
+            SELECT id FROM (
+              SELECT id FROM cd_revisions WHERE doc_key = ? ORDER BY saved_at DESC, id DESC LIMIT 10
+            ) keep_rows
+          )`, [docKey, docKey]
+    ), opts.ms || ADMIN_MS).catch(() => { /* هرم کردن نسخه‌های قدیمی حیاتی نیست */ });
+    return true;
+  }
   const pool = await getPool();
   await ensureSchema();
   await withTimeout(pool.query(
@@ -209,6 +323,15 @@ export async function addRevision(docKey, data, opts = {}) {
 
 export async function listRevisions(docKey, limit = 10, opts = {}) {
   if (!dbEnabled()) return [];
+  if (dbKind() === 'mysql') {
+    const pool = await getMysqlPool();
+    await ensureSchemaMysql();
+    const [rows] = await withTimeout(pool.query(
+      'SELECT id, saved_at, \`data\` FROM cd_revisions WHERE doc_key = ? ORDER BY saved_at DESC, id DESC LIMIT ?',
+      [docKey, limit]
+    ), opts.ms);
+    return rows.map(row => ({ id: row.id, savedAt: row.saved_at, data: row.data }));
+  }
   const pool = await getPool();
   await ensureSchema();
   const r = await withTimeout(pool.query(
@@ -222,6 +345,16 @@ export async function listRevisions(docKey, limit = 10, opts = {}) {
 export async function dbDocInfo(key) {
   if (!dbEnabled()) return { exists: false };
   try {
+    if (dbKind() === 'mysql') {
+      const pool = await getMysqlPool();
+      await ensureSchemaMysql();
+      const [rows] = await withTimeout(pool.query(
+        'SELECT updated_at, LENGTH(\`value\`) AS bytes FROM cd_docs WHERE \`key\` = ?', [key]
+      ), 8000);
+      return rows.length
+        ? { exists: true, updatedAt: rows[0].updated_at, bytes: Number(rows[0].bytes || 0) }
+        : { exists: false };
+    }
     const pool = await getPool();
     await ensureSchema();
     const r = await withTimeout(pool.query(

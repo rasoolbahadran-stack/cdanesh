@@ -1,0 +1,13 @@
+# کافه‌دانش — deployment/cpanel
+# این فایل نمونه است؛ سی‌پنل هنگام ساخت Node.js App خودش htaccess ریشه را می‌نویسد.
+# اگر دستی می‌چینید، این محتوا را در public_html قرار دهید و «APP_DIR» را تنظیم کنید.
+
+RewriteEngine On
+
+# مسیر نصب‌کننده فقط تا پایان نصب باز است؛ پس از آن قفل می‌شود
+# (نصب‌کننده خودش .htaccess داخل پوشهٔ installer می‌نویسد)
+
+# مسیر رسانه‌های آپلودی — اجرای اسکریپت در پوشهٔ داده مسدود است
+<IfModule mod_rewrite.c>
+  RewriteRule ^data/uploads/ - [F,L]
+</IfModule>

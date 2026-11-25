@@ -35,13 +35,20 @@ const groups = [
       { href: '/admin/settings?tab=seo', label: 'تنظیمات سئو', icon: 'seo', key: 'seo' },
     ],
   },
+  {
+    label: 'حساب و دسترسی',
+    items: [
+      { href: '/admin/account', label: 'حساب کاربری', icon: 'settings', key: 'account' },
+      ...(String(Astro.locals.admin?.role || 'admin') === 'admin' ? [{ href: '/admin/users', label: 'مدیریت کاربران', icon: 'pages', key: 'users' }] : []),
+    ],
+  },
 ];
 const active=path==='/admin'?'dashboard':path.startsWith('/admin/posts')||path.startsWith('/admin/history')?'posts':
 path.startsWith('/admin/pages')?'pages':path.startsWith('/admin/categories')?'categories':path.startsWith('/admin/media')?'media':
 path.startsWith('/admin/portfolio')?'portfolio':path.startsWith('/admin/services')?'services':path.startsWith('/admin/pricing')?'pricing':
 path.startsWith('/admin/faq')?'faq':path.startsWith('/admin/testimonials')?'testimonials':path.startsWith('/admin/messages')?'messages':
 path.startsWith('/admin/activity')?'activity':path.startsWith('/admin/trash')?'trash':path.startsWith('/admin/assistant')?'assistant':
-path.startsWith('/admin/errors')?'errors':path.startsWith('/admin/settings')?(Astro.url.searchParams.get('tab')==='seo'?'seo':'settings'):'';
+path.startsWith('/admin/errors')?'errors':path.startsWith('/admin/users')?'users':path.startsWith('/admin/account')?'account':path.startsWith('/admin/settings')?(Astro.url.searchParams.get('tab')==='seo'?'seo':'settings'):'';
 ---
 <!doctype html><html lang="fa" dir="rtl"><head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
@@ -80,7 +87,7 @@ path.startsWith('/admin/errors')?'errors':path.startsWith('/admin/settings')?(As
 <main class="admin-main"><header class="admin-topbar"><button type="button" class="side-open-m" aria-label="بازکردن منو"><i class="ico" aria-hidden="true" set:html={ICONS.menu} /> <span>منو</span></button>
 <div class="admin-topbar__heading"><h1>{title}</h1>{crumb&&<div class="crumb">{crumb}</div>}</div>
 <div class="actions"><span class="top-status"><i></i> اتصال مدیریت فعال</span><a class="btn btn-ghost btn-sm" href="/admin/assistant"><i class="ico" aria-hidden="true" set:html={ICONS.assistant} /> <span>دستیار هوشمند</span></a><a class="btn btn-ghost btn-sm" href="/" target="_blank" rel="noopener"><i class="ico" aria-hidden="true" set:html={ICONS.external} /> <span>مشاهده سایت</span></a></div>
-</header><div class="admin-content"><slot/></div><footer class="admin-footer"><span>کافه دانش · مدیریت یکپارچه محتوا</span><span>Astro + PostgreSQL</span></footer></main>
+</header><div class="admin-content"><slot/></div><footer class="admin-footer"><span>کافه دانش · مدیریت یکپارچه محتوا</span><span>Astro + پایگاه‌دادهٔ خودمیزبان</span></footer></main>
 </div><script>
 import '../scripts/admin.ts';
 

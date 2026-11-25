@@ -20,8 +20,17 @@ export const ALLOWED_MIME: Record<string, string> = {
   'image/svg+xml': 'svg',
 };
 
+/* استقرار cPanel/ایران‌هاست: پیش‌فرض ذخیرهٔ محلی روی فضای هاست است.
+   Vercel Blob فقط وقتی فعال می‌شود که صریحاً MEDIA_DRIVER=blob تنظیم شده باشد؛
+   بنابراین اجرای اصلی سایت هرگز به سرویس ذخیره‌سازی خارجی وابسته نیست. */
 export function storageKind(): 'blob' | 'local' {
-  return hasEnv('BLOB_READ_WRITE_TOKEN') ? 'blob' : 'local';
+  return hasEnv('BLOB_READ_WRITE_TOKEN') && process.env.MEDIA_DRIVER === 'blob' ? 'blob' : 'local';
+}
+
+/** پوشهٔ رسانه‌های محلی — خارج از مسیر عمومی وب (پیش‌فرض: data/uploads) */
+export function mediaDir(): string {
+  const custom = process.env.MEDIA_DIR || '';
+  return path.resolve(process.cwd(), custom || 'data/uploads');
 }
 
 function safeName(original: string): string {
@@ -68,7 +77,7 @@ export async function saveImage(file: File): Promise<SaveResult> {
   }
 
   try {
-    const dir = path.resolve(process.cwd(), 'public/uploads');
+    const dir = mediaDir();
     await fs.mkdir(dir, { recursive: true });
     await fs.writeFile(path.join(dir, filename), buffer);
     return { ok: true, url: `/uploads/${filename}`, filename, mime, size: buffer.length };
@@ -86,7 +95,7 @@ export async function deleteImage(url: string): Promise<boolean> {
       return true;
     }
     const name = path.basename(url);
-    await fs.unlink(path.resolve(process.cwd(), 'public/uploads', name));
+    await fs.unlink(path.join(mediaDir(), name));
     return true;
   } catch {
     return false;
